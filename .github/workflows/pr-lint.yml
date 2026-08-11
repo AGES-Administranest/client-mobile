@@ -6,21 +6,6 @@ on:
     branches: [dev, production]
 
 jobs:
-  branch-name:
-    name: Branch name
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate branch name
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-        run: |
-          pattern='^(feat|fix|chore|refactor|docs|style|test|perf|build|ci|revert)/[a-z0-9._-]+$'
-          echo "Branch: $HEAD_REF"
-          if [[ ! "$HEAD_REF" =~ $pattern ]]; then
-            echo "::error::Nome de branch inválido: '$HEAD_REF'. Use <tipo>/<descricao>, ex: feat/login-screen, fix/crash-on-open. Tipos válidos: feat, fix, chore, refactor, docs, style, test, perf, build, ci, revert."
-            exit 1
-          fi
-
   pr-title:
     name: PR title (squash commit message)
     runs-on: ubuntu-latest
