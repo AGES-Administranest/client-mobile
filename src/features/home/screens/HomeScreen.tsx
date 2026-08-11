@@ -1,22 +1,27 @@
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View } from 'react-native';
 
 export function HomeScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-
   return (
     <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
+      <Text style={styles.title}>Administranest</Text>
+      <Text style={styles.subtitle}>client-mobile is up and running.</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    alignItems: 'center',
     flex: 1,
+    justifyContent: 'center',
+  },
+  subtitle: {
+    color: '#666666',
+    fontSize: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 8,
   },
 });
