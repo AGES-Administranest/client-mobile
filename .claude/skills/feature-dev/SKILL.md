@@ -9,9 +9,11 @@ This is the "just build it, correctly" path. If the person asking wants to be wa
 through the *why* of each decision instead of getting a finished implementation, use the
 `feature-mentor` skill instead — same architecture, different mode.
 
-`src/features/home` is the living reference for everything below (see the README's
-Architecture section). When in doubt about shape or naming, look at how that feature does it
-before inventing a new convention.
+The README's Architecture section names a current reference feature under `src/features/` —
+a real feature kept as a living example of the pattern. Read it there rather than assuming
+which one it is here; that reference changes as the codebase evolves, and the README is
+kept in sync with it, this skill isn't. When in doubt about shape or naming, look at how
+that feature actually does it before inventing a new convention.
 
 ## 0. Scope it before touching files
 
@@ -30,14 +32,15 @@ by habit:
 
 - **Pure decision, calculation, or validation logic** (no I/O, no React) → `domain/`.
 - **Talks to an API, storage, or any external system** → `services/`. No real backend yet?
-  Stub it with a realistic async signature (see `services/currentUserService.ts`) so it's a
-  one-line swap later — don't invent a fake shape that won't match the real thing.
+  Stub it with a realistic async signature — check the reference feature's `services/` for
+  how this repo currently does that — so it's a one-line swap later, not a fake shape that
+  won't match the real thing.
 - **Owns loading/error state, wires domain + services together for a screen** → `hooks/`.
 - **Presentational, takes already-computed and already-translated props, no direct calls to
   services/domain/i18n** → `components/`, and only if it's feature-local. Something used by
   2+ features belongs in `shared/` — but only once it's *actually* reused, not preemptively.
 - **The route target that composes hook + components** → `screens/`. This is the only place
-  that should call `useTranslation` directly, matching the Home example.
+  that should call `useTranslation` directly, matching the reference feature's pattern.
 
 Export only what other features need from `index.ts`. Everything else stays unexported —
 that file *is* the feature's contract with the rest of the app.
@@ -49,8 +52,8 @@ around it — no `react`/`react-native` imports, no reaching into `screens/`, `c
 `hooks/`, or `services/` (ESLint enforces this, but write it clean the first time).
 
 Every non-trivial domain function gets a unit test that covers its actual edge cases and
-boundaries — not a single happy-path assertion. `getGreetingPeriod.test.ts` is the pattern:
-one case per boundary the function actually branches on.
+boundaries — not a single happy-path assertion. The reference feature's domain tests are the
+pattern to follow: one case per boundary the function actually branches on.
 
 ## 3. i18n — every user-facing string goes through `t()`
 

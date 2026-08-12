@@ -157,7 +157,7 @@ src/
 
 A feature only needs the subfolders it actually uses — don't create empty `domain/`/`services/` just to follow the template.
 
-**`src/features/home`** uses every subfolder and is meant as a living reference for the pattern:
+**`src/features/home`** uses every subfolder and is meant as a living reference for the pattern — the `feature-dev`, `feature-mentor`, and `repo-review` skills all point here rather than hardcoding a feature name. If `home` is ever removed or simplified, update this section to point at whichever feature best demonstrates the full pattern next, so those skills keep working without edits:
 
 - `domain/getGreetingPeriod.ts` — a pure function (plus its unit test) with no framework dependency.
 - `services/currentUserService.ts` — the data layer, stubbed until there's a real endpoint.
