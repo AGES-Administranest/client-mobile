@@ -16,6 +16,7 @@ Administranest mobile app, built with [React Native](https://reactnative.dev) (T
   - [iOS simulator](#ios-simulator-macos-only)
   - [Physical device](#physical-device)
 - [Architecture](#architecture)
+  - [Internationalization (i18n)](#internationalization-i18n)
 - [Code style](#code-style)
 - [CI](#ci)
 
@@ -102,6 +103,8 @@ To produce a static build (e.g. to preview it as a deployed site):
 npm run web:build   # outputs to web-build/
 ```
 
+Both commands run the [`webpack.config.js`](./webpack.config.js) at the repo root under the hood (`npm run web` runs `webpack serve`, `npm run web:build` runs `webpack build`) — that's where the dev server port, aliasing of `react-native` to `react-native-web`, and the `web-build/` output path are configured, so check there first if the web build ever needs tweaking.
+
 ### Android emulator
 
 1. Open Android Studio → Device Manager → start a virtual device (or plug in a physical device with USB debugging on).
@@ -146,6 +149,7 @@ src/
   shared/
     components/          # UI components shared by 2+ features
     hooks/                # Shared hooks
+    i18n/                 # Translation dictionaries + the `t()` hook
     services/             # Shared infra (http client, storage, etc.)
     theme/                # Design tokens, colors, typography
     utils/                # Framework-free helper functions
@@ -165,6 +169,28 @@ These rules exist so both humans and AI agents can review a diff quickly: **if a
 ### Path aliases
 
 Imports use `app/*`, `features/*`, and `shared/*` instead of relative `../../..` paths (configured via `babel-plugin-module-resolver` and `tsconfig.json` `paths`). This is also what makes the "public API only" rule easy to lint: a deep cross-feature import is visually obvious (`features/other/screens/...`) instead of hiding behind `../../other/screens/...`.
+
+### Internationalization (i18n)
+
+Strings live in JSON dictionaries under [`src/shared/i18n/locales`](./src/shared/i18n/locales) — one file per locale (`pt-BR.json`, `en-US.json`), with `pt-BR.json` as the source of truth for which keys exist. There's no external i18n library; it's a small custom setup:
+
+- **`I18nProvider`** wraps the app (in `App.tsx`) and holds the current locale, defaulting to `pt-BR`.
+- **`useTranslation()`** gives you `t(key, params?)` and `setLocale(locale)`:
+
+  ```tsx
+  import { useTranslation } from 'shared/i18n';
+
+  function Example() {
+    const { t, setLocale } = useTranslation();
+    return <Text>{t('home.title')}</Text>;
+  }
+  ```
+
+- **Keys are dot-paths into the JSON** (`"home": { "title": "..." }` → `t('home.title')`), and are type-checked against `pt-BR.json` — a typo or a key that doesn't exist is a TypeScript error, not a runtime surprise.
+- **Params** are interpolated with `{{name}}` placeholders: a dictionary value of `"Hello, {{name}}"` is filled in via `t('key', { name: 'Ana' })`.
+- **Missing translations** render the key itself instead of blank text, so a gap in a locale file is obvious in the UI.
+
+Adding a language means adding a new JSON file with the same keys as `pt-BR.json` and registering it in `src/shared/i18n/locales/index.ts`.
 
 ## Code style
 

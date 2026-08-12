@@ -1,10 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useTranslation } from 'shared/i18n';
+
 export function HomeScreen() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Administranest</Text>
-      <Text style={styles.subtitle}>client-mobile is up and running.</Text>
+      <Text style={styles.title}>{t('home.title')}</Text>
+      <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
     </View>
   );
 }
