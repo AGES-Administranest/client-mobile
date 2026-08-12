@@ -6,7 +6,7 @@ on:
 
 jobs:
   pr-title:
-    name: PR title
+    name: pr-lint
     runs-on: ubuntu-latest
     steps:
       - name: Validate PR title
