@@ -1,8 +1,6 @@
 name: CI
 
-on:
-  pull_request:
-    branches: [dev, production]
+on: pull_request
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}

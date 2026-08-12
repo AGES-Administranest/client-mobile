@@ -183,7 +183,7 @@ npm run format:check
 
 ## CI
 
-GitHub Actions runs on every PR targeting `dev` or `production`:
+GitHub Actions runs on every PR, regardless of target branch:
 
 - **Lint** — `eslint` + `prettier --check`
 - **Build** — TypeScript typecheck + Android JS bundle
