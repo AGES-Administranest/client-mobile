@@ -183,10 +183,11 @@ npm run format:check
 
 ## CI
 
-GitHub Actions runs on every PR/push to `dev` and `production`:
+GitHub Actions runs on every PR targeting `dev` or `production`:
 
 - **Lint** — `eslint` + `prettier --check`
 - **Build** — TypeScript typecheck + Android JS bundle
+- **Test** — `jest`
 - **PR title** — must follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `style:`, `test:`, `perf:`, `build:`, `ci:`, `revert:`), since the PR title becomes the squash-merge commit message.
 
 `CODEOWNERS` requires review from `@AGES-Administranest/code-reviewers` on every PR.
