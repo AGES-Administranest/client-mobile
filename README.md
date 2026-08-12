@@ -157,6 +157,14 @@ src/
 
 A feature only needs the subfolders it actually uses — don't create empty `domain/`/`services/` just to follow the template.
 
+**`src/features/home`** uses every subfolder and is meant as a living reference for the pattern:
+
+- `domain/getGreetingPeriod.ts` — a pure function (plus its unit test) with no framework dependency.
+- `services/currentUserService.ts` — the data layer, stubbed until there's a real endpoint.
+- `hooks/useHomeScreen.ts` — wires the domain rule and the service call together for the screen.
+- `components/AppTitle.tsx`, `components/GreetingCard.tsx` — presentational components, feature-local, receiving already-translated strings as props.
+- `screens/HomeScreen.tsx` — composes the components and hook; the only place that touches `useTranslation`.
+
 ### Dependency rules
 
 These rules exist so both humans and AI agents can review a diff quickly: **if an import breaks one of these, it's very likely wrong.** They're enforced by ESLint (`no-restricted-imports`), not just documented — `npm run lint` will fail on a violation.
