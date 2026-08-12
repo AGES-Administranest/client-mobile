@@ -102,6 +102,8 @@ To produce a static build (e.g. to preview it as a deployed site):
 npm run web:build   # outputs to web-build/
 ```
 
+Both commands run the [`webpack.config.js`](./webpack.config.js) at the repo root under the hood (`npm run web` runs `webpack serve`, `npm run web:build` runs `webpack build`) — that's where the dev server port, aliasing of `react-native` to `react-native-web`, and the `web-build/` output path are configured, so check there first if the web build ever needs tweaking.
+
 ### Android emulator
 
 1. Open Android Studio → Device Manager → start a virtual device (or plug in a physical device with USB debugging on).
