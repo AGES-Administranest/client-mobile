@@ -1,0 +1,11 @@
+{
+  "common": {
+    "appName": "Administranest",
+    "loading": "Loading...",
+    "retry": "Retry"
+  },
+  "home": {
+    "title": "Administranest",
+    "subtitle": "client-mobile is up and running."
+  }
+}
