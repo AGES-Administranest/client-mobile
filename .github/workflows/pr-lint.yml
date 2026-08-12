@@ -3,11 +3,10 @@ name: PR Lint
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
-    branches: [dev, production]
 
 jobs:
   pr-title:
-    name: PR title (squash commit message)
+    name: PR title
     runs-on: ubuntu-latest
     steps:
       - name: Validate PR title
