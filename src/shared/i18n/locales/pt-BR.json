@@ -6,6 +6,12 @@
   },
   "home": {
     "title": "Administranest",
-    "subtitle": "O client-mobile está no ar."
+    "subtitle": "O client-mobile está no ar.",
+    "greeting": {
+      "morning": "Bom dia, {{name}}!",
+      "afternoon": "Boa tarde, {{name}}!",
+      "evening": "Boa noite, {{name}}!",
+      "night": "Boa madrugada, {{name}}!"
+    }
   }
 }
