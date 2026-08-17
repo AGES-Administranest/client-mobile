@@ -41,14 +41,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Bundle Android JS
-        run: |
-          mkdir -p /tmp/build-check
-          npx react-native bundle \
-            --platform android \
-            --dev false \
-            --entry-file index.js \
-            --bundle-output /tmp/build-check/index.android.bundle \
-            --assets-dest /tmp/build-check/res
+        run: npx expo export --platform android --output-dir /tmp/build-check
 
   test:
     name: test

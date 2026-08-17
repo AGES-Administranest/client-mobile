@@ -98,7 +98,7 @@ npx jest
 
 All four must pass clean. Then prove it actually runs:
 
-1. `npm run web`, open `http://localhost:8080` in `claude-in-chrome`.
+1. `npm run web`, open `http://localhost:8081` in `claude-in-chrome`.
 2. Exercise the actual flow you built — not just "the home screen still loads." Navigate to
    it, interact with it, trigger the states that matter (loading, error, the real happy
    path).
