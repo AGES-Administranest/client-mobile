@@ -1,9 +1,8 @@
 # client-mobile
 
-Administranest mobile app, built with [React Native](https://reactnative.dev) (TypeScript).
+Administranest mobile app, built with [Expo](https://expo.dev) ([React Native](https://reactnative.dev), TypeScript) — managed workflow.
 
-- **Android** and **iOS**, via React Native CLI
-- **Web**, via [react-native-web](https://necolas.github.io/react-native-web/) + webpack — runs the same app in the browser, like an emulator
+- **Android**, **iOS**, and **Web** all run from the same codebase and the same dev server, via Expo/Metro — no separate bundler for web, no native `android/`/`ios/` folders to keep in sync (Expo generates them on demand).
 
 ## Table of contents
 
@@ -12,9 +11,9 @@ Administranest mobile app, built with [React Native](https://reactnative.dev) (T
 - [Installing dependencies](#installing-dependencies)
 - [Running the app](#running-the-app)
   - [Web](#web-fastest-way-to-check-a-change)
-  - [Android emulator](#android-emulator)
-  - [iOS simulator](#ios-simulator-macos-only)
-  - [Physical device](#physical-device)
+  - [Physical device via Expo Go](#physical-device-via-expo-go)
+  - [Android emulator / native build](#android-emulator--native-build)
+  - [iOS simulator / native build](#ios-simulator--native-build-macos-only)
 - [Architecture](#architecture)
   - [Internationalization (i18n)](#internationalization-i18n)
 - [Code style](#code-style)
@@ -22,13 +21,14 @@ Administranest mobile app, built with [React Native](https://reactnative.dev) (T
 
 ## Requirements
 
-| Tool                    | Version           | Needed for                         |
-| ----------------------- | ----------------- | ---------------------------------- |
-| Node.js                 | 22 LTS            | Everything                         |
-| npm                     | bundled with Node | Installing dependencies            |
-| Watchman                | latest            | Metro's file watcher (recommended) |
-| Xcode + CocoaPods       | latest            | iOS simulator/device only          |
-| Android Studio + JDK 17 | latest            | Android emulator/device only       |
+| Tool                    | Version           | Needed for                                                          |
+| ----------------------- | ----------------- | ------------------------------------------------------------------- |
+| Node.js                 | 22 LTS            | Everything                                                          |
+| npm                     | bundled with Node | Installing dependencies                                             |
+| Watchman                | latest            | Metro's file watcher (recommended)                                  |
+| **Expo Go** app         | latest            | Fastest way to run on a physical device — no native setup at all    |
+| Xcode + CocoaPods       | latest            | iOS simulator, or a native build (`expo run:ios`) — optional        |
+| Android Studio + JDK 17 | latest            | Android emulator, or a native build (`expo run:android`) — optional |
 
 ### Node — use nvm
 
@@ -47,15 +47,19 @@ nvm use
 
 ### Web
 
-No extra setup — if you have Node, you can run the app in a browser. This is the fastest way to see a UI change without booting an emulator.
+No extra setup — if you have Node, you can run the app in a browser. This is the fastest way to see a UI change without booting an emulator or installing anything mobile-specific.
 
-### Android
+### Physical device (fastest for Android/iOS, no SDK needed)
 
-Follow the **React Native CLI Quickstart** for Android on the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) page (select "React Native CLI", your OS, and target OS "Android"). You'll end up with: Android Studio, an Android SDK, an Android Virtual Device (emulator), and `ANDROID_HOME` set.
+Install [Expo Go](https://expo.dev/go) from the App Store / Play Store. `npm start` prints a QR code — scan it with Expo Go (Android: in-app scanner; iOS: the system Camera app) and the app opens on your phone, hot reload included. No Android Studio, no Xcode, no native build.
 
-### iOS (macOS only)
+### Android emulator or native build (optional)
 
-Same guide, target OS "iOS": Xcode (from the App Store), Xcode Command Line Tools, CocoaPods (via `bundle install`), and an iOS Simulator runtime.
+Only needed if you want an emulator, or a real native build via `expo run:android` (e.g. to test a native module Expo Go doesn't include). Follow the **React Native CLI Quickstart** for Android on the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) page (select "React Native CLI", your OS, target OS "Android") — Android Studio, an SDK, a Virtual Device, `ANDROID_HOME`.
+
+### iOS simulator or native build (optional, macOS only)
+
+Same guide, target OS "iOS": Xcode (App Store), Command Line Tools, CocoaPods (`bundle install`), and a Simulator runtime — only needed for `expo run:ios` or the iOS Simulator.
 
 ## Getting the code
 
@@ -79,13 +83,19 @@ npm install
 
 ## Running the app
 
-Metro (React Native's bundler) needs to be running for Android/iOS. Start it in its own terminal and leave it running:
-
 ```sh
 npm start
 ```
 
-Then, in another terminal, pick a target:
+Starts the Expo dev server and an interactive terminal. From there, press:
+
+- **`w`** — open in the browser (web)
+- **`a`** — open on a connected Android emulator/device
+- **`i`** — open in the iOS Simulator (macOS only)
+- Or scan the QR code it prints with the **Expo Go** app on your phone — no emulator, no native build
+
+Every target shares the same Metro server and gets hot reload. You can also jump straight to
+one target without the interactive menu:
 
 ### Web (fastest way to check a change)
 
@@ -93,42 +103,43 @@ Then, in another terminal, pick a target:
 npm run web
 ```
 
-Opens a dev server at **http://localhost:8080** — open it in any browser. Hot reload is on, so edits show up without a manual refresh. This does _not_ need Metro running; it uses its own webpack dev server.
+Opens at **http://localhost:8081** in your browser.
 
 > Not every native module works on web (e.g. anything backed by a real native API with no browser equivalent). It's meant for quickly iterating on UI, not as a replacement for testing on Android/iOS.
 
 To produce a static build (e.g. to preview it as a deployed site):
 
 ```sh
-npm run web:build   # outputs to web-build/
+npm run web:build   # outputs to dist/
 ```
 
-Both commands run the [`webpack.config.js`](./webpack.config.js) at the repo root under the hood (`npm run web` runs `webpack serve`, `npm run web:build` runs `webpack build`) — that's where the dev server port, aliasing of `react-native` to `react-native-web`, and the `web-build/` output path are configured, so check there first if the web build ever needs tweaking.
+Both commands go through Expo's Metro web bundler — see the `web` key in [`app.json`](./app.json) for its config.
 
-### Android emulator
+### Physical device via Expo Go
+
+The fastest way to see the app on a real phone with zero native setup:
+
+1. Install **Expo Go** on your device ([App Store](https://apps.apple.com/app/expo-go/id982107779) / [Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent)).
+2. `npm start`, then scan the QR code (iOS: Camera app; Android: the scanner inside Expo Go).
+
+> Expo Go can't run custom native modules that aren't part of the Expo SDK. If the app ever needs one, use a native build (below) instead — Expo will tell you when that's the case.
+
+### Android emulator / native build
 
 1. Open Android Studio → Device Manager → start a virtual device (or plug in a physical device with USB debugging on).
-2. With Metro running:
-   ```sh
+2. ```sh
    npm run android
    ```
+   First run generates the native `android/` project (via `expo prebuild`, automatic) and installs the app — slower than Expo Go, but produces a real native build.
 
-### iOS simulator (macOS only)
+### iOS simulator / native build (macOS only)
 
-1. First run only (and whenever native iOS deps change):
-   ```sh
-   bundle install
-   bundle exec pod install
-   ```
-2. With Metro running:
-   ```sh
+1. ```sh
    npm run ios
    ```
-   This boots the default simulator and installs the app. To pick a specific device, open `ios/ClientMobile.xcworkspace` in Xcode and hit Run, or pass `--simulator "iPhone 16"` to the command above.
+   First run generates the native `ios/` project (via `expo prebuild`, automatic), runs `pod install`, and boots the default simulator. To pick a specific device, pass `--simulator "iPhone 16"`.
 
-### Physical device
-
-Follow the "Physical Device" tab in the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide for your target OS — it covers enabling developer mode / USB debugging and signing for iOS.
+Generated `android/`/`ios/` folders aren't committed (see `.gitignore`) — delete and re-run either command any time to regenerate them cleanly from `app.json`.
 
 ## Architecture
 

@@ -39,15 +39,13 @@ Also do a real bundle build, the same way CI does — a green `tsc` doesn't guar
 can actually bundle the app:
 
 ```sh
-npx react-native bundle --platform android --dev false --entry-file index.js \
-  --bundle-output /tmp/repo-review-bundle/index.android.bundle \
-  --assets-dest /tmp/repo-review-bundle/res
+npx expo export --platform android --output-dir /tmp/repo-review-bundle
 rm -rf /tmp/repo-review-bundle
 ```
 
-If `npm run web:build` is present in `package.json`, run that too — it exercises the
-webpack config independently of Metro and tends to catch different breakage (e.g. an import
-that only resolves through Metro's resolver, not webpack's).
+Run `npm run web:build` too — it's the same Metro web bundler `npm run web` uses, but
+production mode tends to surface different breakage than the dev server does (minification,
+tree-shaking, `NODE_ENV`-gated code paths).
 
 ## 2. Architecture verification
 
@@ -165,16 +163,16 @@ sneaking past `t()` is exactly the kind of thing that's easy to miss in a normal
 
 Static checks don't prove the app renders. Actually run it:
 
-1. Start the web dev server in the background: `npm run web` (default port 8080; check
-   `webpack.config.js` if it's been changed).
-2. Load `claude-in-chrome` and open `http://localhost:8080` in a tab.
+1. Start the web dev server in the background: `npm run web` (Expo's default port is 8081;
+   check `app.json`'s `web` key if it's been changed).
+2. Load `claude-in-chrome` and open `http://localhost:8081` in a tab.
 3. Take a screenshot. The app must render real content (not a blank white page, not a red
    error overlay).
 4. Read the browser console (`read_console_messages`, `onlyErrors: true`) — zero errors is
    the bar. A warning is worth noting but not a failure.
 5. If the change under review touches a specific screen/flow, exercise it manually
    (navigate, tap, type) rather than only checking the home screen loads.
-6. Kill the dev server (`pkill -f "webpack serve"`) when done.
+6. Kill the dev server (`pkill -f "expo start"`) when done.
 
 If Android/iOS tooling is available in this environment (an emulator or simulator already
 running), prefer running the real target instead of only web — web is the fast fallback,

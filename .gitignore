@@ -2,38 +2,11 @@
 #
 .DS_Store
 
-# Xcode
-#
-build/
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-xcuserdata
-*.xccheckout
-*.moved-aside
-DerivedData
-*.hmap
-*.ipa
-*.xcuserstate
-**/.xcode.env.local
-
-# Android/IntelliJ
-#
-build/
-.idea
-.gradle
-local.properties
-*.iml
-*.hprof
-.cxx/
-*.keystore
-!debug.keystore
-.kotlin/
+# Expo (managed workflow) — native projects are generated on demand via
+# `expo prebuild` / `expo run:android` / `expo run:ios`, not committed.
+.expo/
+android/
+ios/
 
 # node.js
 #
@@ -56,8 +29,8 @@ yarn-error.log
 # Bundle artifact
 *.jsbundle
 
-# Web build
-web-build/
+# Web build (expo export --platform web)
+dist/
 
 # Ruby / CocoaPods
 **/Pods/

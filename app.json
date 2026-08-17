@@ -1,4 +1,20 @@
 {
-  "name": "ClientMobile",
-  "displayName": "ClientMobile"
+  "expo": {
+    "name": "ClientMobile",
+    "slug": "client-mobile",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.clientmobile"
+    },
+    "android": {
+      "package": "com.clientmobile"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
 }
