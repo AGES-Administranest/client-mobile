@@ -4,3 +4,4 @@ ios/
 coverage/
 *.jsbundle
 .claude/
+*.md
