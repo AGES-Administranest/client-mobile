@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { Colors } from '../../../theme/colors';
+
 type AppTitleProps = {
   title: string;
   subtitle: string;
@@ -21,12 +23,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subtitle: {
-    color: '#666666',
+    color: Colors.label.tertiary,
     fontSize: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: '600',
     marginBottom: 8,
+    color: Colors.alert.primary,
   },
 });
