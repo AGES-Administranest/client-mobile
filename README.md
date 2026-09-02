@@ -15,6 +15,7 @@ Administranest mobile app, built with [Expo](https://expo.dev) ([React Native](h
   - [Android emulator / native build](#android-emulator--native-build)
   - [iOS simulator / native build](#ios-simulator--native-build-macos-only)
 - [Architecture](#architecture)
+  - [Local notifications](#local-notifications)
   - [Internationalization (i18n)](#internationalization-i18n)
 - [Code style](#code-style)
 - [CI](#ci)
@@ -188,6 +189,14 @@ These rules exist so both humans and AI agents can review a diff quickly: **if a
 ### Path aliases
 
 Imports use `app/*`, `features/*`, and `shared/*` instead of relative `../../..` paths (configured via `babel-plugin-module-resolver` and `tsconfig.json` `paths`). This is also what makes the "public API only" rule easy to lint: a deep cross-feature import is visually obvious (`features/other/screens/...`) instead of hiding behind `../../other/screens/...`.
+
+### Local notifications
+
+Local (on-device) notifications go through [`expo-notifications`](https://docs.expo.dev/versions/latest/sdk/notifications/), wrapped by `src/shared/services/notifications.ts` — `initNotifications()` (called once in `App.tsx`, creates the Android channel), `requestNotificationPermission()`, `scheduleNotification()` and `cancelNotification()`. Features should use that wrapper, not import `expo-notifications` directly.
+
+- **Permission** is required on iOS and on Android 13+; `scheduleNotification()` asks for it on demand, so nothing prompts the user on app start.
+- **Web** has no implementation — every function is a no-op there, so the web target keeps building.
+- **Testing:** iOS works in Expo Go. On Android, `expo-notifications` is limited in Expo Go since SDK 53 — use a native/dev build (`npm run android`).
 
 ### Internationalization (i18n)
 
