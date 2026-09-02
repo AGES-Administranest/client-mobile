@@ -7,7 +7,6 @@ import { AppTitle } from '../components/AppTitle';
 import { GreetingCard } from '../components/GreetingCard';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 
-
 export function HomeScreen() {
   const { t } = useTranslation();
   const { greetingPeriod, userName, isLoading } = useHomeScreen();
