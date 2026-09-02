@@ -2,11 +2,11 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTranslation } from 'shared/i18n';
 
+import { Colors } from '../../../theme/colors';
 import { AppTitle } from '../components/AppTitle';
 import { GreetingCard } from '../components/GreetingCard';
 import { useHomeScreen } from '../hooks/useHomeScreen';
 
-import { Colors } from '../../../theme/colors';
 
 export function HomeScreen() {
   const { t } = useTranslation();
