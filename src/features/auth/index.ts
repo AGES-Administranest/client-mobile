@@ -1,6 +1,3 @@
-// Public API of the feature. From outside, import `features/auth` — never an
-// internal path (rule enforced in .eslintrc.js).
-
 export {
   AuthError,
   isRetryable,

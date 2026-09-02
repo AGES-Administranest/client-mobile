@@ -141,8 +141,6 @@ describe('refreshSession', () => {
 });
 
 describe('forgotPassword', () => {
-  // If this test fails, the "forgot password" form starts telling the world
-  // which e-mails have an account.
   it('treats an unknown e-mail as success', async () => {
     respondWith({ __type: 'UserNotFoundException' }, false);
 

@@ -1,8 +1,6 @@
 import { isRetryable, toAuthErrorCode } from './authErrors';
 
 describe('toAuthErrorCode', () => {
-  // The most important guarantee in this file: if these two ever diverge,
-  // the login form starts revealing which e-mails have an account.
   it('does not tell a wrong password apart from an unknown user', () => {
     expect(toAuthErrorCode('NotAuthorizedException')).toBe(
       'INVALID_CREDENTIALS',

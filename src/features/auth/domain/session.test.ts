@@ -43,8 +43,6 @@ describe('shouldRefreshSession', () => {
 });
 
 describe('withRefreshedTokens', () => {
-  // Cognito sends no refresh token in REFRESH_TOKEN_AUTH. If this test ever
-  // fails, users get logged out on their second renewal.
   it('keeps the refresh token that the response omits', () => {
     const session = sessionExpiringIn(0);
 

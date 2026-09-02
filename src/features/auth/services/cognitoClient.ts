@@ -5,13 +5,6 @@ import {
   toAuthErrorCode,
 } from '../domain/authErrors';
 
-// Raw transport for the Cognito API.
-//
-// Cognito's API is not REST: it is a single POST to the root, with the
-// operation carried in the `X-Amz-Target` header. Every operation used here
-// (sign in, sign up, password recovery) is unauthenticated, so none of them
-// need SigV4 signing — which is why `fetch` is enough and no SDK is required.
-
 const AMZ_JSON_CONTENT_TYPE = 'application/x-amz-json-1.1';
 const TARGET_PREFIX = 'AWSCognitoIdentityProviderService';
 
@@ -41,8 +34,6 @@ export async function callCognito<TResponse>(
       body: JSON.stringify({ ClientId: clientId, ...body }),
     });
   } catch {
-    // `fetch` only rejects when the request never happened: no network, DNS
-    // failure, emulator down. A server-side error arrives as a response.
     throw new AuthError('NETWORK_UNAVAILABLE');
   }
 
@@ -60,8 +51,6 @@ function readErrorCode(payload: unknown): AuthErrorCode {
   return type ? toAuthErrorCode(type) : 'UNKNOWN';
 }
 
-// Cognito's original message, kept for logs and debugging only. The screen
-// shows the dictionary string matching `code`, never this one.
 function readErrorMessage(payload: unknown): string | undefined {
   return readString(payload, 'message') ?? readString(payload, 'Message');
 }
