@@ -15,6 +15,8 @@
     "web:build": "expo export --platform web"
   },
   "dependencies": {
+    "@rn-primitives/checkbox": "^1.5.2",
+    "@rn-primitives/select": "^1.5.2",
     "@rn-primitives/slot": "^1.5.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
