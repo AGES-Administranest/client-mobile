@@ -12,6 +12,7 @@
       "afternoon": "Good afternoon, {{name}}!",
       "evening": "Good evening, {{name}}!",
       "night": "Hello, {{name}}!"
-    }
+    },
+    "cta": "Continue"
   }
 }

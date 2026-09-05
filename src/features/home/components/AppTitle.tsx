@@ -1,6 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-import { Colors } from '../../../theme/colors';
+import { Text, View } from 'react-native';
 
 type AppTitleProps = {
   title: string;
@@ -11,25 +9,11 @@ type AppTitleProps = {
 // direct dependency on i18n/services. Reusable within this feature.
 export function AppTitle({ title, subtitle }: AppTitleProps) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+    <View className="items-center">
+      <Text className="mb-2 text-2xl font-semibold text-alert-primary">
+        {title}
+      </Text>
+      <Text className="text-base text-label-tertiary">{subtitle}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-  },
-  subtitle: {
-    color: Colors.label.tertiary,
-    fontSize: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: Colors.alert.primary,
-  },
-});

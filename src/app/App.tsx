@@ -4,6 +4,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { HomeScreen } from 'features/home';
 import { I18nProvider } from 'shared/i18n';
 
+import '../../global.css';
+
 export function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
