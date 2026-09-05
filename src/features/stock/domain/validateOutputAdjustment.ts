@@ -19,8 +19,10 @@ export function validateOutputAdjustment(data: OutputAdjustmentData): OutputAdju
     errors.itemId = 'required';
   }
 
-  if (data.quantity <= 0 || data.quantity === undefined) {
+  if (Number.isNaN(data.quantity)) {
     errors.quantity = 'required';
+  } else if (data.quantity <= 0) {
+    errors.quantity = 'mustBePositive';
   }
 
   if (!data.reason) {
