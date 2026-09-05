@@ -13,5 +13,15 @@
       "evening": "Good evening, {{name}}!",
       "night": "Hello, {{name}}!"
     }
+  },
+  "stock": {
+    "lowStock": {
+      "title": "{{medicine}} is low on stock",
+      "remaining": "{{remaining}} units remaining (min. {{minimum}})",
+      "elapsed": {
+        "minutes": "{{value}} min ago",
+        "hours": "{{value}} h ago"
+      }
+    }
   }
 }

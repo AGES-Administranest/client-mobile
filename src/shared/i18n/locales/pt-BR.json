@@ -13,5 +13,15 @@
       "evening": "Boa noite, {{name}}!",
       "night": "Boa madrugada, {{name}}!"
     }
+  },
+  "stock": {
+    "lowStock": {
+      "title": "{{medicine}} com estoque baixo",
+      "remaining": "{{remaining}} unidades restantes (mín. {{minimum}})",
+      "elapsed": {
+        "minutes": "há {{value}} min",
+        "hours": "há {{value}} h"
+      }
+    }
   }
 }
