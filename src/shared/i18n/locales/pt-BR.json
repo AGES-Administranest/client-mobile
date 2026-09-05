@@ -12,6 +12,7 @@
       "afternoon": "Boa tarde, {{name}}!",
       "evening": "Boa noite, {{name}}!",
       "night": "Boa madrugada, {{name}}!"
-    }
+    },
+    "cta": "Continuar"
   }
 }

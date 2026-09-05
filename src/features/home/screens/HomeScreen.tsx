@@ -1,5 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
+import { Button } from 'app/components/ui/button';
+import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
 import { AppTitle } from '../components/AppTitle';
@@ -11,7 +13,7 @@ export function HomeScreen() {
   const { greetingPeriod, userName, isLoading } = useHomeScreen();
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 items-center justify-center bg-background-modal">
       <AppTitle title={t('home.title')} subtitle={t('home.subtitle')} />
       <GreetingCard
         isLoading={isLoading}
@@ -19,14 +21,9 @@ export function HomeScreen() {
           name: userName ?? '',
         })}
       />
+      <Button className="mt-4">
+        <Text>{t('home.cta')}</Text>
+      </Button>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-  },
-});
