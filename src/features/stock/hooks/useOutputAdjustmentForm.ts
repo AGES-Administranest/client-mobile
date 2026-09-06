@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { validateOutputAdjustment, isAdjustmentValid, type AdjustmentReason, type OutputAdjustmentErrors } from '../domain/validateOutputAdjustment';
+
+import {
+  validateOutputAdjustment,
+  isAdjustmentValid,
+  type AdjustmentReason,
+  type OutputAdjustmentErrors,
+} from '../domain/validateOutputAdjustment';
 
 export function useOutputAdjustmentForm() {
   const [itemId, setItemId] = useState('');
