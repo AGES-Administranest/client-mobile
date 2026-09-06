@@ -14,20 +14,29 @@ export function useOutputAdjustmentForm() {
   const [errors, setErrors] = useState<OutputAdjustmentErrors>({});
 
   function handleSubmit() {
-  const data = {
-    itemId: itemId,
-    quantity: Number(quantity),
-    reason: reason,
-  };
+    const data = {
+      itemId: itemId,
+      quantity: Number(quantity),
+      reason: reason,
+    };
 
-  const validationErrors = validateOutputAdjustment(data);
-  setErrors(validationErrors);
+    const validationErrors = validateOutputAdjustment(data);
+    setErrors(validationErrors);
 
-  if (isAdjustmentValid(validationErrors)) {
-    //aqui vai chamar o service quando existir o backend
-    console.log(data);
+    if (isAdjustmentValid(validationErrors)) {
+      //aqui vai chamar o service quando existir o backend
+      console.log(data);
+    }
   }
-}
 
-return { itemId, quantity, reason, setItemId, setQuantity, setReason, errors, handleSubmit };
+  return {
+    itemId,
+    quantity,
+    reason,
+    setItemId,
+    setQuantity,
+    setReason,
+    errors,
+    handleSubmit,
+  };
 }

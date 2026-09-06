@@ -1,9 +1,9 @@
 export type AdjustmentReason = 'loss' | 'expiration' | 'breakage';
 
 export interface OutputAdjustmentData {
-    itemId: string;
-    quantity: number;
-    reason: AdjustmentReason | null;
+  itemId: string;
+  quantity: number;
+  reason: AdjustmentReason | null;
 }
 
 export interface OutputAdjustmentErrors {
@@ -12,7 +12,9 @@ export interface OutputAdjustmentErrors {
   reason?: string;
 }
 
-export function validateOutputAdjustment(data: OutputAdjustmentData): OutputAdjustmentErrors {
+export function validateOutputAdjustment(
+  data: OutputAdjustmentData,
+): OutputAdjustmentErrors {
   const errors: OutputAdjustmentErrors = {};
 
   if (!data.itemId) {
@@ -26,11 +28,11 @@ export function validateOutputAdjustment(data: OutputAdjustmentData): OutputAdju
   }
 
   if (!data.reason) {
-    errors.reason = "required";
-   }
+    errors.reason = 'required';
+  }
   return errors;
 }
 
 export function isAdjustmentValid(errors: OutputAdjustmentErrors): boolean {
-    return Object.keys(errors).length === 0;
+  return Object.keys(errors).length === 0;
 }
