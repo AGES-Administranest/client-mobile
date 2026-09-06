@@ -23,5 +23,14 @@
         "hours": "{{value}} h ago"
       }
     }
+  },
+  "inventory": {
+    "alert": {
+      "titleSingular": "Low stock",
+      "bodySingular": "{{name}}: {{quantity}} {{unit}} left (minimum {{minimum}}).",
+      "titlePlural": "{{total}} items below the minimum",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} and {{remaining}} more"
+    }
   }
 }

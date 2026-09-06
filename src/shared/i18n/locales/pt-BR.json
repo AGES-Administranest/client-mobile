@@ -23,5 +23,14 @@
         "hours": "há {{value}} h"
       }
     }
+  },
+  "inventory": {
+    "alert": {
+      "titleSingular": "Estoque baixo",
+      "bodySingular": "{{name}}: restam {{quantity}} {{unit}} (mínimo {{minimum}}).",
+      "titlePlural": "{{total}} itens abaixo do mínimo",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
+    }
   }
 }
