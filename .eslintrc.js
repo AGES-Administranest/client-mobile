@@ -13,7 +13,7 @@ module.exports = {
         ],
         pathGroups: [
           {
-            pattern: '{app,features,shared}/**',
+            pattern: '{app,features,shared,theme}/**',
             group: 'internal',
           },
         ],

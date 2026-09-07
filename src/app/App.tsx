@@ -1,7 +1,7 @@
 import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { HomeScreen } from 'features/home';
+import { StockEntryFlow } from 'features/stockEntry';
 import { I18nProvider } from 'shared/i18n';
 
 import '../../global.css';
@@ -13,7 +13,7 @@ export function App() {
     <I18nProvider>
       <SafeAreaProvider>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <HomeScreen />
+        <StockEntryFlow />
       </SafeAreaProvider>
     </I18nProvider>
   );
