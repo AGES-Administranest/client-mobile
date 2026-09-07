@@ -1,4 +1,4 @@
-import { getGreetingPeriod } from './getGreetingPeriod';
+import { getGreetingPeriod } from 'features/home/domain/getGreetingPeriod';
 
 describe('getGreetingPeriod', () => {
   it.each([
