@@ -31,6 +31,13 @@
       "titlePlural": "{{total}} items below the minimum",
       "bodyPlural": "{{items}}",
       "bodyPluralTruncated": "{{items}} and {{remaining}} more"
+    },
+    "expiryAlert": {
+      "titleSingular": "Expiration date approaching",
+      "bodySingular": "{{name}} expires on {{expirationDate}}.",
+      "titlePlural": "{{total}} items nearing expiration",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} and {{remaining}} more"
     }
   }
 }

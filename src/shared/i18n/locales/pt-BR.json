@@ -31,6 +31,13 @@
       "titlePlural": "{{total}} itens abaixo do mínimo",
       "bodyPlural": "{{items}}",
       "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
+    },
+    "expiryAlert": {
+      "titleSingular": "Validade próxima do vencimento",
+      "bodySingular": "{{name}} vence em {{expirationDate}}.",
+      "titlePlural": "{{total}} itens próximos do vencimento",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
     }
   }
 }
