@@ -1,4 +1,4 @@
-export type AdjustmentReason = 'loss' | 'expiration' | 'breakage';
+export type AdjustmentReason = 'loss' | 'expiration' | 'breakage' | 'other';
 
 export type AdjustmentErrorCode = 'required' | 'mustBePositive';
 

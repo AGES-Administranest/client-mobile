@@ -2,10 +2,11 @@ import { Pressable, View } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
+import { useTranslation } from 'shared/i18n';
 
 import type { AdjustmentReason } from '../domain/validateOutputAdjustment';
 
-const REASONS: AdjustmentReason[] = ['loss', 'expiration', 'breakage'];
+const REASONS: AdjustmentReason[] = ['loss', 'expiration', 'breakage', 'other'];
 
 interface AdjustmentReasonSelectorProps {
   value: AdjustmentReason | null;
@@ -16,6 +17,8 @@ function AdjustmentReasonSelector({
   value,
   onSelect,
 }: AdjustmentReasonSelectorProps) {
+  const { t } = useTranslation();
+
   return (
     <View className="flex-row gap-2">
       {REASONS.map(reason => (
@@ -27,7 +30,7 @@ function AdjustmentReasonSelector({
           key={reason}
           onPress={() => onSelect(reason)}
         >
-          <Text>{reason}</Text>
+          <Text>{t(`stock.outputAdjustment.reasons.${reason}`)}</Text>
         </Pressable>
       ))}
     </View>

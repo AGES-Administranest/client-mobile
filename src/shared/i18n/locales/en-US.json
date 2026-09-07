@@ -23,7 +23,8 @@
       "reasons": {
         "loss": "Loss",
         "expiration": "Expiration",
-        "breakage": "Breakage"
+        "breakage": "Breakage",
+        "other": "Other"
       },
       "errors": {
         "required": "This field is required",

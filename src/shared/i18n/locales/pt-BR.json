@@ -23,7 +23,8 @@
       "reasons": {
         "loss": "Perda",
         "expiration": "Vencimento",
-        "breakage": "Quebra"
+        "breakage": "Quebra",
+        "other": "Outro"
       },
       "errors": {
         "required": "Este campo é obrigatório",
