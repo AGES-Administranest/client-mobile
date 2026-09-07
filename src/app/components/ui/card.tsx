@@ -5,20 +5,17 @@ import { View } from 'react-native';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
-const cardVariants = cva(
-  'bg-white rounded-2xl shadow-md shadow-black/10',
-  {
-    variants: {
-      variant: {
-        default: 'gap-1 p-4',
-        material: 'flex-row items-center justify-between p-4',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
+const cardVariants = cva('bg-white rounded-2xl shadow-md shadow-black/10', {
+  variants: {
+    variant: {
+      default: 'gap-1 p-4',
+      material: 'flex-row items-center justify-between p-4',
     },
   },
-);
+  defaultVariants: {
+    variant: 'default',
+  },
+});
 
 type CardProps = React.ComponentProps<typeof View> &
   VariantProps<typeof cardVariants>;

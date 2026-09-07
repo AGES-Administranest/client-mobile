@@ -23,7 +23,15 @@ export function HomeScreen() {
           name: userName ?? '',
         })}
       />
-   
+      <MaterialCard
+        name="Propofol 10mg/ml 20ml"
+        category="Medicamento"
+        price={19.9}
+        unit="ampola"
+        quantity={8}
+        minQuantity={10}
+        className="w-full"
+      />
       <Button
         shape="pill"
         icon={ArrowRight}
