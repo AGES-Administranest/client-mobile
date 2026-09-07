@@ -14,5 +14,9 @@
       "night": "Hello, {{name}}!"
     },
     "cta": "Continue"
+  },
+  "segmentedControl": {
+    "supplies": "Supplies and medicines",
+    "equipment": "Equipment"
   }
 }

@@ -14,5 +14,9 @@
       "night": "Boa madrugada, {{name}}!"
     },
     "cta": "Continuar"
+  },
+  "segmentedControl": {
+    "supplies": "Insumos e medicamentos",
+    "equipment": "Equipamentos"
   }
 }
