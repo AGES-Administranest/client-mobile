@@ -1,12 +1,16 @@
 import { View } from 'react-native';
 
+import { ScreenBackground } from 'app/components/ui/screen-background';
+
 import { OutputAdjustmentForm } from '../components/OutputAdjustmentForm';
 
 function OutputAdjustmentScreen() {
   return (
-    <View>
-      <OutputAdjustmentForm />
-    </View>
+    <ScreenBackground>
+      <View className="flex-1">
+        <OutputAdjustmentForm />
+      </View>
+    </ScreenBackground>
   );
 }
 

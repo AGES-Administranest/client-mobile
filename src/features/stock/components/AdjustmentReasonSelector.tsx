@@ -30,7 +30,9 @@ function AdjustmentReasonSelector({
           key={reason}
           onPress={() => onSelect(reason)}
         >
-          <Text>{t(`stock.outputAdjustment.reasons.${reason}`)}</Text>
+          <Text className={cn(value === reason && 'text-label-secondary')}>
+            {t(`stock.outputAdjustment.reasons.${reason}`)}
+          </Text>
         </Pressable>
       ))}
     </View>

@@ -29,19 +29,21 @@ function OutputAdjustmentForm() {
   } = useOutputAdjustmentForm();
 
   return (
-    <View>
-      <Input
-        placeholder={t('stock.outputAdjustment.itemLabel')}
-        value={itemId}
-        onChangeText={setItemId}
-      />
+    <View className="gap-4 p-4">
+      <View className="gap-1">
+        <Text className="text-xs font-medium text-label-tertiary uppercase">
+          {t('stock.outputAdjustment.itemLabel')}
+        </Text>
+        <Input value={itemId} onChangeText={setItemId} />
+      </View>
       {errors.itemId && <Text>{t(ERROR_MESSAGE_KEYS[errors.itemId])}</Text>}
 
-      <Input
-        placeholder={t('stock.outputAdjustment.quantityLabel')}
-        value={quantity}
-        onChangeText={setQuantity}
-      />
+      <View className="gap-1">
+        <Text className="text-xs font-medium text-label-tertiary uppercase">
+          {t('stock.outputAdjustment.quantityLabel')}
+        </Text>
+        <Input value={quantity} onChangeText={setQuantity} />
+      </View>
       {errors.quantity && <Text>{t(ERROR_MESSAGE_KEYS[errors.quantity])}</Text>}
 
       <AdjustmentReasonSelector value={reason} onSelect={setReason} />
