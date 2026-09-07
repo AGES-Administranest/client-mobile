@@ -14,5 +14,12 @@
       "night": "Boa madrugada, {{name}}!"
     },
     "cta": "Continuar"
+  },
+  "tabbar": {
+    "day": "Dia-a-Dia",
+    "finance": "Finança",
+    "materials": "Materiais",
+    "clinics": "Clínicas",
+    "reports": "Relatórios"
   }
 }

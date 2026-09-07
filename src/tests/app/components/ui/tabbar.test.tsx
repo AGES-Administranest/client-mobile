@@ -2,6 +2,7 @@ import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { TabBar } from 'app/components/ui/tabbar';
+import { I18nProvider } from 'shared/i18n';
 
 test('marks the active tab as selected and calls onValueChange when another tab is pressed', async () => {
   const onValueChange = jest.fn();
@@ -9,7 +10,9 @@ test('marks the active tab as selected and calls onValueChange when another tab 
 
   await act(() => {
     renderer = ReactTestRenderer.create(
-      <TabBar value="day" onValueChange={onValueChange} />,
+      <I18nProvider>
+        <TabBar value="day" onValueChange={onValueChange} />
+      </I18nProvider>,
     );
   });
 

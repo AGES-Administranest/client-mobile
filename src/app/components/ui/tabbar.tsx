@@ -10,13 +10,14 @@ import { Pressable, View } from 'react-native';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
+import { useTranslation } from 'shared/i18n';
 
 const TABS = [
-  { value: 'day', label: 'Dia-a-Dia', icon: CalendarDays },
-  { value: 'finance', label: 'Finança', icon: DollarSign },
-  { value: 'materials', label: 'Materiais', icon: Package },
-  { value: 'clinics', label: 'Clínicas', icon: Hospital },
-  { value: 'reports', label: 'Relatórios', icon: FileText },
+  { value: 'day', labelKey: 'tabbar.day', icon: CalendarDays },
+  { value: 'finance', labelKey: 'tabbar.finance', icon: DollarSign },
+  { value: 'materials', labelKey: 'tabbar.materials', icon: Package },
+  { value: 'clinics', labelKey: 'tabbar.clinics', icon: Hospital },
+  { value: 'reports', labelKey: 'tabbar.reports', icon: FileText },
 ] as const;
 
 type TabValue = (typeof TABS)[number]['value'];
@@ -28,6 +29,8 @@ type TabBarProps = {
 };
 
 function TabBar({ value, onValueChange, className }: TabBarProps) {
+  const { t } = useTranslation();
+
   return (
     <View
       className={cn(
@@ -63,7 +66,7 @@ function TabBar({ value, onValueChange, className }: TabBarProps) {
                   : 'text-muted-foreground',
               )}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </Pressable>
         );
