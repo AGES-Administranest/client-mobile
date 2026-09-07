@@ -21,7 +21,7 @@ export function HomeScreen() {
           name: userName ?? '',
         })}
       />
-      <Button className="mt-4">
+      <Button shape="pill" className="mt-4">
         <Text>{t('home.cta')}</Text>
       </Button>
     </View>

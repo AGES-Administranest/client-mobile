@@ -1,6 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import type { LucideIcon } from 'lucide-react-native';
 import { Platform, Pressable } from 'react-native';
 
+import { Icon } from 'app/components/ui/icon';
 import { TextClassContext } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
@@ -55,10 +57,15 @@ const buttonVariants = cva(
         ),
         icon: 'h-10 w-10 sm:h-9 sm:w-9',
       },
+      shape: {
+        default: 'rounded-md',
+        pill: 'rounded-full',
+      },
     },
     defaultVariants: {
       variant: 'default',
       size: 'default',
+      shape: 'default',
     },
   },
 );
@@ -102,20 +109,34 @@ const buttonTextVariants = cva(
 
 type ButtonProps = React.ComponentProps<typeof Pressable> &
   React.RefAttributes<typeof Pressable> &
-  VariantProps<typeof buttonVariants>;
+  VariantProps<typeof buttonVariants> & {
+    icon?: LucideIcon;
+    children?: React.ReactNode;
+  };
 
-function Button({ className, variant, size, ...props }: ButtonProps) {
+function Button({
+  className,
+  variant,
+  size,
+  shape,
+  icon: IconComponent,
+  children,
+  ...props
+}: ButtonProps) {
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
       <Pressable
         className={cn(
           props.disabled && 'opacity-50',
-          buttonVariants({ variant, size }),
+          buttonVariants({ variant, size, shape }),
           className,
         )}
         role="button"
         {...props}
-      />
+      >
+        {IconComponent && <Icon as={IconComponent} className="size-4" />}
+        {children}
+      </Pressable>
     </TextClassContext.Provider>
   );
 }
