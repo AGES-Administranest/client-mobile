@@ -30,6 +30,12 @@
         "required": "This field is required",
         "mustBePositive": "Value must be greater than zero"
       }
-    }
+    },
+  "tabbar": {
+    "day": "Day-to-Day",
+    "finance": "Finance",
+    "materials": "Materials",
+    "clinics": "Clinics",
+    "reports": "Reports"
   }
 }
