@@ -15,17 +15,21 @@
     "web:build": "expo export --platform web"
   },
   "dependencies": {
+    "@rn-primitives/checkbox": "^1.5.2",
+    "@rn-primitives/select": "^1.5.2",
     "@rn-primitives/slot": "^1.5.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "expo": "^57.0.14",
+    "expo": "^57.0.20",
     "expo-modules-core": "~57.0.11",
+    "lucide-react-native": "^1.41.0",
     "nativewind": "^4.2.6",
     "react": "19.2.3",
     "react-dom": "^19.2.3",
     "react-native": "0.86.2",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "^4.27.0",
     "react-native-web": "^0.21.2",
     "tailwind-merge": "^3.6.0"
   },
