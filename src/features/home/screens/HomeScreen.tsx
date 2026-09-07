@@ -1,6 +1,8 @@
+import { ArrowRight } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { MaterialCard } from 'app/components/ui/card';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
@@ -21,7 +23,11 @@ export function HomeScreen() {
           name: userName ?? '',
         })}
       />
-      <Button shape="pill" className="mt-4">
+      <Button
+        shape="pill"
+        icon={ArrowRight}
+        className="mt-4 h-[49px] w-[353px]"
+      >
         <Text>{t('home.cta')}</Text>
       </Button>
     </View>
