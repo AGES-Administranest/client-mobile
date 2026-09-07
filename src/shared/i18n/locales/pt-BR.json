@@ -14,5 +14,21 @@
       "night": "Boa madrugada, {{name}}!"
     },
     "cta": "Continuar"
+  },
+  "stock": {
+    "outputAdjustment": {
+      "itemLabel": "Item",
+      "quantityLabel": "Quantidade",
+      "save": "Salvar",
+      "reasons": {
+        "loss": "Perda",
+        "expiration": "Vencimento",
+        "breakage": "Quebra"
+      },
+      "errors": {
+        "required": "Este campo é obrigatório",
+        "mustBePositive": "O valor deve ser maior que zero"
+      }
+    }
   }
 }

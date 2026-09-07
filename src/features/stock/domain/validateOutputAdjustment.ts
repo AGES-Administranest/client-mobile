@@ -1,5 +1,7 @@
 export type AdjustmentReason = 'loss' | 'expiration' | 'breakage';
 
+export type AdjustmentErrorCode = 'required' | 'mustBePositive';
+
 export interface OutputAdjustmentData {
   itemId: string;
   quantity: number;
@@ -7,9 +9,9 @@ export interface OutputAdjustmentData {
 }
 
 export interface OutputAdjustmentErrors {
-  itemId?: string;
-  quantity?: string;
-  reason?: string;
+  itemId?: AdjustmentErrorCode;
+  quantity?: AdjustmentErrorCode;
+  reason?: AdjustmentErrorCode;
 }
 
 export function validateOutputAdjustment(

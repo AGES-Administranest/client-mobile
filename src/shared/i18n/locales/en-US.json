@@ -14,5 +14,21 @@
       "night": "Hello, {{name}}!"
     },
     "cta": "Continue"
+  },
+  "stock": {
+    "outputAdjustment": {
+      "itemLabel": "Item",
+      "quantityLabel": "Quantity",
+      "save": "Save",
+      "reasons": {
+        "loss": "Loss",
+        "expiration": "Expiration",
+        "breakage": "Breakage"
+      },
+      "errors": {
+        "required": "This field is required",
+        "mustBePositive": "Value must be greater than zero"
+      }
+    }
   }
 }

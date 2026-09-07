@@ -1,6 +1,7 @@
 import {
   validateOutputAdjustment,
   isAdjustmentValid,
+  type OutputAdjustmentErrors,
 } from './validateOutputAdjustment';
 
 describe('validateOutputAdjustment', () => {
@@ -60,7 +61,7 @@ describe('isAdjustmentValid', () => {
     expect(isAdjustmentValid(errors)).toBe(true);
   });
   it('returns false when there are errors', () => {
-    const errors = { itemId: 'required' };
+    const errors: OutputAdjustmentErrors = { itemId: 'required' };
     expect(isAdjustmentValid(errors)).toBe(false);
   });
 });
