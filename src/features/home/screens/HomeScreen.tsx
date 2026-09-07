@@ -13,7 +13,7 @@ export function HomeScreen() {
   const { greetingPeriod, userName, isLoading } = useHomeScreen();
 
   return (
-    <View className="flex-1 items-center justify-center bg-background-modal">
+    <View className="flex-1 items-center justify-center gap-4 bg-background-modal px-4">
       <AppTitle title={t('home.title')} subtitle={t('home.subtitle')} />
       <GreetingCard
         isLoading={isLoading}
