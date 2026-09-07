@@ -14,5 +14,12 @@
       "night": "Hello, {{name}}!"
     },
     "cta": "Continue"
+  },
+  "tabbar": {
+    "day": "Day-to-Day",
+    "finance": "Finance",
+    "materials": "Materials",
+    "clinics": "Clinics",
+    "reports": "Reports"
   }
 }
