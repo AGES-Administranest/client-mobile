@@ -2,13 +2,13 @@ import * as React from 'react';
 import { StatusBar, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { StockEntryFlow } from 'features/stockEntry';
 import { TabBar, type TabValue } from 'app/components/ui/tabbar';
 import { ClinicsScreen } from 'features/clinics';
 import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
 import { MaterialsScreen } from 'features/materials';
 import { ReportsScreen } from 'features/reports';
+import { StockEntryFlow } from 'features/stockEntry';
 import { I18nProvider } from 'shared/i18n';
 
 import '../../global.css';
