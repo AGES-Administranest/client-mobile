@@ -43,7 +43,7 @@
       "ocrUnavailable": "A leitura por foto precisa de um build de desenvolvimento (não funciona no Expo Go). Use \"Anexar PDF\" por enquanto.",
       "permissionDenied": "Precisamos da sua permissão para acessar as fotos."
     }
-  },  
+  },
   "tabbar": {
     "day": "Dia-a-Dia",
     "finance": "Finança",
