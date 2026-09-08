@@ -18,5 +18,12 @@
   "segmentedControl": {
     "supplies": "Supplies and medicines",
     "equipment": "Equipment"
+  },
+  "tabbar": {
+    "day": "Day-to-Day",
+    "finance": "Finance",
+    "materials": "Materials",
+    "clinics": "Clinics",
+    "reports": "Reports"
   }
 }
