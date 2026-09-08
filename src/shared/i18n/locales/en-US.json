@@ -43,5 +43,12 @@
       "ocrUnavailable": "Photo recognition needs a development build (it does not work in Expo Go). Use \"Attach PDF\" for now.",
       "permissionDenied": "We need your permission to access photos."
     }
+  },  
+  "tabbar": {
+    "day": "Day-to-Day",
+    "finance": "Finance",
+    "materials": "Materials",
+    "clinics": "Clinics",
+    "reports": "Reports"
   }
 }
