@@ -29,13 +29,19 @@
       "bodyPlural": "{{items}}",
       "bodyPluralTruncated": "{{items}} and {{remaining}} more"
     },
-    "lowStock": {
-      "title": "{{medicine}} is low on stock",
-      "remaining": "{{remaining}} units remaining (min. {{minimum}})",
-      "elapsed": {
-        "minutes": "{{value}} min ago",
-        "hours": "{{value}} h ago"
-      }
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No alerts right now.",
+      "lowStockTitle": "{{name}} is low on stock",
+      "lowStockBody": "{{quantity}} units remaining (min. {{minimum}})",
+      "expiryTitle": "{{name}} is about to expire",
+      "expiryBody": "{{name}} expires on {{date}}",
+      "delete": "Delete"
+    },
+    "elapsed": {
+      "minutes": "{{value}} min ago",
+      "hours": "{{value}} h ago",
+      "days": "{{value}} d ago"
     }
   }
 }

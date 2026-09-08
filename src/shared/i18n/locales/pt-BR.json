@@ -29,13 +29,19 @@
       "bodyPlural": "{{items}}",
       "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
     },
-    "lowStock": {
-      "title": "{{medicine}} com estoque baixo",
-      "remaining": "{{remaining}} unidades restantes (mín. {{minimum}})",
-      "elapsed": {
-        "minutes": "há {{value}} min",
-        "hours": "há {{value}} h"
-      }
+    "notifications": {
+      "title": "Notificações",
+      "empty": "Nenhum alerta no momento.",
+      "lowStockTitle": "{{name}} com estoque baixo",
+      "lowStockBody": "{{quantity}} unidades restantes (mín. {{minimum}})",
+      "expiryTitle": "{{name}} irá vencer",
+      "expiryBody": "{{name}} vence em {{date}}",
+      "delete": "Apagar"
+    },
+    "elapsed": {
+      "minutes": "há {{value}} min",
+      "hours": "há {{value}} h",
+      "days": "há {{value}} d"
     }
   }
 }
