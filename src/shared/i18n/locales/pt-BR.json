@@ -14,16 +14,6 @@
       "night": "Boa madrugada, {{name}}!"
     }
   },
-  "stock": {
-    "lowStock": {
-      "title": "{{medicine}} com estoque baixo",
-      "remaining": "{{remaining}} unidades restantes (mín. {{minimum}})",
-      "elapsed": {
-        "minutes": "há {{value}} min",
-        "hours": "há {{value}} h"
-      }
-    }
-  },
   "inventory": {
     "alert": {
       "titleSingular": "Estoque baixo",
@@ -38,6 +28,14 @@
       "titlePlural": "{{total}} itens próximos do vencimento",
       "bodyPlural": "{{items}}",
       "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
+    },
+    "lowStock": {
+      "title": "{{medicine}} com estoque baixo",
+      "remaining": "{{remaining}} unidades restantes (mín. {{minimum}})",
+      "elapsed": {
+        "minutes": "há {{value}} min",
+        "hours": "há {{value}} h"
+      }
     }
   }
 }

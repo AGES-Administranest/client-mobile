@@ -27,16 +27,16 @@ export function MinimumStockNotificationComponent({
       <View style={styles.icon} />
       <View style={styles.content}>
         <Text style={styles.title}>
-          {t('stock.lowStock.title', { medicine: medicineName })}
+          {t('inventory.lowStock.title', { medicine: medicineName })}
         </Text>
         <Text style={styles.subtitle}>
-          {t('stock.lowStock.remaining', {
+          {t('inventory.lowStock.remaining', {
             remaining: remainingUnits,
             minimum: minimumUnits,
           })}
         </Text>
         <Text style={styles.subtitle}>
-          {t(`stock.lowStock.elapsed.${elapsed.unit}`, {
+          {t(`inventory.lowStock.elapsed.${elapsed.unit}`, {
             value: elapsed.value,
           })}
         </Text>
