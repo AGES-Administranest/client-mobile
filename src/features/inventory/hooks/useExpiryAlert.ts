@@ -1,37 +1,60 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { TranslationKey } from 'shared/i18n';
-import { scheduleNotification } from 'shared/services';
+import { cancelNotification, scheduleNotificationAt } from 'shared/services';
 
-import { calculateExpiryAlerts, ExpiringItem } from '../domain/expiryAlert';
+import { ExpiringItem } from '../domain/expiryAlert';
 import { buildExpiryAlertMessage } from '../domain/expiryAlertMessage';
+import { planExpirySchedule } from '../domain/expirySchedule';
 import {
-  loadExpiryNotifiedIds,
-  saveExpiryNotifiedIds,
-} from '../services/expiryAlertRepository';
+  ExpirySchedule,
+  loadExpirySchedule,
+  saveExpirySchedule,
+} from '../services/expiryScheduleRepository';
 
 type Translate = (
   key: TranslationKey,
   params?: Record<string, string | number>,
 ) => string;
 
+/**
+ * Mantém os avisos de validade agendados no sistema operacional.
+ *
+ * Ao contrário do alerta de estoque mínimo — que reage a uma ação do usuário
+ * e dispara na hora —, a validade é um evento de calendário conhecido desde o
+ * cadastro. Por isso aqui não se pergunta "algum item entrou na janela?": a
+ * data futura é entregue ao SO, que acorda sozinho no dia certo mesmo com o
+ * app fechado ou o aparelho reiniciado.
+ *
+ * Os itens são agrupados por data de vencimento: cinco lotes que vencem no
+ * mesmo dia geram uma notificação, não cinco.
+ */
 export function useExpiryAlert(
   items: readonly ExpiringItem[],
   t: Translate,
   referenceDate?: Date,
 ): void {
-  const nowRef = useRef(referenceDate ?? new Date());
   const translateRef = useRef(t);
   translateRef.current = t;
+
+  const referenceDateRef = useRef(referenceDate);
+  referenceDateRef.current = referenceDate;
+
+  // Ler o mapa, agendar e gravar de volta não é atômico. A fila impede que
+  // duas sincronizações concorrentes agendem a mesma data duas vezes.
   const queueRef = useRef<Promise<void>>(Promise.resolve());
 
   const sync = useCallback((nextItems: readonly ExpiringItem[]) => {
     queueRef.current = queueRef.current.then(async () => {
-      const alreadyNotifiedIds = await loadExpiryNotifiedIds();
-      const { newAlerts, notifiedIds, invalidItems } = calculateExpiryAlerts(
+      // Lido a cada ciclo, nunca congelado na montagem: o app pode ficar
+      // aberto por dias e a data de referência precisa acompanhar.
+      const now = referenceDateRef.current ?? new Date();
+
+      const schedule = await loadExpirySchedule();
+      const { toSchedule, toCancel, invalidItems } = planExpirySchedule(
         nextItems,
-        alreadyNotifiedIds,
-        nowRef.current,
+        Object.keys(schedule),
+        now,
       );
 
       // Data ilegível é erro de integração, não caso de negócio. Sem este
@@ -43,18 +66,39 @@ export function useExpiryAlert(
         );
       }
 
-      await saveExpiryNotifiedIds(notifiedIds);
-
-      const message = buildExpiryAlertMessage(newAlerts);
-
-      if (!message) {
+      if (toSchedule.length === 0 && toCancel.length === 0) {
         return;
       }
 
-      await scheduleNotification({
-        title: translateRef.current(message.titleKey, message.params),
-        body: translateRef.current(message.bodyKey, message.params),
-      });
+      const next: ExpirySchedule = { ...schedule };
+
+      for (const key of toCancel) {
+        await cancelNotification(next[key]);
+        delete next[key];
+      }
+
+      for (const entry of toSchedule) {
+        const message = buildExpiryAlertMessage(entry.items);
+
+        if (!message) {
+          continue;
+        }
+
+        const notificationId = await scheduleNotificationAt(
+          {
+            title: translateRef.current(message.titleKey, message.params),
+            body: translateRef.current(message.bodyKey, message.params),
+          },
+          entry.fireAt,
+        );
+
+        // `null` no target web, onde não há notificação local: nada a guardar.
+        if (notificationId) {
+          next[entry.key] = notificationId;
+        }
+      }
+
+      await saveExpirySchedule(next);
     });
 
     return queueRef.current;

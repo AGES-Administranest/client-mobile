@@ -3,4 +3,5 @@ export {
   initNotifications,
   requestNotificationPermission,
   scheduleNotification,
+  scheduleNotificationAt,
 } from './notifications';

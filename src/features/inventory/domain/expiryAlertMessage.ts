@@ -1,6 +1,6 @@
 import { TranslationKey } from 'shared/i18n';
 
-import { ExpiringItem } from './expiryAlert';
+import { ExpiringItem, formatExpirationDate } from './expiryAlert';
 
 const MAX_ITEMS_IN_BODY = 3;
 
@@ -23,7 +23,12 @@ export function buildExpiryAlertMessage(
     return {
       titleKey: 'inventory.expiryAlert.titleSingular',
       bodyKey: 'inventory.expiryAlert.bodySingular',
-      params: { name: item.name, expirationDate: item.expirationDate },
+      // Formato do usuário, igual ao do card: a notificação do SO dizia
+      // "vence em 2026-09-20" enquanto a lista dizia "20/09/2026".
+      params: {
+        name: item.name,
+        expirationDate: formatExpirationDate(item.expirationDate),
+      },
     };
   }
 

@@ -69,6 +69,31 @@ export async function scheduleNotification({
   });
 }
 
+/**
+ * Agenda para um instante futuro. Diferente do disparo imediato, o SO guarda
+ * a entrega e acorda o app na hora marcada — funciona com o app fechado e
+ * sobrevive a reinício do aparelho.
+ *
+ * Atenção ao teto do iOS: no máximo 64 notificações locais pendentes por app,
+ * e o excedente é descartado sem erro.
+ */
+export async function scheduleNotificationAt(
+  { title, body }: Omit<ScheduleInput, 'trigger'>,
+  date: Date,
+): Promise<string | null> {
+  if (!isSupported || !(await requestNotificationPermission())) {
+    return null;
+  }
+
+  return Notifications.scheduleNotificationAsync({
+    content: { title, body },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date,
+    },
+  });
+}
+
 export async function cancelNotification(id: string): Promise<void> {
   if (!isSupported) {
     return;

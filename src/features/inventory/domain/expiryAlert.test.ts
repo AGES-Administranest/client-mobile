@@ -1,7 +1,7 @@
 import {
-  calculateExpiryAlerts,
   daysUntilExpiration,
   ExpiringItem,
+  formatExpirationDate,
   isExpiringSoon,
   IsoDate,
   parseExpirationDate,
@@ -93,40 +93,12 @@ describe('isExpiringSoon', () => {
   });
 });
 
-describe('calculateExpiryAlerts', () => {
-  it('separa alertas novos e mantém apenas os itens ainda na janela', () => {
-    const result = calculateExpiryAlerts(
-      [item('propofol', 2), item('cetamina', 5), item('midazolam', 8)],
-      ['propofol'],
-      today,
-    );
-
-    expect(result.newAlerts.map(alert => alert.id)).toEqual(['cetamina']);
-    expect(result.notifiedIds).toEqual(['propofol', 'cetamina']);
+describe('formatExpirationDate', () => {
+  it('converte ISO para o formato que o usuário lê', () => {
+    expect(formatExpirationDate('2026-09-20')).toBe('20/09/2026');
   });
 
-  it('rearma um item que sai da janela', () => {
-    const result = calculateExpiryAlerts(
-      [item('propofol', 8)],
-      ['propofol'],
-      today,
-    );
-
-    expect(result.newAlerts).toEqual([]);
-    expect(result.notifiedIds).toEqual([]);
-  });
-
-  // O ponto do conserto: data ilegível não desaparece em silêncio.
-  it('reporta itens com data ilegível em vez de ignorá-los', () => {
-    const broken = {
-      id: 'quebrado',
-      name: 'quebrado',
-      expirationDate: '15/09/2026' as IsoDate,
-    };
-
-    const result = calculateExpiryAlerts([item('ok', 3), broken], [], today);
-
-    expect(result.newAlerts.map(alert => alert.id)).toEqual(['ok']);
-    expect(result.invalidItems.map(alert => alert.id)).toEqual(['quebrado']);
+  it('devolve o valor original quando não consegue interpretar', () => {
+    expect(formatExpirationDate('20/09/2026')).toBe('20/09/2026');
   });
 });

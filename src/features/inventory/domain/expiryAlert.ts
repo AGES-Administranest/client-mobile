@@ -84,33 +84,16 @@ export function isExpiringSoon(
   return remainingDays >= 0 && remainingDays <= windowDays;
 }
 
-export type ExpiryAlertsResult = {
-  newAlerts: ExpiringItem[];
-  notifiedIds: string[];
-  /**
-   * Itens cuja data não pôde ser lida. Separados do fluxo normal para que a
-   * camada de cima possa reclamar em vez de engolir o problema.
-   */
-  invalidItems: ExpiringItem[];
-};
+/** `2026-09-20` -> `20/09/2026`, o formato que o usuário lê. */
+export function formatExpirationDate(value: string): string {
+  const parsed = parseExpirationDate(value);
 
-export function calculateExpiryAlerts(
-  items: readonly ExpiringItem[],
-  alreadyNotifiedIds: readonly string[],
-  now: Date,
-  windowDays = EXPIRY_ALERT_WINDOW_DAYS,
-): ExpiryAlertsResult {
-  const invalidItems = items.filter(
-    item => !isValidExpirationDate(item.expirationDate),
-  );
-  const expiringSoon = items.filter(item =>
-    isExpiringSoon(item, now, windowDays),
-  );
-  const alreadyNotified = new Set(alreadyNotifiedIds);
+  if (!parsed) {
+    return value;
+  }
 
-  return {
-    newAlerts: expiringSoon.filter(item => !alreadyNotified.has(item.id)),
-    notifiedIds: expiringSoon.map(item => item.id),
-    invalidItems,
-  };
+  const day = String(parsed.getDate()).padStart(2, '0');
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+
+  return `${day}/${month}/${parsed.getFullYear()}`;
 }

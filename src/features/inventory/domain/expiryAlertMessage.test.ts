@@ -6,6 +6,16 @@ function item(name: string): ExpiringItem {
 }
 
 describe('buildExpiryAlertMessage', () => {
+  // Regressão: a notificação do SO dizia "vence em 2026-09-20" enquanto o
+  // card da lista dizia "20/09/2026".
+  it('usa o mesmo formato de data que o card mostra', () => {
+    const message = buildExpiryAlertMessage([
+      { id: 'dipirona', name: 'Dipirona', expirationDate: '2026-09-20' },
+    ]);
+
+    expect(message?.params.expirationDate).toBe('20/09/2026');
+  });
+
   it('não monta mensagem sem alertas', () => {
     expect(buildExpiryAlertMessage([])).toBeNull();
   });
@@ -14,7 +24,7 @@ describe('buildExpiryAlertMessage', () => {
     expect(buildExpiryAlertMessage([item('Propofol')])).toEqual({
       titleKey: 'inventory.expiryAlert.titleSingular',
       bodyKey: 'inventory.expiryAlert.bodySingular',
-      params: { name: 'Propofol', expirationDate: '2026-09-10' },
+      params: { name: 'Propofol', expirationDate: '10/09/2026' },
     });
   });
 
