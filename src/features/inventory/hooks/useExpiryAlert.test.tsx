@@ -1,7 +1,7 @@
 import ReactTestRenderer from 'react-test-renderer';
 
 import { useExpiryAlert } from './useExpiryAlert';
-import { ExpiringItem } from '../domain/expiryAlert';
+import { ExpiringItem, IsoDate } from '../domain/expiryAlert';
 
 const mockScheduleNotification = jest.fn(
   async (_input: { title: string; body?: string }) => 'notification-id',
@@ -35,7 +35,12 @@ function item(id: string, daysFromToday: number): ExpiringItem {
   return {
     id,
     name: id,
-    expirationDate: expirationDate.toISOString().slice(0, 10),
+    expirationDate: `${expirationDate.getFullYear()}-${String(
+      expirationDate.getMonth() + 1,
+    ).padStart(2, '0')}-${String(expirationDate.getDate()).padStart(
+      2,
+      '0',
+    )}` as IsoDate,
   };
 }
 
@@ -64,23 +69,23 @@ beforeEach(() => {
 });
 
 it('notifica um item dentro da janela de validade', async () => {
-  await mount([item('propofol', 10)]);
+  await mount([item('propofol', 5)]);
 
   expect(mockScheduleNotification).toHaveBeenCalledTimes(1);
   expect(mockScheduleNotification.mock.calls[0][0].body).toContain('propofol');
 });
 
 it('não notifica itens fora da janela', async () => {
-  await mount([item('propofol', 31)]);
+  await mount([item('propofol', 8)]);
 
   expect(mockScheduleNotification).not.toHaveBeenCalled();
 });
 
 it('não repete a notificação enquanto o item continua na janela', async () => {
-  const update = await mount([item('propofol', 10)]);
+  const update = await mount([item('propofol', 5)]);
   mockScheduleNotification.mockClear();
 
-  await update([item('propofol', 5)]);
+  await update([item('propofol', 3)]);
 
   expect(mockScheduleNotification).not.toHaveBeenCalled();
 });

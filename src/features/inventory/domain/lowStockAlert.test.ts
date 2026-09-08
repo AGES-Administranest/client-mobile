@@ -13,9 +13,13 @@ describe('isBelowMinimum', () => {
     expect(isBelowMinimum(item('propofol', 6))).toBe(false);
   });
 
-  // A fronteira que importa: o CA fala em "atingir ou ficar abaixo".
-  it('é verdadeiro ao atingir exatamente o mínimo', () => {
-    expect(isBelowMinimum(item('propofol', 5))).toBe(true);
+  // A fronteira que importa: alertar só ESTRITAMENTE abaixo do mínimo.
+  it('é falso ao atingir exatamente o mínimo', () => {
+    expect(isBelowMinimum(item('propofol', 5))).toBe(false);
+  });
+
+  it('é verdadeiro um abaixo do mínimo', () => {
+    expect(isBelowMinimum(item('propofol', 4))).toBe(true);
   });
 
   it('é verdadeiro abaixo do mínimo e com saldo zerado', () => {
@@ -23,9 +27,10 @@ describe('isBelowMinimum', () => {
     expect(isBelowMinimum(item('propofol', 0))).toBe(true);
   });
 
-  it('com mínimo zero só é crítico quando zera', () => {
+  // Com mínimo zero não há como ficar estritamente abaixo: nunca alerta.
+  it('com mínimo zero nunca é crítico', () => {
     expect(isBelowMinimum(item('propofol', 1, 0))).toBe(false);
-    expect(isBelowMinimum(item('propofol', 0, 0))).toBe(true);
+    expect(isBelowMinimum(item('propofol', 0, 0))).toBe(false);
   });
 });
 

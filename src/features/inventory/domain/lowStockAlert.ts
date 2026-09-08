@@ -15,11 +15,15 @@ export type MonitoredItem = {
 };
 
 /**
- * O critério de aceite fala em "atingir ou ficar abaixo do mínimo", então a
- * comparação é `<=`: saldo exatamente igual ao mínimo já conta.
+ * Estritamente abaixo (`<`): um item com saldo exatamente igual ao mínimo
+ * ainda está no nível de reposição e não alerta.
+ *
+ * Atenção: o CA2 da US11 diz "atingir ou ficar abaixo do mínimo", o que seria
+ * `<=`. A regra aqui segue a decisão do time — o texto do critério precisa ser
+ * atualizado para não divergir do comportamento.
  */
 export function isBelowMinimum(item: MonitoredItem): boolean {
-  return item.quantity <= item.minimumStock;
+  return item.quantity < item.minimumStock;
 }
 
 export type AlertsResult = {

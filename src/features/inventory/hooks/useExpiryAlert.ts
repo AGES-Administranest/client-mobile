@@ -28,11 +28,20 @@ export function useExpiryAlert(
   const sync = useCallback((nextItems: readonly ExpiringItem[]) => {
     queueRef.current = queueRef.current.then(async () => {
       const alreadyNotifiedIds = await loadExpiryNotifiedIds();
-      const { newAlerts, notifiedIds } = calculateExpiryAlerts(
+      const { newAlerts, notifiedIds, invalidItems } = calculateExpiryAlerts(
         nextItems,
         alreadyNotifiedIds,
         nowRef.current,
       );
+
+      // Data ilegível é erro de integração, não caso de negócio. Sem este
+      // aviso o item simplesmente nunca alerta e ninguém descobre por quê.
+      if (__DEV__ && invalidItems.length > 0) {
+        console.warn(
+          '[useExpiryAlert] datas de validade ilegíveis (esperado AAAA-MM-DD):',
+          invalidItems.map(item => `${item.id}=${item.expirationDate}`),
+        );
+      }
 
       await saveExpiryNotifiedIds(notifiedIds);
 
