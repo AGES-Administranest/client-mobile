@@ -15,6 +15,10 @@
     },
     "cta": "Continue"
   },
+  "segmentedControl": {
+    "supplies": "Supplies and medicines",
+    "equipment": "Equipment"
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
