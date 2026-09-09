@@ -24,6 +24,7 @@ type StockEntryFlow = {
   openMenu: () => void;
   closeMenu: () => void;
   startScan: () => void;
+  cancelScan: () => void;
   attachPdf: () => void;
   capture: (imageUri: string) => void;
   pickFromLibrary: () => void;
@@ -58,6 +59,7 @@ export function useStockEntryFlow(
   const openMenu = useCallback(() => setStep('menu'), []);
   const closeMenu = useCallback(() => setStep('idle'), []);
   const startScan = useCallback(() => setStep('scanning'), []);
+  const cancelScan = useCallback(() => setStep('idle'), []);
   const confirm = useCallback(() => setStep('idle'), []);
   const cancelReview = useCallback(() => setStep('idle'), []);
   const dismissFailure = useCallback(() => setFailure(null), []);
@@ -134,6 +136,7 @@ export function useStockEntryFlow(
     openMenu,
     closeMenu,
     startScan,
+    cancelScan,
     attachPdf,
     capture,
     pickFromLibrary,

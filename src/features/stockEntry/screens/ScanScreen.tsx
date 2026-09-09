@@ -12,11 +12,16 @@ type ScanScreenProps = {
   /** Called with the uri of the captured photo. */
   onCapture: (imageUri: string) => void;
   onPickFromLibrary: () => void;
+  onCancel: () => void;
 };
 
 // Full-screen capture (Figma node 31:1015): live camera behind the yellow
 // instruction banner and the brown corner frame.
-export function ScanScreen({ onCapture, onPickFromLibrary }: ScanScreenProps) {
+export function ScanScreen({
+  onCapture,
+  onPickFromLibrary,
+  onCancel,
+}: ScanScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
@@ -90,6 +95,17 @@ export function ScanScreen({ onCapture, onPickFromLibrary }: ScanScreenProps) {
         >
           <Text className="text-sm font-medium text-label-secondary">
             {t('stockEntry.scan.fromLibrary')}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          role="button"
+          accessibilityRole="button"
+          onPress={onCancel}
+          className="h-10 items-center justify-center active:opacity-70"
+        >
+          <Text className="text-sm font-medium text-label-secondary">
+            {t('stockEntry.scan.cancel')}
           </Text>
         </Pressable>
       </View>

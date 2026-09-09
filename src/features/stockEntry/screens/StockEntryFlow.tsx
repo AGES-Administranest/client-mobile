@@ -35,10 +35,15 @@ export function StockEntryFlow() {
 
       {/* A Modal, not an early return: returning here would leave the tab it
           belongs to mounted behind the camera, each at half height. */}
-      <Modal visible={flow.step === 'scanning'} animationType="slide">
+      <Modal
+        visible={flow.step === 'scanning'}
+        animationType="slide"
+        onRequestClose={flow.cancelScan}
+      >
         <ScanScreen
           onCapture={flow.capture}
           onPickFromLibrary={flow.pickFromLibrary}
+          onCancel={flow.cancelScan}
         />
       </Modal>
 

@@ -27,7 +27,8 @@
       "capture": "Capturar imagem",
       "permission": "Precisamos da câmera para escanear a nota",
       "allowCamera": "Permitir câmera",
-      "fromLibrary": "Escolher da galeria"
+      "fromLibrary": "Escolher da galeria",
+      "cancel": "Cancelar"
     },
     "loading": "Lendo a nota...",
     "review": {

@@ -27,7 +27,8 @@
       "capture": "Capture image",
       "permission": "We need the camera to scan the invoice",
       "allowCamera": "Allow camera",
-      "fromLibrary": "Choose from library"
+      "fromLibrary": "Choose from library",
+      "cancel": "Cancel"
     },
     "loading": "Reading the invoice...",
     "review": {
