@@ -25,5 +25,45 @@
     "materials": "Materials",
     "clinics": "Clinics",
     "reports": "Reports"
+  },
+  "stock": {
+    "itemForm": {
+      "title": "Supply or medication",
+      "fields": {
+        "category": "Category",
+        "name": "Name",
+        "unitCost": "Unit cost (R$)",
+        "unit": "Unit",
+        "quantity": "Quantity",
+        "minimumQuantity": "Minimum stock quantity",
+        "expirationDate": "Expiry date"
+      },
+      "placeholders": {
+        "name": "Enter the medication name",
+        "unitCost": "Enter the cost",
+        "unit": "Enter the unit",
+        "expirationDate": "YYYY-MM-DD"
+      },
+      "categories": {
+        "medication": "Medication",
+        "anesthetic": "Anesthetic",
+        "disposable": "Disposable"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "confirmDelete": {
+        "title": "Delete item?",
+        "message": "{{name}} will be removed from stock. This cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
+      "errors": {
+        "required": "Required field",
+        "mustBeNonNegative": "Cannot be negative",
+        "invalidDate": "Invalid date"
+      }
+    }
   }
 }

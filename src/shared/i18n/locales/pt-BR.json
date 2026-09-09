@@ -25,5 +25,45 @@
     "materials": "Materiais",
     "clinics": "Clínicas",
     "reports": "Relatórios"
+  },
+  "stock": {
+    "itemForm": {
+      "title": "Insumo ou medicamento",
+      "fields": {
+        "category": "Categoria",
+        "name": "Nome",
+        "unitCost": "Custo unitário (R$)",
+        "unit": "Unidade",
+        "quantity": "Quantidade",
+        "minimumQuantity": "Quantidade mínima no estoque",
+        "expirationDate": "Validade"
+      },
+      "placeholders": {
+        "name": "Digite o nome do medicamento",
+        "unitCost": "Digite o custo",
+        "unit": "Digite a unidade",
+        "expirationDate": "AAAA-MM-DD"
+      },
+      "categories": {
+        "medication": "Medicamento",
+        "anesthetic": "Anestésico",
+        "disposable": "Descartável"
+      },
+      "actions": {
+        "edit": "Editar",
+        "delete": "Excluir"
+      },
+      "confirmDelete": {
+        "title": "Excluir item?",
+        "message": "{{name}} será removido do estoque. Essa ação não pode ser desfeita.",
+        "cancel": "Cancelar",
+        "confirm": "Excluir"
+      },
+      "errors": {
+        "required": "Campo obrigatório",
+        "mustBeNonNegative": "Não pode ser negativo",
+        "invalidDate": "Data inválida"
+      }
+    }
   }
 }
