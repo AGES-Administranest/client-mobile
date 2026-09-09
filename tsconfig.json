@@ -1,10 +1,13 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
+    // `node` is needed by tests that read fixture files from disk.
+    "types": ["node", "jest"],
     "paths": {
       "app/*": ["./src/app/*"],
       "features/*": ["./src/features/*"],
-      "shared/*": ["./src/shared/*"]
+      "shared/*": ["./src/shared/*"],
+      "theme/*": ["./src/theme/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"],

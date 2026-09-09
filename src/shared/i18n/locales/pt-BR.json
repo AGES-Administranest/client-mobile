@@ -19,6 +19,37 @@
     "supplies": "Insumos e medicamentos",
     "equipment": "Equipamentos"
   },
+  "stockEntry": {
+    "trigger": "Registrar entrada",
+    "menu": {
+      "scanNote": "Escanear nota",
+      "attachPdf": "Anexar PDF",
+      "typeItem": "Digitar insumo"
+    },
+    "scan": {
+      "instruction": "Posicione o documento dentro da área demarcada",
+      "capture": "Capturar imagem",
+      "permission": "Precisamos da câmera para escanear a nota",
+      "allowCamera": "Permitir câmera",
+      "fromLibrary": "Escolher da galeria",
+      "cancel": "Cancelar"
+    },
+    "loading": "Lendo a nota...",
+    "review": {
+      "confirm": "Confirmar",
+      "found": "{{count}} itens encontrados · toque para corrigir",
+      "foundOne": "1 item encontrado · toque para corrigir",
+      "namePlaceholder": "Nome do item",
+      "checkItem": "Confira o nome e a quantidade"
+    },
+    "errors": {
+      "dismiss": "Entendi",
+      "noTextLayer": "Este PDF não tem texto selecionável (parece digitalizado). Envie um PDF gerado digitalmente.",
+      "noItems": "Não encontramos itens neste documento. Confira se é uma nota ou cotação.",
+      "ocrUnavailable": "A leitura por foto precisa de um build de desenvolvimento (não funciona no Expo Go). Use \"Anexar PDF\" por enquanto.",
+      "permissionDenied": "Precisamos da sua permissão para acessar as fotos."
+    }
+  },
   "tabbar": {
     "day": "Dia-a-Dia",
     "finance": "Finança",

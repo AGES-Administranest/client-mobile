@@ -19,6 +19,37 @@
     "supplies": "Supplies and medicines",
     "equipment": "Equipment"
   },
+  "stockEntry": {
+    "trigger": "Register entry",
+    "menu": {
+      "scanNote": "Scan invoice",
+      "attachPdf": "Attach PDF",
+      "typeItem": "Enter item"
+    },
+    "scan": {
+      "instruction": "Position the document inside the marked area",
+      "capture": "Capture image",
+      "permission": "We need the camera to scan the invoice",
+      "allowCamera": "Allow camera",
+      "fromLibrary": "Choose from library",
+      "cancel": "Cancel"
+    },
+    "loading": "Reading the invoice...",
+    "review": {
+      "confirm": "Confirm",
+      "found": "{{count}} items found · tap to fix",
+      "foundOne": "1 item found · tap to fix",
+      "namePlaceholder": "Item name",
+      "checkItem": "Check the name and quantity"
+    },
+    "errors": {
+      "dismiss": "Got it",
+      "noTextLayer": "This PDF has no selectable text (it looks scanned). Please send a digitally generated PDF.",
+      "noItems": "We couldn't find any items in this document. Check that it is an invoice or quote.",
+      "ocrUnavailable": "Photo recognition needs a development build (it does not work in Expo Go). Use \"Attach PDF\" for now.",
+      "permissionDenied": "We need your permission to access photos."
+    }
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
