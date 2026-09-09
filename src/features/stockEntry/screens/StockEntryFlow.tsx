@@ -40,6 +40,7 @@ export function StockEntryFlow() {
       <Modal
         visible={flow.step === 'scanning'}
         animationType="slide"
+        statusBarTranslucent
         onRequestClose={flow.cancelScan}
       >
         <ScanScreen
