@@ -17,6 +17,7 @@ Administranest mobile app, built with [Expo](https://expo.dev) ([React Native](h
 - [Architecture](#architecture)
   - [Local notifications](#local-notifications)
   - [Internationalization (i18n)](#internationalization-i18n)
+  - [Authentication](#authentication)
 - [Code style](#code-style)
 - [CI](#ci)
 
@@ -81,6 +82,14 @@ git clone git@github.com:AGES-Administranest/client-mobile.git
 nvm use        # switch to the Node version this repo expects
 npm install
 ```
+
+Then create your `.env` from the template — the app needs it to reach Cognito:
+
+```sh
+cp .env.example .env
+```
+
+Filling it in is described under [Authentication](#authentication).
 
 ## Running the app
 
@@ -219,6 +228,75 @@ Strings live in JSON dictionaries under [`src/shared/i18n/locales`](./src/shared
 - **Missing translations** render the key itself instead of blank text, so a gap in a locale file is obvious in the UI.
 
 Adding a language means adding a new JSON file with the same keys as `pt-BR.json` and registering it in `src/shared/i18n/locales/index.ts`.
+
+### Authentication
+
+Auth lives in **`src/features/auth`** and talks straight to **Amazon Cognito**, which
+owns credentials (e-mail, password, confirmation codes). The backend keeps only a local
+mirror of the user, keyed by the token's `sub` — see ADR-02 in the backend repo.
+
+**There is no auth SDK, on purpose.** Cognito's API is a single POST whose operation
+travels in an `X-Amz-Target` header, and every call the app makes (sign in, sign up,
+password reset) is unauthenticated, so none of them need request signing. The one thing
+an SDK would really buy us is SRP, and our user pool enables `USER_PASSWORD_AUTH`, so the
+app does not need it. That leaves `fetch` sufficient — and, more importantly, leaves the
+endpoint a plain variable, which is what lets the same code run against the local
+emulator and against real AWS.
+
+> **Trade-off worth knowing:** `USER_PASSWORD_AUTH` sends the password in the request
+> body (over TLS). SRP would prove knowledge of the password without transmitting it.
+> If the team later decides SRP is required, that is a reason to revisit this choice —
+> it would mean either an SDK or implementing SRP by hand.
+
+#### Configuration
+
+Four `EXPO_PUBLIC_*` variables in `.env`, documented in
+[`.env.example`](./.env.example). They are inlined into the bundle at build time, so
+nothing secret can live there — and nothing needs to, since the Cognito app client is
+public by design.
+
+Three of them point at Cognito. The fourth, `EXPO_PUBLIC_API_URL`, points at the
+Administranest backend: Cognito is where the app signs in, but the user's own record
+lives in our API, created by `POST /auth/session` on the first valid login.
+
+To point the app at the local emulator, run `npm run dev:bootstrap` in the backend repo
+and copy the `COGNITO_CLIENT_ID` it writes to `backend/.aws-local.env`. The backend
+itself runs outside Docker (`npm run start:dev` there) on port 3000.
+
+On the Android emulator, `localhost` is the emulator, not your machine — use
+`http://10.0.2.2:<port>` for both the Cognito endpoint and the API.
+
+#### What the feature exposes
+
+```ts
+import { signIn, refreshSession, AuthError } from 'features/auth';
+
+try {
+  const session = await signIn(email, password);
+} catch (error) {
+  if (error instanceof AuthError) {
+    // error.code is ours ('INVALID_CREDENTIALS', ...), never an AWS type —
+    // map it to a dictionary key for the message the user sees.
+  }
+}
+```
+
+`domain/` holds the pure parts (session expiry rules, the Cognito-error-to-our-code
+table); `services/` holds the calls. Screens should import from `features/auth` only.
+
+**Not included yet, by design:** persisting the session across app launches, the login
+and sign-up screens, and navigation. The session returned by `signIn` currently lives
+only in memory — persistence needs a storage dependency, which is a separate decision
+and a separate card.
+
+#### A note on error messages
+
+`toAuthErrorCode` deliberately maps `UserNotFoundException` and
+`NotAuthorizedException` to the same `INVALID_CREDENTIALS`, and `forgotPassword`
+swallows an unknown e-mail and reports success. Both exist so the forms cannot be used
+to discover which e-mails have an account. Screens must keep this intact: show one
+generic failure message, never "this e-mail is not registered". There are unit tests
+guarding both.
 
 ## Code style
 

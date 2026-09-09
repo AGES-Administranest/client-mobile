@@ -12,7 +12,8 @@
       "afternoon": "Boa tarde, {{name}}!",
       "evening": "Boa noite, {{name}}!",
       "night": "Boa madrugada, {{name}}!"
-    }
+    },
+    "cta": "Continuar"
   },
   "inventory": {
     "alert": {
@@ -43,5 +44,16 @@
       "hours": "há {{value}} h",
       "days": "há {{value}} d"
     }
+  },
+  "segmentedControl": {
+    "supplies": "Insumos e medicamentos",
+    "equipment": "Equipamentos"
+  },
+  "tabbar": {
+    "day": "Dia-a-Dia",
+    "finance": "Finança",
+    "materials": "Materiais",
+    "clinics": "Clínicas",
+    "reports": "Relatórios"
   }
 }

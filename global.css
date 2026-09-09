@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --palette-button-primary: 20.6 24.5% 28%;
+    --palette-button-secondary: 8 64.6% 38.8%;
+    --palette-background-modal: 40 81.8% 97.8%;
+    --palette-details-primary: 240 30.4% 95.5%;
+    --palette-details-tertiary: 45.8 92.2% 74.9%;
+    --palette-label-primary: 0 0% 0%;
+    --palette-label-secondary: 0 0% 100%;
+    --palette-label-tertiary: 0 0% 46.7%;
+    --palette-border-primary: 0 0% 83.1%;
+    --palette-alert-primary: 8 66.4% 55.7%;
+
+    --background: 40 81.8% 97.8%; /* palette-background-modal */
+    --foreground: 0 0% 0%; /* palette-label-primary */
+    --card: 40 81.8% 97.8%; /* palette-background-modal */
+    --card-foreground: 0 0% 0%; /* palette-label-primary */
+    --popover: 40 81.8% 97.8%; /* palette-background-modal */
+    --popover-foreground: 0 0% 0%; /* palette-label-primary */
+    --primary: 20.6 24.5% 28%; /* palette-button-primary */
+    --primary-foreground: 0 0% 100%; /* palette-label-secondary */
+    --secondary: 8 64.6% 38.8%; /* palette-button-secondary */
+    --secondary-foreground: 0 0% 100%; /* palette-label-secondary */
+    --muted: 240 30.4% 95.5%; /* palette-details-primary */
+    --muted-foreground: 0 0% 46.7%; /* palette-label-tertiary */
+    --accent: 45.8 92.2% 74.9%; /* palette-details-tertiary */
+    --accent-foreground: 0 0% 0%; /* palette-label-primary */
+    --destructive: 8 66.4% 55.7%; /* palette-alert-primary */
+    --border: 0 0% 83.1%; /* palette-border-primary */
+    --input: 0 0% 83.1%; /* palette-border-primary */
+    --ring: 20.6 24.5% 28%; /* palette-button-primary */
+    --radius: 0.625rem;
+  }
+}

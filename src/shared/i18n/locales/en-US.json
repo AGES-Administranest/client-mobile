@@ -12,7 +12,8 @@
       "afternoon": "Good afternoon, {{name}}!",
       "evening": "Good evening, {{name}}!",
       "night": "Hello, {{name}}!"
-    }
+    },
+    "cta": "Continue"
   },
   "inventory": {
     "alert": {
@@ -43,5 +44,16 @@
       "hours": "{{value}} h ago",
       "days": "{{value}} d ago"
     }
+  },
+  "segmentedControl": {
+    "supplies": "Supplies and medicines",
+    "equipment": "Equipment"
+  },
+  "tabbar": {
+    "day": "Day-to-Day",
+    "finance": "Finance",
+    "materials": "Materials",
+    "clinics": "Clinics",
+    "reports": "Reports"
   }
 }
