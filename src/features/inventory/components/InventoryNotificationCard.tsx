@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import {
   Animated,
   PanResponder,
@@ -26,6 +26,10 @@ type InventoryNotificationCardProps = {
 const DRAG_ACTIVATION = 8;
 /** Fração da largura a partir da qual soltar o card o apaga. */
 const DISMISS_RATIO = 0.35;
+/**
+ * Usada só no cálculo do gesto, caso alguém consiga arrastar antes do primeiro
+ * `onLayout`. A largura visual não depende deste número.
+ */
 const FALLBACK_WIDTH = 320;
 
 /**
@@ -63,7 +67,9 @@ export function InventoryNotificationCard({
   onDismiss,
 }: InventoryNotificationCardProps) {
   const translateX = useRef(new Animated.Value(0)).current;
-  const [width, setWidth] = useState(FALLBACK_WIDTH);
+
+  // A largura medida serve ao gesto (limiar e distância da saída), não ao
+  // layout: fica num ref para não re-renderizar a cada medição.
   const widthRef = useRef(FALLBACK_WIDTH);
 
   const panResponder = useMemo(
@@ -116,9 +122,7 @@ export function InventoryNotificationCard({
     <View
       style={styles.row}
       onLayout={event => {
-        const measured = event.nativeEvent.layout.width;
-        widthRef.current = measured;
-        setWidth(measured);
+        widthRef.current = event.nativeEvent.layout.width;
       }}
       // Arrastar é inacessível por si só: expõe a mesma ação para leitores de
       // tela e teclado.
@@ -138,7 +142,7 @@ export function InventoryNotificationCard({
       </View>
 
       <Animated.View
-        style={[styles.card, { transform: [{ translateX }], width }]}
+        style={[styles.card, { transform: [{ translateX }] }]}
         {...panResponder.panHandlers}
       >
         <View style={styles.icon} />
@@ -154,11 +158,14 @@ export function InventoryNotificationCard({
 
 const styles = StyleSheet.create({
   card: {
+    // `stretch` em vez de largura em pixels: o card acompanha a tela e cresce
+    // quando o nome do item quebra em duas linhas. Antes havia um 320 inicial
+    // que só virava a largura real depois do primeiro `onLayout`, o que dava
+    // um quadro estreito na abertura.
+    alignSelf: 'stretch',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     flexDirection: 'row',
-    // Sem largura nem altura fixas: o card acompanha a tela e cresce quando o
-    // nome do item quebra em duas linhas.
     padding: 12,
   },
   content: {
