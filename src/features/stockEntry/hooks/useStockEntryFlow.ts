@@ -30,6 +30,7 @@ type StockEntryFlow = {
   pickFromLibrary: () => void;
   renameItem: (id: string, name: string) => void;
   setItemQuantity: (id: string, quantity: number) => void;
+  removeItem: (id: string) => void;
   confirm: () => void;
   cancelReview: () => void;
   dismissFailure: () => void;
@@ -129,6 +130,10 @@ export function useStockEntryFlow(
     );
   }, []);
 
+  const removeItem = useCallback((id: string) => {
+    setItems(current => current.filter(item => item.id !== id));
+  }, []);
+
   return {
     step,
     items,
@@ -142,6 +147,7 @@ export function useStockEntryFlow(
     pickFromLibrary,
     renameItem,
     setItemQuantity,
+    removeItem,
     confirm,
     cancelReview,
     dismissFailure,

@@ -60,6 +60,7 @@ export function StockEntryFlow() {
         items={flow.items}
         onRenameItem={flow.renameItem}
         onChangeQuantity={flow.setItemQuantity}
+        onRemoveItem={flow.removeItem}
         onConfirm={flow.confirm}
         onClose={flow.cancelReview}
       />

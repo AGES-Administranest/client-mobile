@@ -40,7 +40,8 @@
       "found": "{{count}} items found · tap to fix",
       "foundOne": "1 item found · tap to fix",
       "namePlaceholder": "Item name",
-      "checkItem": "Check the name and quantity"
+      "checkItem": "Check the name and quantity",
+      "remove": "Delete item"
     },
     "errors": {
       "dismiss": "Got it",

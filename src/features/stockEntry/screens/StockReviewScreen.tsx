@@ -13,7 +13,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
-import { ActionButton, EditableInventoryItemCard } from 'shared/components';
+import {
+  ActionButton,
+  EditableInventoryItemCard,
+  SwipeToDelete,
+} from 'shared/components';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
 
@@ -25,6 +29,7 @@ type StockReviewScreenProps = {
   items: ScannedItem[];
   onRenameItem: (id: string, name: string) => void;
   onChangeQuantity: (id: string, quantity: number) => void;
+  onRemoveItem: (id: string) => void;
   onConfirm: () => void;
   onClose: () => void;
 };
@@ -37,6 +42,7 @@ export function StockReviewScreen({
   items,
   onRenameItem,
   onChangeQuantity,
+  onRemoveItem,
   onConfirm,
   onClose,
 }: StockReviewScreenProps) {
@@ -91,24 +97,29 @@ export function StockReviewScreen({
                 showsVerticalScrollIndicator={false}
               >
                 {items.map(item => (
-                  <EditableInventoryItemCard
+                  <SwipeToDelete
                     key={item.id}
-                    name={item.name}
-                    subtitle={[item.unit, item.dosage]
-                      .filter(Boolean)
-                      .join(' · ')}
-                    quantity={item.quantity}
-                    namePlaceholder={t('stockEntry.review.namePlaceholder')}
-                    onChangeName={name => onRenameItem(item.id, name)}
-                    onChangeQuantity={quantity =>
-                      onChangeQuantity(item.id, quantity)
-                    }
-                    warning={
-                      needsAttention(item)
-                        ? t('stockEntry.review.checkItem')
-                        : undefined
-                    }
-                  />
+                    deleteLabel={t('stockEntry.review.remove')}
+                    onDelete={() => onRemoveItem(item.id)}
+                  >
+                    <EditableInventoryItemCard
+                      name={item.name}
+                      subtitle={[item.unit, item.dosage]
+                        .filter(Boolean)
+                        .join(' · ')}
+                      quantity={item.quantity}
+                      namePlaceholder={t('stockEntry.review.namePlaceholder')}
+                      onChangeName={name => onRenameItem(item.id, name)}
+                      onChangeQuantity={quantity =>
+                        onChangeQuantity(item.id, quantity)
+                      }
+                      warning={
+                        needsAttention(item)
+                          ? t('stockEntry.review.checkItem')
+                          : undefined
+                      }
+                    />
+                  </SwipeToDelete>
                 ))}
               </ScrollView>
 
