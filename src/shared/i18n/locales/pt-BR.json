@@ -34,6 +34,7 @@
     "review": {
       "confirm": "Confirmar",
       "found": "{{count}} itens encontrados · toque para corrigir",
+      "foundOne": "1 item encontrado · toque para corrigir",
       "namePlaceholder": "Nome do item",
       "checkItem": "Confira o nome e a quantidade"
     },

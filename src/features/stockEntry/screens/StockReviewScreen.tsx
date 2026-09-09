@@ -76,7 +76,12 @@ export function StockReviewScreen({
               </View>
 
               <Text className="pb-1 text-center text-xs text-label-tertiary">
-                {t('stockEntry.review.found', { count: items.length })}
+                {t(
+                  items.length === 1
+                    ? 'stockEntry.review.foundOne'
+                    : 'stockEntry.review.found',
+                  { count: items.length },
+                )}
               </Text>
 
               <ScrollView
