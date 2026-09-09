@@ -11,22 +11,12 @@ import {
   type MeasurementUnit,
   type StockCategory,
 } from '../domain/stockItem';
+import type {
+  StockItemFormValues,
+  StockItemTextField,
+} from '../domain/stockItemFormValues';
 
-/** Field values exactly as typed — strings, so "12." survives while typing. */
-export type StockItemFormValues = {
-  category: StockCategory | null;
-  name: string;
-  unit: MeasurementUnit | null;
-  defaultUnitCost: string;
-  currentQuantity: string;
-  minimumStock: string;
-  expirationDate: string;
-};
-
-export type StockItemTextField = Exclude<
-  keyof StockItemFormValues,
-  'category' | 'unit'
->;
+export type { StockItemFormValues, StockItemTextField };
 
 /** Every string the form shows, already translated by the screen. */
 export type StockItemFormLabels = {
