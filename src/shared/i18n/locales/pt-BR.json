@@ -15,6 +15,10 @@
     },
     "cta": "Continuar"
   },
+  "segmentedControl": {
+    "supplies": "Insumos e medicamentos",
+    "equipment": "Equipamentos"
+  },
   "tabbar": {
     "day": "Dia-a-Dia",
     "finance": "Finança",
