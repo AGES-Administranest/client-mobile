@@ -1,1 +1,0 @@
-export { TrashIcon } from './TrashIcon';

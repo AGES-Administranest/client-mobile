@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react-native';
 import { useMemo, useRef } from 'react';
 import {
   Animated,
@@ -7,8 +8,6 @@ import {
   Text,
   View,
 } from 'react-native';
-
-import { TrashIcon } from 'shared/components';
 
 type InventoryNotificationCardProps = {
   title: string;
@@ -138,7 +137,7 @@ export function InventoryNotificationCard({
       }}
     >
       <View style={styles.deleteLayer} pointerEvents="none">
-        <TrashIcon size={20} color="#FFFFFF" />
+        <Trash2 size={20} color="#FFFFFF" />
       </View>
 
       <Animated.View
