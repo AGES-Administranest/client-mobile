@@ -27,6 +27,9 @@
     "reports": "Reports"
   },
   "stock": {
+    "screen": {
+      "title": "Stock"
+    },
     "itemForm": {
       "title": "Supply or medication",
       "fields": {

@@ -27,6 +27,9 @@
     "reports": "Relatórios"
   },
   "stock": {
+    "screen": {
+      "title": "Estoque"
+    },
     "itemForm": {
       "title": "Insumo ou medicamento",
       "fields": {

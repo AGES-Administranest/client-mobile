@@ -6,8 +6,8 @@ import { TabBar, type TabValue } from 'app/components/ui/tabbar';
 import { ClinicsScreen } from 'features/clinics';
 import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
-import { MaterialsScreen } from 'features/materials';
 import { ReportsScreen } from 'features/reports';
+import { StockScreen } from 'features/stock';
 import { I18nProvider } from 'shared/i18n';
 
 import '../../global.css';
@@ -15,7 +15,7 @@ import '../../global.css';
 const SCREENS: Record<TabValue, React.ComponentType> = {
   day: HomeScreen,
   finance: FinanceScreen,
-  materials: MaterialsScreen,
+  materials: StockScreen,
   clinics: ClinicsScreen,
   reports: ReportsScreen,
 };
