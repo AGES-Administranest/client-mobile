@@ -8,7 +8,6 @@ import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
 import { MaterialsScreen } from 'features/materials';
 import { ReportsScreen } from 'features/reports';
-import { StockEntryFlow } from 'features/stockEntry';
 import { I18nProvider } from 'shared/i18n';
 
 import '../../global.css';
@@ -30,7 +29,6 @@ export function App() {
     <I18nProvider>
       <SafeAreaProvider>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <StockEntryFlow />
         <View className="flex-1">
           <Screen />
           <TabBar
