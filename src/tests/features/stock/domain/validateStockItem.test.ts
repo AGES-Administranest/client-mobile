@@ -9,10 +9,10 @@ import {
 const validItem: Omit<StockItem, 'id'> = {
   category: 'medication',
   name: 'Drontal',
-  unitCost: 100000,
-  unit: 'kg',
-  quantity: 5,
-  minimumQuantity: 2,
+  unit: 'tablet',
+  defaultUnitCost: 100000,
+  currentQuantity: 5,
+  minimumStock: 2,
   expirationDate: '2030-10-15',
 };
 
@@ -25,12 +25,12 @@ describe('validateStockItem', () => {
   });
 
   it('accepts a unit cost of zero (free samples exist)', () => {
-    expect(validateStockItem({ ...validItem, unitCost: 0 })).toEqual({});
+    expect(validateStockItem({ ...validItem, defaultUnitCost: 0 })).toEqual({});
   });
 
   it('rejects a negative unit cost', () => {
-    expect(validateStockItem({ ...validItem, unitCost: -1 })).toEqual({
-      unitCost: 'mustBeNonNegative',
+    expect(validateStockItem({ ...validItem, defaultUnitCost: -1 })).toEqual({
+      defaultUnitCost: 'mustBeNonNegative',
     });
   });
 
@@ -41,8 +41,8 @@ describe('validateStockItem', () => {
   });
 
   it('treats NaN (an emptied numeric field) as missing', () => {
-    expect(validateStockItem({ ...validItem, quantity: NaN })).toEqual({
-      quantity: 'required',
+    expect(validateStockItem({ ...validItem, currentQuantity: NaN })).toEqual({
+      currentQuantity: 'required',
     });
   });
 
@@ -62,14 +62,14 @@ describe('validateStockItem', () => {
     const errors = validateStockItem({
       ...validItem,
       name: '',
-      unit: '',
-      minimumQuantity: -3,
+      unit: null as unknown as StockItem['unit'],
+      minimumStock: -3,
     });
 
     expect(errors).toEqual({
       name: 'required',
       unit: 'required',
-      minimumQuantity: 'mustBeNonNegative',
+      minimumStock: 'mustBeNonNegative',
     });
     expect(isStockItemValid(errors)).toBe(false);
   });

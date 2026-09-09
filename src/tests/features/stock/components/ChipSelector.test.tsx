@@ -1,6 +1,7 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { CategorySelector } from 'features/stock/components/CategorySelector';
+import { ChipSelector } from 'features/stock/components/ChipSelector';
+import { STOCK_CATEGORIES } from 'features/stock/domain/stockItem';
 
 const labels = {
   medication: 'Medicamento',
@@ -8,13 +9,14 @@ const labels = {
   disposable: 'Descartável',
 };
 
-test('renders one chip per category, marks the selected one and reports taps', async () => {
+test('renders one chip per option, marks the selected one and reports taps', async () => {
   const onSelect = jest.fn();
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(() => {
     renderer = ReactTestRenderer.create(
-      <CategorySelector
+      <ChipSelector
+        options={STOCK_CATEGORIES}
         value="anesthetic"
         labels={labels}
         onSelect={onSelect}

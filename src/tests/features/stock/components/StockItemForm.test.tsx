@@ -11,10 +11,10 @@ const labels: StockItemFormLabels = {
   fields: {
     category: 'Categoria',
     name: 'Nome',
-    unitCost: 'Custo unitário (R$)',
     unit: 'Unidade',
-    quantity: 'Quantidade',
-    minimumQuantity: 'Quantidade mínima no estoque',
+    defaultUnitCost: 'Custo unitário (R$)',
+    currentQuantity: 'Quantidade',
+    minimumStock: 'Quantidade mínima no estoque',
     expirationDate: 'Validade',
   },
   placeholders: {},
@@ -23,6 +23,16 @@ const labels: StockItemFormLabels = {
     anesthetic: 'Anestésico',
     disposable: 'Descartável',
   },
+  units: {
+    unit: 'Unidade',
+    ampoule: 'Ampola',
+    vial: 'Frasco',
+    box: 'Caixa',
+    ml: 'ml',
+    mg: 'mg',
+    tablet: 'Comprimido',
+    other: 'Outro',
+  },
   edit: 'Editar',
   delete: 'Excluir',
 };
@@ -30,10 +40,10 @@ const labels: StockItemFormLabels = {
 const values: StockItemFormValues = {
   category: 'medication',
   name: 'Dipirona',
-  unitCost: '12',
   unit: 'ml',
-  quantity: '5',
-  minimumQuantity: '2',
+  defaultUnitCost: '12',
+  currentQuantity: '5',
+  minimumStock: '2',
   expirationDate: '2030-10-15',
 };
 
@@ -41,6 +51,7 @@ function render(props: Partial<Parameters<typeof StockItemForm>[0]> = {}) {
   const handlers = {
     onChange: jest.fn(),
     onSelectCategory: jest.fn(),
+    onSelectUnit: jest.fn(),
     onSubmit: jest.fn(),
     onDelete: jest.fn(),
   };
@@ -71,9 +82,27 @@ test('shows the item values and reports edits with the field name', () => {
   expect(handlers.onChange).toHaveBeenCalledWith('name', 'Dipirona 500mg');
 });
 
+test('renders category and unit chips and reports a unit tap', () => {
+  const { renderer, handlers } = render();
+  // Pressable renders as several nested nodes; only the outer one has onPress.
+  const chips = renderer.root.findAll(
+    node =>
+      node.props.accessibilityRole === 'radio' &&
+      typeof node.props.onPress === 'function',
+  );
+
+  // 3 categories + 8 units
+  expect(chips).toHaveLength(11);
+  const selected = chips.filter(chip => chip.props.accessibilityState.selected);
+  expect(selected).toHaveLength(2);
+
+  act(() => chips[3].props.onPress());
+  expect(handlers.onSelectUnit).toHaveBeenCalledWith('unit');
+});
+
 test('renders a translated error under the failing field', () => {
   const { renderer } = render({
-    errors: { unitCost: 'Não pode ser negativo' },
+    errors: { defaultUnitCost: 'Não pode ser negativo' },
   });
 
   expect(

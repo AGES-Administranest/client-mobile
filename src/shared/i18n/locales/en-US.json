@@ -32,22 +32,31 @@
       "fields": {
         "category": "Category",
         "name": "Name",
-        "unitCost": "Unit cost (R$)",
         "unit": "Unit",
-        "quantity": "Quantity",
-        "minimumQuantity": "Minimum stock quantity",
+        "defaultUnitCost": "Unit cost (R$)",
+        "currentQuantity": "Quantity",
+        "minimumStock": "Minimum stock quantity",
         "expirationDate": "Expiry date"
       },
       "placeholders": {
         "name": "Enter the medication name",
-        "unitCost": "Enter the cost",
-        "unit": "Enter the unit",
+        "defaultUnitCost": "Enter the cost",
         "expirationDate": "YYYY-MM-DD"
       },
       "categories": {
         "medication": "Medication",
         "anesthetic": "Anesthetic",
         "disposable": "Disposable"
+      },
+      "units": {
+        "unit": "Unit",
+        "ampoule": "Ampoule",
+        "vial": "Vial",
+        "box": "Box",
+        "ml": "ml",
+        "mg": "mg",
+        "tablet": "Tablet",
+        "other": "Other"
       },
       "actions": {
         "edit": "Edit",

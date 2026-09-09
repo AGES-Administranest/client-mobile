@@ -3,22 +3,30 @@ import { View } from 'react-native';
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 
-import { CategorySelector } from './CategorySelector';
+import { ChipSelector } from './ChipSelector';
 import { FormField } from './FormField';
-import type { StockCategory } from '../domain/stockItem';
+import {
+  MEASUREMENT_UNITS,
+  STOCK_CATEGORIES,
+  type MeasurementUnit,
+  type StockCategory,
+} from '../domain/stockItem';
 
 /** Field values exactly as typed — strings, so "12." survives while typing. */
 export type StockItemFormValues = {
   category: StockCategory | null;
   name: string;
-  unitCost: string;
-  unit: string;
-  quantity: string;
-  minimumQuantity: string;
+  unit: MeasurementUnit | null;
+  defaultUnitCost: string;
+  currentQuantity: string;
+  minimumStock: string;
   expirationDate: string;
 };
 
-export type StockItemTextField = Exclude<keyof StockItemFormValues, 'category'>;
+export type StockItemTextField = Exclude<
+  keyof StockItemFormValues,
+  'category' | 'unit'
+>;
 
 /** Every string the form shows, already translated by the screen. */
 export type StockItemFormLabels = {
@@ -26,6 +34,7 @@ export type StockItemFormLabels = {
   fields: Record<keyof StockItemFormValues, string>;
   placeholders: Partial<Record<StockItemTextField, string>>;
   categories: Record<StockCategory, string>;
+  units: Record<MeasurementUnit, string>;
   edit: string;
   delete: string;
 };
@@ -37,6 +46,7 @@ type StockItemFormProps = {
   isSaving: boolean;
   onChange: (field: StockItemTextField, text: string) => void;
   onSelectCategory: (category: StockCategory) => void;
+  onSelectUnit: (unit: MeasurementUnit) => void;
   onSubmit: () => void;
   onDelete: () => void;
 };
@@ -50,6 +60,7 @@ export function StockItemForm({
   isSaving,
   onChange,
   onSelectCategory,
+  onSelectUnit,
   onSubmit,
   onDelete,
 }: StockItemFormProps) {
@@ -59,19 +70,14 @@ export function StockItemForm({
         {labels.title}
       </Text>
 
-      <View className="gap-1">
-        <Text className="text-xs font-medium uppercase text-label-tertiary">
-          {labels.fields.category}
-        </Text>
-        <CategorySelector
+      <ChoiceField label={labels.fields.category} error={errors.category}>
+        <ChipSelector
+          options={STOCK_CATEGORIES}
           value={values.category}
           labels={labels.categories}
           onSelect={onSelectCategory}
         />
-        {errors.category ? (
-          <Text className="text-xs text-alert-primary">{errors.category}</Text>
-        ) : null}
-      </View>
+      </ChoiceField>
 
       <FormField
         label={labels.fields.name}
@@ -81,42 +87,38 @@ export function StockItemForm({
         onChangeText={text => onChange('name', text)}
       />
 
-      <View className="flex-row gap-3">
-        <View className="flex-1">
-          <FormField
-            label={labels.fields.unitCost}
-            placeholder={labels.placeholders.unitCost}
-            value={values.unitCost}
-            error={errors.unitCost}
-            keyboardType="decimal-pad"
-            onChangeText={text => onChange('unitCost', text)}
-          />
-        </View>
-        <View className="flex-1">
-          <FormField
-            label={labels.fields.unit}
-            placeholder={labels.placeholders.unit}
-            value={values.unit}
-            error={errors.unit}
-            onChangeText={text => onChange('unit', text)}
-          />
-        </View>
-      </View>
+      <FormField
+        label={labels.fields.defaultUnitCost}
+        placeholder={labels.placeholders.defaultUnitCost}
+        value={values.defaultUnitCost}
+        error={errors.defaultUnitCost}
+        keyboardType="decimal-pad"
+        onChangeText={text => onChange('defaultUnitCost', text)}
+      />
+
+      <ChoiceField label={labels.fields.unit} error={errors.unit}>
+        <ChipSelector
+          options={MEASUREMENT_UNITS}
+          value={values.unit}
+          labels={labels.units}
+          onSelect={onSelectUnit}
+        />
+      </ChoiceField>
 
       <FormField
-        label={labels.fields.quantity}
-        value={values.quantity}
-        error={errors.quantity}
+        label={labels.fields.currentQuantity}
+        value={values.currentQuantity}
+        error={errors.currentQuantity}
         keyboardType="decimal-pad"
-        onChangeText={text => onChange('quantity', text)}
+        onChangeText={text => onChange('currentQuantity', text)}
       />
 
       <FormField
-        label={labels.fields.minimumQuantity}
-        value={values.minimumQuantity}
-        error={errors.minimumQuantity}
+        label={labels.fields.minimumStock}
+        value={values.minimumStock}
+        error={errors.minimumStock}
         keyboardType="decimal-pad"
-        onChangeText={text => onChange('minimumQuantity', text)}
+        onChangeText={text => onChange('minimumStock', text)}
       />
 
       <FormField
@@ -140,6 +142,28 @@ export function StockItemForm({
           <Text>{labels.delete}</Text>
         </Button>
       </View>
+    </View>
+  );
+}
+
+type ChoiceFieldProps = {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+};
+
+// Same label/error frame as FormField, but around a chip row instead of an
+// Input. Local to this file: nothing else needs it yet.
+function ChoiceField({ label, error, children }: ChoiceFieldProps) {
+  return (
+    <View className="gap-1">
+      <Text className="text-xs font-medium uppercase text-label-tertiary">
+        {label}
+      </Text>
+      {children}
+      {error ? (
+        <Text className="text-xs text-alert-primary">{error}</Text>
+      ) : null}
     </View>
   );
 }

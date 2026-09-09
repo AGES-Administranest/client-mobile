@@ -22,17 +22,18 @@ export function validateStockItem(
 
   if (!item.category) errors.category = 'required';
   if (item.name.trim() === '') errors.name = 'required';
-  if (item.unit.trim() === '') errors.unit = 'required';
+  if (!item.unit) errors.unit = 'required';
 
-  if (Number.isNaN(item.unitCost)) errors.unitCost = 'required';
-  else if (item.unitCost < 0) errors.unitCost = 'mustBeNonNegative';
+  if (Number.isNaN(item.defaultUnitCost)) errors.defaultUnitCost = 'required';
+  else if (item.defaultUnitCost < 0)
+    errors.defaultUnitCost = 'mustBeNonNegative';
 
-  if (Number.isNaN(item.quantity)) errors.quantity = 'required';
-  else if (item.quantity < 0) errors.quantity = 'mustBeNonNegative';
+  if (Number.isNaN(item.currentQuantity)) errors.currentQuantity = 'required';
+  else if (item.currentQuantity < 0)
+    errors.currentQuantity = 'mustBeNonNegative';
 
-  if (Number.isNaN(item.minimumQuantity)) errors.minimumQuantity = 'required';
-  else if (item.minimumQuantity < 0)
-    errors.minimumQuantity = 'mustBeNonNegative';
+  if (Number.isNaN(item.minimumStock)) errors.minimumStock = 'required';
+  else if (item.minimumStock < 0) errors.minimumStock = 'mustBeNonNegative';
 
   if (item.expirationDate !== null && !isValidIsoDate(item.expirationDate)) {
     errors.expirationDate = 'invalidDate';
