@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
 // Shape of a single stock item, rendered by the card. Shared so any feature

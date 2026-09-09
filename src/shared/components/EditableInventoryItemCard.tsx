@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, TextInput, View } from 'react-native';
 
+import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import { LabelPlaceholder } from 'theme/colors';
 

@@ -1,7 +1,8 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
 // Pill-shaped primary action button from the Figma design system (node 31:1237).

@@ -1,5 +1,6 @@
-import { ActivityIndicator, Modal, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, View } from 'react-native';
 
+import { Text } from 'app/components/ui/text';
 import { BackgroundShade, ButtonPrimary } from 'theme/colors';
 
 type LoadingOverlayProps = {

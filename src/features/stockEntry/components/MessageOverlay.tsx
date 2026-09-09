@@ -1,5 +1,6 @@
-import { Modal, Text, View } from 'react-native';
+import { Modal, View } from 'react-native';
 
+import { Text } from 'app/components/ui/text';
 import { ActionButton } from 'shared/components';
 import { BackgroundShade } from 'theme/colors';
 
