@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, StyleSheet, TextInput, View } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
@@ -38,6 +38,17 @@ export function EditableInventoryItemCard({
   // Local text state so the field can be emptied while typing; the parsed
   // number is pushed up on every keystroke.
   const [quantityText, setQuantityText] = useState(() => String(quantity));
+
+  // Extracted items carry positional ids ("item-0"), so a second extraction can
+  // hand this instance a different item under the same key. Comparing parsed
+  // values leaves a field the user has just emptied alone.
+  useEffect(() => {
+    setQuantityText(current =>
+      Number(current === '' ? '0' : current) === quantity
+        ? current
+        : String(quantity),
+    );
+  }, [quantity]);
   // Grows the name field with its content so a long item name is fully visible
   // for review instead of being clipped to the input's default height.
   const [nameHeight, setNameHeight] = useState<number | null>(null);
