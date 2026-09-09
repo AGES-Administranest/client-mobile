@@ -1,18 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
 import { StockItemForm, type StockItemFormLabels } from './StockItemForm';
+import { BackgroundShade } from '../../../theme/colors';
 import type { StockItem } from '../domain/stockItem';
 import type { StockItemErrorCode } from '../domain/validateStockItem';
 import { useEditStockItem } from '../hooks/useEditStockItem';
@@ -38,8 +42,8 @@ type StockItemSheetProps = {
 };
 
 // Bottom sheet hosting the edit form (Figma: "Novo insumo ou medicamento",
-// edit variant). Kept simple on purpose — a plain slide-up Modal; the animated
-// backdrop from feat/US-10 can replace it once that lands.
+// edit variant). The backdrop fades and the sheet slides independently — see
+// useSheetAnimation for why Modal's own `animationType="slide"` is not used.
 export function StockItemSheet({
   item,
   labels,
@@ -48,44 +52,62 @@ export function StockItemSheet({
   onDeleted,
 }: StockItemSheetProps) {
   const insets = useSafeAreaInsets();
+  const { isRendered, progress, translateY } = useSheetAnimation(item !== null);
+
+  // `item` turns null the moment the sheet starts closing; keep the last one
+  // so the form stays visible while the sheet slides down.
+  const [shownItem, setShownItem] = useState(item);
+  useEffect(() => {
+    if (item) setShownItem(item);
+  }, [item]);
 
   return (
     <Modal
-      visible={item !== null}
+      visible={isRendered}
       transparent
-      animationType="slide"
+      animationType="none"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
         className="flex-1 justify-end"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: BackgroundShade, opacity: progress },
+          ]}
+        />
         <Pressable
-          className="flex-1 bg-background-shade"
+          className="flex-1"
           accessibilityRole="button"
           accessibilityLabel="close"
           onPress={onClose}
         />
-        <View
-          className="max-h-[90%] rounded-t-[20px] bg-background-modal px-5 pt-3"
-          style={{ paddingBottom: insets.bottom + 24 }}
-        >
-          <View className="items-center pb-4">
-            <View className="h-1 w-9 rounded-full bg-border-primary" />
+        <Animated.View style={{ transform: [{ translateY }] }}>
+          <View
+            className="max-h-[90%] rounded-t-[20px] bg-background-modal px-5 pt-3"
+            style={{ paddingBottom: insets.bottom + 24 }}
+          >
+            <View className="items-center pb-4">
+              <View className="h-1 w-9 rounded-full bg-border-primary" />
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled">
+              {shownItem ? (
+                // Keyed by id so switching items resets the hook's state.
+                <SheetBody
+                  key={shownItem.id}
+                  item={shownItem}
+                  labels={labels}
+                  onSaved={onSaved}
+                  onDeleted={onDeleted}
+                />
+              ) : null}
+            </ScrollView>
           </View>
-          <ScrollView keyboardShouldPersistTaps="handled">
-            {item ? (
-              // Keyed by id so switching items resets the hook's state.
-              <SheetBody
-                key={item.id}
-                item={item}
-                labels={labels}
-                onSaved={onSaved}
-                onDeleted={onDeleted}
-              />
-            ) : null}
-          </ScrollView>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
