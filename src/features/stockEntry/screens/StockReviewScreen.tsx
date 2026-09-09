@@ -1,4 +1,5 @@
 import {
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -19,6 +20,7 @@ import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
 
 import { needsAttention, ScannedItem } from '../domain/stockItem';
+import { useSheetAnimation } from '../hooks/useSheetAnimation';
 
 type StockReviewScreenProps = {
   visible: boolean;
@@ -42,73 +44,84 @@ export function StockReviewScreen({
 }: StockReviewScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { isRendered, progress, translateY } = useSheetAnimation(visible);
 
   return (
     <Modal
-      visible={visible}
+      visible={isRendered}
       transparent
-      animationType="slide"
+      animationType="none"
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View className="flex-1" style={{ backgroundColor: BackgroundShade }}>
+      <View className="flex-1">
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: BackgroundShade, opacity: progress },
+          ]}
+        />
+
         <Pressable className="flex-1" onPress={onClose} />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <View
-            className="rounded-t-[20px] bg-background-modal px-5 pt-3"
-            style={styles.sheet}
+        <Animated.View style={{ transform: [{ translateY }] }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <View className="items-center pb-1">
-              <View className="h-1 w-9 rounded-full bg-border-primary" />
-            </View>
-
-            <Text className="pb-1 text-center text-xs text-label-tertiary">
-              {t('stockEntry.review.found', { count: items.length })}
-            </Text>
-
-            <ScrollView
-              style={styles.list}
-              contentContainerClassName="gap-2 py-2"
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-              {items.map(item => (
-                <EditableInventoryItemCard
-                  key={item.id}
-                  name={item.name}
-                  subtitle={[item.unit, item.dosage]
-                    .filter(Boolean)
-                    .join(' · ')}
-                  quantity={item.quantity}
-                  namePlaceholder={t('stockEntry.review.namePlaceholder')}
-                  onChangeName={name => onRenameItem(item.id, name)}
-                  onChangeQuantity={quantity =>
-                    onChangeQuantity(item.id, quantity)
-                  }
-                  warning={
-                    needsAttention(item)
-                      ? t('stockEntry.review.checkItem')
-                      : undefined
-                  }
-                />
-              ))}
-            </ScrollView>
-
             <View
-              className="pt-2"
-              style={{ paddingBottom: insets.bottom + 16 }}
+              className="rounded-t-[20px] bg-background-modal px-5 pt-3"
+              style={styles.sheet}
             >
-              <ActionButton
-                label={t('stockEntry.review.confirm')}
-                icon={<CheckIcon />}
-                onPress={onConfirm}
-              />
+              <View className="items-center pb-1">
+                <View className="h-1 w-9 rounded-full bg-border-primary" />
+              </View>
+
+              <Text className="pb-1 text-center text-xs text-label-tertiary">
+                {t('stockEntry.review.found', { count: items.length })}
+              </Text>
+
+              <ScrollView
+                style={styles.list}
+                contentContainerClassName="gap-2 py-2"
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {items.map(item => (
+                  <EditableInventoryItemCard
+                    key={item.id}
+                    name={item.name}
+                    subtitle={[item.unit, item.dosage]
+                      .filter(Boolean)
+                      .join(' · ')}
+                    quantity={item.quantity}
+                    namePlaceholder={t('stockEntry.review.namePlaceholder')}
+                    onChangeName={name => onRenameItem(item.id, name)}
+                    onChangeQuantity={quantity =>
+                      onChangeQuantity(item.id, quantity)
+                    }
+                    warning={
+                      needsAttention(item)
+                        ? t('stockEntry.review.checkItem')
+                        : undefined
+                    }
+                  />
+                ))}
+              </ScrollView>
+
+              <View
+                className="pt-2"
+                style={{ paddingBottom: insets.bottom + 16 }}
+              >
+                <ActionButton
+                  label={t('stockEntry.review.confirm')}
+                  icon={<CheckIcon />}
+                  onPress={onConfirm}
+                />
+              </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </Animated.View>
       </View>
     </Modal>
   );
