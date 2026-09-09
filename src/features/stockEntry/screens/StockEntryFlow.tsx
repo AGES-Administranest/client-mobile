@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Modal, View } from 'react-native';
 
 import { ActionButton, PlusIcon } from 'shared/components';
 import { useTranslation } from 'shared/i18n';
@@ -16,16 +16,6 @@ export function StockEntryFlow() {
   const { t } = useTranslation();
   const flow = useStockEntryFlow();
 
-  // The scan step is a full screen, so it replaces the content entirely.
-  if (flow.step === 'scanning') {
-    return (
-      <ScanScreen
-        onCapture={flow.capture}
-        onPickFromLibrary={flow.pickFromLibrary}
-      />
-    );
-  }
-
   return (
     <View className="flex-1 items-center justify-center bg-background-modal px-5">
       <ActionButton
@@ -42,6 +32,15 @@ export function StockEntryFlow() {
         // "Digitar insumo" has no designed screen yet.
         onTypeItem={flow.closeMenu}
       />
+
+      {/* A Modal, not an early return: returning here would leave the tab it
+          belongs to mounted behind the camera, each at half height. */}
+      <Modal visible={flow.step === 'scanning'} animationType="slide">
+        <ScanScreen
+          onCapture={flow.capture}
+          onPickFromLibrary={flow.pickFromLibrary}
+        />
+      </Modal>
 
       <LoadingOverlay
         visible={flow.step === 'processing'}
