@@ -15,15 +15,12 @@ export type MonitoredItem = {
 };
 
 /**
- * Estritamente abaixo (`<`): um item com saldo exatamente igual ao mínimo
- * ainda está no nível de reposição e não alerta.
- *
- * Atenção: o CA2 da US11 diz "atingir ou ficar abaixo do mínimo", o que seria
- * `<=`. A regra aqui segue a decisão do time — o texto do critério precisa ser
- * atualizado para não divergir do comportamento.
+ * "Atingir ou ficar abaixo do mínimo", como diz o CA2 da US11 — por isso `<=`
+ * e não `<`. Um item com saldo exatamente igual ao mínimo já alerta: o mínimo
+ * é o ponto de reposição, não o último saldo aceitável.
  */
-export function isBelowMinimum(item: MonitoredItem): boolean {
-  return item.quantity < item.minimumStock;
+export function isAtOrBelowMinimum(item: MonitoredItem): boolean {
+  return item.quantity <= item.minimumStock;
 }
 
 export type AlertsResult = {
@@ -43,7 +40,7 @@ export function calculateAlerts(
   items: readonly MonitoredItem[],
   alreadyNotifiedIds: readonly string[],
 ): AlertsResult {
-  const critical = items.filter(isBelowMinimum);
+  const critical = items.filter(isAtOrBelowMinimum);
   const alreadyNotified = new Set(alreadyNotifiedIds);
 
   return {

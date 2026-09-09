@@ -2,7 +2,7 @@ import { isExpiringSoon } from './expiryAlert';
 import type { ExpiringItem, IsoDate } from './expiryAlert';
 import { elapsedMinutesSince, formatElapsedTime } from './formatElapsedTime';
 import type { ElapsedTime } from './formatElapsedTime';
-import { isBelowMinimum } from './lowStockAlert';
+import { isAtOrBelowMinimum } from './lowStockAlert';
 import type { MonitoredItem } from './lowStockAlert';
 
 /**
@@ -59,7 +59,7 @@ export function activeAlertKeys(
   const keys: string[] = [];
 
   for (const item of items) {
-    if (isBelowMinimum(item)) {
+    if (isAtOrBelowMinimum(item)) {
       keys.push(lowStockKey(item.id));
     }
 
@@ -122,7 +122,7 @@ export function buildInventoryNotifications(
   const notifications: InventoryNotification[] = [];
 
   for (const item of items) {
-    if (isBelowMinimum(item)) {
+    if (isAtOrBelowMinimum(item)) {
       const key = lowStockKey(item.id);
 
       notifications.push({

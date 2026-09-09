@@ -83,23 +83,24 @@ it('notifica na montagem os itens que já estão abaixo do mínimo', async () =>
   expect(bodies()[0]).toContain('propofol');
 });
 
-it('não notifica quando a baixa só encosta no mínimo', async () => {
+it('notifica assim que a baixa encosta no mínimo', async () => {
   const update = await mount([item('propofol', 6)]);
   mockScheduleNotification.mockClear();
 
-  // Saldo igual ao mínimo ainda é nível de reposição, não alerta.
+  // Saldo igual ao mínimo já é o ponto de reposição (CA2).
   await update([item('propofol', 5)]);
 
-  expect(mockScheduleNotification).not.toHaveBeenCalled();
+  expect(mockScheduleNotification).toHaveBeenCalledTimes(1);
 });
 
-it('notifica quando a baixa passa do mínimo', async () => {
+it('não repete quando a baixa continua abaixo do mínimo', async () => {
   const update = await mount([item('propofol', 6)]);
+  await update([item('propofol', 5)]);
   mockScheduleNotification.mockClear();
 
   await update([item('propofol', 4)]);
 
-  expect(mockScheduleNotification).toHaveBeenCalledTimes(1);
+  expect(mockScheduleNotification).not.toHaveBeenCalled();
 });
 
 it('não repete a notificação em uma nova baixa do mesmo item', async () => {
@@ -140,9 +141,9 @@ it('não duplica alerta em atualizações seguidas e rápidas', async () => {
 
   // Um atendimento consome vários materiais: o item cruza o mínimo na
   // primeira atualização e não pode notificar de novo nas seguintes.
+  await update([item('cateter', 10, 10)]);
   await update([item('cateter', 9, 10)]);
   await update([item('cateter', 8, 10)]);
-  await update([item('cateter', 7, 10)]);
 
   expect(mockScheduleNotification).toHaveBeenCalledTimes(1);
 });
