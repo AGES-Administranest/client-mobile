@@ -1,10 +1,12 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Camera } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Pressable, StatusBar, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
-import { ActionButton, CameraIcon } from 'shared/components';
+import { ActionButton } from 'shared/components';
 import { useTranslation } from 'shared/i18n';
 
 import { ScanFrame } from '../components/ScanFrame';
@@ -76,14 +78,14 @@ export function ScanScreen({
         {permission?.granted ? (
           <ActionButton
             label={t('stockEntry.scan.capture')}
-            icon={<CameraIcon />}
+            icon={<Icon as={Camera} size={16} />}
             onPress={handleCapture}
             disabled={isCapturing}
           />
         ) : (
           <ActionButton
             label={t('stockEntry.scan.allowCamera')}
-            icon={<CameraIcon />}
+            icon={<Icon as={Camera} size={16} />}
             onPress={requestPermission}
           />
         )}

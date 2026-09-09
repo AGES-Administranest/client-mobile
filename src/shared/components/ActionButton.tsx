@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Text } from 'app/components/ui/text';
+import { Text, TextClassContext } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
 // Pill-shaped primary action button from the Figma design system (node 31:1237).
@@ -62,7 +62,9 @@ export function ActionButton({
       {...props}
     >
       {icon ? (
-        <View className="h-4 w-4 items-center justify-center">{icon}</View>
+        <TextClassContext.Provider value="text-label-secondary">
+          <View className="h-4 w-4 items-center justify-center">{icon}</View>
+        </TextClassContext.Provider>
       ) : null}
       <Text
         className="text-center text-sm font-medium text-label-secondary"

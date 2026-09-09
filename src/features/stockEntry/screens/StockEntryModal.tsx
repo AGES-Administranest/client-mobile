@@ -1,7 +1,9 @@
+import { Plus, ScanText } from 'lucide-react-native';
 import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ActionButton, PlusIcon, ScanTextIcon } from 'shared/components';
+import { Icon } from 'app/components/ui/icon';
+import { ActionButton } from 'shared/components';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
 
@@ -62,19 +64,19 @@ export function StockEntryModal({
             <View className="gap-4">
               <ActionButton
                 label={t('stockEntry.menu.scanNote')}
-                icon={<ScanTextIcon />}
+                icon={<Icon as={ScanText} size={16} />}
                 labelMinWidth={MENU_LABEL_MIN_WIDTH}
                 onPress={onScanNote}
               />
               <ActionButton
                 label={t('stockEntry.menu.attachPdf')}
-                icon={<ScanTextIcon />}
+                icon={<Icon as={ScanText} size={16} />}
                 labelMinWidth={MENU_LABEL_MIN_WIDTH}
                 onPress={onAttachPdf}
               />
               <ActionButton
                 label={t('stockEntry.menu.typeItem')}
-                icon={<PlusIcon />}
+                icon={<Icon as={Plus} size={16} />}
                 labelMinWidth={MENU_LABEL_MIN_WIDTH}
                 onPress={onTypeItem}
               />

@@ -1,6 +1,8 @@
+import { Plus } from 'lucide-react-native';
 import { Modal, View } from 'react-native';
 
-import { ActionButton, PlusIcon } from 'shared/components';
+import { Icon } from 'app/components/ui/icon';
+import { ActionButton } from 'shared/components';
 import { useTranslation } from 'shared/i18n';
 
 import { ScanScreen } from './ScanScreen';
@@ -20,7 +22,7 @@ export function StockEntryFlow() {
     <View className="flex-1 items-center justify-center bg-background-modal px-5">
       <ActionButton
         label={t('stockEntry.trigger')}
-        icon={<PlusIcon />}
+        icon={<Icon as={Plus} size={16} />}
         onPress={flow.openMenu}
       />
 

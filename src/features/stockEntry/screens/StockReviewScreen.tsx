@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react-native';
 import {
   Animated,
   KeyboardAvoidingView,
@@ -10,12 +11,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
-import {
-  ActionButton,
-  CheckIcon,
-  EditableInventoryItemCard,
-} from 'shared/components';
+import { ActionButton, EditableInventoryItemCard } from 'shared/components';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
 
@@ -115,7 +113,7 @@ export function StockReviewScreen({
               >
                 <ActionButton
                   label={t('stockEntry.review.confirm')}
-                  icon={<CheckIcon />}
+                  icon={<Icon as={Check} size={16} />}
                   onPress={onConfirm}
                 />
               </View>
