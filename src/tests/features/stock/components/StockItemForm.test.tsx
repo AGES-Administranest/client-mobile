@@ -1,6 +1,7 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import {
+  StockItemActions,
   StockItemForm,
   type StockItemFormLabels,
   type StockItemFormValues,
@@ -52,8 +53,6 @@ function render(props: Partial<Parameters<typeof StockItemForm>[0]> = {}) {
     onChange: jest.fn(),
     onSelectCategory: jest.fn(),
     onSelectUnit: jest.fn(),
-    onSubmit: jest.fn(),
-    onDelete: jest.fn(),
   };
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
@@ -63,7 +62,6 @@ function render(props: Partial<Parameters<typeof StockItemForm>[0]> = {}) {
         values={values}
         errors={{}}
         labels={labels}
-        isSaving={false}
         {...handlers}
         {...props}
       />,
@@ -110,9 +108,23 @@ test('renders a translated error under the failing field', () => {
   ).not.toHaveLength(0);
 });
 
-test('fires onSubmit for Editar and onDelete for Excluir', () => {
-  const { renderer, handlers } = render();
-  const buttons = renderer.root.findAll(
+test('StockItemActions fires onSubmit for Editar and onDelete for Excluir', () => {
+  const onSubmit = jest.fn();
+  const onDelete = jest.fn();
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  act(() => {
+    renderer = ReactTestRenderer.create(
+      <StockItemActions
+        labels={labels}
+        isSaving={false}
+        onSubmit={onSubmit}
+        onDelete={onDelete}
+      />,
+    );
+  });
+
+  const buttons = renderer!.root.findAll(
     node =>
       node.props.role === 'button' && typeof node.props.onPress === 'function',
   );
@@ -121,6 +133,6 @@ test('fires onSubmit for Editar and onDelete for Excluir', () => {
   act(() => buttons[0].props.onPress());
   act(() => buttons[1].props.onPress());
 
-  expect(handlers.onSubmit).toHaveBeenCalledTimes(1);
-  expect(handlers.onDelete).toHaveBeenCalledTimes(1);
+  expect(onSubmit).toHaveBeenCalledTimes(1);
+  expect(onDelete).toHaveBeenCalledTimes(1);
 });

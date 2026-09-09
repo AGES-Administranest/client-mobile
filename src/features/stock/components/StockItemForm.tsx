@@ -33,29 +33,25 @@ type StockItemFormProps = {
   values: StockItemFormValues;
   errors: Partial<Record<keyof StockItemFormValues, string>>;
   labels: StockItemFormLabels;
-  isSaving: boolean;
   onChange: (field: StockItemTextField, text: string) => void;
   onSelectCategory: (category: StockCategory) => void;
   onSelectUnit: (unit: MeasurementUnit) => void;
-  onSubmit: () => void;
-  onDelete: () => void;
 };
 
-// The edit sheet's body (Figma "Novo insumo ou medicamento", edit variant).
-// Purely presentational: values, errors and labels come in, taps go out.
+// The edit sheet's fields (Figma "Novo insumo ou medicamento", edit variant).
+// Purely presentational: values, errors and labels come in, taps go out. The
+// Editar/Excluir buttons live in StockItemActions so the sheet can pin them
+// below the scrolling fields.
 export function StockItemForm({
   values,
   errors,
   labels,
-  isSaving,
   onChange,
   onSelectCategory,
   onSelectUnit,
-  onSubmit,
-  onDelete,
 }: StockItemFormProps) {
   return (
-    <View className="gap-4">
+    <View className="gap-3">
       <Text className="text-lg font-semibold text-label-primary">
         {labels.title}
       </Text>
@@ -118,20 +114,36 @@ export function StockItemForm({
         error={errors.expirationDate}
         onChangeText={text => onChange('expirationDate', text)}
       />
+    </View>
+  );
+}
 
-      <View className="gap-2 pt-2">
-        <Button shape="pill" disabled={isSaving} onPress={onSubmit}>
-          <Text>{labels.edit}</Text>
-        </Button>
-        <Button
-          shape="pill"
-          variant="destructive"
-          disabled={isSaving}
-          onPress={onDelete}
-        >
-          <Text>{labels.delete}</Text>
-        </Button>
-      </View>
+type StockItemActionsProps = {
+  labels: Pick<StockItemFormLabels, 'edit' | 'delete'>;
+  isSaving: boolean;
+  onSubmit: () => void;
+  onDelete: () => void;
+};
+
+export function StockItemActions({
+  labels,
+  isSaving,
+  onSubmit,
+  onDelete,
+}: StockItemActionsProps) {
+  return (
+    <View className="gap-2 pt-3">
+      <Button shape="pill" disabled={isSaving} onPress={onSubmit}>
+        <Text>{labels.edit}</Text>
+      </Button>
+      <Button
+        shape="pill"
+        variant="destructive"
+        disabled={isSaving}
+        onPress={onDelete}
+      >
+        <Text>{labels.delete}</Text>
+      </Button>
     </View>
   );
 }
