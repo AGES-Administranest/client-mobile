@@ -19,13 +19,6 @@
     "supplies": "Supplies and medicines",
     "equipment": "Equipment"
   },
-  "tabbar": {
-    "day": "Day-to-Day",
-    "finance": "Finance",
-    "materials": "Materials",
-    "clinics": "Clinics",
-    "reports": "Reports"
-  },
   "stock": {
     "screen": {
       "title": "Stock"
@@ -76,6 +69,65 @@
         "mustBeNonNegative": "Cannot be negative",
         "invalidDate": "Invalid date"
       }
+    },
+    "movementHistory": {
+      "title": "Movement history",
+      "description": "Stock inbounds, outbounds and adjustments",
+      "appointmentLink": "Appointment · {{appointment}}",
+      "empty": "No movement recorded yet.",
+      "error": "Could not load the history.",
+      "origins": {
+        "manualPurchase": "Manual purchase",
+        "orderImport": "Order received",
+        "appointment": "Used in appointment",
+        "correctionReversal": "Correction reversal",
+        "adjustmentLoss": "Adjustment · Loss",
+        "adjustmentExpiration": "Adjustment · Expiration",
+        "adjustmentBreakage": "Adjustment · Breakage",
+        "adjustmentOther": "Adjustment · Other"
+      },
+      "units": {
+        "unit": {
+          "one": "un",
+          "other": "un"
+        },
+        "ampoule": {
+          "one": "ampoule",
+          "other": "ampoules"
+        },
+        "vial": {
+          "one": "vial",
+          "other": "vials"
+        },
+        "box": {
+          "one": "box",
+          "other": "boxes"
+        },
+        "ml": {
+          "one": "ml",
+          "other": "ml"
+        },
+        "mg": {
+          "one": "mg",
+          "other": "mg"
+        },
+        "tablet": {
+          "one": "tablet",
+          "other": "tablets"
+        },
+        "other": {
+          "one": "un",
+          "other": "un"
+        }
+      },
+      "quantity": "{{quantity}} {{unit}}"
     }
+  },
+  "tabbar": {
+    "day": "Day-to-Day",
+    "finance": "Finance",
+    "materials": "Materials",
+    "clinics": "Clinics",
+    "reports": "Reports"
   }
 }
