@@ -45,8 +45,13 @@ function MaterialCard({
   minQuantity,
   className,
 }: MaterialCardProps) {
+  const isLowStock = quantity <= minQuantity;
+
   return (
-    <Card variant="material" className={className}>
+    <Card
+      variant="material"
+      className={cn(isLowStock && 'border border-red-500', className)}
+    >
       <View className="flex-1 gap-1">
         <Text className="font-bold" numberOfLines={1}>
           {name}
@@ -60,6 +65,11 @@ function MaterialCard({
         <Text variant="muted" className="text-xs">
           min. {minQuantity}
         </Text>
+        {isLowStock ? (
+          <Text variant="muted" className="text-[10px] text-red-500">
+            Item abaixo da quantitade mínima
+          </Text>
+        ) : null}
       </View>
     </Card>
   );
