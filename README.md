@@ -241,13 +241,21 @@ emulator and against real AWS.
 
 #### Configuration
 
-Three `EXPO_PUBLIC_*` variables in `.env`, documented in
+Four `EXPO_PUBLIC_*` variables in `.env`, documented in
 [`.env.example`](./.env.example). They are inlined into the bundle at build time, so
 nothing secret can live there — and nothing needs to, since the Cognito app client is
 public by design.
 
+Three of them point at Cognito. The fourth, `EXPO_PUBLIC_API_URL`, points at the
+Administranest backend: Cognito is where the app signs in, but the user's own record
+lives in our API, created by `POST /auth/session` on the first valid login.
+
 To point the app at the local emulator, run `npm run dev:bootstrap` in the backend repo
-and copy the `COGNITO_CLIENT_ID` it writes to `backend/.aws-local.env`.
+and copy the `COGNITO_CLIENT_ID` it writes to `backend/.aws-local.env`. The backend
+itself runs outside Docker (`npm run start:dev` there) on port 3000.
+
+On the Android emulator, `localhost` is the emulator, not your machine — use
+`http://10.0.2.2:<port>` for both the Cognito endpoint and the API.
 
 #### What the feature exposes
 

@@ -19,6 +19,60 @@
     "supplies": "Insumos e medicamentos",
     "equipment": "Equipamentos"
   },
+  "stock": {
+    "movementHistory": {
+      "title": "Histórico de movimentações",
+      "description": "Entradas, saídas e ajustes de estoque",
+      "appointmentLink": "Atendimento · {{appointment}}",
+      "empty": "Nenhuma movimentação registrada.",
+      "error": "Não foi possível carregar o histórico.",
+      "origins": {
+        "manualPurchase": "Compra manual",
+        "orderImport": "Pedido recebido",
+        "appointment": "Saída por atendimento",
+        "correctionReversal": "Estorno de correção",
+        "adjustmentLoss": "Ajuste · Perda",
+        "adjustmentExpiration": "Ajuste · Vencimento",
+        "adjustmentBreakage": "Ajuste · Quebra",
+        "adjustmentOther": "Ajuste · Outro"
+      },
+      "units": {
+        "unit": {
+          "one": "un",
+          "other": "un"
+        },
+        "ampoule": {
+          "one": "ampola",
+          "other": "ampolas"
+        },
+        "vial": {
+          "one": "frasco",
+          "other": "frascos"
+        },
+        "box": {
+          "one": "caixa",
+          "other": "caixas"
+        },
+        "ml": {
+          "one": "ml",
+          "other": "ml"
+        },
+        "mg": {
+          "one": "mg",
+          "other": "mg"
+        },
+        "tablet": {
+          "one": "comprimido",
+          "other": "comprimidos"
+        },
+        "other": {
+          "one": "un",
+          "other": "un"
+        }
+      },
+      "quantity": "{{quantity}} {{unit}}"
+    }
+  },
   "tabbar": {
     "day": "Dia-a-Dia",
     "finance": "Finança",
