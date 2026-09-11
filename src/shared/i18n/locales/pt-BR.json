@@ -25,5 +25,9 @@
     "materials": "Materiais",
     "clinics": "Clínicas",
     "reports": "Relatórios"
+  },
+  "optionsModal": {
+    "scanNote": "Escanear nota",
+    "typeSupply": "Digitar insumo"
   }
 }

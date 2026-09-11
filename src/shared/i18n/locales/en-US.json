@@ -25,5 +25,9 @@
     "materials": "Materials",
     "clinics": "Clinics",
     "reports": "Reports"
+  },
+  "optionsModal": {
+    "scanNote": "Scan note",
+    "typeSupply": "Type supply"
   }
 }
