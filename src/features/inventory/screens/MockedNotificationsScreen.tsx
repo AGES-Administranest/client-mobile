@@ -1,6 +1,6 @@
 import { InventoryNotificationsScreen } from './InventoryNotificationsScreen';
-import { IsoDate } from '../domain/expiryAlert';
-import { InventoryItem } from '../domain/inventoryNotifications';
+import { ExpiringLot, IsoDate } from '../domain/expiryAlert';
+import { MonitoredItem } from '../domain/lowStockAlert';
 
 // Data fixa para os exemplos ficarem estáveis: sem isso os alertas de validade
 // sairiam da janela conforme o tempo passa e a tela mudaria sozinha.
@@ -17,14 +17,13 @@ function minutesAgo(minutes: number): number {
  * O conteúdo daqui não é usado por nenhuma lógica: é só entrada para conferir
  * o visual da lista.
  */
-const MOCK_ITEMS: InventoryItem[] = [
+const MOCK_ITEMS: MonitoredItem[] = [
   {
     id: 'isoflurano',
     name: 'Isoflurano',
     unit: 'frasco',
     quantity: 2,
     minimumStock: 3,
-    expirationDate: '2027-05-10' as IsoDate,
   },
   {
     id: 'dipirona',
@@ -32,7 +31,6 @@ const MOCK_ITEMS: InventoryItem[] = [
     unit: 'ampola',
     quantity: 40,
     minimumStock: 10,
-    expirationDate: '2026-09-20' as IsoDate,
   },
   {
     id: 'cetamina',
@@ -40,7 +38,6 @@ const MOCK_ITEMS: InventoryItem[] = [
     unit: 'frasco',
     quantity: 3,
     minimumStock: 5,
-    expirationDate: '2027-11-02' as IsoDate,
   },
   {
     id: 'midazolam',
@@ -48,7 +45,6 @@ const MOCK_ITEMS: InventoryItem[] = [
     unit: 'ampola',
     quantity: 6,
     minimumStock: 12,
-    expirationDate: '2027-03-18' as IsoDate,
   },
   {
     id: 'lidocaina',
@@ -56,7 +52,6 @@ const MOCK_ITEMS: InventoryItem[] = [
     unit: 'frasco',
     quantity: 5,
     minimumStock: 8,
-    expirationDate: '2027-08-30' as IsoDate,
   },
   {
     id: 'tramadol',
@@ -64,7 +59,6 @@ const MOCK_ITEMS: InventoryItem[] = [
     unit: 'ampola',
     quantity: 7,
     minimumStock: 15,
-    expirationDate: '2026-09-18' as IsoDate,
   },
   {
     id: 'luvas',
@@ -72,7 +66,6 @@ const MOCK_ITEMS: InventoryItem[] = [
     unit: 'par',
     quantity: 8,
     minimumStock: 20,
-    expirationDate: '2028-01-15' as IsoDate,
   },
   {
     id: 'seringa',
@@ -80,19 +73,33 @@ const MOCK_ITEMS: InventoryItem[] = [
     unit: 'unidade',
     quantity: 25,
     minimumStock: 50,
-    expirationDate: '2029-04-01' as IsoDate,
+  },
+];
+
+const MOCK_LOTS: ExpiringLot[] = [
+  {
+    id: 'dipirona-lote-a',
+    itemId: 'dipirona',
+    name: 'Dipirona Monoidratada 10mg',
+    expirationDate: '2026-09-20' as IsoDate,
+  },
+  {
+    id: 'tramadol-lote-a',
+    itemId: 'tramadol',
+    name: 'Tramadol 50mg/ml',
+    expirationDate: '2026-09-18' as IsoDate,
   },
 ];
 
 // Carimbos fixos só para os exemplos mostrarem tempos variados.
 const MOCK_TIMESTAMPS: Record<string, number> = {
   'lowStock:isoflurano': minutesAgo(10),
-  'expiry:dipirona': minutesAgo(10),
+  'expiry:dipirona-lote-a': minutesAgo(10),
   'lowStock:cetamina': minutesAgo(35),
   'lowStock:midazolam': minutesAgo(90),
   'lowStock:lidocaina': minutesAgo(240),
   'lowStock:tramadol': minutesAgo(1500),
-  'expiry:tramadol': minutesAgo(20),
+  'expiry:tramadol-lote-a': minutesAgo(20),
   'lowStock:luvas': minutesAgo(4320),
   'lowStock:seringa': minutesAgo(11000),
 };
@@ -100,7 +107,9 @@ const MOCK_TIMESTAMPS: Record<string, number> = {
 export function MockedNotificationsScreen() {
   return (
     <InventoryNotificationsScreen
+      userId="preview-us11"
       items={MOCK_ITEMS}
+      lots={MOCK_LOTS}
       referenceDate={REFERENCE_DATE}
       seedTimestamps={MOCK_TIMESTAMPS}
     />

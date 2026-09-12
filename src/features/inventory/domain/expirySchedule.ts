@@ -1,6 +1,6 @@
 import {
   EXPIRY_ALERT_WINDOW_DAYS,
-  ExpiringItem,
+  ExpiringLot,
   isValidExpirationDate,
   parseExpirationDate,
 } from './expiryAlert';
@@ -23,7 +23,7 @@ export type ScheduleEntry = {
    */
   key: string;
   fireAt: Date;
-  items: ExpiringItem[];
+  items: ExpiringLot[];
 };
 
 export type SchedulePlan = {
@@ -32,12 +32,12 @@ export type SchedulePlan = {
   /** Chaves já agendadas que deixaram de fazer sentido e devem ser canceladas. */
   toCancel: string[];
   /** Itens com data ilegível, para a camada de cima reclamar. */
-  invalidItems: ExpiringItem[];
+  invalidItems: ExpiringLot[];
 };
 
 function buildKey(
   expirationDate: string,
-  items: readonly ExpiringItem[],
+  items: readonly ExpiringLot[],
 ): string {
   const ids = items.map(item => item.id).sort();
 
@@ -68,7 +68,7 @@ function notificationInstant(
  * sozinho, mesmo com o app fechado.
  */
 export function planExpirySchedule(
-  items: readonly ExpiringItem[],
+  items: readonly ExpiringLot[],
   scheduledKeys: readonly string[],
   now: Date,
   windowDays = EXPIRY_ALERT_WINDOW_DAYS,
@@ -78,7 +78,7 @@ export function planExpirySchedule(
     item => !isValidExpirationDate(item.expirationDate),
   );
 
-  const byDate = new Map<string, ExpiringItem[]>();
+  const byDate = new Map<string, ExpiringLot[]>();
 
   for (const item of items) {
     const expiration = parseExpirationDate(item.expirationDate);

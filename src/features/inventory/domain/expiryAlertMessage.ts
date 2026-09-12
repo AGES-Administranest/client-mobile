@@ -1,6 +1,6 @@
 import { TranslationKey } from 'shared/i18n';
 
-import { ExpiringItem, formatExpirationDate } from './expiryAlert';
+import { ExpiringLot, formatExpirationDate } from './expiryAlert';
 
 const MAX_ITEMS_IN_BODY = 3;
 
@@ -11,7 +11,7 @@ export type ExpiryAlertMessage = {
 };
 
 export function buildExpiryAlertMessage(
-  alerts: readonly ExpiringItem[],
+  alerts: readonly ExpiringLot[],
 ): ExpiryAlertMessage | null {
   if (alerts.length === 0) {
     return null;

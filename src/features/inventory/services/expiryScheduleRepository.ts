@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { inventoryStorageKey } from './inventoryStorage';
+
 const STORAGE_KEY = '@administranest:inventory:expiry-schedule';
 
 /**
@@ -11,9 +13,13 @@ const STORAGE_KEY = '@administranest:inventory:expiry-schedule';
  */
 export type ExpirySchedule = Record<string, string>;
 
-export async function loadExpirySchedule(): Promise<ExpirySchedule> {
+export async function loadExpirySchedule(
+  userId: string,
+): Promise<ExpirySchedule> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await AsyncStorage.getItem(
+      inventoryStorageKey(STORAGE_KEY, userId),
+    );
 
     if (!raw) {
       return {};
@@ -41,10 +47,14 @@ export async function loadExpirySchedule(): Promise<ExpirySchedule> {
 }
 
 export async function saveExpirySchedule(
+  userId: string,
   schedule: ExpirySchedule,
 ): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(schedule));
+    await AsyncStorage.setItem(
+      inventoryStorageKey(STORAGE_KEY, userId),
+      JSON.stringify(schedule),
+    );
   } catch {
     // Perder o mapa custa agendamentos duplicados, não a funcionalidade.
   }

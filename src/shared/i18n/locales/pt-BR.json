@@ -43,6 +43,22 @@
       "minutes": "há {{value}} min",
       "hours": "há {{value}} h",
       "days": "há {{value}} d"
+    },
+    "card": {
+      "atMinimum": "Item no estoque mínimo",
+      "belowMinimum": "Item abaixo da quantidade mínima",
+      "expiry": "Lote vence em {{date}}"
+    },
+    "overview": {
+      "title": "Estoque",
+      "subtitle": "Acompanhe os materiais que precisam de atenção.",
+      "attention": "Itens que precisam de atenção",
+      "lowStockSingular": "{{count}} item abaixo do mínimo",
+      "lowStockPlural": "{{count}} itens abaixo do mínimo",
+      "expirySingular": "{{count}} lote próximo do vencimento",
+      "expiryPlural": "{{count}} lotes próximos do vencimento",
+      "loading": "Carregando estoque...",
+      "empty": "Nenhum material cadastrado."
     }
   },
   "segmentedControl": {

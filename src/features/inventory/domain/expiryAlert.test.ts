@@ -1,6 +1,6 @@
 import {
   daysUntilExpiration,
-  ExpiringItem,
+  ExpiringLot,
   formatExpirationDate,
   isExpiringSoon,
   IsoDate,
@@ -20,8 +20,8 @@ function isoIn(daysFromToday: number): IsoDate {
   return `${year}-${month}-${day}` as IsoDate;
 }
 
-function item(id: string, daysFromToday: number): ExpiringItem {
-  return { id, name: id, expirationDate: isoIn(daysFromToday) };
+function item(id: string, daysFromToday: number): ExpiringLot {
+  return { id, itemId: id, name: id, expirationDate: isoIn(daysFromToday) };
 }
 
 describe('parseExpirationDate', () => {
@@ -85,6 +85,7 @@ describe('isExpiringSoon', () => {
   it('não alerta com data inválida', () => {
     const broken = {
       id: 'x',
+      itemId: 'x',
       name: 'x',
       expirationDate: '15/09/2026' as IsoDate,
     };

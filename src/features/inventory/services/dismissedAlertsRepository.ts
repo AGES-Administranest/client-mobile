@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { inventoryStorageKey } from './inventoryStorage';
+
 const STORAGE_KEY = '@administranest:inventory:dismissed-alerts';
 
 /**
@@ -8,9 +10,11 @@ const STORAGE_KEY = '@administranest:inventory:dismissed-alerts';
  * Guardado por chave de alerta, não por item: apagar o aviso de validade da
  * Dipirona não apaga o de estoque baixo dela.
  */
-export async function loadDismissedAlerts(): Promise<string[]> {
+export async function loadDismissedAlerts(userId: string): Promise<string[]> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await AsyncStorage.getItem(
+      inventoryStorageKey(STORAGE_KEY, userId),
+    );
 
     if (!raw) {
       return [];
@@ -28,10 +32,14 @@ export async function loadDismissedAlerts(): Promise<string[]> {
 }
 
 export async function saveDismissedAlerts(
+  userId: string,
   keys: readonly string[],
 ): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+    await AsyncStorage.setItem(
+      inventoryStorageKey(STORAGE_KEY, userId),
+      JSON.stringify(keys),
+    );
   } catch {
     // Idem: não impede a lista de renderizar.
   }

@@ -11,8 +11,9 @@ export const EXPIRY_ALERT_WINDOW_DAYS = 7;
  */
 export type IsoDate = `${number}-${number}-${number}`;
 
-export type ExpiringItem = {
+export type ExpiringLot = {
   id: string;
+  itemId: string;
   name: string;
   expirationDate: IsoDate;
 };
@@ -71,7 +72,7 @@ export function daysUntilExpiration(
 }
 
 export function isExpiringSoon(
-  item: ExpiringItem,
+  item: ExpiringLot,
   now: Date,
   windowDays = EXPIRY_ALERT_WINDOW_DAYS,
 ): boolean {

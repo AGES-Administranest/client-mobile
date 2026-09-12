@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
 
 import { useLowStockAlert } from './useLowStockAlert';
@@ -6,7 +7,8 @@ import { MonitoredItem } from '../domain/lowStockAlert';
 // O prefixo `mock` é a exceção que o jest permite referenciar de dentro da
 // factory de jest.mock, que é içada para o topo do arquivo.
 const mockScheduleNotification = jest.fn(
-  async (_input: { title: string; body?: string }) => 'notification-id',
+  async (_input: { title: string; body?: string }): Promise<string | null> =>
+    'notification-id',
 );
 const mockStorage = new Map<string, string>();
 
@@ -37,7 +39,7 @@ function item(id: string, quantity: number, minimum = 5): MonitoredItem {
 }
 
 function Probe({ items }: { items: MonitoredItem[] }) {
-  useLowStockAlert(items, translate);
+  useLowStockAlert('test-user', items, translate);
   return null;
 }
 
@@ -155,4 +157,38 @@ it('persiste o estado de notificado entre montagens', async () => {
   await mount([item('propofol', 2)]);
 
   expect(mockScheduleNotification).not.toHaveBeenCalled();
+});
+
+it('tenta novamente após permissão negada sem perder o alerta', async () => {
+  mockScheduleNotification.mockResolvedValueOnce(null);
+  await mount([item('propofol', 2)]);
+  mockScheduleNotification.mockClear();
+  await mount([item('propofol', 2)]);
+  expect(mockScheduleNotification).toHaveBeenCalledTimes(1);
+});
+
+it('recupera o alerta ao voltar das configurações com permissão', async () => {
+  const listener = jest.spyOn(AppState, 'addEventListener');
+  mockScheduleNotification.mockResolvedValueOnce(null);
+  await mount([item('propofol', 2)]);
+  mockScheduleNotification.mockClear();
+  await ReactTestRenderer.act(async () => {
+    listener.mock.calls.at(-1)?.[1]('active');
+  });
+  expect(mockScheduleNotification).toHaveBeenCalledTimes(1);
+  listener.mockRestore();
+});
+
+it('continua processando alterações após falha de envio', async () => {
+  const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  mockScheduleNotification.mockRejectedValueOnce(new Error('OS unavailable'));
+  try {
+    const update = await mount([item('propofol', 2)]);
+    await update([item('propofol', 1)]);
+    expect(mockScheduleNotification).toHaveBeenCalledTimes(2);
+    await update([item('propofol', 0)]);
+    expect(mockScheduleNotification).toHaveBeenCalledTimes(2);
+  } finally {
+    warning.mockRestore();
+  }
 });

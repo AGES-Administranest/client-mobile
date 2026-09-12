@@ -1,7 +1,7 @@
 import ReactTestRenderer from 'react-test-renderer';
 
 import { useExpiryAlert } from './useExpiryAlert';
-import { ExpiringItem, IsoDate } from '../domain/expiryAlert';
+import { ExpiringLot, IsoDate } from '../domain/expiryAlert';
 import { EXPIRY_NOTIFICATION_HOUR } from '../domain/expirySchedule';
 
 // O prefixo `mock` é a exceção que o jest permite referenciar de dentro da
@@ -46,23 +46,23 @@ function isoIn(days: number): IsoDate {
   return `${date.getFullYear()}-${month}-${day}` as IsoDate;
 }
 
-function item(id: string, days: number): ExpiringItem {
-  return { id, name: id, expirationDate: isoIn(days) };
+function item(id: string, days: number): ExpiringLot {
+  return { id, itemId: id, name: id, expirationDate: isoIn(days) };
 }
 
-function Probe({ items }: { items: ExpiringItem[] }) {
-  useExpiryAlert(items, translate, NOW);
+function Probe({ items }: { items: ExpiringLot[] }) {
+  useExpiryAlert('test-user', items, translate, NOW);
   return null;
 }
 
-async function mount(initialItems: ExpiringItem[]) {
+async function mount(initialItems: ExpiringLot[]) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await ReactTestRenderer.act(async () => {
     renderer = ReactTestRenderer.create(<Probe items={initialItems} />);
   });
 
-  return async (nextItems: ExpiringItem[]) => {
+  return async (nextItems: ExpiringLot[]) => {
     await ReactTestRenderer.act(async () => {
       renderer.update(<Probe items={nextItems} />);
     });
@@ -145,4 +145,63 @@ it('mantém o agendamento entre montagens do app', async () => {
   await mount([item('propofol', 20)]);
 
   expect(mockScheduleAt).not.toHaveBeenCalled();
+});
+
+it('preenche a agenda quando o tempo libera espaço, sem alterar itens', async () => {
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date(2026, 8, 8, 23, 59));
+  const items = Array.from({ length: 49 }, (_, index) =>
+    item(`lot-${index}`, index),
+  );
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+  function Live() {
+    useExpiryAlert('test-user', items, translate);
+    return null;
+  }
+  try {
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<Live />);
+    });
+    expect(mockScheduleAt).toHaveBeenCalledTimes(48);
+    mockScheduleAt.mockClear();
+    await ReactTestRenderer.act(async () => {
+      jest.advanceTimersByTime(60000);
+    });
+    expect(mockScheduleAt).toHaveBeenCalledTimes(1);
+    expect(mockScheduleAt.mock.calls[0][0].body).toContain('lot-48');
+  } finally {
+    await ReactTestRenderer.act(async () => renderer!.unmount());
+    jest.useRealTimers();
+  }
+});
+
+it('preserva sucessos parciais e recupera a fila após falha', async () => {
+  const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  mockScheduleAt.mockResolvedValueOnce('saved-first');
+  mockScheduleAt.mockRejectedValueOnce(new Error('OS unavailable'));
+  try {
+    const update = await mount([item('first', 20), item('second', 30)]);
+    mockScheduleAt.mockClear();
+    await update([item('first', 20), item('second', 30), item('third', 40)]);
+    expect(mockScheduleAt).toHaveBeenCalledTimes(2);
+    expect(
+      mockScheduleAt.mock.calls.map(([input]) => input.body).join(' '),
+    ).not.toContain('first');
+  } finally {
+    warning.mockRestore();
+  }
+});
+
+it('recupera a fila após falha ao cancelar', async () => {
+  const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    const update = await mount([item('first', 20)]);
+    mockCancel.mockRejectedValueOnce(new Error('OS unavailable'));
+    await update([]);
+    await update([item('second', 30)]);
+    expect(mockCancel).toHaveBeenCalledTimes(2);
+    expect(mockScheduleAt.mock.calls.at(-1)?.[0].body).toContain('second');
+  } finally {
+    warning.mockRestore();
+  }
 });

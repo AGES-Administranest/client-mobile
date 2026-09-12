@@ -1,16 +1,9 @@
 import { isExpiringSoon } from './expiryAlert';
-import type { ExpiringItem, IsoDate } from './expiryAlert';
+import type { ExpiringLot, IsoDate } from './expiryAlert';
 import { elapsedMinutesSince, formatElapsedTime } from './formatElapsedTime';
 import type { ElapsedTime } from './formatElapsedTime';
 import { isAtOrBelowMinimum } from './lowStockAlert';
 import type { MonitoredItem } from './lowStockAlert';
-
-/**
- * O item completo que a lista precisa: saldo, mínimo e validade juntos.
- * Continua estrutural — o tipo do CRUD (US09) satisfaz este por ter todos
- * esses campos, sem precisar de import cruzado.
- */
-export type InventoryItem = MonitoredItem & ExpiringItem;
 
 export type NotificationKind = 'lowStock' | 'expiry';
 
@@ -34,7 +27,11 @@ export type InventoryNotification =
       quantity: number;
       minimumStock: number;
     })
-  | (BaseNotification & { kind: 'expiry'; expirationDate: IsoDate });
+  | (BaseNotification & {
+      kind: 'expiry';
+      lotId: string;
+      expirationDate: IsoDate;
+    });
 
 /** Instante em que cada alerta apareceu, por chave. */
 export type AlertTimestamps = Record<string, number>;
@@ -43,8 +40,8 @@ export function lowStockKey(itemId: string): string {
   return `lowStock:${itemId}`;
 }
 
-export function expiryKey(itemId: string): string {
-  return `expiry:${itemId}`;
+export function expiryKey(lotId: string): string {
+  return `expiry:${lotId}`;
 }
 
 /**
@@ -53,7 +50,8 @@ export function expiryKey(itemId: string): string {
  * cada situação.
  */
 export function activeAlertKeys(
-  items: readonly InventoryItem[],
+  items: readonly MonitoredItem[],
+  lots: readonly ExpiringLot[],
   now: Date,
 ): string[] {
   const keys: string[] = [];
@@ -62,9 +60,11 @@ export function activeAlertKeys(
     if (isAtOrBelowMinimum(item)) {
       keys.push(lowStockKey(item.id));
     }
+  }
 
-    if (isExpiringSoon(item, now)) {
-      keys.push(expiryKey(item.id));
+  for (const lot of lots) {
+    if (isExpiringSoon(lot, now)) {
+      keys.push(expiryKey(lot.id));
     }
   }
 
@@ -112,7 +112,8 @@ export function reconcileDismissedAlerts(
  * usuário ficam de fora.
  */
 export function buildInventoryNotifications(
-  items: readonly InventoryItem[],
+  items: readonly MonitoredItem[],
+  lots: readonly ExpiringLot[],
   timestamps: AlertTimestamps,
   now: Date,
   dismissedKeys: readonly string[] = [],
@@ -137,16 +138,19 @@ export function buildInventoryNotifications(
         ),
       });
     }
+  }
 
-    if (isExpiringSoon(item, now)) {
-      const key = expiryKey(item.id);
+  for (const lot of lots) {
+    if (isExpiringSoon(lot, now)) {
+      const key = expiryKey(lot.id);
 
       notifications.push({
         key,
         kind: 'expiry',
-        itemId: item.id,
-        name: item.name,
-        expirationDate: item.expirationDate,
+        itemId: lot.itemId,
+        lotId: lot.id,
+        name: lot.name,
+        expirationDate: lot.expirationDate,
         elapsed: formatElapsedTime(
           elapsedMinutesSince(timestamps[key] ?? nowMs, nowMs),
         ),

@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
+import type { ExpiringLot } from '../domain/expiryAlert';
 import {
   activeAlertKeys,
   AlertTimestamps,
   buildInventoryNotifications,
-  InventoryItem,
   InventoryNotification,
   reconcileAlertTimestamps,
   reconcileDismissedAlerts,
 } from '../domain/inventoryNotifications';
+import type { MonitoredItem } from '../domain/lowStockAlert';
 import {
   loadAlertTimestamps,
   saveAlertTimestamps,
@@ -33,7 +35,9 @@ type InventoryNotificationsState = {
  * e perto de vencer ao mesmo tempo gera dois cards.
  */
 export function useInventoryNotifications(
-  items: readonly InventoryItem[],
+  userId: string,
+  items: readonly MonitoredItem[],
+  lots: readonly ExpiringLot[],
   referenceDate?: Date,
   /**
    * Carimbos iniciais. Existe para demonstração e teste — a tela real não
@@ -45,6 +49,7 @@ export function useInventoryNotifications(
     seedTimestamps ?? {},
   );
   const [dismissed, setDismissed] = useState<string[]>([]);
+  const [loadedUserId, setLoadedUserId] = useState(userId);
 
   // O "há X min" é calculado no render, então sem um pulso ele congela: a tela
   // ficaria dizendo "há 10 min" indefinidamente. Um tique por minuto também
@@ -65,52 +70,73 @@ export function useInventoryNotifications(
 
     const interval = setInterval(() => setNowTick(Date.now()), 60000);
 
-    return () => clearInterval(interval);
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        setNowTick(Date.now());
+      }
+    });
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
   }, [referenceDate]);
 
   const signature = items
-    .map(
-      item =>
-        `${item.id}:${item.quantity}:${item.minimumStock}:${item.expirationDate}`,
-    )
+    .map(item => `${item.id}:${item.quantity}:${item.minimumStock}`)
+    .join('|');
+  const lotsSignature = lots
+    .map(lot => `${lot.id}:${lot.itemId}:${lot.expirationDate}`)
     .join('|');
   const itemsRef = useRef(items);
   itemsRef.current = items;
+  const lotsRef = useRef(lots);
+  lotsRef.current = lots;
+
+  const activeSignature = activeAlertKeys(
+    items,
+    lots,
+    referenceDate ?? new Date(nowTick),
+  ).join('|');
 
   useEffect(() => {
     let isMounted = true;
 
     const now = referenceDateRef.current ?? new Date();
-    const active = activeAlertKeys(itemsRef.current, now);
+    const active = activeAlertKeys(itemsRef.current, lotsRef.current, now);
 
-    Promise.all([loadAlertTimestamps(), loadDismissedAlerts()]).then(
-      async ([storedTimestamps, storedDismissed]) => {
-        const reconciledTimestamps = reconcileAlertTimestamps(
-          active,
-          { ...storedTimestamps, ...seedRef.current },
-          now.getTime(),
-        );
-        const reconciledDismissed = reconcileDismissedAlerts(
-          active,
-          storedDismissed,
-        );
+    Promise.all([
+      loadAlertTimestamps(userId),
+      loadDismissedAlerts(userId),
+    ]).then(async ([storedTimestamps, storedDismissed]) => {
+      if (!isMounted) {
+        return;
+      }
+      const reconciledTimestamps = reconcileAlertTimestamps(
+        active,
+        { ...storedTimestamps, ...seedRef.current },
+        now.getTime(),
+      );
+      const reconciledDismissed = reconcileDismissedAlerts(
+        active,
+        storedDismissed,
+      );
 
-        if (isMounted) {
-          setTimestamps(reconciledTimestamps);
-          setDismissed(reconciledDismissed);
-        }
+      if (isMounted) {
+        setTimestamps(reconciledTimestamps);
+        setDismissed(reconciledDismissed);
+        setLoadedUserId(userId);
+      }
 
-        await Promise.all([
-          saveAlertTimestamps(reconciledTimestamps),
-          saveDismissedAlerts(reconciledDismissed),
-        ]);
-      },
-    );
+      await Promise.all([
+        saveAlertTimestamps(userId, reconciledTimestamps),
+        saveDismissedAlerts(userId, reconciledDismissed),
+      ]);
+    });
 
     return () => {
       isMounted = false;
     };
-  }, [signature]);
+  }, [userId, signature, lotsSignature, activeSignature]);
 
   // O updater do setState tem que ser puro: em StrictMode o React o executa
   // duas vezes, o que gravaria no storage duas vezes. Por isso a leitura sai
@@ -118,24 +144,32 @@ export function useInventoryNotifications(
   const dismissedRef = useRef<string[]>([]);
   dismissedRef.current = dismissed;
 
-  const dismiss = useCallback((key: string) => {
-    if (dismissedRef.current.includes(key)) {
-      return;
-    }
+  const dismiss = useCallback(
+    (key: string) => {
+      if (dismissedRef.current.includes(key)) {
+        return;
+      }
 
-    const next = [...dismissedRef.current, key];
+      const next = [...dismissedRef.current, key];
 
-    setDismissed(next);
-    saveDismissedAlerts(next);
-  }, []);
+      dismissedRef.current = next;
+      setDismissed(next);
+      saveDismissedAlerts(userId, next);
+    },
+    [userId],
+  );
 
   return {
-    notifications: buildInventoryNotifications(
-      items,
-      timestamps,
-      referenceDate ?? new Date(nowTick),
-      dismissed,
-    ),
+    notifications:
+      loadedUserId === userId
+        ? buildInventoryNotifications(
+            items,
+            lots,
+            timestamps,
+            referenceDate ?? new Date(nowTick),
+            dismissed,
+          )
+        : [],
     dismiss,
   };
 }

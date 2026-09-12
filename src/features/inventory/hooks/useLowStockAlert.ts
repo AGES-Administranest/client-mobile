@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 
 import { TranslationKey } from 'shared/i18n';
 import { scheduleNotification } from 'shared/services';
@@ -29,9 +30,20 @@ type Translate = (
  * quando os dados reais chegarem.
  */
 export function useLowStockAlert(
+  userId: string,
   items: readonly MonitoredItem[],
   t: Translate,
 ): void {
+  const activeUserRef = useRef<string | null>(userId);
+  useEffect(() => {
+    activeUserRef.current = userId;
+    return () => {
+      if (activeUserRef.current === userId) {
+        activeUserRef.current = null;
+      }
+    };
+  }, [userId]);
+
   // `t` muda quando o idioma muda; guardar em ref evita re-disparar o efeito
   // a cada troca de locale.
   const translateRef = useRef(t);
@@ -43,30 +55,51 @@ export function useLowStockAlert(
   // item seria notificado duas vezes. A fila serializa os ciclos.
   const queueRef = useRef<Promise<void>>(Promise.resolve());
 
-  const sync = useCallback((nextItems: readonly MonitoredItem[]) => {
-    queueRef.current = queueRef.current.then(async () => {
-      const alreadyNotifiedIds = await loadNotifiedIds();
-      const { newAlerts, notifiedIds } = calculateAlerts(
-        nextItems,
-        alreadyNotifiedIds,
-      );
+  const sync = useCallback(
+    (nextItems: readonly MonitoredItem[]) => {
+      queueRef.current = queueRef.current
+        .then(async () => {
+          const alreadyNotifiedIds = await loadNotifiedIds(userId);
+          const { newAlerts, notifiedIds } = calculateAlerts(
+            nextItems,
+            alreadyNotifiedIds,
+          );
 
-      await saveNotifiedIds(notifiedIds);
+          // Remove itens recuperados, mas só marca novos alertas após o envio.
+          await saveNotifiedIds(
+            userId,
+            notifiedIds.filter(id => alreadyNotifiedIds.includes(id)),
+          );
 
-      const message = buildAlertMessage(newAlerts);
+          const message = buildAlertMessage(newAlerts);
 
-      if (!message) {
-        return;
-      }
+          if (!message) {
+            return;
+          }
 
-      await scheduleNotification({
-        title: translateRef.current(message.titleKey, message.params),
-        body: translateRef.current(message.bodyKey, message.params),
-      });
-    });
+          if (activeUserRef.current !== userId) {
+            return;
+          }
 
-    return queueRef.current;
-  }, []);
+          const notificationId = await scheduleNotification({
+            title: translateRef.current(message.titleKey, message.params),
+            body: translateRef.current(message.bodyKey, message.params),
+          });
+          if (notificationId) {
+            await saveNotifiedIds(userId, notifiedIds);
+          }
+        })
+        .catch(error => {
+          console.warn(
+            '[useLowStockAlert] notification failed; retry on next sync',
+            error,
+          );
+        });
+
+      return queueRef.current;
+    },
+    [userId],
+  );
 
   // A identidade do array muda a cada render do dono da lista. Reagir a uma
   // assinatura de saldos evita reprocessar (e reler o storage) à toa.
@@ -80,4 +113,13 @@ export function useLowStockAlert(
   useEffect(() => {
     sync(itemsRef.current);
   }, [signature, sync]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        sync(itemsRef.current);
+      }
+    });
+    return () => subscription.remove();
+  }, [sync]);
 }

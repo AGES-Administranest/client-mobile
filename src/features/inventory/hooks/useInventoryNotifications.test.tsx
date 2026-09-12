@@ -1,163 +1,125 @@
 import ReactTestRenderer from 'react-test-renderer';
 
 import { useInventoryNotifications } from './useInventoryNotifications';
-import type { IsoDate } from '../domain/expiryAlert';
+import type { ExpiringLot } from '../domain/expiryAlert';
 import {
   expiryKey,
-  InventoryItem,
-  InventoryNotification,
+  type InventoryNotification,
   lowStockKey,
 } from '../domain/inventoryNotifications';
+import type { MonitoredItem } from '../domain/lowStockAlert';
 
 const mockStorage = new Map<string, string>();
-
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: {
     getItem: async (key: string) => mockStorage.get(key) ?? null,
-    setItem: async (key: string, value: string) => {
-      mockStorage.set(key, value);
-    },
+    setItem: async (key: string, value: string) => mockStorage.set(key, value),
   },
 }));
 
-const NOW = new Date(2026, 8, 13, 10, 0);
-
-function item(
-  id: string,
-  { quantity = 50, minimumStock = 10, expiresInDays = 400 } = {},
-): InventoryItem {
-  const expiration = new Date(NOW);
-  expiration.setDate(expiration.getDate() + expiresInDays);
-
-  const month = String(expiration.getMonth() + 1).padStart(2, '0');
-  const day = String(expiration.getDate()).padStart(2, '0');
-
-  return {
-    id,
-    name: id,
-    unit: 'frasco',
-    quantity,
-    minimumStock,
-    expirationDate: `${expiration.getFullYear()}-${month}-${day}` as IsoDate,
-  };
-}
+const NOW = new Date(2026, 8, 13, 10);
+const item = (quantity = 2): MonitoredItem => ({
+  id: 'propofol',
+  name: 'Propofol',
+  unit: 'frasco',
+  quantity,
+  minimumStock: 5,
+});
+const lot = (
+  id = 'lote-a',
+  expirationDate: ExpiringLot['expirationDate'] = '2026-09-15',
+): ExpiringLot => ({
+  id,
+  itemId: 'propofol',
+  name: 'Propofol',
+  expirationDate,
+});
 
 let state: {
   notifications: InventoryNotification[];
   dismiss: (key: string) => void;
 };
 
-function Probe({ items }: { items: InventoryItem[] }) {
-  state = useInventoryNotifications(items, NOW);
+function Probe({
+  userId = 'ana',
+  items = [item()],
+  lots = [lot()],
+  live = false,
+}: {
+  userId?: string;
+  items?: MonitoredItem[];
+  lots?: ExpiringLot[];
+  live?: boolean;
+}) {
+  state = useInventoryNotifications(
+    userId,
+    items,
+    lots,
+    live ? undefined : NOW,
+  );
   return null;
 }
 
-async function mount(initialItems: InventoryItem[]) {
+async function render(props = {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
-
   await ReactTestRenderer.act(async () => {
-    renderer = ReactTestRenderer.create(<Probe items={initialItems} />);
+    renderer = ReactTestRenderer.create(<Probe {...props} />);
   });
-
-  return async (nextItems: InventoryItem[]) => {
-    await ReactTestRenderer.act(async () => {
-      renderer.update(<Probe items={nextItems} />);
-    });
-  };
+  return renderer!;
 }
 
-async function act(fn: () => void) {
-  await ReactTestRenderer.act(async () => {
-    fn();
-  });
-}
+beforeEach(() => mockStorage.clear());
 
-beforeEach(() => {
-  mockStorage.clear();
-});
-
-it('lista um card por alerta', async () => {
-  await mount([
-    item('cetamina', { quantity: 3, minimumStock: 5 }),
-    item('dipirona', { expiresInDays: 5 }),
-  ]);
-
-  expect(state.notifications.map(n => n.kind).sort()).toEqual([
-    'expiry',
-    'lowStock',
+it('lista estoque e cada lote em cards independentes', async () => {
+  await render({ lots: [lot('a'), lot('b', '2026-09-18')] });
+  expect(state.notifications.map(alert => alert.key).sort()).toEqual([
+    expiryKey('a'),
+    expiryKey('b'),
+    lowStockKey('propofol'),
   ]);
 });
 
-it('remove o alerta apagado pelo usuário', async () => {
-  await mount([item('cetamina', { quantity: 3, minimumStock: 5 })]);
-
-  await act(() => state.dismiss(lowStockKey('cetamina')));
-
-  expect(state.notifications).toEqual([]);
-});
-
-it('apaga só o alerta arrastado, não o outro do mesmo item', async () => {
-  await mount([item('propofol', { quantity: 1, expiresInDays: 2 })]);
-  expect(state.notifications).toHaveLength(2);
-
-  await act(() => state.dismiss(expiryKey('propofol')));
-
-  expect(state.notifications).toHaveLength(1);
-  expect(state.notifications[0].kind).toBe('lowStock');
-});
-
-it('mantém apagado depois de reabrir a tela', async () => {
-  await mount([item('cetamina', { quantity: 3, minimumStock: 5 })]);
-  await act(() => state.dismiss(lowStockKey('cetamina')));
-
-  await mount([item('cetamina', { quantity: 3, minimumStock: 5 })]);
-
-  expect(state.notifications).toEqual([]);
-});
-
-// O rearme: repor o estoque e deixar cair de novo traz o alerta de volta.
-it('mostra de novo quando o item sai e reentra em alerta', async () => {
-  const update = await mount([
-    item('cetamina', { quantity: 3, minimumStock: 5 }),
-  ]);
-  await act(() => state.dismiss(lowStockKey('cetamina')));
-  expect(state.notifications).toEqual([]);
-
-  await update([item('cetamina', { quantity: 30, minimumStock: 5 })]);
-  await update([item('cetamina', { quantity: 2, minimumStock: 5 })]);
-
-  expect(state.notifications).toHaveLength(1);
-});
-
-it('avança o "há X min" sozinho com a tela aberta', async () => {
-  jest.useFakeTimers();
-
-  const stale = { [lowStockKey('cetamina')]: Date.now() - 5 * 60 * 1000 };
-  mockStorage.set(
-    '@administranest:inventory:alert-timestamps',
-    JSON.stringify(stale),
+it('persiste a dispensa apenas para a conta atual', async () => {
+  await render({ userId: 'ana', lots: [] });
+  await ReactTestRenderer.act(async () =>
+    state.dismiss(lowStockKey('propofol')),
   );
+  await render({ userId: 'ana', lots: [] });
+  expect(state.notifications).toEqual([]);
+  await render({ userId: 'bia', lots: [] });
+  expect(state.notifications).toHaveLength(1);
+});
 
-  // Sem referenceDate o relógio corre de verdade.
-  function Live({ items }: { items: InventoryItem[] }) {
-    state = useInventoryNotifications(items);
-    return null;
+it('rearma depois que o item sai e volta ao estado crítico', async () => {
+  const renderer = await render({ lots: [] });
+  await ReactTestRenderer.act(async () =>
+    state.dismiss(lowStockKey('propofol')),
+  );
+  await ReactTestRenderer.act(async () => {
+    renderer.update(<Probe lots={[]} items={[item(20)]} />);
+  });
+  await ReactTestRenderer.act(async () => {
+    renderer.update(<Probe lots={[]} items={[item(1)]} />);
+  });
+  expect(state.notifications).toHaveLength(1);
+});
+
+it('atualiza a janela de validade com a tela aberta', async () => {
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date(2026, 8, 12, 23, 59));
+  let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+  try {
+    renderer = await render({
+      live: true,
+      items: [item(20)],
+      lots: [lot('a', '2026-09-20')],
+    });
+    expect(state.notifications).toHaveLength(0);
+    await ReactTestRenderer.act(async () => jest.advanceTimersByTime(60000));
+    expect(state.notifications).toHaveLength(1);
+  } finally {
+    await ReactTestRenderer.act(async () => renderer?.unmount());
+    jest.useRealTimers();
   }
-
-  await ReactTestRenderer.act(async () => {
-    ReactTestRenderer.create(
-      <Live items={[item('cetamina', { quantity: 3, minimumStock: 5 })]} />,
-    );
-  });
-
-  expect(state.notifications[0].elapsed).toEqual({ unit: 'minutes', value: 5 });
-
-  await ReactTestRenderer.act(async () => {
-    jest.advanceTimersByTime(3 * 60 * 1000);
-  });
-
-  expect(state.notifications[0].elapsed).toEqual({ unit: 'minutes', value: 8 });
-
-  jest.useRealTimers();
 });

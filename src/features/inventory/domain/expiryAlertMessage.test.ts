@@ -1,8 +1,8 @@
-import { ExpiringItem } from './expiryAlert';
+import { ExpiringLot } from './expiryAlert';
 import { buildExpiryAlertMessage } from './expiryAlertMessage';
 
-function item(name: string): ExpiringItem {
-  return { id: name, name, expirationDate: '2026-09-10' };
+function item(name: string): ExpiringLot {
+  return { id: name, itemId: name, name, expirationDate: '2026-09-10' };
 }
 
 describe('buildExpiryAlertMessage', () => {
@@ -10,7 +10,12 @@ describe('buildExpiryAlertMessage', () => {
   // card da lista dizia "20/09/2026".
   it('usa o mesmo formato de data que o card mostra', () => {
     const message = buildExpiryAlertMessage([
-      { id: 'dipirona', name: 'Dipirona', expirationDate: '2026-09-20' },
+      {
+        id: 'dipirona-lote',
+        itemId: 'dipirona',
+        name: 'Dipirona',
+        expirationDate: '2026-09-20',
+      },
     ]);
 
     expect(message?.params.expirationDate).toBe('20/09/2026');

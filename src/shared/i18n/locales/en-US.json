@@ -43,6 +43,22 @@
       "minutes": "{{value}} min ago",
       "hours": "{{value}} h ago",
       "days": "{{value}} d ago"
+    },
+    "card": {
+      "atMinimum": "Item at minimum stock",
+      "belowMinimum": "Item below minimum stock",
+      "expiry": "Lot expires on {{date}}"
+    },
+    "overview": {
+      "title": "Inventory",
+      "subtitle": "Track materials that need attention.",
+      "attention": "Items that need attention",
+      "lowStockSingular": "{{count}} item below minimum",
+      "lowStockPlural": "{{count}} items below minimum",
+      "expirySingular": "{{count}} lot nearing expiration",
+      "expiryPlural": "{{count}} lots nearing expiration",
+      "loading": "Loading inventory...",
+      "empty": "No materials registered."
     }
   },
   "segmentedControl": {

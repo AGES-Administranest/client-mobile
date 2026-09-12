@@ -1,4 +1,4 @@
-import { ExpiringItem, IsoDate } from './expiryAlert';
+import { ExpiringLot, IsoDate } from './expiryAlert';
 import {
   EXPIRY_NOTIFICATION_HOUR,
   MAX_SCHEDULED_DATES,
@@ -17,8 +17,8 @@ function isoIn(days: number): IsoDate {
   return `${date.getFullYear()}-${month}-${day}` as IsoDate;
 }
 
-function item(id: string, days: number): ExpiringItem {
-  return { id, name: id, expirationDate: isoIn(days) };
+function item(id: string, days: number): ExpiringLot {
+  return { id, itemId: id, name: id, expirationDate: isoIn(days) };
 }
 
 describe('planExpirySchedule', () => {
@@ -133,6 +133,7 @@ describe('planExpirySchedule', () => {
   it('reporta data ilegível sem agendar', () => {
     const broken = {
       id: 'quebrado',
+      itemId: 'quebrado',
       name: 'quebrado',
       expirationDate: '15/09/2026' as IsoDate,
     };

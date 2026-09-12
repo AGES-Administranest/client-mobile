@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { inventoryStorageKey } from './inventoryStorage';
 import { AlertTimestamps } from '../domain/inventoryNotifications';
 
 const STORAGE_KEY = '@administranest:inventory:alert-timestamps';
@@ -9,9 +10,13 @@ const STORAGE_KEY = '@administranest:inventory:alert-timestamps';
  * Sem isso o tempo seria contado a partir da abertura da tela e todo alerta
  * apareceria como "há 0 min".
  */
-export async function loadAlertTimestamps(): Promise<AlertTimestamps> {
+export async function loadAlertTimestamps(
+  userId: string,
+): Promise<AlertTimestamps> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await AsyncStorage.getItem(
+      inventoryStorageKey(STORAGE_KEY, userId),
+    );
 
     if (!raw) {
       return {};
@@ -40,10 +45,14 @@ export async function loadAlertTimestamps(): Promise<AlertTimestamps> {
 }
 
 export async function saveAlertTimestamps(
+  userId: string,
   timestamps: AlertTimestamps,
 ): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(timestamps));
+    await AsyncStorage.setItem(
+      inventoryStorageKey(STORAGE_KEY, userId),
+      JSON.stringify(timestamps),
+    );
   } catch {
     // Idem: não impede a lista de renderizar.
   }
