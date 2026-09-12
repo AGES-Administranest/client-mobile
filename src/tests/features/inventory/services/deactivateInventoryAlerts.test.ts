@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { deactivateInventoryAlerts } from './deactivateInventoryAlerts';
+import { deactivateInventoryAlerts } from 'features/inventory/services/deactivateInventoryAlerts';
 import {
   loadExpirySchedule,
   saveExpirySchedule,
-} from './expiryScheduleRepository';
+} from 'features/inventory/services/expiryScheduleRepository';
 
 const mockCancel = jest.fn(async (_id: string) => undefined);
 const mockStorage = new Map<string, string>();

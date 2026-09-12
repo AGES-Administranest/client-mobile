@@ -1,9 +1,9 @@
-import type { ExpiringLot } from './expiryAlert';
+import type { ExpiringLot } from 'features/inventory/domain/expiryAlert';
 import {
   inventoryAlertState,
   inventorySummary,
   type InventoryDisplayItem,
-} from './inventoryOverview';
+} from 'features/inventory/domain/inventoryOverview';
 
 const NOW = new Date(2026, 8, 13, 10);
 const item = (quantity: number): InventoryDisplayItem => ({

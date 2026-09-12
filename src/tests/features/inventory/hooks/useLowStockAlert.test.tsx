@@ -1,8 +1,8 @@
 import { AppState } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
 
-import { useLowStockAlert } from './useLowStockAlert';
-import { MonitoredItem } from '../domain/lowStockAlert';
+import { MonitoredItem } from 'features/inventory/domain/lowStockAlert';
+import { useLowStockAlert } from 'features/inventory/hooks/useLowStockAlert';
 
 // O prefixo `mock` é a exceção que o jest permite referenciar de dentro da
 // factory de jest.mock, que é içada para o topo do arquivo.

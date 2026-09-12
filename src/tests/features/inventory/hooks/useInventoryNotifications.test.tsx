@@ -1,13 +1,13 @@
 import ReactTestRenderer from 'react-test-renderer';
 
-import { useInventoryNotifications } from './useInventoryNotifications';
-import type { ExpiringLot } from '../domain/expiryAlert';
+import type { ExpiringLot } from 'features/inventory/domain/expiryAlert';
 import {
   expiryKey,
   type InventoryNotification,
   lowStockKey,
-} from '../domain/inventoryNotifications';
-import type { MonitoredItem } from '../domain/lowStockAlert';
+} from 'features/inventory/domain/inventoryNotifications';
+import type { MonitoredItem } from 'features/inventory/domain/lowStockAlert';
+import { useInventoryNotifications } from 'features/inventory/hooks/useInventoryNotifications';
 
 const mockStorage = new Map<string, string>();
 jest.mock('@react-native-async-storage/async-storage', () => ({

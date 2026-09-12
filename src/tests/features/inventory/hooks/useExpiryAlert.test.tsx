@@ -1,8 +1,8 @@
 import ReactTestRenderer from 'react-test-renderer';
 
-import { useExpiryAlert } from './useExpiryAlert';
-import { ExpiringLot, IsoDate } from '../domain/expiryAlert';
-import { EXPIRY_NOTIFICATION_HOUR } from '../domain/expirySchedule';
+import { ExpiringLot, IsoDate } from 'features/inventory/domain/expiryAlert';
+import { EXPIRY_NOTIFICATION_HOUR } from 'features/inventory/domain/expirySchedule';
+import { useExpiryAlert } from 'features/inventory/hooks/useExpiryAlert';
 
 // O prefixo `mock` é a exceção que o jest permite referenciar de dentro da
 // factory de jest.mock, que é içada para o topo do arquivo.

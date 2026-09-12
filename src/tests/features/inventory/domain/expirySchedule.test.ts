@@ -1,9 +1,9 @@
-import { ExpiringLot, IsoDate } from './expiryAlert';
+import { ExpiringLot, IsoDate } from 'features/inventory/domain/expiryAlert';
 import {
   EXPIRY_NOTIFICATION_HOUR,
   MAX_SCHEDULED_DATES,
   planExpirySchedule,
-} from './expirySchedule';
+} from 'features/inventory/domain/expirySchedule';
 
 const NOW = new Date(2026, 8, 8, 14, 30);
 

@@ -2,7 +2,7 @@ import {
   calculateAlerts,
   isAtOrBelowMinimum,
   MonitoredItem,
-} from './lowStockAlert';
+} from 'features/inventory/domain/lowStockAlert';
 
 function item(id: string, quantity: number, minimum = 5): MonitoredItem {
   return { id, name: id, unit: 'frasco', quantity, minimumStock: minimum };

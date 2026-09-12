@@ -1,8 +1,7 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { InventoryOverview } from 'features/inventory/components/InventoryOverview';
 import { I18nProvider } from 'shared/i18n';
-
-import { InventoryOverview } from './InventoryOverview';
 
 const NOW = new Date(2026, 8, 13, 10);
 const items = [

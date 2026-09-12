@@ -13,7 +13,7 @@ function loadService(os: string) {
     cancelScheduledNotificationAsync: jest.fn(async () => undefined),
   }));
 
-  return require('./notifications');
+  return require('shared/services/notifications');
 }
 
 beforeEach(() => {

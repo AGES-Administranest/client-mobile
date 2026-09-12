@@ -1,5 +1,5 @@
-import { ExpiringLot } from './expiryAlert';
-import { buildExpiryAlertMessage } from './expiryAlertMessage';
+import { ExpiringLot } from 'features/inventory/domain/expiryAlert';
+import { buildExpiryAlertMessage } from 'features/inventory/domain/expiryAlertMessage';
 
 function item(name: string): ExpiringLot {
   return { id: name, itemId: name, name, expirationDate: '2026-09-10' };

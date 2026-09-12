@@ -1,4 +1,7 @@
-import { elapsedMinutesSince, formatElapsedTime } from './formatElapsedTime';
+import {
+  elapsedMinutesSince,
+  formatElapsedTime,
+} from 'features/inventory/domain/formatElapsedTime';
 
 describe('formatElapsedTime', () => {
   it.each([

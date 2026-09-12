@@ -5,7 +5,7 @@ import {
   isExpiringSoon,
   IsoDate,
   parseExpirationDate,
-} from './expiryAlert';
+} from 'features/inventory/domain/expiryAlert';
 
 const today = new Date(2026, 8, 8, 12);
 

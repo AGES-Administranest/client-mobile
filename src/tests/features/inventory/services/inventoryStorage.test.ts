@@ -3,16 +3,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   loadAlertTimestamps,
   saveAlertTimestamps,
-} from './alertTimestampsRepository';
+} from 'features/inventory/services/alertTimestampsRepository';
 import {
   loadDismissedAlerts,
   saveDismissedAlerts,
-} from './dismissedAlertsRepository';
+} from 'features/inventory/services/dismissedAlertsRepository';
 import {
   loadExpirySchedule,
   saveExpirySchedule,
-} from './expiryScheduleRepository';
-import { loadNotifiedIds, saveNotifiedIds } from './lowStockAlertRepository';
+} from 'features/inventory/services/expiryScheduleRepository';
+import {
+  loadNotifiedIds,
+  saveNotifiedIds,
+} from 'features/inventory/services/lowStockAlertRepository';
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,

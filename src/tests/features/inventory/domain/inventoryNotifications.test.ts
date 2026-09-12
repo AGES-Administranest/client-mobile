@@ -1,4 +1,7 @@
-import type { ExpiringLot, IsoDate } from './expiryAlert';
+import type {
+  ExpiringLot,
+  IsoDate,
+} from 'features/inventory/domain/expiryAlert';
 import {
   activeAlertKeys,
   buildInventoryNotifications,
@@ -6,8 +9,8 @@ import {
   lowStockKey,
   reconcileAlertTimestamps,
   reconcileDismissedAlerts,
-} from './inventoryNotifications';
-import type { MonitoredItem } from './lowStockAlert';
+} from 'features/inventory/domain/inventoryNotifications';
+import type { MonitoredItem } from 'features/inventory/domain/lowStockAlert';
 
 const NOW = new Date(2026, 8, 13, 10, 0);
 const NOW_MS = NOW.getTime();

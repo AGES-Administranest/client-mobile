@@ -1,5 +1,5 @@
-import { buildAlertMessage } from './alertMessage';
-import { MonitoredItem } from './lowStockAlert';
+import { buildAlertMessage } from 'features/inventory/domain/alertMessage';
+import { MonitoredItem } from 'features/inventory/domain/lowStockAlert';
 
 function item(name: string, quantity = 2): MonitoredItem {
   return {

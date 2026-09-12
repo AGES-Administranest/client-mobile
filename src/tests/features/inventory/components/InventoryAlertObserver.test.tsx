@@ -3,19 +3,19 @@ import ReactTestRenderer from 'react-test-renderer';
 import {
   InventoryAlertObserver,
   type InventoryAlertSnapshot,
-} from './InventoryAlertObserver';
+} from 'features/inventory/components/InventoryAlertObserver';
 
 const mockLowStock = jest.fn();
 const mockExpiry = jest.fn();
 const mockDeactivate = jest.fn(async (_userId: string) => undefined);
 
-jest.mock('../hooks/useLowStockAlert', () => ({
+jest.mock('features/inventory/hooks/useLowStockAlert', () => ({
   useLowStockAlert: (...args: unknown[]) => mockLowStock(...args),
 }));
-jest.mock('../hooks/useExpiryAlert', () => ({
+jest.mock('features/inventory/hooks/useExpiryAlert', () => ({
   useExpiryAlert: (...args: unknown[]) => mockExpiry(...args),
 }));
-jest.mock('../services/deactivateInventoryAlerts', () => ({
+jest.mock('features/inventory/services/deactivateInventoryAlerts', () => ({
   deactivateInventoryAlerts: (userId: string) => mockDeactivate(userId),
 }));
 jest.mock('shared/i18n', () => ({
