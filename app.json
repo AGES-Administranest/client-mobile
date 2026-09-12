@@ -5,10 +5,16 @@
     "version": "0.0.1",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.clientmobile"
+      "bundleIdentifier": "com.clientmobile",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "O ClientMobile usa a rede local para se conectar ao servidor de desenvolvimento.",
+        "NSBonjourServices": [
+          "_expo-dev-server._tcp",
+          "_http._tcp"
+        ]
+      }
     },
     "android": {
       "package": "com.clientmobile"
