@@ -26,8 +26,8 @@ function CategoryFilter({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      className={className}
-      contentContainerClassName="flex-row gap-2"
+      className={cn('grow-0 shrink-0', className)}
+      contentContainerClassName="flex-row items-center gap-3"
     >
       {options.map(option => {
         const active = option === value;
@@ -41,14 +41,16 @@ function CategoryFilter({
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             className={cn(
-              'rounded-full border border-border-primary bg-white px-4 py-2',
+              'items-center justify-center rounded-full border border-border-primary bg-white px-5 py-3',
               active && 'border-button-primary bg-button-primary',
             )}
           >
             <Text
               className={cn(
-                'text-sm font-semibold',
-                active ? 'text-label-secondary' : 'text-label-tertiary',
+                'text-[15px] leading-tight',
+                active
+                  ? 'font-semibold text-label-secondary'
+                  : 'font-medium text-label-tertiary',
               )}
             >
               {label}
