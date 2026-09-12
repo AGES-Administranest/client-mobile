@@ -17,6 +17,7 @@ import { SegmentedControl } from 'app/components/ui/segmented-control';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import type { TranslationKey } from 'shared/i18n/dictionary';
+import { ApiError } from 'shared/services/apiClient';
 
 import {
   ALL_CATEGORIES,
@@ -24,6 +25,20 @@ import {
   UNIT_OPTIONS,
 } from '../domain/materialsFilter';
 import { useMaterialsScreen } from '../hooks/useMaterialsScreen';
+
+const ERROR_MESSAGE_KEYS: Record<string, TranslationKey> = {
+  DUPLICATED_ITEM_PRESENTATION: 'materials.errorDuplicatedItem',
+  DUPLICATED_SUPPLIER_NAME: 'materials.errorDuplicatedSupplier',
+};
+
+// O código do erro é o contrato estável com o backend (ADR-07). Sem isto, um
+// 409 de nome repetido chegava na tela como "não foi possível salvar".
+function errorKeyFor(error: unknown, fallback: TranslationKey): TranslationKey {
+  if (error instanceof ApiError && error.code) {
+    return ERROR_MESSAGE_KEYS[error.code] ?? fallback;
+  }
+  return fallback;
+}
 
 export function MaterialsScreen() {
   const { t } = useTranslation();
@@ -45,7 +60,6 @@ export function MaterialsScreen() {
     categories,
     items,
     stockItems,
-    suppliers,
     isLoading,
     error,
     onConfirmAdd,
@@ -80,8 +94,8 @@ export function MaterialsScreen() {
     try {
       await onConfirmAdd(draft);
       closeModal();
-    } catch {
-      setActionError('materials.errorSave');
+    } catch (saveError) {
+      setActionError(errorKeyFor(saveError, 'materials.errorSave'));
     } finally {
       setIsSaving(false);
     }
@@ -104,8 +118,8 @@ export function MaterialsScreen() {
     setActionError(null);
     try {
       await onDeleteItem(target.id);
-    } catch {
-      setActionError('materials.errorDelete');
+    } catch (deleteError) {
+      setActionError(errorKeyFor(deleteError, 'materials.errorDelete'));
     }
   }
 
@@ -167,7 +181,6 @@ export function MaterialsScreen() {
         onClose={closeModal}
         item={modalItem}
         items={stockItems}
-        suppliers={suppliers}
         categoryOptions={CATEGORY_OPTIONS}
         unitOptions={UNIT_OPTIONS}
         onConfirm={handleConfirmAdd}

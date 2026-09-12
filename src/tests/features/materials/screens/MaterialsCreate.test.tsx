@@ -6,10 +6,6 @@ import {
   createItem,
   fetchItems,
 } from 'features/materials/services/itemService';
-import {
-  createSupplier,
-  fetchSuppliers,
-} from 'features/materials/services/supplierService';
 import { I18nProvider } from 'shared/i18n';
 
 jest.mock('features/materials/services/itemService', () => ({
@@ -21,21 +17,11 @@ jest.mock('features/materials/services/itemService', () => ({
 jest.mock('features/materials/services/itemLotService', () => ({
   createItemLot: jest.fn(),
 }));
-jest.mock('features/materials/services/supplierService', () => ({
-  fetchSuppliers: jest.fn(),
-  createSupplier: jest.fn(),
-}));
 
 const fetchItemsMock = fetchItems as jest.MockedFunction<typeof fetchItems>;
 const createItemMock = createItem as jest.MockedFunction<typeof createItem>;
 const createItemLotMock = createItemLot as jest.MockedFunction<
   typeof createItemLot
->;
-const fetchSuppliersMock = fetchSuppliers as jest.MockedFunction<
-  typeof fetchSuppliers
->;
-const createSupplierMock = createSupplier as jest.MockedFunction<
-  typeof createSupplier
 >;
 
 beforeEach(() => {
@@ -43,8 +29,6 @@ beforeEach(() => {
   fetchItemsMock.mockResolvedValue([]);
   createItemMock.mockResolvedValue({ id: 'novo' } as never);
   createItemLotMock.mockResolvedValue({} as never);
-  fetchSuppliersMock.mockResolvedValue([]);
-  createSupplierMock.mockResolvedValue({ id: 'sup-1' } as never);
 });
 
 async function renderScreen() {
@@ -313,7 +297,25 @@ describe('supplier', () => {
     return renderer;
   }
 
-  async function fillAndConfirm(renderer: ReactTestRenderer.ReactTestRenderer) {
+  test('offers a free-text supplier field when registering a new item', async () => {
+    const renderer = await openNewItemForm();
+
+    const field = fieldByLabel(renderer, 'FORNECEDOR');
+    await act(async () => {
+      field.props.onChangeText('Distribuidora VetSul');
+    });
+
+    expect(String(fieldByLabel(renderer, 'FORNECEDOR').props.value ?? '')).toBe(
+      'Distribuidora VetSul',
+    );
+  });
+
+  test('the typed supplier is not sent while there is no registration', async () => {
+    const renderer = await openNewItemForm();
+
+    await act(async () => {
+      fieldByLabel(renderer, 'FORNECEDOR').props.onChangeText('VetSul');
+    });
     await act(async () => {
       fieldByLabel(renderer, 'CUSTO UNITÁRIO').props.onChangeText('1250');
     });
@@ -329,79 +331,32 @@ describe('supplier', () => {
     await act(async () => {
       pressWithText(renderer, 'Confirmar')!.props.onPress();
     });
-  }
 
-  test('offers the suppliers the API returned', async () => {
-    fetchSuppliersMock.mockResolvedValue([
-      { id: 'sup-1', name: 'Distribuidora VetSul' },
-      { id: 'sup-2', name: 'Agropecuária Central' },
-    ] as never);
-
-    const renderer = await openNewItemForm();
-
-    await act(async () => {
-      fieldByLabel(renderer, 'FORNECEDOR').props.onChangeText('vet');
-    });
-
-    const shown = renderer.root
-      .findAllByType('Text' as never)
-      .map(n => n.props.children)
-      .flat()
-      .join(' | ');
-    expect(shown).toContain('Distribuidora VetSul');
-    expect(shown).not.toContain('Agropecuária Central');
+    const [payload] = createItemMock.mock.calls[0];
+    expect(payload).not.toHaveProperty('supplierId');
   });
+});
 
-  test('sends the id of a supplier picked from the list', async () => {
-    fetchSuppliersMock.mockResolvedValue([
-      { id: 'sup-1', name: 'Distribuidora VetSul' },
-    ] as never);
+test('a duplicated name explains itself instead of a generic failure', async () => {
+  const { ApiError } = jest.requireActual<
+    typeof import('shared/services/apiClient')
+  >('shared/services/apiClient');
+  createItemMock.mockRejectedValue(
+    new ApiError(
+      'An item with this name and measurement unit already exists',
+      'DUPLICATED_ITEM_PRESENTATION',
+      409,
+    ),
+  );
 
-    const renderer = await openNewItemForm();
-    await act(async () => {
-      fieldByLabel(renderer, 'FORNECEDOR').props.onChangeText('vet');
-    });
-    await act(async () => {
-      pressWithText(renderer, 'Distribuidora VetSul')!.props.onPress();
-    });
-    await fillAndConfirm(renderer);
+  const renderer = await createWithCategory('Anestésico');
 
-    expect(createSupplierMock).not.toHaveBeenCalled();
-    expect(createItemMock).toHaveBeenCalledWith(
-      expect.objectContaining({ supplierId: 'sup-1' }),
-    );
-  });
+  const shown = renderer.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children)
+    .flat()
+    .join(' | ');
 
-  test('registers a supplier that does not exist yet and links it', async () => {
-    fetchSuppliersMock.mockResolvedValue([] as never);
-    createSupplierMock.mockResolvedValue({
-      id: 'sup-novo',
-      name: 'Fornecedor Inédito',
-    } as never);
-
-    const renderer = await openNewItemForm();
-    await act(async () => {
-      fieldByLabel(renderer, 'FORNECEDOR').props.onChangeText(
-        'Fornecedor Inédito',
-      );
-    });
-    await fillAndConfirm(renderer);
-
-    expect(createSupplierMock).toHaveBeenCalledWith({
-      name: 'Fornecedor Inédito',
-    });
-    expect(createItemMock).toHaveBeenCalledWith(
-      expect.objectContaining({ supplierId: 'sup-novo' }),
-    );
-  });
-
-  test('supplier stays optional', async () => {
-    const renderer = await openNewItemForm();
-    await fillAndConfirm(renderer);
-
-    expect(createSupplierMock).not.toHaveBeenCalled();
-    expect(createItemMock).toHaveBeenCalledWith(
-      expect.objectContaining({ supplierId: undefined }),
-    );
-  });
+  expect(shown).toContain('Já existe um item com esse nome e unidade');
+  expect(shown).not.toContain('Não foi possível salvar o item.');
 });

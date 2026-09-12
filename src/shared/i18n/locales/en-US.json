@@ -26,6 +26,8 @@
     "emptyFilter": "No items found in this category.",
     "errorLoad": "Could not load the items.",
     "errorSave": "Could not save the item.",
+    "errorDuplicatedItem": "An item with this name and unit already exists. The name is unique per unit, regardless of category.",
+    "errorDuplicatedSupplier": "A supplier with this name already exists.",
     "errorDelete": "Could not delete the item.",
     "deleteConfirmTitle": "Delete item",
     "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."

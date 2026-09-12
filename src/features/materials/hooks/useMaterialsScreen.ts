@@ -22,11 +22,6 @@ import {
   fetchItems,
   updateItem,
 } from '../services/itemService';
-import {
-  createSupplier,
-  fetchSuppliers,
-  type Supplier,
-} from '../services/supplierService';
 
 type MaterialsScreenState = {
   segment: SegmentValue;
@@ -36,7 +31,6 @@ type MaterialsScreenState = {
   categories: string[];
   items: MaterialItem[];
   stockItems: StockItem[];
-  suppliers: Supplier[];
   isLoading: boolean;
   error: string | null;
   onConfirmAdd: (draft: ItemDraft) => Promise<void>;
@@ -90,7 +84,6 @@ export function useMaterialsScreen(): MaterialsScreenState {
   const [segment, setSegment] = useState<SegmentValue>('supplies');
   const [category, setCategory] = useState<string>(ALL_CATEGORIES);
   const [allBackendItems, setAllBackendItems] = useState<BackendItem[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -135,23 +128,6 @@ export function useMaterialsScreen(): MaterialsScreenState {
     };
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    fetchSuppliers()
-      .then(list => {
-        if (isMounted) setSuppliers(list);
-      })
-      .catch(() => {
-        // Fornecedor é opcional: sem a lista o seletor fica vazio, mas o
-        // cadastro do item continua possível.
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   const onConfirmAdd = useCallback(async (draft: ItemDraft) => {
     const quantity = parseFloat(draft.quantity) || 0;
     const unitCost = parseCurrency(draft.unitCost);
@@ -183,25 +159,16 @@ export function useMaterialsScreen(): MaterialsScreenState {
     let targetItemId = draft.selectedItemId;
 
     if (!targetItemId) {
-      // O modal manda `supplierId` quando o fornecedor saiu da lista, ou
-      // `supplierName` quando é um novo. Criar aqui e guardar no estado evita
-      // que a próxima abertura ofereça cadastrá-lo de novo — e leve 409.
-      let supplierId = draft.supplierId ?? undefined;
-      const newSupplierName = draft.supplierName?.trim();
-
-      if (!supplierId && newSupplierName) {
-        const created = await createSupplier({ name: newSupplierName });
-        supplierId = created.id;
-        setSuppliers(prev => [...prev, created]);
-      }
-
+      // `draft.supplierName` é campo livre e ainda NÃO é enviado: o item só
+      // aceita `supplierId` (FK), e o cadastro de fornecedor ainda não existe
+      // na tela. O service de fornecedor já está pronto no backend — quando o
+      // cadastro entrar, é aqui que o id passa a ser resolvido.
       const newItem = await createItem({
         category: draft.category as BackendItemCategory,
         unit: toBackendUnit(draft.unit),
         name: draft.name,
         defaultUnitCost: unitCost || undefined,
         minimumStock,
-        supplierId,
       });
 
       targetItemId = newItem.id;
@@ -248,7 +215,6 @@ export function useMaterialsScreen(): MaterialsScreenState {
     categories,
     items,
     stockItems,
-    suppliers,
     isLoading,
     error,
     onConfirmAdd,

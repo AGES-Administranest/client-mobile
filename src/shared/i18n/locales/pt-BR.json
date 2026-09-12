@@ -26,6 +26,8 @@
     "emptyFilter": "Nenhum item encontrado nesta categoria.",
     "errorLoad": "Não foi possível carregar os itens.",
     "errorSave": "Não foi possível salvar o item.",
+    "errorDuplicatedItem": "Já existe um item com esse nome e unidade. O nome é único por unidade, independente da categoria.",
+    "errorDuplicatedSupplier": "Já existe um fornecedor com esse nome.",
     "errorDelete": "Não foi possível excluir o item.",
     "deleteConfirmTitle": "Excluir item",
     "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."

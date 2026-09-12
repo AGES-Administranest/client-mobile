@@ -39,7 +39,6 @@ type ItemModalProps = {
   mode?: ItemModalMode;
   item?: StockItem | null;
   items?: readonly StockItem[];
-  suppliers?: readonly SupplierOption[];
   categoryOptions?: readonly { value: string; label: string }[];
   unitOptions?: readonly string[];
   onConfirm?: (draft: ItemDraft) => void;
@@ -47,17 +46,11 @@ type ItemModalProps = {
   onDelete?: (item: StockItem) => void;
 };
 
-export type SupplierOption = {
-  id: string;
-  name: string;
-};
-
 export type ItemDraft = {
   category: string;
   name: string;
-  // Fornecedor escolhido da lista...
-  supplierId: string | null;
-  // ...ou digitado e ainda não cadastrado. Só um dos dois vem preenchido.
+  // Campo livre por enquanto: ainda não há cadastro de fornecedor, então o
+  // valor não é persistido. Ver o comentário em useMaterialsScreen.
   supplierName: string | null;
   // Item cujos próprios atributos estão sendo alterados (PATCH).
   editingItemId: string | null;
@@ -76,7 +69,6 @@ function ItemModal({
   mode = 'create',
   item = null,
   items = [],
-  suppliers = [],
   categoryOptions = [],
   unitOptions = [],
   onConfirm,
@@ -112,9 +104,7 @@ function ItemModal({
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(item);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [unitDropdownOpen, setUnitDropdownOpen] = useState(false);
-  const [supplierQuery, setSupplierQuery] = useState('');
-  const [supplierId, setSupplierId] = useState<string | null>(null);
-  const [supplierDropdownOpen, setSupplierDropdownOpen] = useState(false);
+  const [supplierName, setSupplierName] = useState('');
 
   const [showLotFields, setShowLotFields] = useState(isDetail || item !== null);
 
@@ -148,15 +138,6 @@ function ItemModal({
   const showSupplier =
     !isDetail && !isEditing && showLotFields && !isAddingToExisting;
 
-  const supplierMatches = suppliers.filter(supplier =>
-    supplier.name.toLowerCase().includes(supplierQuery.trim().toLowerCase()),
-  );
-  const selectedSupplier = suppliers.find(s => s.id === supplierId) ?? null;
-  const showSupplierAddOption =
-    supplierQuery.trim().length > 0 &&
-    !suppliers.some(
-      s => s.name.toLowerCase() === supplierQuery.trim().toLowerCase(),
-    );
   const expirationInPast = !isDetail && isPastDate(expiration);
 
   const selectedCategoryLabel =
@@ -171,9 +152,7 @@ function ItemModal({
   });
 
   function clearFields() {
-    setSupplierQuery('');
-    setSupplierId(null);
-    setSupplierDropdownOpen(false);
+    setSupplierName('');
     setQuery('');
     setSelectedItem(null);
     setDropdownOpen(false);
@@ -257,11 +236,7 @@ function ItemModal({
       quantity,
       minQuantity: showMinQuantity ? minQuantity : null,
       expiration: showExpiration ? expiration : '',
-      supplierId: showSupplier ? supplierId : null,
-      supplierName:
-        showSupplier && !supplierId && supplierQuery.trim()
-          ? supplierQuery.trim()
-          : null,
+      supplierName: showSupplier ? supplierName.trim() || null : null,
     });
   }
 
@@ -383,60 +358,18 @@ function ItemModal({
                 </View>
 
                 {showSupplier && (
-                  <View className="z-20 gap-2">
+                  <View className="gap-2">
                     <Text className="text-xs font-semibold text-label-primary">
                       {t('itemModal.supplierLabel')}
                     </Text>
                     <TextInput
-                      value={
-                        selectedSupplier ? selectedSupplier.name : supplierQuery
-                      }
-                      onChangeText={text => {
-                        setSupplierQuery(text);
-                        setSupplierId(null);
-                        setSupplierDropdownOpen(true);
-                      }}
-                      onFocus={() => setSupplierDropdownOpen(true)}
+                      value={supplierName}
+                      onChangeText={setSupplierName}
                       placeholder={t('itemModal.supplierPlaceholder')}
                       placeholderTextColor={LabelTertiary}
                       selectionColor={LabelPrimary}
                       className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
                     />
-
-                    {supplierDropdownOpen &&
-                      (supplierMatches.length > 0 || showSupplierAddOption) && (
-                        <View className="absolute inset-x-0 top-full z-20 mt-1 gap-4 rounded-2xl bg-white px-4 py-4 shadow-md shadow-black/10">
-                          {supplierMatches.map(supplier => (
-                            <Pressable
-                              key={supplier.id}
-                              onPress={() => {
-                                setSupplierId(supplier.id);
-                                setSupplierQuery(supplier.name);
-                                setSupplierDropdownOpen(false);
-                              }}
-                            >
-                              <Text className="text-[15px] font-medium text-label-primary">
-                                {supplier.name}
-                              </Text>
-                            </Pressable>
-                          ))}
-                          {showSupplierAddOption && (
-                            <Pressable
-                              accessibilityRole="button"
-                              onPress={() => {
-                                setSupplierId(null);
-                                setSupplierDropdownOpen(false);
-                              }}
-                            >
-                              <Text className="text-[15px] font-medium text-label-primary">
-                                {t('itemModal.supplierAddOption', {
-                                  name: supplierQuery.trim(),
-                                })}
-                              </Text>
-                            </Pressable>
-                          )}
-                        </View>
-                      )}
                   </View>
                 )}
 

@@ -1,5 +1,23 @@
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
+/**
+ * Erro de API com o `code` do backend preservado.
+ *
+ * Pelo ADR-07 o código é o contrato estável — a mensagem pode mudar de texto
+ * e de idioma, o código não. Guardá-lo é o que permite a tela dizer o que
+ * aconteceu de verdade em vez de cair num "não foi possível salvar".
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly code: string | null,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 type RequestOptions = {
   token?: string;
 };
@@ -26,10 +44,15 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => ({}));
-    const message =
-      (payload as { message?: string }).message ?? `HTTP ${response.status}`;
-    throw new Error(message);
+    const payload = (await response.json().catch(() => ({}))) as {
+      message?: string;
+      code?: string;
+    };
+    throw new ApiError(
+      payload.message ?? `HTTP ${response.status}`,
+      payload.code ?? null,
+      response.status,
+    );
   }
 
   if (response.status === 204) {
