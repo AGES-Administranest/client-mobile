@@ -1,1 +1,1 @@
-export { MaterialsScreen } from './screens/MaterialsScreen';
+export { MaterialsScreen } from './screens/MaterialsPage';

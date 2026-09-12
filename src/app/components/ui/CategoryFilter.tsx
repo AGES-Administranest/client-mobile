@@ -2,46 +2,43 @@ import { Pressable, ScrollView } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
-import { useTranslation } from 'shared/i18n';
 
-import { ALL_CATEGORIES } from '../domain/materialsFilter';
+type CategoryFilterOption = {
+  value: string;
+  label: string;
+};
 
 type CategoryFilterProps = {
-  categories: string[];
+  options: CategoryFilterOption[];
   value: string;
   onValueChange: (value: string) => void;
   className?: string;
 };
 
 function CategoryFilter({
-  categories,
+  options,
   value,
   onValueChange,
   className,
 }: CategoryFilterProps) {
-  const { t } = useTranslation();
-  const options = [ALL_CATEGORIES, ...categories];
-
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       className={cn('grow-0 shrink-0', className)}
-      contentContainerClassName="flex-row items-center gap-3"
+      contentContainerClassName="flex-row items-center gap-3 pl-2"
     >
       {options.map(option => {
-        const active = option === value;
-        const label =
-          option === ALL_CATEGORIES ? t('materials.categoryAll') : option;
+        const active = option.value === value;
 
         return (
           <Pressable
-            key={option}
-            onPress={() => onValueChange(option)}
+            key={option.value}
+            onPress={() => onValueChange(option.value)}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             className={cn(
-              'items-center justify-center rounded-full border border-border-primary bg-white px-5 py-3',
+              'items-center justify-center rounded-full border border-border-primary bg-white px-5 py-3 shadow-[0px_5px_10px_rgba(0,0,0,0.1)]',
               active && 'border-button-primary bg-button-primary',
             )}
           >
@@ -53,7 +50,7 @@ function CategoryFilter({
                   : 'font-medium text-label-tertiary',
               )}
             >
-              {label}
+              {option.label}
             </Text>
           </Pressable>
         );
@@ -63,4 +60,4 @@ function CategoryFilter({
 }
 
 export { CategoryFilter };
-export type { CategoryFilterProps };
+export type { CategoryFilterOption, CategoryFilterProps };

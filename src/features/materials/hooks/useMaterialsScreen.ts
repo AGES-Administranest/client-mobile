@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import type { SegmentValue } from 'app/components/ui/segmented-control';
 
@@ -8,7 +8,6 @@ import {
   getCategoriesForSegment,
   MaterialItem,
 } from '../domain/materialsFilter';
-import { fetchMaterials } from '../services/materialsService';
 
 type MaterialsScreenState = {
   segment: SegmentValue;
@@ -20,34 +19,19 @@ type MaterialsScreenState = {
   isLoading: boolean;
 };
 
+const NO_ITEMS: MaterialItem[] = [];
+
 export function useMaterialsScreen(): MaterialsScreenState {
-  const [allItems, setAllItems] = useState<MaterialItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [segment, setSegment] = useState<SegmentValue>('supplies');
   const [category, setCategory] = useState<string>(ALL_CATEGORIES);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    fetchMaterials().then(materials => {
-      if (isMounted) {
-        setAllItems(materials);
-        setIsLoading(false);
-      }
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   function onSegmentChange(nextSegment: SegmentValue) {
     setSegment(nextSegment);
     setCategory(ALL_CATEGORIES);
   }
 
-  const categories = getCategoriesForSegment(allItems, segment);
-  const items = filterMaterials(allItems, segment, category);
+  const categories = getCategoriesForSegment(NO_ITEMS, segment);
+  const items = filterMaterials(NO_ITEMS, segment, category);
 
   return {
     segment,
@@ -56,6 +40,6 @@ export function useMaterialsScreen(): MaterialsScreenState {
     onCategoryChange: setCategory,
     categories,
     items,
-    isLoading,
+    isLoading: false,
   };
 }

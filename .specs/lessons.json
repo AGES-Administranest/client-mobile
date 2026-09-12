@@ -12,9 +12,7 @@
       "signal": "spec_precision_gap",
       "scope": "materials",
       "status": "candidate",
-      "features": [
-        "materials-category-filter"
-      ],
+      "features": ["materials-category-filter"],
       "recurrence": 1,
       "harmful": 0,
       "evidence": [
