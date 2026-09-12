@@ -7,7 +7,12 @@ import {
 } from 'react-native-safe-area-context';
 
 import { TabBar, type TabValue } from 'app/components/ui/tabbar';
-import { provisionSession } from 'features/auth';
+import {
+  AuthFlow,
+  AuthProvider,
+  provisionSession,
+  useAuth,
+} from 'features/auth';
 import { ClinicsScreen } from 'features/clinics';
 import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
@@ -71,8 +76,19 @@ const SCREENS: Record<TabValue, React.ComponentType> = {
 
 function AppContent() {
   const isDarkMode = useColorScheme() === 'dark';
+  const { session } = useAuth();
   const [tab, setTab] = React.useState<TabValue>('day');
   const insets = useSafeAreaInsets();
+
+  if (!session) {
+    return (
+      <>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <AuthFlow />
+      </>
+    );
+  }
+
   const Screen = SCREENS[tab];
   const gradientStyle = { flex: 1, paddingTop: insets.top };
   const tabBarWrapperStyle = { paddingBottom: insets.bottom };
@@ -99,7 +115,9 @@ export function App() {
 
   return (
     <I18nProvider>
-      <SafeAreaProvider>{isSessionReady && <AppContent />}</SafeAreaProvider>
+      <SafeAreaProvider>
+        <AuthProvider>{isSessionReady && <AppContent />}</AuthProvider>
+      </SafeAreaProvider>
     </I18nProvider>
   );
 }

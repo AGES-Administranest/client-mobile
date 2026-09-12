@@ -120,5 +120,61 @@
     "edit": "Edit",
     "delete": "Delete",
     "cancel": "Cancel"
+  },
+  "auth": {
+    "back": "Back",
+    "brand": {
+      "tagline": "Veterinary Anesthesia"
+    },
+    "welcome": {
+      "greeting": "Welcome",
+      "createAccount": "Create account",
+      "or": "or",
+      "login": "Log in"
+    },
+    "fields": {
+      "name": "Name",
+      "email": "E-mail",
+      "password": "Password",
+      "passwordConfirmation": "Confirm password",
+      "code": "Confirmation code"
+    },
+    "login": {
+      "title": "Log in",
+      "description": "Use your account e-mail and password.",
+      "submit": "Log in",
+      "noAccount": "No account yet? Create one"
+    },
+    "signUp": {
+      "title": "Create account",
+      "description": "Fill in your details to get started.",
+      "submit": "Create account",
+      "hasAccount": "Already have an account? Log in"
+    },
+    "confirm": {
+      "title": "Confirm your e-mail",
+      "description": "We sent a confirmation code to {{email}}.",
+      "submit": "Confirm",
+      "resend": "Resend code",
+      "resent": "We sent you a new code."
+    },
+    "validation": {
+      "required": "This field is required.",
+      "invalidEmail": "Enter a valid e-mail.",
+      "passwordMismatch": "Passwords do not match."
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect e-mail or password.",
+      "emailAlreadyRegistered": "Could not create an account with this e-mail.",
+      "invalidCode": "Invalid code.",
+      "expiredCode": "This code has expired. Request a new one.",
+      "weakPassword": "The password must have at least 8 characters, with uppercase and lowercase letters, numbers and symbols.",
+      "invalidData": "Check the information you entered.",
+      "userNotConfirmed": "Confirm your e-mail before logging in.",
+      "sessionExpired": "Your session has expired. Please log in again.",
+      "tooManyAttempts": "Too many attempts. Wait a moment and try again.",
+      "networkUnavailable": "No connection. Check your internet and try again.",
+      "unknown": "Something went wrong. Please try again."
+    }
   }
 }

@@ -120,5 +120,61 @@
     "edit": "Editar",
     "delete": "Excluir",
     "cancel": "Cancelar"
+  },
+  "auth": {
+    "back": "Voltar",
+    "brand": {
+      "tagline": "Anestesia Veterinária"
+    },
+    "welcome": {
+      "greeting": "Seja bem-vindo(a)",
+      "createAccount": "Criar conta",
+      "or": "ou",
+      "login": "Login"
+    },
+    "fields": {
+      "name": "Nome",
+      "email": "E-mail",
+      "password": "Senha",
+      "passwordConfirmation": "Confirmar senha",
+      "code": "Código de confirmação"
+    },
+    "login": {
+      "title": "Entrar",
+      "description": "Acesse com o e-mail e a senha da sua conta.",
+      "submit": "Entrar",
+      "noAccount": "Ainda não tem conta? Criar conta"
+    },
+    "signUp": {
+      "title": "Criar conta",
+      "description": "Preencha seus dados para começar.",
+      "submit": "Criar conta",
+      "hasAccount": "Já tem conta? Entrar"
+    },
+    "confirm": {
+      "title": "Confirme seu e-mail",
+      "description": "Enviamos um código de confirmação para {{email}}.",
+      "submit": "Confirmar",
+      "resend": "Reenviar código",
+      "resent": "Enviamos um novo código."
+    },
+    "validation": {
+      "required": "Campo obrigatório.",
+      "invalidEmail": "Informe um e-mail válido.",
+      "passwordMismatch": "As senhas não coincidem."
+    },
+    "errors": {
+      "invalidCredentials": "E-mail ou senha incorretos.",
+      "emailAlreadyRegistered": "Não foi possível criar a conta com este e-mail.",
+      "invalidCode": "Código inválido.",
+      "expiredCode": "Este código expirou. Peça um novo.",
+      "weakPassword": "A senha precisa ter ao menos 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos.",
+      "invalidData": "Verifique os dados informados.",
+      "userNotConfirmed": "Confirme seu e-mail antes de entrar.",
+      "sessionExpired": "Sua sessão expirou. Entre novamente.",
+      "tooManyAttempts": "Muitas tentativas. Aguarde um pouco e tente novamente.",
+      "networkUnavailable": "Sem conexão. Verifique sua internet e tente novamente.",
+      "unknown": "Algo deu errado. Tente novamente."
+    }
   }
 }
