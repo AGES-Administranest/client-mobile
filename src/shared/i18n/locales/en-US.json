@@ -20,6 +20,56 @@
     "equipment": "Equipment"
   },
   "stock": {
+    "screen": {
+      "title": "Stock"
+    },
+    "itemForm": {
+      "title": "Supply or medication",
+      "fields": {
+        "category": "Category",
+        "name": "Name",
+        "unit": "Unit",
+        "defaultUnitCost": "Unit cost (R$)",
+        "currentQuantity": "Quantity",
+        "minimumStock": "Minimum stock quantity",
+        "expirationDate": "Expiry date"
+      },
+      "placeholders": {
+        "name": "Enter the medication name",
+        "defaultUnitCost": "Enter the cost",
+        "expirationDate": "YYYY-MM-DD"
+      },
+      "categories": {
+        "medication": "Medication",
+        "anesthetic": "Anesthetic",
+        "disposable": "Disposable"
+      },
+      "units": {
+        "unit": "Unit",
+        "ampoule": "Ampoule",
+        "vial": "Vial",
+        "box": "Box",
+        "ml": "ml",
+        "mg": "mg",
+        "tablet": "Tablet",
+        "other": "Other"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "confirmDelete": {
+        "title": "Delete item?",
+        "message": "{{name}} will be removed from stock. This cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
+      "errors": {
+        "required": "Required field",
+        "mustBeNonNegative": "Cannot be negative",
+        "invalidDate": "Invalid date"
+      }
+    },
     "movementHistory": {
       "title": "Movement history",
       "description": "Stock inbounds, outbounds and adjustments",

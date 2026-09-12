@@ -1,0 +1,171 @@
+import { View } from 'react-native';
+
+import { Button } from 'app/components/ui/button';
+import { Text } from 'app/components/ui/text';
+
+import { ChipSelector } from './ChipSelector';
+import { FormField } from './FormField';
+import {
+  MEASUREMENT_UNITS,
+  STOCK_CATEGORIES,
+  type MeasurementUnit,
+  type StockCategory,
+} from '../domain/stockItem';
+import type {
+  StockItemFormValues,
+  StockItemTextField,
+} from '../domain/stockItemFormValues';
+
+export type { StockItemFormValues, StockItemTextField };
+
+/** Every string the form shows, already translated by the screen. */
+export type StockItemFormLabels = {
+  title: string;
+  fields: Record<keyof StockItemFormValues, string>;
+  placeholders: Partial<Record<StockItemTextField, string>>;
+  categories: Record<StockCategory, string>;
+  units: Record<MeasurementUnit, string>;
+  edit: string;
+  delete: string;
+};
+
+type StockItemFormProps = {
+  values: StockItemFormValues;
+  errors: Partial<Record<keyof StockItemFormValues, string>>;
+  labels: StockItemFormLabels;
+  onChange: (field: StockItemTextField, text: string) => void;
+  onSelectCategory: (category: StockCategory) => void;
+  onSelectUnit: (unit: MeasurementUnit) => void;
+};
+
+// The edit sheet's fields (Figma "Novo insumo ou medicamento", edit variant).
+// Purely presentational: values, errors and labels come in, taps go out. The
+// Editar/Excluir buttons live in StockItemActions so the sheet can pin them
+// below the scrolling fields.
+export function StockItemForm({
+  values,
+  errors,
+  labels,
+  onChange,
+  onSelectCategory,
+  onSelectUnit,
+}: StockItemFormProps) {
+  return (
+    <View className="gap-3">
+      <Text className="text-lg font-semibold text-label-primary">
+        {labels.title}
+      </Text>
+
+      <ChoiceField label={labels.fields.category} error={errors.category}>
+        <ChipSelector
+          options={STOCK_CATEGORIES}
+          value={values.category}
+          labels={labels.categories}
+          onSelect={onSelectCategory}
+        />
+      </ChoiceField>
+
+      <FormField
+        label={labels.fields.name}
+        placeholder={labels.placeholders.name}
+        value={values.name}
+        error={errors.name}
+        onChangeText={text => onChange('name', text)}
+      />
+
+      <FormField
+        label={labels.fields.defaultUnitCost}
+        placeholder={labels.placeholders.defaultUnitCost}
+        value={values.defaultUnitCost}
+        error={errors.defaultUnitCost}
+        keyboardType="decimal-pad"
+        onChangeText={text => onChange('defaultUnitCost', text)}
+      />
+
+      <ChoiceField label={labels.fields.unit} error={errors.unit}>
+        <ChipSelector
+          options={MEASUREMENT_UNITS}
+          value={values.unit}
+          labels={labels.units}
+          onSelect={onSelectUnit}
+        />
+      </ChoiceField>
+
+      <FormField
+        label={labels.fields.currentQuantity}
+        value={values.currentQuantity}
+        error={errors.currentQuantity}
+        keyboardType="decimal-pad"
+        onChangeText={text => onChange('currentQuantity', text)}
+      />
+
+      <FormField
+        label={labels.fields.minimumStock}
+        value={values.minimumStock}
+        error={errors.minimumStock}
+        keyboardType="decimal-pad"
+        onChangeText={text => onChange('minimumStock', text)}
+      />
+
+      <FormField
+        label={labels.fields.expirationDate}
+        placeholder={labels.placeholders.expirationDate}
+        value={values.expirationDate}
+        error={errors.expirationDate}
+        onChangeText={text => onChange('expirationDate', text)}
+      />
+    </View>
+  );
+}
+
+type StockItemActionsProps = {
+  labels: Pick<StockItemFormLabels, 'edit' | 'delete'>;
+  isSaving: boolean;
+  onSubmit: () => void;
+  onDelete: () => void;
+};
+
+export function StockItemActions({
+  labels,
+  isSaving,
+  onSubmit,
+  onDelete,
+}: StockItemActionsProps) {
+  return (
+    <View className="gap-2 pt-3">
+      <Button shape="pill" disabled={isSaving} onPress={onSubmit}>
+        <Text>{labels.edit}</Text>
+      </Button>
+      <Button
+        shape="pill"
+        variant="destructive"
+        disabled={isSaving}
+        onPress={onDelete}
+      >
+        <Text>{labels.delete}</Text>
+      </Button>
+    </View>
+  );
+}
+
+type ChoiceFieldProps = {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+};
+
+// Same label/error frame as FormField, but around a chip row instead of an
+// Input. Local to this file: nothing else needs it yet.
+function ChoiceField({ label, error, children }: ChoiceFieldProps) {
+  return (
+    <View className="gap-1">
+      <Text className="text-xs font-medium uppercase text-label-tertiary">
+        {label}
+      </Text>
+      {children}
+      {error ? (
+        <Text className="text-xs text-alert-primary">{error}</Text>
+      ) : null}
+    </View>
+  );
+}

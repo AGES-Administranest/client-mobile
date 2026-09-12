@@ -20,6 +20,56 @@
     "equipment": "Equipamentos"
   },
   "stock": {
+    "screen": {
+      "title": "Estoque"
+    },
+    "itemForm": {
+      "title": "Insumo ou medicamento",
+      "fields": {
+        "category": "Categoria",
+        "name": "Nome",
+        "unit": "Unidade",
+        "defaultUnitCost": "Custo unitário (R$)",
+        "currentQuantity": "Quantidade",
+        "minimumStock": "Quantidade mínima no estoque",
+        "expirationDate": "Validade"
+      },
+      "placeholders": {
+        "name": "Digite o nome do medicamento",
+        "defaultUnitCost": "Digite o custo",
+        "expirationDate": "AAAA-MM-DD"
+      },
+      "categories": {
+        "medication": "Medicamento",
+        "anesthetic": "Anestésico",
+        "disposable": "Descartável"
+      },
+      "units": {
+        "unit": "Unidade",
+        "ampoule": "Ampola",
+        "vial": "Frasco",
+        "box": "Caixa",
+        "ml": "ml",
+        "mg": "mg",
+        "tablet": "Comprimido",
+        "other": "Outro"
+      },
+      "actions": {
+        "edit": "Editar",
+        "delete": "Excluir"
+      },
+      "confirmDelete": {
+        "title": "Excluir item?",
+        "message": "{{name}} será removido do estoque. Essa ação não pode ser desfeita.",
+        "cancel": "Cancelar",
+        "confirm": "Excluir"
+      },
+      "errors": {
+        "required": "Campo obrigatório",
+        "mustBeNonNegative": "Não pode ser negativo",
+        "invalidDate": "Data inválida"
+      }
+    },
     "movementHistory": {
       "title": "Histórico de movimentações",
       "description": "Entradas, saídas e ajustes de estoque",
