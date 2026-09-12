@@ -15,6 +15,52 @@
     },
     "cta": "Continue"
   },
+  "inventory": {
+    "alert": {
+      "titleSingular": "Low stock",
+      "bodySingular": "{{name}}: {{quantity}} {{unit}} left (minimum {{minimum}}).",
+      "titlePlural": "{{total}} items below the minimum",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} and {{remaining}} more"
+    },
+    "expiryAlert": {
+      "titleSingular": "Expiration date approaching",
+      "bodySingular": "{{name}} expires on {{expirationDate}}.",
+      "titlePlural": "{{total}} items nearing expiration",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} and {{remaining}} more"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No alerts right now.",
+      "lowStockTitle": "{{name}} is low on stock",
+      "lowStockBody": "{{quantity}} units remaining (min. {{minimum}})",
+      "expiryTitle": "{{name}} is about to expire",
+      "expiryBody": "{{name}} expires on {{date}}",
+      "delete": "Delete"
+    },
+    "elapsed": {
+      "minutes": "{{value}} min ago",
+      "hours": "{{value}} h ago",
+      "days": "{{value}} d ago"
+    },
+    "card": {
+      "atMinimum": "Item at minimum stock",
+      "belowMinimum": "Item below minimum stock",
+      "expiry": "Lot expires on {{date}}"
+    },
+    "overview": {
+      "title": "Inventory",
+      "subtitle": "Track materials that need attention.",
+      "attention": "Items that need attention",
+      "lowStockSingular": "{{count}} item below minimum",
+      "lowStockPlural": "{{count}} items below minimum",
+      "expirySingular": "{{count}} lot nearing expiration",
+      "expiryPlural": "{{count}} lots nearing expiration",
+      "loading": "Loading inventory...",
+      "empty": "No materials registered."
+    }
+  },
   "segmentedControl": {
     "supplies": "Supplies and medicines",
     "equipment": "Equipment"

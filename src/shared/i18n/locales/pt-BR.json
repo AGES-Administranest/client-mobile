@@ -15,6 +15,52 @@
     },
     "cta": "Continuar"
   },
+  "inventory": {
+    "alert": {
+      "titleSingular": "Estoque baixo",
+      "bodySingular": "{{name}}: restam {{quantity}} {{unit}} (mínimo {{minimum}}).",
+      "titlePlural": "{{total}} itens abaixo do mínimo",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
+    },
+    "expiryAlert": {
+      "titleSingular": "Validade próxima do vencimento",
+      "bodySingular": "{{name}} vence em {{expirationDate}}.",
+      "titlePlural": "{{total}} itens próximos do vencimento",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
+    },
+    "notifications": {
+      "title": "Notificações",
+      "empty": "Nenhum alerta no momento.",
+      "lowStockTitle": "{{name}} com estoque baixo",
+      "lowStockBody": "{{quantity}} unidades restantes (mín. {{minimum}})",
+      "expiryTitle": "{{name}} irá vencer",
+      "expiryBody": "{{name}} vence em {{date}}",
+      "delete": "Apagar"
+    },
+    "elapsed": {
+      "minutes": "há {{value}} min",
+      "hours": "há {{value}} h",
+      "days": "há {{value}} d"
+    },
+    "card": {
+      "atMinimum": "Item no estoque mínimo",
+      "belowMinimum": "Item abaixo da quantidade mínima",
+      "expiry": "Lote vence em {{date}}"
+    },
+    "overview": {
+      "title": "Estoque",
+      "subtitle": "Acompanhe os materiais que precisam de atenção.",
+      "attention": "Itens que precisam de atenção",
+      "lowStockSingular": "{{count}} item abaixo do mínimo",
+      "lowStockPlural": "{{count}} itens abaixo do mínimo",
+      "expirySingular": "{{count}} lote próximo do vencimento",
+      "expiryPlural": "{{count}} lotes próximos do vencimento",
+      "loading": "Carregando estoque...",
+      "empty": "Nenhum material cadastrado."
+    }
+  },
   "segmentedControl": {
     "supplies": "Insumos e medicamentos",
     "equipment": "Equipamentos"

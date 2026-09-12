@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
-import { MaterialCard } from 'app/components/ui/card';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
@@ -25,15 +24,6 @@ export function HomeScreen() {
         greeting={t(`home.greeting.${greetingPeriod}`, {
           name: userName ?? '',
         })}
-      />
-      <MaterialCard
-        name="Propofol 10mg/ml 20ml"
-        category="Medicamento"
-        price={19.9}
-        unit="ampola"
-        quantity={8}
-        minQuantity={10}
-        className="w-full"
       />
       <Button
         shape="pill"
