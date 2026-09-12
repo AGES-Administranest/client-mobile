@@ -121,3 +121,52 @@ test('a failing delete surfaces an error the user can see', async () => {
 
   expect(texts(renderer)).toContain('Não foi possível excluir o item.');
 });
+
+test('editing keeps the same sheet open instead of swapping modals', async () => {
+  const renderer = await renderScreen();
+
+  await act(async () => {
+    pressableWithText(renderer, 'Dipirona 500mg')!.props.onPress();
+  });
+
+  // Modo detalhe: campos travados, com as ações do item
+  const readOnly = renderer.root.findAll(
+    node => typeof node.props?.onChangeText === 'function',
+  );
+  expect(readOnly.every(node => node.props.editable === false)).toBe(true);
+  expect(texts(renderer)).toContain('Editar');
+
+  await act(async () => {
+    pressableWithText(renderer, 'Editar')!.props.onPress();
+  });
+
+  // Mesma folha, agora editável e já preenchida — sem fechar e reabrir
+  const editable = renderer.root.findAll(
+    node => typeof node.props?.onChangeText === 'function',
+  );
+  expect(editable.some(node => node.props.editable !== false)).toBe(true);
+  expect(editable.map(n => String(n.props.value ?? ''))).toContain(
+    'Dipirona 500mg',
+  );
+  expect(texts(renderer)).toContain('Confirmar');
+});
+
+test('only one item sheet exists in the tree at a time', async () => {
+  const renderer = await renderScreen();
+
+  const sheets = () =>
+    renderer.root.findAll(
+      node => typeof node.props?.onRequestClose === 'function',
+    ).length;
+
+  await act(async () => {
+    pressableWithText(renderer, 'Dipirona 500mg')!.props.onPress();
+  });
+  const whileDetail = sheets();
+
+  await act(async () => {
+    pressableWithText(renderer, 'Editar')!.props.onPress();
+  });
+
+  expect(sheets()).toBe(whileDetail);
+});

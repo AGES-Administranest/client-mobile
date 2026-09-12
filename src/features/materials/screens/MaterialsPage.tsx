@@ -9,7 +9,10 @@ import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { EmptyState } from 'app/components/ui/empty-state';
 import type { StockItem } from 'app/components/ui/item-modal/domain/itemModal';
 import { ItemModal } from 'app/components/ui/item-modal/item-modal';
-import type { ItemDraft } from 'app/components/ui/item-modal/item-modal';
+import type {
+  ItemDraft,
+  ItemModalMode,
+} from 'app/components/ui/item-modal/item-modal';
 import { SegmentedControl } from 'app/components/ui/segmented-control';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
@@ -24,10 +27,13 @@ import { useMaterialsScreen } from '../hooks/useMaterialsScreen';
 
 export function MaterialsScreen() {
   const { t } = useTranslation();
-  const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [detailItem, setDetailItem] = useState<StockItem | null>(null);
-  const [editSourceItem, setEditSourceItem] = useState<StockItem | null>(null);
+  // Uma única folha para ver e para editar. Eram duas <Modal>, e alternar
+  // entre elas trocava um desaparecimento seco (o Modal some na hora, sem
+  // esperar a animação de saída) por outra folha subindo — daí a transição
+  // estranha ao clicar em "Editar". Trocando só o modo, a folha nem se mexe.
+  const [modalMode, setModalMode] = useState<ItemModalMode | null>(null);
+  const [modalItem, setModalItem] = useState<StockItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<StockItem | null>(null);
   const [actionError, setActionError] = useState<TranslationKey | null>(null);
 
@@ -51,9 +57,20 @@ export function MaterialsScreen() {
     ...categories.map(item => ({ value: item, label: item })),
   ];
 
-  function closeAddModal() {
-    setIsAddItemModalVisible(false);
-    setEditSourceItem(null);
+  function closeModal() {
+    setModalMode(null);
+    setModalItem(null);
+  }
+
+  function openDetail(item: StockItem | null) {
+    if (!item) return;
+    setModalItem(item);
+    setModalMode('detail');
+  }
+
+  function openCreate() {
+    setModalItem(null);
+    setModalMode('create');
   }
 
   async function handleConfirmAdd(draft: ItemDraft) {
@@ -61,7 +78,7 @@ export function MaterialsScreen() {
     setActionError(null);
     try {
       await onConfirmAdd(draft);
-      closeAddModal();
+      closeModal();
     } catch {
       setActionError('materials.errorSave');
     } finally {
@@ -70,13 +87,12 @@ export function MaterialsScreen() {
   }
 
   function handleEdit(item: StockItem) {
-    setDetailItem(null);
-    setEditSourceItem(item);
-    setIsAddItemModalVisible(true);
+    setModalItem(item);
+    setModalMode('create');
   }
 
   function handleDelete(item: StockItem) {
-    setDetailItem(null);
+    closeModal();
     setPendingDelete(item);
   }
 
@@ -130,7 +146,7 @@ export function MaterialsScreen() {
             quantity={item.quantity}
             minQuantity={item.minQuantity}
             belowMinimum={item.belowMinimum}
-            onPress={() => setDetailItem(getStockItem(item.id))}
+            onPress={() => openDetail(getStockItem(item.id))}
           />
         ))}
       </ScrollView>
@@ -139,19 +155,22 @@ export function MaterialsScreen() {
         icon={Plus}
         className="h-[49px] w-full mb-[16px]"
         disabled={isSaving}
-        onPress={() => setIsAddItemModalVisible(true)}
+        onPress={openCreate}
       >
         <Text>{t('materials.addButton')}</Text>
       </Button>
 
       <ItemModal
-        visible={isAddItemModalVisible}
-        onClose={closeAddModal}
-        item={editSourceItem}
+        mode={modalMode ?? 'create'}
+        visible={modalMode !== null}
+        onClose={closeModal}
+        item={modalItem}
         items={stockItems}
         categoryOptions={CATEGORY_OPTIONS}
         unitOptions={UNIT_OPTIONS}
         onConfirm={handleConfirmAdd}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
 
       <ConfirmSheet
@@ -164,16 +183,6 @@ export function MaterialsScreen() {
         cancelLabel={t('itemModal.cancel')}
         onConfirm={confirmDelete}
         onCancel={() => setPendingDelete(null)}
-      />
-
-      <ItemModal
-        mode="detail"
-        visible={detailItem !== null}
-        onClose={() => setDetailItem(null)}
-        item={detailItem}
-        categoryOptions={CATEGORY_OPTIONS}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
       />
     </View>
   );

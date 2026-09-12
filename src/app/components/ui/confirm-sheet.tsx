@@ -82,10 +82,9 @@ function ConfirmSheet({
               <Text className="text-xl font-bold text-label-primary">
                 {title}
               </Text>
-              <Text className="text-[15px] text-label-tertiary">{message}</Text>
+              <Text className="text-[15px] text-label-primary">{message}</Text>
 
               <Button
-                variant="secondary"
                 shape="pill"
                 className="h-[49px] w-full"
                 onPress={onConfirm}
