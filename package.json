@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "^57.0.20",
+    "expo-linear-gradient": "~57.0.2",
     "expo-modules-core": "~57.0.11",
     "lucide-react-native": "^1.41.0",
     "nativewind": "^4.2.6",

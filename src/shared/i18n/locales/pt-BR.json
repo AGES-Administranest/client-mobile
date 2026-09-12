@@ -19,6 +19,19 @@
     "supplies": "Insumos e medicamentos",
     "equipment": "Equipamentos"
   },
+  "materials": {
+    "categoryAll": "Todos",
+    "lowStockWarning": "Item abaixo da quantidade mínima",
+    "addButton": "Adicionar material",
+    "emptyFilter": "Nenhum item encontrado nesta categoria.",
+    "errorLoad": "Não foi possível carregar os itens.",
+    "errorSave": "Não foi possível salvar o item.",
+    "errorDuplicatedItem": "Já existe um item com esse nome e unidade. O nome é único por unidade, independente da categoria.",
+    "errorDuplicatedSupplier": "Já existe um fornecedor com esse nome.",
+    "errorDelete": "Não foi possível excluir o item.",
+    "deleteConfirmTitle": "Excluir item",
+    "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
+  },
   "stock": {
     "movementHistory": {
       "title": "Histórico de movimentações",
@@ -74,7 +87,7 @@
     }
   },
   "tabbar": {
-    "day": "Dia-a-Dia",
+    "day": "Dia-Dia",
     "finance": "Finança",
     "materials": "Materiais",
     "clinics": "Clínicas",
@@ -83,6 +96,30 @@
   "optionsModal": {
     "scanNote": "Escanear nota",
     "typeSupply": "Digitar insumo"
+  },
+  "itemModal": {
+    "title": "Novo insumo ou medicamento",
+    "categoryLabel": "CATEGORIA",
+    "nameLabel": "NOME",
+    "namePlaceholder": "Digite o nome do {{category}}",
+    "addOption": "+ Adicionar {{category}}",
+    "unitCostLabel": "CUSTO UNITÁRIO (R$)",
+    "unitCostPlaceholder": "Digite o custo",
+    "unitLabel": "UNIDADE",
+    "unitPlaceholder": "Digite a unidade",
+    "supplierLabel": "FORNECEDOR",
+    "supplierPlaceholder": "Selecione o fornecedor",
+    "supplierAddOption": "+ Adicionar fornecedor \"{{name}}\"",
+    "supplierSearchPlaceholder": "Busque ou digite um novo",
+    "quantityLabel": "QUANTIDADE",
+    "minQuantityLabel": "QUANTIDADE MÍNIMA NO ESTOQUE",
+    "expirationLabel": "VALIDADE",
+    "expirationPlaceholder": "Selecione a data",
+    "expirationPastError": "A validade não pode ser uma data passada",
+    "confirm": "Confirmar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "cancel": "Cancelar"
   },
   "auth": {
     "back": "Voltar",

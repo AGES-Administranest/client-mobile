@@ -19,6 +19,19 @@
     "supplies": "Supplies and medicines",
     "equipment": "Equipment"
   },
+  "materials": {
+    "categoryAll": "All",
+    "lowStockWarning": "Item below minimum quantity",
+    "addButton": "Add material",
+    "emptyFilter": "No items found in this category.",
+    "errorLoad": "Could not load the items.",
+    "errorSave": "Could not save the item.",
+    "errorDuplicatedItem": "An item with this name and unit already exists. The name is unique per unit, regardless of category.",
+    "errorDuplicatedSupplier": "A supplier with this name already exists.",
+    "errorDelete": "Could not delete the item.",
+    "deleteConfirmTitle": "Delete item",
+    "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  },
   "stock": {
     "movementHistory": {
       "title": "Movement history",
@@ -83,6 +96,30 @@
   "optionsModal": {
     "scanNote": "Scan note",
     "typeSupply": "Type supply"
+  },
+  "itemModal": {
+    "title": "New supply or medication",
+    "categoryLabel": "CATEGORY",
+    "nameLabel": "NAME",
+    "namePlaceholder": "Enter the {{category}} name",
+    "addOption": "+ Add {{category}}",
+    "unitCostLabel": "UNIT COST (R$)",
+    "unitCostPlaceholder": "Enter the cost",
+    "unitLabel": "UNIT",
+    "unitPlaceholder": "Enter the unit",
+    "supplierLabel": "SUPPLIER",
+    "supplierPlaceholder": "Select the supplier",
+    "supplierAddOption": "+ Add supplier \"{{name}}\"",
+    "supplierSearchPlaceholder": "Search or type a new one",
+    "quantityLabel": "QUANTITY",
+    "minQuantityLabel": "MINIMUM STOCK QUANTITY",
+    "expirationLabel": "EXPIRATION",
+    "expirationPlaceholder": "Select the date",
+    "expirationPastError": "Expiration date cannot be in the past",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel"
   },
   "auth": {
     "back": "Back",
