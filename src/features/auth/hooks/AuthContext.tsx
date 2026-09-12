@@ -14,6 +14,7 @@ type AuthContextValue = {
   session: AuthSession | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  setSession: (session: AuthSession | null) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -46,8 +47,8 @@ export function AuthProvider({
   }, [session]);
 
   const value = useMemo(
-    () => ({ session, signIn, signOut }),
-    [session, signIn, signOut],
+    () => ({ session, signIn, signOut, setSession }),
+    [session, signIn, signOut, setSession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

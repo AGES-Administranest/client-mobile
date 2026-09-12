@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react-native';
 import { ActivityIndicator } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -9,6 +10,7 @@ import { ButtonPrimary, LabelSecondary } from '../../../theme/colors';
 type AuthButtonProps = {
   label: string;
   onPress: () => void;
+  icon?: LucideIcon;
   variant?: 'primary' | 'link';
   isLoading?: boolean;
   disabled?: boolean;
@@ -18,6 +20,7 @@ type AuthButtonProps = {
 export function AuthButton({
   label,
   onPress,
+  icon,
   variant = 'primary',
   isLoading = false,
   disabled = false,
@@ -29,6 +32,7 @@ export function AuthButton({
     <Button
       variant={isPrimary ? 'default' : 'link'}
       shape="pill"
+      icon={icon}
       onPress={onPress}
       disabled={disabled || isLoading}
       accessibilityLabel={label}
