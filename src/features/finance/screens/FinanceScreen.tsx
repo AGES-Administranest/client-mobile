@@ -1,9 +1,11 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+
+import { MovementHistoryScreen } from 'features/stock';
 
 export function FinanceScreen() {
   return (
-    <View className="flex-1 items-center justify-center">
-      <Text className="text-2xl font-semibold">Finança</Text>
+    <View className="flex-1 bg-background-modal">
+      <MovementHistoryScreen />
     </View>
   );
 }
