@@ -275,10 +275,15 @@ try {
 `domain/` holds the pure parts (session expiry rules, the Cognito-error-to-our-code
 table); `services/` holds the calls. Screens should import from `features/auth` only.
 
-**Not included yet, by design:** persisting the session across app launches, the login
-and sign-up screens, and navigation. The session returned by `signIn` currently lives
-only in memory — persistence needs a storage dependency, which is a separate decision
-and a separate card.
+The feature also owns the signed-out flow. `AuthProvider` (wrapped around the app in
+`App.tsx`) holds the session and exposes `useAuth()` → `{ session, signIn, signOut }`;
+`App.tsx` renders `AuthFlow` (welcome → login / sign-up → e-mail confirmation) while
+there is no session, and the tabs once there is one.
+
+**Not included yet, by design:** persisting the session across app launches, calling
+`POST /auth/session` after login, and a navigation library (`AuthFlow` switches steps
+with local state). The session currently lives only in memory — persistence needs a
+storage dependency, which is a separate decision and a separate card.
 
 #### A note on error messages
 

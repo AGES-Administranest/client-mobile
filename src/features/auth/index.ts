@@ -19,3 +19,5 @@ export {
   signUp,
   type SignUpResult,
 } from './services/authService';
+export { AuthProvider, useAuth } from './hooks/AuthContext';
+export { AuthFlow } from './screens/AuthFlow';
