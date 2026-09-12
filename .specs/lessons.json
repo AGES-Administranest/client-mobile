@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 2,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "spec_precision_gap::when a filter or search feature s empty result ui branch is only reachable through combinations the current mock fixture data can t produce add a dedicated test that mocks the data source to return zero items rather than relying on domain level empty array assertions alone",
+      "text": "When a filter or search feature's empty-result UI branch is only reachable through combinations the current mock/fixture data can't produce, add a dedicated test that mocks the data source to return zero items rather than relying on domain-level empty-array assertions alone.",
+      "signal": "spec_precision_gap",
+      "scope": "materials",
+      "status": "candidate",
+      "features": [
+        "materials-category-filter"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "MATF-07 / .specs/features/materials-category-filter/validation.md (materials)"
+      ],
+      "created": "2026-09-12T04:28:59Z",
+      "last_seen": "2026-09-12T04:28:59Z"
+    }
+  ]
+}
