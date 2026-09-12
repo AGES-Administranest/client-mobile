@@ -1,21 +1,23 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { CategoryFilter } from 'features/materials/components/CategoryFilter';
-import { I18nProvider } from 'shared/i18n';
+import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 
-test('renders "Todos" plus every category, marking the active one selected', async () => {
+test('renders every option, marking the active one selected', async () => {
   const onValueChange = jest.fn();
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(() => {
     renderer = ReactTestRenderer.create(
-      <I18nProvider>
-        <CategoryFilter
-          categories={['Medicamento', 'Anestésico', 'Descartavel']}
-          value="all"
-          onValueChange={onValueChange}
-        />
-      </I18nProvider>,
+      <CategoryFilter
+        options={[
+          { value: 'all', label: 'Todos' },
+          { value: 'Medicamento', label: 'Medicamento' },
+          { value: 'Anestésico', label: 'Anestésico' },
+          { value: 'Descartavel', label: 'Descartavel' },
+        ]}
+        value="all"
+        onValueChange={onValueChange}
+      />,
     );
   });
 
@@ -35,19 +37,21 @@ test('renders "Todos" plus every category, marking the active one selected', asy
   expect(texts).toEqual(['Todos', 'Medicamento', 'Anestésico', 'Descartavel']);
 });
 
-test('calls onValueChange with the tapped category', async () => {
+test('calls onValueChange with the tapped option value', async () => {
   const onValueChange = jest.fn();
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(() => {
     renderer = ReactTestRenderer.create(
-      <I18nProvider>
-        <CategoryFilter
-          categories={['Medicamento', 'Anestésico']}
-          value="all"
-          onValueChange={onValueChange}
-        />
-      </I18nProvider>,
+      <CategoryFilter
+        options={[
+          { value: 'all', label: 'Todos' },
+          { value: 'Medicamento', label: 'Medicamento' },
+          { value: 'Anestésico', label: 'Anestésico' },
+        ]}
+        value="all"
+        onValueChange={onValueChange}
+      />,
     );
   });
 

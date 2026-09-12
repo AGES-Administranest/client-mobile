@@ -3,7 +3,7 @@ import {
   filterMaterials,
   getCategoriesForSegment,
   MaterialItem,
-} from './materialsFilter';
+} from '../../../../features/materials/domain/materialsFilter';
 
 const ITEMS: MaterialItem[] = [
   {
