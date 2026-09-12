@@ -2,6 +2,8 @@ import {
   digitsOnly,
   filterStockItems,
   formatCurrency,
+  formatDateInput,
+  isPastDate,
   shouldShowAddOption,
   shouldShowMinQuantity,
   type StockItem,
@@ -96,6 +98,46 @@ describe('digitsOnly', () => {
     expect(digitsOnly('abc')).toBe('');
     expect(digitsOnly('10,5')).toBe('105');
     expect(digitsOnly('')).toBe('');
+  });
+});
+
+describe('formatDateInput', () => {
+  it('returns empty string when there are no digits', () => {
+    expect(formatDateInput('')).toBe('');
+    expect(formatDateInput('abc')).toBe('');
+  });
+
+  it('inserts slashes as digits are typed', () => {
+    expect(formatDateInput('1')).toBe('1');
+    expect(formatDateInput('15')).toBe('15');
+    expect(formatDateInput('151')).toBe('15/1');
+    expect(formatDateInput('1510')).toBe('15/10');
+    expect(formatDateInput('15102030')).toBe('15/10/2030');
+  });
+
+  it('ignores non-digit characters and extra digits beyond 8', () => {
+    expect(formatDateInput('15/10/2030')).toBe('15/10/2030');
+    expect(formatDateInput('151020309999')).toBe('15/10/2030');
+  });
+});
+
+describe('isPastDate', () => {
+  const today = new Date(2030, 5, 15); // 15/06/2030
+
+  it('is false while the date is incomplete', () => {
+    expect(isPastDate('', today)).toBe(false);
+    expect(isPastDate('15/06', today)).toBe(false);
+  });
+
+  it('is false for today and future dates', () => {
+    expect(isPastDate('15/06/2030', today)).toBe(false);
+    expect(isPastDate('16/06/2030', today)).toBe(false);
+    expect(isPastDate('15/06/2031', today)).toBe(false);
+  });
+
+  it('is true for dates before today', () => {
+    expect(isPastDate('14/06/2030', today)).toBe(true);
+    expect(isPastDate('15/06/2029', today)).toBe(true);
   });
 });
 

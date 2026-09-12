@@ -1,9 +1,17 @@
 // src/app/components/ui/item-modal/item-modal.tsx
 
-import { cva } from 'class-variance-authority';
-import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  Modal,
+  Pressable,
+  TextInput,
+  View,
+} from 'react-native';
 
+import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
@@ -11,46 +19,16 @@ import {
   digitsOnly,
   filterStockItems,
   formatCurrency,
+  formatDateInput,
+  formatExpiration,
+  isPastDate,
   shouldShowAddOption,
   shouldShowMinQuantity,
-  type ItemCategory,
   type StockItem,
 } from './domain/itemModal';
+import { LabelPrimary, LabelTertiary } from '../../../../theme/colors';
 
-const CATEGORIES: readonly {
-  value: ItemCategory;
-  labelKey:
-    | 'itemModal.category.medication'
-    | 'itemModal.category.anesthetic'
-    | 'itemModal.category.disposable';
-}[] = [
-  { value: 'medication', labelKey: 'itemModal.category.medication' },
-  { value: 'anesthetic', labelKey: 'itemModal.category.anesthetic' },
-  { value: 'disposable', labelKey: 'itemModal.category.disposable' },
-];
-
-const categoryChipVariants = cva(
-  'items-center justify-center rounded-2xl px-4 py-3',
-  {
-    variants: {
-      active: {
-        true: 'bg-button-primary',
-        false: 'bg-white',
-      },
-    },
-    defaultVariants: { active: false },
-  },
-);
-
-const categoryTextVariants = cva('text-[15px] font-medium', {
-  variants: {
-    active: {
-      true: 'text-white',
-      false: 'text-label-primary',
-    },
-  },
-  defaultVariants: { active: false },
-});
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 type ItemModalMode = 'create' | 'detail';
 
@@ -58,24 +36,23 @@ type ItemModalProps = {
   visible: boolean;
   onClose: () => void;
   mode?: ItemModalMode;
-  // No modo "detail", o item cujos dados preenchem a modal.
   item?: StockItem | null;
-  // Fonte dos itens do dropdown de NOME (mock por enquanto, service depois).
   items?: readonly StockItem[];
+  categoryOptions?: readonly { value: string; label: string }[];
+  unitOptions?: readonly string[];
   onConfirm?: (draft: ItemDraft) => void;
   onEdit?: (item: StockItem) => void;
   onDelete?: (item: StockItem) => void;
 };
 
-// O que a modal devolve ao confirmar um cadastro.
 export type ItemDraft = {
-  category: ItemCategory;
+  category: string;
   name: string;
-  selectedItemId: string | null; // preenchido se veio de item existente
+  selectedItemId: string | null; 
   unitCost: string;
   unit: string;
   quantity: string;
-  minQuantity: string | null; // null quando o campo não é exibido
+  minQuantity: string | null; 
   expiration: string;
 };
 
@@ -85,19 +62,45 @@ function ItemModal({
   mode = 'create',
   item = null,
   items = [],
+  categoryOptions = [],
+  unitOptions = [],
   onConfirm,
   onEdit,
   onDelete,
 }: ItemModalProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const isDetail = mode === 'detail';
 
-  const [category, setCategory] = useState<ItemCategory>(
-    item?.category ?? 'medication',
+  
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  useEffect(() => {
+    Animated.timing(overlayOpacity, {
+      toValue: visible ? 1 : 0,
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+    Animated.timing(sheetTranslateY, {
+      toValue: visible ? 0 : SCREEN_HEIGHT,
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [visible, overlayOpacity, sheetTranslateY]);
+
+  const [category, setCategory] = useState(
+    item?.category ?? categoryOptions[0]?.value ?? '',
   );
   const [query, setQuery] = useState(item?.name ?? '');
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(item);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [unitDropdownOpen, setUnitDropdownOpen] = useState(false);
+  
+  const [showLotFields, setShowLotFields] = useState(isDetail || item !== null);
+  
+  const [isAddingNew, setIsAddingNew] = useState(false);
   const [unitCost, setUnitCost] = useState(item ? String(item.unitCost) : '');
   const [unit, setUnit] = useState(item?.unit ?? '');
   const [quantity, setQuantity] = useState(item ? String(item.quantity) : '');
@@ -106,28 +109,32 @@ function ItemModal({
   );
   const [expiration, setExpiration] = useState(item?.expiration ?? '');
 
-  // Itens do dropdown filtrados pela categoria escolhida + texto digitado.
   const matches = useMemo(() => {
     const byCategory = items.filter(i => i.category === category);
     return filterStockItems(query, byCategory);
   }, [items, category, query]);
 
   const showAddOption = shouldShowAddOption(query, matches);
-  // A mínima só aparece pra item novo (nenhum existente selecionado).
-  const showMinQuantity = !isDetail && shouldShowMinQuantity(selectedItem);
+  
+  const showMinQuantity =
+    !isDetail && showLotFields && shouldShowMinQuantity(selectedItem);
+  
+  const showExpiration = isDetail || showLotFields;
+  const expirationInPast = !isDetail && isPastDate(expiration);
+
+  const selectedCategoryLabel =
+    categoryOptions.find(c => c.value === category)?.label ?? '';
 
   const addLabel = t('itemModal.addOption', {
-    category: t(CATEGORIES.find(c => c.value === category)!.labelKey),
+    category: selectedCategoryLabel,
   });
 
-  // Placeholder do campo NOME muda conforme a categoria selecionada.
+  
   const namePlaceholder = t('itemModal.namePlaceholder', {
-    category: t(
-      CATEGORIES.find(c => c.value === category)!.labelKey,
-    ).toLowerCase(),
+    category: selectedCategoryLabel.toLowerCase(),
   });
 
-  // Zera todos os campos de entrada, sem mexer na categoria.
+ 
   function clearFields() {
     setQuery('');
     setSelectedItem(null);
@@ -137,20 +144,21 @@ function ItemModal({
     setQuantity('');
     setMinQuantity('');
     setExpiration('');
+    // Só chamada em fluxos de criação (isDetail é sempre false aqui).
+    setShowLotFields(false);
+    setIsAddingNew(false);
   }
 
-  // Bug 3: toda vez que a modal abre em modo "create", volta ao estado inicial
-  // (categoria em medication e campos vazios), pra não herdar o cadastro anterior.
+  
   useEffect(() => {
-    if (visible && !isDetail) {
-      setCategory('medication');
+    if (visible && !isDetail && !item) {
+      setCategory(categoryOptions[0]?.value ?? '');
       clearFields();
     }
-  }, [visible, isDetail]);
+  }, [visible, isDetail, item, categoryOptions]);
 
   function handleSelectExisting(existing: StockItem) {
-    // Ao achar um item já cadastrado, preenche os dados dele. A pessoa só
-    // ajusta a quantidade que está adicionando. A mínima some (item já existe).
+    
     setSelectedItem(existing);
     setQuery(existing.name);
     setUnitCost(String(existing.unitCost));
@@ -158,21 +166,29 @@ function ItemModal({
     setQuantity(String(existing.quantity));
     setExpiration(existing.expiration ?? '');
     setDropdownOpen(false);
+    setShowLotFields(true);
+    setIsAddingNew(false);
   }
 
   function handleAddNew() {
-    // Passa a tratar o texto digitado como nome de um item novo.
+    
     setSelectedItem(null);
     setDropdownOpen(false);
+    setShowLotFields(true);
+    setIsAddingNew(true);
   }
 
   function handleChangeName(text: string) {
     setQuery(text);
     setSelectedItem(null); // digitar de novo desfaz a seleção anterior
-    setDropdownOpen(true);
+    
+    if (!isAddingNew) {
+      setDropdownOpen(true);
+    }
   }
 
   function handleConfirm() {
+    if (showExpiration && expirationInPast) return;
     onConfirm?.({
       category,
       name: query,
@@ -189,218 +205,275 @@ function ItemModal({
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="none"
       onRequestClose={onClose}
     >
-      <Pressable
-        className="flex-1 justify-end bg-background-shade"
-        onPress={onClose}
-      >
+      <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
         <Pressable
-          className="max-h-[90%] gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
-          onPress={e => e.stopPropagation()}
+          className="flex-1 justify-end bg-background-shade"
+          onPress={onClose}
         >
-          <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
-
-          <Text className="text-xl font-bold text-label-primary">
-            {t('itemModal.title')}
-          </Text>
-
-          <View className="h-px bg-details-primary" />
-
-          <ScrollView
-            className="max-h-[520px]"
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+          <Animated.View
+            style={{
+              maxHeight: SCREEN_HEIGHT * 0.9,
+              transform: [{ translateY: sheetTranslateY }],
+            }}
           >
-            <View className="gap-4">
-              {/* CATEGORIA */}
-              <View className="gap-2">
-                <Text className="text-xs font-semibold text-label-primary">
-                  {t('itemModal.categoryLabel')}
-                </Text>
-                <View className="flex-row gap-3">
-                  {CATEGORIES.map(cat => {
-                    const active = cat.value === category;
-                    // No modo detalhe só mostramos a categoria do item.
-                    if (isDetail && !active) return null;
-                    return (
-                      <Pressable
-                        key={cat.value}
-                        disabled={isDetail}
-                        onPress={() => {
-                          setCategory(cat.value);
-                          clearFields();
-                        }}
-                        className={categoryChipVariants({ active })}
-                      >
-                        <Text className={categoryTextVariants({ active })}>
-                          {t(cat.labelKey)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
+            <Pressable
+              className="gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
+              onPress={e => e.stopPropagation()}
+            >
+              <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
 
-              {/* NOME (dropdown pesquisável no create, texto simples no detail) */}
-              <View className="gap-2">
-                <Text className="text-xs font-semibold text-label-primary">
-                  {t('itemModal.nameLabel')}
-                </Text>
-                <TextInput
-                  value={query}
-                  editable={!isDetail}
-                  onChangeText={handleChangeName}
-                  onFocus={() => setDropdownOpen(true)}
-                  placeholder={namePlaceholder}
-                  placeholderTextColor="#9A9A9A"
-                  className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
-                />
+              <Text className="text-xl font-bold text-label-primary">
+                {t('itemModal.title')}
+              </Text>
 
-                {!isDetail &&
-                  dropdownOpen &&
-                  (query.length > 0 || matches.length > 0) && (
-                    <View className="overflow-hidden rounded-xl border border-details-primary bg-white">
-                      {matches.map(m => (
-                        <Pressable
-                          key={m.id}
-                          onPress={() => handleSelectExisting(m)}
-                          className="border-b border-details-primary px-4 py-3"
-                        >
-                          <Text className="text-[15px] text-label-primary">
-                            {m.name}
-                          </Text>
-                        </Pressable>
-                      ))}
-                      {showAddOption && (
-                        <Pressable
-                          onPress={handleAddNew}
-                          className="px-4 py-3"
-                          accessibilityRole="button"
-                        >
-                          <Text className="text-[15px] font-medium text-button-primary">
-                            {addLabel}
-                          </Text>
-                        </Pressable>
-                      )}
-                    </View>
-                  )}
-              </View>
+              <View className="h-px bg-details-primary" />
 
-              {/* CUSTO UNITÁRIO + UNIDADE */}
-              <View className="flex-row gap-3">
-                <View className="flex-1 gap-2">
-                  <Text className="text-xs font-semibold text-label-primary">
-                    {t('itemModal.unitCostLabel')}
-                  </Text>
-                  <TextInput
-                    value={unitCost}
-                    editable={!isDetail}
-                    onChangeText={text => setUnitCost(formatCurrency(text))}
-                    keyboardType="numeric"
-                    placeholder={t('itemModal.unitCostPlaceholder')}
-                    placeholderTextColor="#9A9A9A"
-                    className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
-                  />
-                </View>
-                <View className="flex-1 gap-2">
-                  <Text className="text-xs font-semibold text-label-primary">
-                    {t('itemModal.unitLabel')}
-                  </Text>
-                  <TextInput
-                    value={unit}
-                    editable={!isDetail}
-                    onChangeText={setUnit}
-                    placeholder={t('itemModal.unitPlaceholder')}
-                    placeholderTextColor="#9A9A9A"
-                    className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
-                  />
-                </View>
-              </View>
-
-              {/* QUANTIDADE */}
-              <View className="gap-2">
-                <Text className="text-xs font-semibold text-label-primary">
-                  {t('itemModal.quantityLabel')}
-                </Text>
-                <TextInput
-                  value={quantity}
-                  editable={!isDetail}
-                  onChangeText={text => setQuantity(digitsOnly(text))}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  placeholderTextColor="#9A9A9A"
-                  className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
-                />
-              </View>
-
-              {/* QUANTIDADE MÍNIMA — some quando um item existente foi selecionado */}
-              {showMinQuantity && (
+              <View className="gap-4">
+                {/* CATEGORIA */}
                 <View className="gap-2">
                   <Text className="text-xs font-semibold text-label-primary">
-                    {t('itemModal.minQuantityLabel')}
+                    {t('itemModal.categoryLabel')}
+                  </Text>
+                  <CategoryFilter
+                    bordered={false}
+                    // No modo detalhe só mostramos a categoria do item.
+                    options={
+                      isDetail
+                        ? categoryOptions.filter(c => c.value === category)
+                        : [...categoryOptions]
+                    }
+                    value={category}
+                    onValueChange={value => {
+                      if (isDetail) return;
+                      setCategory(value);
+                      clearFields();
+                    }}
+                  />
+                </View>
+
+                {/* NOME (dropdown pesquisável no create, texto simples no detail) */}
+                <View className="gap-2">
+                  <Text className="text-xs font-semibold text-label-primary">
+                    {t('itemModal.nameLabel')}
                   </Text>
                   <TextInput
-                    value={minQuantity}
-                    onChangeText={text => setMinQuantity(digitsOnly(text))}
+                    value={query}
+                    editable={!isDetail}
+                    onChangeText={handleChangeName}
+                    onFocus={() => {
+                      if (!isAddingNew) setDropdownOpen(true);
+                    }}
+                    placeholder={namePlaceholder}
+                    placeholderTextColor={LabelTertiary}
+                    selectionColor={LabelPrimary}
+                    className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                  />
+
+                  {!isDetail &&
+                    dropdownOpen &&
+                    (query.length > 0 || matches.length > 0) && (
+                      <View className="gap-3">
+                        {matches.length > 0 && (
+                          <View className="gap-4 rounded-2xl bg-white px-4 py-4 shadow-md shadow-black/10">
+                            {matches.map(m => (
+                              <Pressable
+                                key={m.id}
+                                onPress={() => handleSelectExisting(m)}
+                              >
+                                <View>
+                                  <Text className="text-[15px] font-medium text-label-primary">
+                                    {m.name}
+                                  </Text>
+                                  <Text className="text-[13px] text-label-tertiary">
+                                    {formatExpiration(m.expiration, locale)}
+                                  </Text>
+                                </View>
+                              </Pressable>
+                            ))}
+                          </View>
+                        )}
+                        {showAddOption && (
+                          <Pressable
+                            onPress={handleAddNew}
+                            className="rounded-2xl bg-white px-4 py-4 shadow-md shadow-black/10"
+                            accessibilityRole="button"
+                          >
+                            <Text className="text-[15px] font-medium text-label-primary">
+                              {addLabel}
+                            </Text>
+                          </Pressable>
+                        )}
+                      </View>
+                    )}
+                </View>
+
+                {/* CUSTO UNITÁRIO + UNIDADE */}
+                <View className="z-10 flex-row gap-3">
+                  <View className="flex-1 gap-2">
+                    <Text className="text-xs font-semibold text-label-primary">
+                      {t('itemModal.unitCostLabel')}
+                    </Text>
+                    <TextInput
+                      value={unitCost}
+                      editable={!isDetail}
+                      onChangeText={text => setUnitCost(formatCurrency(text))}
+                      keyboardType="numeric"
+                      placeholder={t('itemModal.unitCostPlaceholder')}
+                      placeholderTextColor={LabelTertiary}
+                      selectionColor={LabelPrimary}
+                      className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                    />
+                  </View>
+                  <View className="z-10 flex-1 gap-2">
+                    <Pressable
+                      disabled={isDetail}
+                      onPress={() => setUnitDropdownOpen(open => !open)}
+                    >
+                      <Text className="text-xs font-semibold text-label-primary">
+                        {t('itemModal.unitLabel')}
+                      </Text>
+                      <View className="justify-center rounded-xl border border-details-primary bg-white px-4 py-3">
+                        <Text
+                          className={
+                            unit
+                              ? 'text-[15px] text-label-primary'
+                              : 'text-[15px] text-label-tertiary'
+                          }
+                        >
+                          {unit || t('itemModal.unitPlaceholder')}
+                        </Text>
+                      </View>
+                    </Pressable>
+
+                    {!isDetail &&
+                      unitDropdownOpen &&
+                      unitOptions.length > 0 && (
+                        <View className="absolute inset-x-0 top-full z-10 mt-1 gap-2 rounded-2xl bg-white px-4 py-4 shadow-md shadow-black/10">
+                          {unitOptions.map(option => (
+                            <Pressable
+                              key={option}
+                              onPress={() => {
+                                setUnit(option);
+                                setUnitDropdownOpen(false);
+                              }}
+                            >
+                              <Text className="text-[15px] font-medium text-label-primary">
+                                {option}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      )}
+                  </View>
+                </View>
+
+                
+                <View className="gap-2">
+                  <Text className="text-xs font-semibold text-label-primary">
+                    {t('itemModal.quantityLabel')}
+                  </Text>
+                  <TextInput
+                    value={quantity}
+                    editable={!isDetail}
+                    onChangeText={text => setQuantity(digitsOnly(text))}
                     keyboardType="numeric"
                     placeholder="0"
-                    placeholderTextColor="#9A9A9A"
+                    placeholderTextColor={LabelTertiary}
+                    selectionColor={LabelPrimary}
                     className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
                   />
                 </View>
-              )}
 
-              {/* VALIDADE — todos têm validade */}
-              <View className="gap-2">
-                <Text className="text-xs font-semibold text-label-primary">
-                  {t('itemModal.expirationLabel')}
-                </Text>
-                <TextInput
-                  value={expiration}
-                  editable={!isDetail}
-                  onChangeText={setExpiration}
-                  placeholder={t('itemModal.expirationPlaceholder')}
-                  placeholderTextColor="#9A9A9A"
-                  className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
-                />
+               
+                {showMinQuantity && (
+                  <View className="gap-2">
+                    <Text className="text-xs font-semibold text-label-primary">
+                      {t('itemModal.minQuantityLabel')}
+                    </Text>
+                    <TextInput
+                      value={minQuantity}
+                      onChangeText={text => setMinQuantity(digitsOnly(text))}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor={LabelTertiary}
+                      selectionColor={LabelPrimary}
+                      className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                    />
+                  </View>
+                )}
+
+                
+                {showExpiration && (
+                  <View className="gap-2">
+                    <Text className="text-xs font-semibold text-label-primary">
+                      {t('itemModal.expirationLabel')}
+                    </Text>
+                    <TextInput
+                      value={expiration}
+                      editable={!isDetail}
+                      onChangeText={text =>
+                        setExpiration(formatDateInput(text))
+                      }
+                      keyboardType="numeric"
+                      maxLength={10}
+                      placeholder={t('itemModal.expirationPlaceholder')}
+                      placeholderTextColor={LabelTertiary}
+                      selectionColor={LabelPrimary}
+                      className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${
+                        expirationInPast
+                          ? 'border-destructive'
+                          : 'border-details-primary'
+                      }`}
+                    />
+                    {expirationInPast && (
+                      <Text className="text-xs text-destructive">
+                        {t('itemModal.expirationPastError')}
+                      </Text>
+                    )}
+                  </View>
+                )}
               </View>
-            </View>
-          </ScrollView>
 
-          {/* AÇÕES */}
-          {isDetail ? (
-            <View className="gap-3">
-              <Pressable
-                onPress={() => item && onEdit?.(item)}
-                className="items-center rounded-full bg-button-primary py-4"
-              >
-                <Text className="text-base font-semibold text-white">
-                  {t('itemModal.edit')}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => item && onDelete?.(item)}
-                className="items-center rounded-full bg-destructive py-4"
-              >
-                <Text className="text-base font-semibold text-destructive-foreground">
-                  {t('itemModal.delete')}
-                </Text>
-              </Pressable>
-            </View>
-          ) : (
-            <Pressable
-              onPress={handleConfirm}
-              className="flex-row items-center justify-center gap-2 rounded-full bg-button-primary py-4"
-            >
-              <Text className="text-base font-semibold text-white">
-                ✓ {t('itemModal.confirm')}
-              </Text>
+             
+              {isDetail ? (
+                <View className="gap-3">
+                  <Pressable
+                    onPress={() => item && onEdit?.(item)}
+                    className="items-center rounded-full bg-button-primary py-4"
+                  >
+                    <Text className="text-base font-semibold text-white">
+                      {t('itemModal.edit')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => item && onDelete?.(item)}
+                    className="items-center rounded-full bg-destructive py-4"
+                  >
+                    <Text className="text-base font-semibold text-destructive-foreground">
+                      {t('itemModal.delete')}
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={handleConfirm}
+                  disabled={showExpiration && expirationInPast}
+                  className={`flex-row items-center justify-center gap-2 rounded-full bg-button-primary py-4 ${
+                    showExpiration && expirationInPast ? 'opacity-50' : ''
+                  }`}
+                >
+                  <Text className="text-base font-semibold text-white">
+                    ✓ {t('itemModal.confirm')}
+                  </Text>
+                </Pressable>
+              )}
             </Pressable>
-          )}
+          </Animated.View>
         </Pressable>
-      </Pressable>
+      </Animated.View>
     </Modal>
   );
 }

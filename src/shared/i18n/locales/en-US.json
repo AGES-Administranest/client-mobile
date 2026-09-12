@@ -23,7 +23,12 @@
     "categoryAll": "All",
     "lowStockWarning": "Item below minimum quantity",
     "addButton": "Add material",
-    "emptyFilter": "No items found in this category."
+    "emptyFilter": "No items found in this category.",
+    "errorLoad": "Could not load the items.",
+    "errorSave": "Could not save the item.",
+    "errorDelete": "Could not delete the item.",
+    "deleteConfirmTitle": "Delete item",
+    "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
   },
   "stock": {
     "movementHistory": {
@@ -93,11 +98,6 @@
   "itemModal": {
     "title": "New supply or medication",
     "categoryLabel": "CATEGORY",
-    "category": {
-      "medication": "Medication",
-      "anesthetic": "Anesthetic",
-      "disposable": "Disposable"
-    },
     "nameLabel": "NAME",
     "namePlaceholder": "Enter the {{category}} name",
     "addOption": "+ Add {{category}}",
@@ -109,8 +109,10 @@
     "minQuantityLabel": "MINIMUM STOCK QUANTITY",
     "expirationLabel": "EXPIRATION",
     "expirationPlaceholder": "Select the date",
+    "expirationPastError": "Expiration date cannot be in the past",
     "confirm": "Confirm",
     "edit": "Edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "cancel": "Cancel"
   }
 }

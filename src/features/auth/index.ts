@@ -16,6 +16,6 @@ export {
   resendConfirmationCode,
   signIn,
   signOut,
-  signUp,
   type SignUpResult,
 } from './services/authService';
+export { provisionSession } from './services/sessionService';

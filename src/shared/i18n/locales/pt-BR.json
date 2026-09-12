@@ -23,7 +23,12 @@
     "categoryAll": "Todos",
     "lowStockWarning": "Item abaixo da quantidade mínima",
     "addButton": "Adicionar material",
-    "emptyFilter": "Nenhum item encontrado nesta categoria."
+    "emptyFilter": "Nenhum item encontrado nesta categoria.",
+    "errorLoad": "Não foi possível carregar os itens.",
+    "errorSave": "Não foi possível salvar o item.",
+    "errorDelete": "Não foi possível excluir o item.",
+    "deleteConfirmTitle": "Excluir item",
+    "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
   },
   "stock": {
     "movementHistory": {
@@ -93,11 +98,6 @@
   "itemModal": {
     "title": "Novo insumo ou medicamento",
     "categoryLabel": "CATEGORIA",
-    "category": {
-      "medication": "Medicamento",
-      "anesthetic": "Anestésico",
-      "disposable": "Descartável"
-    },
     "nameLabel": "NOME",
     "namePlaceholder": "Digite o nome do {{category}}",
     "addOption": "+ Adicionar {{category}}",
@@ -109,8 +109,10 @@
     "minQuantityLabel": "QUANTIDADE MÍNIMA NO ESTOQUE",
     "expirationLabel": "VALIDADE",
     "expirationPlaceholder": "Selecione a data",
+    "expirationPastError": "A validade não pode ser uma data passada",
     "confirm": "Confirmar",
     "edit": "Editar",
-    "delete": "Excluir"
+    "delete": "Excluir",
+    "cancel": "Cancelar"
   }
 }

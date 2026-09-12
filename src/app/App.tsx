@@ -13,9 +13,17 @@ import { HomeScreen } from 'features/home';
 import { MaterialsScreen } from 'features/materials';
 import { ReportsScreen } from 'features/reports';
 import { I18nProvider } from 'shared/i18n';
+import { sessionStore } from 'shared/services/sessionStore';
 
 import { Colors } from '../theme/colors';
 import '../../global.css';
+
+
+const devUserId = process.env.EXPO_PUBLIC_DEV_USER_ID;
+const devIdToken = process.env.EXPO_PUBLIC_DEV_ID_TOKEN;
+if (devUserId && devIdToken) {
+  sessionStore.set({ userId: devUserId, idToken: devIdToken });
+}
 
 const SCREENS: Record<TabValue, React.ComponentType> = {
   day: HomeScreen,

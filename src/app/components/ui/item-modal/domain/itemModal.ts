@@ -1,9 +1,7 @@
-export type ItemCategory = 'medication' | 'anesthetic' | 'disposable';
-
 export type StockItem = {
   id: string;
   name: string;
-  category: ItemCategory;
+  category: string;
   unitCost: number;
   unit: string;
   quantity: number;
@@ -39,8 +37,46 @@ function normalize(value: string): string {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
+export function formatExpiration(
+  expiration: string | null,
+  locale: string,
+): string {
+  if (!expiration) return '';
+  return new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(expiration));
+}
+
 export function digitsOnly(value: string): string {
   return value.replace(/\D/g, '');
+}
+
+export function formatDateInput(value: string): string {
+  const digits = digitsOnly(value).slice(0, 8);
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+  return [day, month, year].filter(part => part.length > 0).join('/');
+}
+
+
+export function isPastDate(value: string, today: Date = new Date()): boolean {
+  const digits = digitsOnly(value);
+  if (digits.length !== 8) return false;
+
+  const day = Number(digits.slice(0, 2));
+  const month = Number(digits.slice(2, 4));
+  const year = Number(digits.slice(4, 8));
+  const parsed = new Date(year, month - 1, day);
+
+  const todayMidnight = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  return parsed < todayMidnight;
 }
 
 export function formatCurrency(value: string): string {

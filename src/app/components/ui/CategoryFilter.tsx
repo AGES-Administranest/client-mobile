@@ -13,6 +13,8 @@ type CategoryFilterProps = {
   value: string;
   onValueChange: (value: string) => void;
   className?: string;
+ 
+  bordered?: boolean;
 };
 
 function CategoryFilter({
@@ -20,13 +22,14 @@ function CategoryFilter({
   value,
   onValueChange,
   className,
+  bordered = true,
 }: CategoryFilterProps) {
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       className={cn('grow-0 shrink-0', className)}
-      contentContainerClassName="flex-row items-center gap-3 pl-2"
+      contentContainerClassName="flex-row items-center gap-3"
     >
       {options.map(option => {
         const active = option.value === value;
@@ -38,8 +41,11 @@ function CategoryFilter({
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             className={cn(
-              'items-center justify-center rounded-full border border-border-primary bg-white px-5 py-3 shadow-[0px_5px_10px_rgba(0,0,0,0.1)]',
-              active && 'border-button-primary bg-button-primary',
+              'items-center justify-center rounded-full bg-white px-5 py-3',
+              bordered &&
+                'border border-border-primary shadow-[0px_5px_10px_rgba(0,0,0,0.1)]',
+              active && bordered && 'border-button-primary',
+              active && 'bg-button-primary',
             )}
           >
             <Text
