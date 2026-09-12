@@ -155,3 +155,67 @@ test('switching category after typing keeps what the user already filled', async
   const values = inputs(renderer).map(i => String(i.props.value ?? ''));
   expect(values[0]).toBe('Propofol');
 });
+
+test('typing a name searches the items already in stock', async () => {
+  fetchItemsMock.mockResolvedValue([
+    {
+      id: 'a',
+      supplierId: null,
+      category: 'MEDICATION',
+      unit: 'AMPOULE',
+      name: 'Dipirona 500mg',
+      defaultUnitCost: '12.5000',
+      minimumStock: '10.000',
+      currentQuantity: '25.000',
+      active: true,
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z',
+      deletedAt: null,
+    },
+    {
+      id: 'b',
+      supplierId: null,
+      category: 'MEDICATION',
+      unit: 'BOX',
+      name: 'Dipirona 1g',
+      defaultUnitCost: '19.9000',
+      minimumStock: '4.000',
+      currentQuantity: '3.000',
+      active: true,
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z',
+      deletedAt: null,
+    },
+  ] as never);
+
+  const renderer = await renderScreen();
+
+  await act(async () => {
+    pressWithText(renderer, 'Adicionar material')!.props.onPress();
+  });
+  await act(async () => {
+    inputs(renderer)[0].props.onChangeText('Dipi');
+  });
+
+  // Os nomes tambem aparecem nos cards atras do modal, entao o sinal de que a
+  // busca achou algo e o "+ Adicionar" sumir: ele so aparece quando NENHUM
+  // item casa com o que foi digitado.
+  expect(pressWithText(renderer, '+ Adicionar')).toBeUndefined();
+
+  // E a opcao do dropdown precisa ser selecionavel: clicar nela preenche o
+  // custo do item escolhido.
+  const option = pressables(renderer)
+    .filter(node =>
+      JSON.stringify(
+        node.findAllByType('Text' as never).map(t => t.props.children),
+      ).includes('Dipirona 500mg'),
+    )
+    .pop()!;
+  await act(async () => {
+    option.props.onPress();
+  });
+
+  expect(inputs(renderer).map(i => String(i.props.value ?? ''))).toContain(
+    '12.5',
+  );
+});

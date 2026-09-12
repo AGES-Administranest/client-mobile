@@ -38,6 +38,7 @@ export function MaterialsScreen() {
     onCategoryChange,
     categories,
     items,
+    stockItems,
     isLoading,
     error,
     onConfirmAdd,
@@ -147,6 +148,7 @@ export function MaterialsScreen() {
         visible={isAddItemModalVisible}
         onClose={closeAddModal}
         item={editSourceItem}
+        items={stockItems}
         categoryOptions={CATEGORY_OPTIONS}
         unitOptions={UNIT_OPTIONS}
         onConfirm={handleConfirmAdd}

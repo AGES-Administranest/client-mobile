@@ -111,3 +111,66 @@ test('edit modal submits the minimum stock it shows', async () => {
     minQuantity: '10',
   });
 });
+
+const IN_STOCK: StockItem[] = [
+  { ...ITEM, id: 'a', name: 'Dipirona 500mg', expiration: '2027-03-31' },
+  { ...ITEM, id: 'b', name: 'Dipirona 1g', expiration: null },
+  { ...ITEM, id: 'c', name: 'Soro fisiológico', expiration: null },
+];
+
+async function openCreate(items: StockItem[]) {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <I18nProvider>
+        <ItemModal
+          visible
+          onClose={() => {}}
+          items={items}
+          categoryOptions={CATEGORY_OPTIONS}
+          unitOptions={UNIT_OPTIONS}
+        />
+      </I18nProvider>,
+    );
+  });
+  return renderer!;
+}
+
+test('search lists only the items matching what was typed', async () => {
+  const renderer = await openCreate(IN_STOCK);
+
+  await act(async () => {
+    renderer.root
+      .findAll(n => typeof n.props.onChangeText === 'function')[0]
+      .props.onChangeText('dipi');
+  });
+
+  const shown = texts(renderer);
+  expect(shown).toContain('Dipirona 500mg');
+  expect(shown).toContain('Dipirona 1g');
+  expect(shown).not.toContain('Soro fisiológico');
+});
+
+test('search shows the expiration date next to the name when there is one', async () => {
+  const renderer = await openCreate(IN_STOCK);
+
+  await act(async () => {
+    renderer.root
+      .findAll(n => typeof n.props.onChangeText === 'function')[0]
+      .props.onChangeText('dipirona 500');
+  });
+
+  expect(texts(renderer)).toContain('31/03/2027');
+});
+
+test('search is accent and case insensitive', async () => {
+  const renderer = await openCreate(IN_STOCK);
+
+  await act(async () => {
+    renderer.root
+      .findAll(n => typeof n.props.onChangeText === 'function')[0]
+      .props.onChangeText('SORO FISIOLOGICO');
+  });
+
+  expect(texts(renderer)).toContain('Soro fisiológico');
+});

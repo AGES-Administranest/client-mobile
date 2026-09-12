@@ -30,6 +30,7 @@ type MaterialsScreenState = {
   onCategoryChange: (category: string) => void;
   categories: string[];
   items: MaterialItem[];
+  stockItems: StockItem[];
   isLoading: boolean;
   error: string | null;
   onConfirmAdd: (draft: ItemDraft) => Promise<void>;
@@ -46,11 +47,24 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+// O formulário entrega a validade como DD/MM/AAAA. `new Date('31/03/2027')` é
+// Invalid Date, então a validade digitada era descartada em silêncio e nunca
+// chegava ao backend; aqui ela é convertida para o ISO que o lote espera.
 function parseExpirationDate(value: string): string | undefined {
-  if (!value.trim()) return undefined;
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return undefined;
-  return d.toISOString().slice(0, 10);
+  const digits = value.replace(/\D/g, '');
+  if (digits.length !== 8) return undefined;
+
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+  const isRealDate =
+    parsed.getFullYear() === Number(year) &&
+    parsed.getMonth() === Number(month) - 1 &&
+    parsed.getDate() === Number(day);
+
+  return isRealDate ? `${year}-${month}-${day}` : undefined;
 }
 
 function backendItemToStockItem(item: BackendItem): StockItem {
@@ -75,6 +89,12 @@ export function useMaterialsScreen(): MaterialsScreenState {
 
   const allItems = useMemo(
     () => allBackendItems.map(backendItemToMaterial),
+    [allBackendItems],
+  );
+
+  // Alimenta a busca por nome do modal de cadastro.
+  const stockItems = useMemo(
+    () => allBackendItems.map(backendItemToStockItem),
     [allBackendItems],
   );
 
@@ -190,6 +210,7 @@ export function useMaterialsScreen(): MaterialsScreenState {
     onCategoryChange: setCategory,
     categories,
     items,
+    stockItems,
     isLoading,
     error,
     onConfirmAdd,

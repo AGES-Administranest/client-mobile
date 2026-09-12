@@ -165,3 +165,39 @@ test('deleting an item removes it from the list', async () => {
   expect(deleteItemMock).toHaveBeenCalledWith('item-1');
   expect(result.current.items).toHaveLength(0);
 });
+
+test('sends the expiration the user typed as an ISO date', async () => {
+  const { result } = await mountHook();
+
+  await act(async () => {
+    await result.current.onConfirmAdd({
+      ...baseDraft,
+      selectedItemId: 'item-1',
+      quantity: '3',
+      expiration: '31/03/2027',
+    } as never);
+  });
+
+  expect(createItemLotMock).toHaveBeenCalledWith(
+    'item-1',
+    expect.objectContaining({ expirationDate: '2027-03-31' }),
+  );
+});
+
+test('ignores an incomplete expiration instead of sending garbage', async () => {
+  const { result } = await mountHook();
+
+  await act(async () => {
+    await result.current.onConfirmAdd({
+      ...baseDraft,
+      selectedItemId: 'item-1',
+      quantity: '3',
+      expiration: '31/03',
+    } as never);
+  });
+
+  expect(createItemLotMock).toHaveBeenCalledWith(
+    'item-1',
+    expect.objectContaining({ expirationDate: undefined }),
+  );
+});

@@ -202,6 +202,8 @@ function ItemModal({
 
   function handleChangeName(text: string) {
     setQuery(text);
+    if (isEditing) return;
+
     setSelectedItem(null); // digitar de novo desfaz a seleção anterior
 
     if (!isAddingNew) {
@@ -293,7 +295,7 @@ function ItemModal({
                     editable={!isDetail}
                     onChangeText={handleChangeName}
                     onFocus={() => {
-                      if (!isAddingNew) setDropdownOpen(true);
+                      if (!isAddingNew && !isEditing) setDropdownOpen(true);
                     }}
                     placeholder={namePlaceholder}
                     placeholderTextColor={LabelTertiary}
@@ -312,13 +314,15 @@ function ItemModal({
                                 key={m.id}
                                 onPress={() => handleSelectExisting(m)}
                               >
-                                <View>
+                                <View className="gap-0.5">
                                   <Text className="text-[15px] font-medium text-label-primary">
                                     {m.name}
                                   </Text>
-                                  <Text className="text-[13px] text-label-tertiary">
-                                    {formatExpiration(m.expiration, locale)}
-                                  </Text>
+                                  {m.expiration && (
+                                    <Text className="text-[13px] text-label-tertiary">
+                                      {formatExpiration(m.expiration, locale)}
+                                    </Text>
+                                  )}
                                 </View>
                               </Pressable>
                             ))}

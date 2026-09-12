@@ -42,11 +42,18 @@ export function formatExpiration(
   locale: string,
 ): string {
   if (!expiration) return '';
+
+  // `new Date('2027-03-31')` é interpretado como meia-noite UTC; formatado em
+  // um fuso negativo (BRT é UTC-3) isso cai no dia anterior. Como validade é
+  // uma data sem hora, ela é montada no fuso local.
+  const [year, month, day] = expiration.slice(0, 10).split('-').map(Number);
+  if (!year || !month || !day) return '';
+
   return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-  }).format(new Date(expiration));
+  }).format(new Date(year, month - 1, day));
 }
 
 export function digitsOnly(value: string): string {
