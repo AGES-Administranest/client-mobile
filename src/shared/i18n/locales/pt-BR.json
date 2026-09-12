@@ -20,6 +20,21 @@
     "equipment": "Equipamentos"
   },
   "stock": {
+    "outputAdjustment": {
+      "itemLabel": "Item",
+      "quantityLabel": "Quantidade",
+      "save": "Salvar",
+      "reasons": {
+        "loss": "Perda",
+        "expiration": "Vencimento",
+        "breakage": "Quebra",
+        "other": "Outro"
+      },
+      "errors": {
+        "required": "Este campo é obrigatório",
+        "mustBePositive": "O valor deve ser maior que zero"
+      }
+    },
     "movementHistory": {
       "title": "Histórico de movimentações",
       "description": "Entradas, saídas e ajustes de estoque",

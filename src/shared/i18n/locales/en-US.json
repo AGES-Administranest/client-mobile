@@ -20,6 +20,21 @@
     "equipment": "Equipment"
   },
   "stock": {
+    "outputAdjustment": {
+      "itemLabel": "Item",
+      "quantityLabel": "Quantity",
+      "save": "Save",
+      "reasons": {
+        "loss": "Loss",
+        "expiration": "Expiration",
+        "breakage": "Breakage",
+        "other": "Other"
+      },
+      "errors": {
+        "required": "This field is required",
+        "mustBePositive": "Value must be greater than zero"
+      }
+    },
     "movementHistory": {
       "title": "Movement history",
       "description": "Stock inbounds, outbounds and adjustments",
