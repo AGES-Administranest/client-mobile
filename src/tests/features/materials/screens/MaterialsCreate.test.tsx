@@ -6,6 +6,10 @@ import {
   createItem,
   fetchItems,
 } from 'features/materials/services/itemService';
+import {
+  createSupplier,
+  fetchSuppliers,
+} from 'features/materials/services/supplierService';
 import { I18nProvider } from 'shared/i18n';
 
 jest.mock('features/materials/services/itemService', () => ({
@@ -17,11 +21,21 @@ jest.mock('features/materials/services/itemService', () => ({
 jest.mock('features/materials/services/itemLotService', () => ({
   createItemLot: jest.fn(),
 }));
+jest.mock('features/materials/services/supplierService', () => ({
+  fetchSuppliers: jest.fn(),
+  createSupplier: jest.fn(),
+}));
 
 const fetchItemsMock = fetchItems as jest.MockedFunction<typeof fetchItems>;
 const createItemMock = createItem as jest.MockedFunction<typeof createItem>;
 const createItemLotMock = createItemLot as jest.MockedFunction<
   typeof createItemLot
+>;
+const fetchSuppliersMock = fetchSuppliers as jest.MockedFunction<
+  typeof fetchSuppliers
+>;
+const createSupplierMock = createSupplier as jest.MockedFunction<
+  typeof createSupplier
 >;
 
 beforeEach(() => {
@@ -29,6 +43,8 @@ beforeEach(() => {
   fetchItemsMock.mockResolvedValue([]);
   createItemMock.mockResolvedValue({ id: 'novo' } as never);
   createItemLotMock.mockResolvedValue({} as never);
+  fetchSuppliersMock.mockResolvedValue([]);
+  createSupplierMock.mockResolvedValue({ id: 'sup-1' } as never);
 });
 
 async function renderScreen() {
@@ -70,6 +86,28 @@ function inputs(renderer: ReactTestRenderer.ReactTestRenderer) {
     .filter((_, index) => index % 2 === 0);
 }
 
+// Alvo pelo rótulo do campo: sobrevive à adição de campos novos no formulário.
+function fieldByLabel(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  label: string,
+) {
+  const group = renderer.root
+    .findAll(
+      node =>
+        node.findAll(child => typeof child.props?.onChangeText === 'function')
+          .length > 0 &&
+        JSON.stringify(
+          node.findAllByType('Text' as never).map(t => t.props.children),
+        ).includes(label),
+    )
+    .pop()!;
+
+  return group
+    .findAll(node => typeof node.props?.onChangeText === 'function')
+    .filter((_, index) => index % 2 === 0)
+    .pop()!;
+}
+
 async function createWithCategory(categoryLabel: string) {
   const renderer = await renderScreen();
 
@@ -97,7 +135,7 @@ async function createWithCategory(categoryLabel: string) {
 
   // Preenche custo / unidade / quantidade
   await act(async () => {
-    inputs(renderer)[1].props.onChangeText('1250');
+    fieldByLabel(renderer, 'CUSTO UNITÁRIO').props.onChangeText('1250');
   });
   await act(async () => {
     pressWithText(renderer, 'Digite a unidade')!.props.onPress();
@@ -106,7 +144,7 @@ async function createWithCategory(categoryLabel: string) {
     pressWithText(renderer, 'ampola')!.props.onPress();
   });
   await act(async () => {
-    inputs(renderer)[2].props.onChangeText('5');
+    fieldByLabel(renderer, 'QUANTIDADE').props.onChangeText('5');
   });
 
   // Confirma
@@ -144,7 +182,7 @@ test('switching category after typing keeps what the user already filled', async
     pressWithText(renderer, '+ Adicionar')!.props.onPress();
   });
   await act(async () => {
-    inputs(renderer)[1].props.onChangeText('1250');
+    fieldByLabel(renderer, 'CUSTO UNITÁRIO').props.onChangeText('1250');
   });
 
   // ...e só então percebe que a categoria está errada
@@ -258,4 +296,112 @@ test('shows the expiration the API returns next to the searched item', async () 
 
   // 31/03, não 30/03: data de calendário não pode escorregar pelo fuso.
   expect(shown).toContain('31/03/2027');
+});
+
+describe('supplier', () => {
+  async function openNewItemForm() {
+    const renderer = await renderScreen();
+    await act(async () => {
+      pressWithText(renderer, 'Adicionar material')!.props.onPress();
+    });
+    await act(async () => {
+      inputs(renderer)[0].props.onChangeText('Item novo');
+    });
+    await act(async () => {
+      pressWithText(renderer, '+ Adicionar')!.props.onPress();
+    });
+    return renderer;
+  }
+
+  async function fillAndConfirm(renderer: ReactTestRenderer.ReactTestRenderer) {
+    await act(async () => {
+      fieldByLabel(renderer, 'CUSTO UNITÁRIO').props.onChangeText('1250');
+    });
+    await act(async () => {
+      pressWithText(renderer, 'Digite a unidade')!.props.onPress();
+    });
+    await act(async () => {
+      pressWithText(renderer, 'ampola')!.props.onPress();
+    });
+    await act(async () => {
+      fieldByLabel(renderer, 'QUANTIDADE').props.onChangeText('5');
+    });
+    await act(async () => {
+      pressWithText(renderer, 'Confirmar')!.props.onPress();
+    });
+  }
+
+  test('offers the suppliers the API returned', async () => {
+    fetchSuppliersMock.mockResolvedValue([
+      { id: 'sup-1', name: 'Distribuidora VetSul' },
+      { id: 'sup-2', name: 'Agropecuária Central' },
+    ] as never);
+
+    const renderer = await openNewItemForm();
+
+    await act(async () => {
+      fieldByLabel(renderer, 'FORNECEDOR').props.onChangeText('vet');
+    });
+
+    const shown = renderer.root
+      .findAllByType('Text' as never)
+      .map(n => n.props.children)
+      .flat()
+      .join(' | ');
+    expect(shown).toContain('Distribuidora VetSul');
+    expect(shown).not.toContain('Agropecuária Central');
+  });
+
+  test('sends the id of a supplier picked from the list', async () => {
+    fetchSuppliersMock.mockResolvedValue([
+      { id: 'sup-1', name: 'Distribuidora VetSul' },
+    ] as never);
+
+    const renderer = await openNewItemForm();
+    await act(async () => {
+      fieldByLabel(renderer, 'FORNECEDOR').props.onChangeText('vet');
+    });
+    await act(async () => {
+      pressWithText(renderer, 'Distribuidora VetSul')!.props.onPress();
+    });
+    await fillAndConfirm(renderer);
+
+    expect(createSupplierMock).not.toHaveBeenCalled();
+    expect(createItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({ supplierId: 'sup-1' }),
+    );
+  });
+
+  test('registers a supplier that does not exist yet and links it', async () => {
+    fetchSuppliersMock.mockResolvedValue([] as never);
+    createSupplierMock.mockResolvedValue({
+      id: 'sup-novo',
+      name: 'Fornecedor Inédito',
+    } as never);
+
+    const renderer = await openNewItemForm();
+    await act(async () => {
+      fieldByLabel(renderer, 'FORNECEDOR').props.onChangeText(
+        'Fornecedor Inédito',
+      );
+    });
+    await fillAndConfirm(renderer);
+
+    expect(createSupplierMock).toHaveBeenCalledWith({
+      name: 'Fornecedor Inédito',
+    });
+    expect(createItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({ supplierId: 'sup-novo' }),
+    );
+  });
+
+  test('supplier stays optional', async () => {
+    const renderer = await openNewItemForm();
+    await fillAndConfirm(renderer);
+
+    expect(createSupplierMock).not.toHaveBeenCalled();
+    expect(createItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({ supplierId: undefined }),
+    );
+  });
 });

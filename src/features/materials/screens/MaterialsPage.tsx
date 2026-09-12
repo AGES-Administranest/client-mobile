@@ -45,6 +45,7 @@ export function MaterialsScreen() {
     categories,
     items,
     stockItems,
+    suppliers,
     isLoading,
     error,
     onConfirmAdd,
@@ -166,6 +167,7 @@ export function MaterialsScreen() {
         onClose={closeModal}
         item={modalItem}
         items={stockItems}
+        suppliers={suppliers}
         categoryOptions={CATEGORY_OPTIONS}
         unitOptions={UNIT_OPTIONS}
         onConfirm={handleConfirmAdd}

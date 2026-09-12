@@ -174,3 +174,53 @@ test('search is accent and case insensitive', async () => {
 
   expect(texts(renderer)).toContain('Soro fisiológico');
 });
+
+test('picking an item that already exists hides the expiration, keeps quantity', async () => {
+  const renderer = await openCreate(IN_STOCK);
+
+  await act(async () => {
+    renderer.root
+      .findAll(n => typeof n.props.onChangeText === 'function')[0]
+      .props.onChangeText('dipirona 500');
+  });
+
+  // Seleciona o item existente no dropdown
+  const match = renderer.root
+    .findAll(n => typeof n.props?.onPress === 'function')
+    .filter(n =>
+      JSON.stringify(
+        n.findAllByType('Text' as never).map(t => t.props.children),
+      ).includes('Dipirona 500mg'),
+    )
+    .pop()!;
+  await act(async () => {
+    match.props.onPress();
+  });
+
+  const shown = texts(renderer);
+  expect(shown).toContain('QUANTIDADE');
+  expect(shown).not.toContain('VALIDADE');
+});
+
+test('a brand new item still asks for the expiration', async () => {
+  const renderer = await openCreate(IN_STOCK);
+
+  await act(async () => {
+    renderer.root
+      .findAll(n => typeof n.props.onChangeText === 'function')[0]
+      .props.onChangeText('Novo item inexistente');
+  });
+  const addOption = renderer.root
+    .findAll(n => typeof n.props?.onPress === 'function')
+    .filter(n =>
+      JSON.stringify(
+        n.findAllByType('Text' as never).map(t => t.props.children),
+      ).includes('+ Adicionar'),
+    )
+    .pop()!;
+  await act(async () => {
+    addOption.props.onPress();
+  });
+
+  expect(texts(renderer)).toContain('VALIDADE');
+});
