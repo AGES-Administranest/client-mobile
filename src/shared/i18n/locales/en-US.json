@@ -83,5 +83,28 @@
   "optionsModal": {
     "scanNote": "Scan note",
     "typeSupply": "Type supply"
+  },
+  "itemModal": {
+    "title": "New supply or medication",
+    "categoryLabel": "CATEGORY",
+    "category": {
+      "medication": "Medication",
+      "anesthetic": "Anesthetic",
+      "disposable": "Disposable"
+    },
+    "nameLabel": "NAME",
+    "namePlaceholder": "Enter the {{category}} name",
+    "addOption": "+ Add {{category}}",
+    "unitCostLabel": "UNIT COST (R$)",
+    "unitCostPlaceholder": "Enter the cost",
+    "unitLabel": "UNIT",
+    "unitPlaceholder": "Enter the unit",
+    "quantityLabel": "QUANTITY",
+    "minQuantityLabel": "MINIMUM STOCK QUANTITY",
+    "expirationLabel": "EXPIRATION",
+    "expirationPlaceholder": "Select the date",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "delete": "Delete"
   }
 }

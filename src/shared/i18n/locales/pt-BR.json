@@ -83,5 +83,28 @@
   "optionsModal": {
     "scanNote": "Escanear nota",
     "typeSupply": "Digitar insumo"
+  },
+  "itemModal": {
+    "title": "Novo insumo ou medicamento",
+    "categoryLabel": "CATEGORIA",
+    "category": {
+      "medication": "Medicamento",
+      "anesthetic": "Anestésico",
+      "disposable": "Descartável"
+    },
+    "nameLabel": "NOME",
+    "namePlaceholder": "Digite o nome do {{category}}",
+    "addOption": "+ Adicionar {{category}}",
+    "unitCostLabel": "CUSTO UNITÁRIO (R$)",
+    "unitCostPlaceholder": "Digite o custo",
+    "unitLabel": "UNIDADE",
+    "unitPlaceholder": "Digite a unidade",
+    "quantityLabel": "QUANTIDADE",
+    "minQuantityLabel": "QUANTIDADE MÍNIMA NO ESTOQUE",
+    "expirationLabel": "VALIDADE",
+    "expirationPlaceholder": "Selecione a data",
+    "confirm": "Confirmar",
+    "edit": "Editar",
+    "delete": "Excluir"
   }
 }
