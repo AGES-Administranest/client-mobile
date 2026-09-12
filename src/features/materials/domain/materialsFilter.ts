@@ -24,6 +24,9 @@ export type BackendItem = {
   defaultUnitCost: string | null;
   minimumStock: string | null;
   currentQuantity: string;
+  // Validade do lote mais próximo ainda com saldo (AAAA-MM-DD), calculada
+  // pelo backend a partir dos lotes do item.
+  nearestExpiration: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;

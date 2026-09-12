@@ -27,6 +27,7 @@ const ITEM: BackendItem = {
   defaultUnitCost: '12.5000',
   minimumStock: '10.000',
   currentQuantity: '25.000',
+  nearestExpiration: null,
   active: true,
   createdAt: '2026-09-01T00:00:00.000Z',
   updatedAt: '2026-09-01T00:00:00.000Z',

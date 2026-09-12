@@ -167,6 +167,7 @@ test('typing a name searches the items already in stock', async () => {
       defaultUnitCost: '12.5000',
       minimumStock: '10.000',
       currentQuantity: '25.000',
+      nearestExpiration: '2027-03-31',
       active: true,
       createdAt: '2026-09-01T00:00:00.000Z',
       updatedAt: '2026-09-01T00:00:00.000Z',
@@ -181,6 +182,7 @@ test('typing a name searches the items already in stock', async () => {
       defaultUnitCost: '19.9000',
       minimumStock: '4.000',
       currentQuantity: '3.000',
+      nearestExpiration: null,
       active: true,
       createdAt: '2026-09-01T00:00:00.000Z',
       updatedAt: '2026-09-01T00:00:00.000Z',
@@ -218,4 +220,42 @@ test('typing a name searches the items already in stock', async () => {
   expect(inputs(renderer).map(i => String(i.props.value ?? ''))).toContain(
     '12.5',
   );
+});
+
+test('shows the expiration the API returns next to the searched item', async () => {
+  fetchItemsMock.mockResolvedValue([
+    {
+      id: 'a',
+      supplierId: null,
+      category: 'MEDICATION',
+      unit: 'AMPOULE',
+      name: 'Dipirona 500mg',
+      defaultUnitCost: '12.5000',
+      minimumStock: '10.000',
+      currentQuantity: '25.000',
+      nearestExpiration: '2027-03-31',
+      active: true,
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z',
+      deletedAt: null,
+    },
+  ] as never);
+
+  const renderer = await renderScreen();
+
+  await act(async () => {
+    pressWithText(renderer, 'Adicionar material')!.props.onPress();
+  });
+  await act(async () => {
+    inputs(renderer)[0].props.onChangeText('Dipi');
+  });
+
+  const shown = renderer.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children)
+    .flat()
+    .join(' | ');
+
+  // 31/03, não 30/03: data de calendário não pode escorregar pelo fuso.
+  expect(shown).toContain('31/03/2027');
 });

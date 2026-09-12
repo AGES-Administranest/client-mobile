@@ -76,7 +76,7 @@ function backendItemToStockItem(item: BackendItem): StockItem {
     unit: backendUnitLabel(item.unit),
     quantity: parseFloat(item.currentQuantity),
     minQuantity: item.minimumStock ? parseFloat(item.minimumStock) : 0,
-    expiration: null,
+    expiration: item.nearestExpiration,
   };
 }
 
