@@ -1,10 +1,11 @@
 import { PackageSearch, Plus } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { MaterialCard } from 'app/components/ui/card';
 import { CategoryFilter } from 'app/components/ui/CategoryFilter';
+import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { EmptyState } from 'app/components/ui/empty-state';
 import type { StockItem } from 'app/components/ui/item-modal/domain/itemModal';
 import { ItemModal } from 'app/components/ui/item-modal/item-modal';
@@ -27,6 +28,8 @@ export function MaterialsScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [detailItem, setDetailItem] = useState<StockItem | null>(null);
   const [editSourceItem, setEditSourceItem] = useState<StockItem | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<StockItem | null>(null);
+  const [actionError, setActionError] = useState<TranslationKey | null>(null);
 
   const {
     segment,
@@ -54,11 +57,12 @@ export function MaterialsScreen() {
 
   async function handleConfirmAdd(draft: ItemDraft) {
     setIsSaving(true);
+    setActionError(null);
     try {
       await onConfirmAdd(draft);
       closeAddModal();
     } catch {
-      Alert.alert(t('materials.errorSave'));
+      setActionError('materials.errorSave');
     } finally {
       setIsSaving(false);
     }
@@ -71,25 +75,20 @@ export function MaterialsScreen() {
   }
 
   function handleDelete(item: StockItem) {
-    Alert.alert(
-      t('materials.deleteConfirmTitle'),
-      t('materials.deleteConfirmMessage', { name: item.name }),
-      [
-        { text: t('itemModal.cancel'), style: 'cancel' },
-        {
-          text: t('itemModal.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await onDeleteItem(item.id);
-              setDetailItem(null);
-            } catch {
-              Alert.alert(t('materials.errorDelete'));
-            }
-          },
-        },
-      ],
-    );
+    setDetailItem(null);
+    setPendingDelete(item);
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setPendingDelete(null);
+    setActionError(null);
+    try {
+      await onDeleteItem(target.id);
+    } catch {
+      setActionError('materials.errorDelete');
+    }
   }
 
   return (
@@ -100,10 +99,10 @@ export function MaterialsScreen() {
         value={category}
         onValueChange={onCategoryChange}
       />
-      {error && (
+      {(error || actionError) && (
         <View className="rounded-xl bg-destructive/10 px-4 py-3">
           <Text className="text-sm text-destructive">
-            {t(error as TranslationKey)}
+            {t((error ?? actionError) as TranslationKey)}
           </Text>
         </View>
       )}
@@ -150,6 +149,18 @@ export function MaterialsScreen() {
         categoryOptions={CATEGORY_OPTIONS}
         unitOptions={UNIT_OPTIONS}
         onConfirm={handleConfirmAdd}
+      />
+
+      <ConfirmSheet
+        visible={pendingDelete !== null}
+        title={t('materials.deleteConfirmTitle')}
+        message={t('materials.deleteConfirmMessage', {
+          name: pendingDelete?.name ?? '',
+        })}
+        confirmLabel={t('itemModal.delete')}
+        cancelLabel={t('itemModal.cancel')}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
       />
 
       <ItemModal

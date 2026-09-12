@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 
+import { Button } from 'app/components/ui/button';
 import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
@@ -120,7 +121,9 @@ function ItemModal({
   const showAddOption = shouldShowAddOption(query, matches);
 
   const showMinQuantity =
-    !isDetail && showLotFields && shouldShowMinQuantity(selectedItem);
+    isDetail ||
+    isEditing ||
+    (showLotFields && shouldShowMinQuantity(selectedItem));
 
   const showExpiration = isDetail || showLotFields;
   const expirationInPast = !isDetail && isPastDate(expiration);
@@ -155,7 +158,7 @@ function ItemModal({
   // nada — sem este efeito a edição abria com os campos vazios e o submit
   // caía no fluxo de criação, duplicando o item.
   useEffect(() => {
-    if (!visible || isDetail) return;
+    if (!visible) return;
 
     if (item) {
       setCategory(item.category);
@@ -171,6 +174,8 @@ function ItemModal({
       setIsAddingNew(false);
       return;
     }
+
+    if (isDetail) return;
 
     setCategory(categoryOptions[0]?.value ?? '');
     clearFields();
@@ -411,6 +416,7 @@ function ItemModal({
                     </Text>
                     <TextInput
                       value={minQuantity}
+                      editable={!isDetail}
                       onChangeText={text => setMinQuantity(digitsOnly(text))}
                       keyboardType="numeric"
                       placeholder="0"
@@ -454,22 +460,25 @@ function ItemModal({
 
               {isDetail ? (
                 <View className="gap-3">
-                  <Pressable
+                  <Button
+                    shape="pill"
+                    className="h-[49px] w-full"
                     onPress={() => item && onEdit?.(item)}
-                    className="items-center rounded-full bg-button-primary py-4"
                   >
-                    <Text className="text-base font-semibold text-white">
+                    <Text className="text-base font-semibold">
                       {t('itemModal.edit')}
                     </Text>
-                  </Pressable>
-                  <Pressable
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    shape="pill"
+                    className="h-[49px] w-full"
                     onPress={() => item && onDelete?.(item)}
-                    className="items-center rounded-full bg-destructive py-4"
                   >
-                    <Text className="text-base font-semibold text-destructive-foreground">
+                    <Text className="text-base font-semibold">
                       {t('itemModal.delete')}
                     </Text>
-                  </Pressable>
+                  </Button>
                 </View>
               ) : (
                 <Pressable

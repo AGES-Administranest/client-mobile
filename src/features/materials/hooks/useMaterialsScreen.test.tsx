@@ -106,6 +106,24 @@ test('editing an existing item updates it instead of creating a duplicate', asyn
   expect(createItemMock).not.toHaveBeenCalled();
 });
 
+test('editing persists the minimum stock the form shows', async () => {
+  const { result } = await mountHook();
+
+  await act(async () => {
+    await result.current.onConfirmAdd({
+      ...baseDraft,
+      editingItemId: 'item-1',
+      minQuantity: '15',
+      quantity: '',
+    } as never);
+  });
+
+  expect(updateItemMock).toHaveBeenCalledWith(
+    'item-1',
+    expect.objectContaining({ minimumStock: 15 }),
+  );
+});
+
 test('creating an item without initial stock does not post a zero-quantity lot', async () => {
   const { result } = await mountHook();
 
