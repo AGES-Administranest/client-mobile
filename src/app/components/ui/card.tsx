@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
+import { useTranslation } from 'shared/i18n';
 
 const cardVariants = cva('bg-white rounded-2xl shadow-md shadow-black/10', {
   variants: {
@@ -33,6 +34,7 @@ type MaterialCardProps = {
   unit: string;
   quantity: number;
   minQuantity: number;
+  belowMinimum?: boolean;
   className?: string;
 };
 
@@ -43,24 +45,41 @@ function MaterialCard({
   unit,
   quantity,
   minQuantity,
+  belowMinimum = false,
   className,
 }: MaterialCardProps) {
+  const { t } = useTranslation();
+
   return (
-    <Card variant="material" className={className}>
-      <View className="flex-1 gap-1">
-        <Text className="font-bold" numberOfLines={1}>
-          {name}
-        </Text>
-        <Text variant="muted">
-          {category} · R$ {price.toFixed(2)}/{unit}
-        </Text>
+    <Card
+      variant="material"
+      className={cn(
+        'flex-col items-stretch',
+        belowMinimum && 'border border-alert-primary',
+        className,
+      )}
+    >
+      <View className="w-full flex-row items-center justify-between">
+        <View className="flex-1 gap-1">
+          <Text className="font-bold" numberOfLines={1}>
+            {name}
+          </Text>
+          <Text variant="muted">
+            {category} · R$ {price.toFixed(2)}/{unit}
+          </Text>
+        </View>
+        <View className="items-end gap-1">
+          <Text className="text-1 font-bold">{quantity}</Text>
+          <Text variant="muted" className="text-xs">
+            min. {minQuantity}
+          </Text>
+        </View>
       </View>
-      <View className="items-end gap-1">
-        <Text className="text-1 font-bold">{quantity}</Text>
-        <Text variant="muted" className="text-xs">
-          min. {minQuantity}
+      {belowMinimum && (
+        <Text className="mt-1 text-xs font-medium text-alert-primary">
+          {t('materials.lowStockWarning')}
         </Text>
-      </View>
+      )}
     </Card>
   );
 }

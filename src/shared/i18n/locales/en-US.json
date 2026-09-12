@@ -19,6 +19,12 @@
     "supplies": "Supplies and medicines",
     "equipment": "Equipment"
   },
+  "materials": {
+    "categoryAll": "All",
+    "lowStockWarning": "Item below minimum quantity",
+    "addButton": "Add material",
+    "emptyFilter": "No items found in this category."
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",

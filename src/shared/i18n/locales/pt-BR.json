@@ -19,6 +19,12 @@
     "supplies": "Insumos e medicamentos",
     "equipment": "Equipamentos"
   },
+  "materials": {
+    "categoryAll": "Todos",
+    "lowStockWarning": "Item abaixo da quantidade mínima",
+    "addButton": "Adicionar material",
+    "emptyFilter": "Nenhum item encontrado nesta categoria."
+  },
   "tabbar": {
     "day": "Dia-a-Dia",
     "finance": "Finança",
