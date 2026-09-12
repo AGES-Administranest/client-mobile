@@ -68,6 +68,22 @@ export function formatDateInput(value: string): string {
   return [day, month, year].filter(part => part.length > 0).join('/');
 }
 
+/**
+ * `2027-03-31` (o formato da API) para `31/03/2027` (o do campo mascarado).
+ *
+ * O campo só formata no `onChangeText`; preencher a partir da API passa por
+ * aqui. Sem isso o ISO cru aparecia invertido na tela e o `isPastDate` o lia
+ * como dia 20 / mês 27, marcando uma validade futura como vencida.
+ */
+export function toDateInput(isoDate: string | null): string {
+  if (!isoDate) return '';
+
+  const [year, month, day] = isoDate.slice(0, 10).split('-');
+  if (!year || !month || !day) return '';
+
+  return `${day}/${month}/${year}`;
+}
+
 export function isPastDate(value: string, today: Date = new Date()): boolean {
   const digits = digitsOnly(value);
   if (digits.length !== 8) return false;
@@ -76,6 +92,14 @@ export function isPastDate(value: string, today: Date = new Date()): boolean {
   const month = Number(digits.slice(2, 4));
   const year = Number(digits.slice(4, 8));
   const parsed = new Date(year, month - 1, day);
+
+  // Data impossível (31/02, ou um ISO que escorregou para cá) não é "passada":
+  // dizer que é trava o formulário num erro que o usuário não consegue corrigir.
+  const isRealDate =
+    parsed.getFullYear() === year &&
+    parsed.getMonth() === month - 1 &&
+    parsed.getDate() === day;
+  if (!isRealDate) return false;
 
   const todayMidnight = new Date(
     today.getFullYear(),

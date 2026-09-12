@@ -4,6 +4,7 @@ import {
   formatCurrency,
   formatDateInput,
   isPastDate,
+  toDateInput,
   shouldShowAddOption,
   shouldShowMinQuantity,
   type StockItem,
@@ -159,5 +160,37 @@ describe('formatCurrency', () => {
 
   it('ignores non-digit characters in the input', () => {
     expect(formatCurrency('R$ 12,00')).toBe('12,00');
+  });
+});
+
+describe('toDateInput', () => {
+  it('turns the API date into what the masked field expects', () => {
+    expect(toDateInput('2027-03-31')).toBe('31/03/2027');
+  });
+
+  it('tolerates a full timestamp', () => {
+    expect(toDateInput('2027-03-31T00:00:00.000Z')).toBe('31/03/2027');
+  });
+
+  it('is empty when there is no date', () => {
+    expect(toDateInput(null)).toBe('');
+    expect(toDateInput('')).toBe('');
+  });
+});
+
+describe('isPastDate on malformed input', () => {
+  // Um ISO cru caindo no campo era lido como dia 20 / mês 27 / ano 0331 e
+  // passava por "data passada", travando o formulário.
+  it('does not treat an impossible date as a past one', () => {
+    expect(isPastDate('2027-03-31')).toBe(false);
+    expect(isPastDate('31/02/2027')).toBe(false);
+  });
+
+  it('still catches a real past date', () => {
+    expect(isPastDate('01/01/2020')).toBe(true);
+  });
+
+  it('still accepts a real future date', () => {
+    expect(isPastDate('31/12/2099')).toBe(false);
   });
 });

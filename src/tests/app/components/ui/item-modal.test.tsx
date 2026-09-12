@@ -224,3 +224,94 @@ test('a brand new item still asks for the expiration', async () => {
 
   expect(texts(renderer)).toContain('VALIDADE');
 });
+
+describe('expiration coming from the API', () => {
+  const WITH_EXPIRATION: StockItem = { ...ITEM, expiration: '2027-03-31' };
+
+  async function openWith(mode: 'detail' | 'create') {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    const base = {
+      onClose: () => {},
+      categoryOptions: CATEGORY_OPTIONS,
+      unitOptions: UNIT_OPTIONS,
+    };
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <I18nProvider>
+          <ItemModal {...base} mode={mode} visible={false} item={null} />
+        </I18nProvider>,
+      );
+    });
+    await act(async () => {
+      renderer.update(
+        <I18nProvider>
+          <ItemModal {...base} mode={mode} visible item={WITH_EXPIRATION} />
+        </I18nProvider>,
+      );
+    });
+    return renderer!;
+  }
+
+  test('shows it as DD/MM/YYYY, not the raw ISO', async () => {
+    const renderer = await openWith('detail');
+
+    const values = inputValues(renderer);
+    expect(values).toContain('31/03/2027');
+    expect(values).not.toContain('2027-03-31');
+  });
+
+  test('a future expiration is not flagged as past', async () => {
+    const renderer = await openWith('create');
+
+    expect(texts(renderer)).not.toContain('não pode ser uma data passada');
+  });
+
+  test('the confirm button stays enabled for a future expiration', async () => {
+    const renderer = await openWith('create');
+
+    const confirm = renderer.root
+      .findAll(node => typeof node.props?.onPress === 'function')
+      .filter(node =>
+        JSON.stringify(
+          node.findAllByType('Text' as never).map(t => t.props.children),
+        ).includes('Confirmar'),
+      )
+      .pop();
+
+    expect(confirm?.props.disabled).toBeFalsy();
+  });
+});
+
+test('a past expiration typed by hand still blocks the submit', async () => {
+  const drafts: unknown[] = [];
+  const renderer = await mountThenOpen({
+    mode: 'create',
+    onConfirm: draft => drafts.push(draft),
+  });
+
+  const expirationField = renderer.root
+    .findAll(node => typeof node.props?.onChangeText === 'function')
+    .filter((_, index) => index % 2 === 0);
+
+  await act(async () => {
+    expirationField[expirationField.length - 1].props.onChangeText('01012020');
+  });
+
+  expect(texts(renderer)).toContain('não pode ser uma data passada');
+
+  const confirm = renderer.root
+    .findAll(node => typeof node.props?.onPress === 'function')
+    .filter(node =>
+      JSON.stringify(
+        node.findAllByType('Text' as never).map(t => t.props.children),
+      ).includes('Confirmar'),
+    )
+    .pop()!;
+
+  expect(confirm.props.disabled).toBe(true);
+
+  await act(async () => {
+    confirm.props.onPress();
+  });
+  expect(drafts).toHaveLength(0);
+});

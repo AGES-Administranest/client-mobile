@@ -23,6 +23,7 @@ import {
   formatDateInput,
   formatExpiration,
   isPastDate,
+  toDateInput,
   shouldShowAddOption,
   shouldShowMinQuantity,
   type StockItem,
@@ -115,7 +116,9 @@ function ItemModal({
   const [minQuantity, setMinQuantity] = useState(
     item ? String(item.minQuantity) : '',
   );
-  const [expiration, setExpiration] = useState(item?.expiration ?? '');
+  const [expiration, setExpiration] = useState(
+    toDateInput(item?.expiration ?? null),
+  );
 
   const matches = useMemo(() => {
     const byCategory = items.filter(i => i.category === category);
@@ -181,7 +184,7 @@ function ItemModal({
       setUnit(item.unit);
       setQuantity(String(item.quantity));
       setMinQuantity(String(item.minQuantity));
-      setExpiration(item.expiration ?? '');
+      setExpiration(toDateInput(item.expiration));
       setDropdownOpen(false);
       setShowLotFields(true);
       setIsAddingNew(false);
