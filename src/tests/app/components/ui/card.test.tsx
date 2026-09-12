@@ -66,3 +66,32 @@ test('renders the low-stock warning and red border when belowMinimum is true', a
     views.some(view => view.props.className?.includes('border-alert-primary')),
   ).toBe(true);
 });
+
+test('shows an alert icon only on items below the minimum', async () => {
+  function render(belowMinimum: boolean) {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = ReactTestRenderer.create(
+        <I18nProvider>
+          <MaterialCard
+            name="Isoflurano 250ml"
+            category="Anestésico"
+            price={280}
+            unit="frasco"
+            quantity={2}
+            minQuantity={3}
+            belowMinimum={belowMinimum}
+          />
+        </I18nProvider>,
+      );
+    });
+    return renderer!;
+  }
+
+  const svgsWhenBelow = render(true).root.findAllByType(
+    'RNSVGSvgView' as never,
+  );
+  const svgsWhenOk = render(false).root.findAllByType('RNSVGSvgView' as never);
+
+  expect(svgsWhenBelow.length).toBeGreaterThan(svgsWhenOk.length);
+});

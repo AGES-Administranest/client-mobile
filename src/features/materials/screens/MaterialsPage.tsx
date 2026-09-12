@@ -95,6 +95,7 @@ export function MaterialsScreen() {
     <View className="flex-1 gap-4 px-4 pt-4">
       <SegmentedControl value={segment} onValueChange={onSegmentChange} />
       <CategoryFilter
+        bordered={false}
         options={categoryOptions}
         value={category}
         onValueChange={onCategoryChange}

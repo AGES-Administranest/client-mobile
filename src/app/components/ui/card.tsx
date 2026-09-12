@@ -1,7 +1,9 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import { TriangleAlert } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
 
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import { useTranslation } from 'shared/i18n';
@@ -79,9 +81,12 @@ function MaterialCard({
           </View>
         </View>
         {belowMinimum && (
-          <Text className="mt-1 text-xs font-medium text-alert-primary">
-            {t('materials.lowStockWarning')}
-          </Text>
+          <View className="mt-1 flex-row items-center gap-1.5">
+            <Icon as={TriangleAlert} size={14} className="text-alert-primary" />
+            <Text className="text-xs font-medium text-alert-primary">
+              {t('materials.lowStockWarning')}
+            </Text>
+          </View>
         )}
       </Card>
     </Pressable>

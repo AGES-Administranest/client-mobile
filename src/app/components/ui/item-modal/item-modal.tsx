@@ -272,7 +272,13 @@ function ItemModal({
                     onValueChange={value => {
                       if (isDetail) return;
                       setCategory(value);
-                      clearFields();
+                      // Trocar a categoria invalida um item escolhido no
+                      // dropdown (ele era de outra categoria), mas não pode
+                      // apagar o que já foi digitado: como "Medicamento" é a
+                      // categoria inicial, limpar tudo aqui inviabilizava
+                      // cadastrar anestésico e descartável.
+                      setSelectedItem(null);
+                      setDropdownOpen(false);
                     }}
                   />
                 </View>
