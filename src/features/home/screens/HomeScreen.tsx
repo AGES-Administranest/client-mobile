@@ -1,7 +1,9 @@
-import { ArrowRight } from 'lucide-react-native';
+import { ArrowRight, ScanText, Plus } from 'lucide-react-native';
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
@@ -12,6 +14,7 @@ import { useHomeScreen } from '../hooks/useHomeScreen';
 export function HomeScreen() {
   const { t } = useTranslation();
   const { greetingPeriod, userName, isLoading } = useHomeScreen();
+  const [optionsVisible, setOptionsVisible] = useState(false);
 
   return (
     <View className="flex-1 items-center justify-center gap-4 bg-background-modal px-4">
@@ -26,9 +29,26 @@ export function HomeScreen() {
         shape="pill"
         icon={ArrowRight}
         className="mt-4 h-[49px] w-[353px]"
+        onPress={() => setOptionsVisible(true)}
       >
         <Text>{t('home.cta')}</Text>
       </Button>
+      <OptionsModal
+        visible={optionsVisible}
+        onClose={() => setOptionsVisible(false)}
+        options={[
+          {
+            labelKey: 'optionsModal.scanNote',
+            icon: ScanText,
+            onPress: () => setOptionsVisible(false),
+          },
+          {
+            labelKey: 'optionsModal.typeSupply',
+            icon: Plus,
+            onPress: () => setOptionsVisible(false),
+          },
+        ]}
+      />
     </View>
   );
 }
