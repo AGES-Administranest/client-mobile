@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StockItem } from 'app/components/ui/item-modal/domain/itemModal';
 import type { ItemDraft } from 'app/components/ui/item-modal/item-modal';
 import type { SegmentValue } from 'app/components/ui/segmented-control';
-import { sessionStore } from 'shared/services/sessionStore';
 
 import {
   ALL_CATEGORIES,
@@ -17,7 +16,12 @@ import {
   type MaterialItem,
 } from '../domain/materialsFilter';
 import { createItemLot } from '../services/itemLotService';
-import { createItem, deleteItem, fetchItems } from '../services/itemService';
+import {
+  createItem,
+  deleteItem,
+  fetchItems,
+  updateItem,
+} from '../services/itemService';
 
 type MaterialsScreenState = {
   segment: SegmentValue;
@@ -48,7 +52,6 @@ function parseExpirationDate(value: string): string | undefined {
   if (isNaN(d.getTime())) return undefined;
   return d.toISOString().slice(0, 10);
 }
-
 
 function backendItemToStockItem(item: BackendItem): StockItem {
   return {
@@ -105,26 +108,38 @@ export function useMaterialsScreen(): MaterialsScreenState {
     };
   }, []);
 
-  
   const onConfirmAdd = useCallback(async (draft: ItemDraft) => {
-    const session = sessionStore.get();
-    const userId = session?.userId ?? '';
     const quantity = parseFloat(draft.quantity) || 0;
     const unitCost = parseCurrency(draft.unitCost);
     const expirationDate = parseExpirationDate(draft.expiration);
     const receivedOn = todayIso();
+    const minimumStock =
+      draft.minQuantity !== null
+        ? parseFloat(draft.minQuantity) || 0
+        : undefined;
+
+    // Editar mexe nos atributos do item (PATCH /item/:id). O saldo não vai
+    // aqui: currentQuantity é um cache das stock_movement no backend, e o
+    // modal de edição já vem preenchido com o saldo atual — mandá-lo como
+    // lote dobraria o estoque.
+    if (draft.editingItemId) {
+      const updated = await updateItem(draft.editingItemId, {
+        name: draft.name,
+        category: draft.category as BackendItemCategory,
+        unit: toBackendUnit(draft.unit),
+        defaultUnitCost: unitCost || undefined,
+        minimumStock,
+      });
+      setAllBackendItems(prev =>
+        prev.map(item => (item.id === updated.id ? updated : item)),
+      );
+      return;
+    }
 
     let targetItemId = draft.selectedItemId;
 
     if (!targetItemId) {
-      
-      const minimumStock =
-        draft.minQuantity !== null
-          ? parseFloat(draft.minQuantity) || 0
-          : undefined;
-
       const newItem = await createItem({
-        userId,
         category: draft.category as BackendItemCategory,
         unit: toBackendUnit(draft.unit),
         name: draft.name,
@@ -134,19 +149,20 @@ export function useMaterialsScreen(): MaterialsScreenState {
 
       targetItemId = newItem.id;
 
-      
       setAllBackendItems(prev => [...prev, newItem]);
     }
 
-    await createItemLot(targetItemId, {
-      userId,
-      quantity,
-      unitCost,
-      expirationDate,
-      receivedOn,
-    });
+    // CreateItemLotDto exige @IsPositive() em quantity: cadastrar um item sem
+    // estoque inicial não pode abrir lote nenhum, senão volta 400.
+    if (quantity > 0) {
+      await createItemLot(targetItemId, {
+        quantity,
+        unitCost,
+        expirationDate,
+        receivedOn,
+      });
+    }
 
-    
     const refreshed = await fetchItems();
     setAllBackendItems(refreshed);
   }, []);

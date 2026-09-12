@@ -48,11 +48,14 @@ type ItemModalProps = {
 export type ItemDraft = {
   category: string;
   name: string;
-  selectedItemId: string | null; 
+  // Item cujos próprios atributos estão sendo alterados (PATCH).
+  editingItemId: string | null;
+  // Item existente escolhido no dropdown para receber um lote novo.
+  selectedItemId: string | null;
   unitCost: string;
   unit: string;
   quantity: string;
-  minQuantity: string | null; 
+  minQuantity: string | null;
   expiration: string;
 };
 
@@ -70,8 +73,8 @@ function ItemModal({
 }: ItemModalProps) {
   const { t, locale } = useTranslation();
   const isDetail = mode === 'detail';
+  const isEditing = !isDetail && item !== null;
 
-  
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -97,9 +100,9 @@ function ItemModal({
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(item);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [unitDropdownOpen, setUnitDropdownOpen] = useState(false);
-  
+
   const [showLotFields, setShowLotFields] = useState(isDetail || item !== null);
-  
+
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [unitCost, setUnitCost] = useState(item ? String(item.unitCost) : '');
   const [unit, setUnit] = useState(item?.unit ?? '');
@@ -115,10 +118,10 @@ function ItemModal({
   }, [items, category, query]);
 
   const showAddOption = shouldShowAddOption(query, matches);
-  
+
   const showMinQuantity =
     !isDetail && showLotFields && shouldShowMinQuantity(selectedItem);
-  
+
   const showExpiration = isDetail || showLotFields;
   const expirationInPast = !isDetail && isPastDate(expiration);
 
@@ -129,12 +132,10 @@ function ItemModal({
     category: selectedCategoryLabel,
   });
 
-  
   const namePlaceholder = t('itemModal.namePlaceholder', {
     category: selectedCategoryLabel.toLowerCase(),
   });
 
- 
   function clearFields() {
     setQuery('');
     setSelectedItem(null);
@@ -149,16 +150,33 @@ function ItemModal({
     setIsAddingNew(false);
   }
 
-  
+  // Os useState acima só valem na montagem. O modal fica montado entre
+  // aberturas, então trocar `item` (abrir em modo edição) não reinicializa
+  // nada — sem este efeito a edição abria com os campos vazios e o submit
+  // caía no fluxo de criação, duplicando o item.
   useEffect(() => {
-    if (visible && !isDetail && !item) {
-      setCategory(categoryOptions[0]?.value ?? '');
-      clearFields();
+    if (!visible || isDetail) return;
+
+    if (item) {
+      setCategory(item.category);
+      setQuery(item.name);
+      setSelectedItem(item);
+      setUnitCost(String(item.unitCost));
+      setUnit(item.unit);
+      setQuantity(String(item.quantity));
+      setMinQuantity(String(item.minQuantity));
+      setExpiration(item.expiration ?? '');
+      setDropdownOpen(false);
+      setShowLotFields(true);
+      setIsAddingNew(false);
+      return;
     }
+
+    setCategory(categoryOptions[0]?.value ?? '');
+    clearFields();
   }, [visible, isDetail, item, categoryOptions]);
 
   function handleSelectExisting(existing: StockItem) {
-    
     setSelectedItem(existing);
     setQuery(existing.name);
     setUnitCost(String(existing.unitCost));
@@ -171,7 +189,6 @@ function ItemModal({
   }
 
   function handleAddNew() {
-    
     setSelectedItem(null);
     setDropdownOpen(false);
     setShowLotFields(true);
@@ -181,7 +198,7 @@ function ItemModal({
   function handleChangeName(text: string) {
     setQuery(text);
     setSelectedItem(null); // digitar de novo desfaz a seleção anterior
-    
+
     if (!isAddingNew) {
       setDropdownOpen(true);
     }
@@ -192,7 +209,8 @@ function ItemModal({
     onConfirm?.({
       category,
       name: query,
-      selectedItemId: selectedItem?.id ?? null,
+      editingItemId: isEditing ? item.id : null,
+      selectedItemId: isEditing ? null : selectedItem?.id ?? null,
       unitCost,
       unit,
       quantity,
@@ -370,7 +388,6 @@ function ItemModal({
                   </View>
                 </View>
 
-                
                 <View className="gap-2">
                   <Text className="text-xs font-semibold text-label-primary">
                     {t('itemModal.quantityLabel')}
@@ -387,7 +404,6 @@ function ItemModal({
                   />
                 </View>
 
-               
                 {showMinQuantity && (
                   <View className="gap-2">
                     <Text className="text-xs font-semibold text-label-primary">
@@ -405,7 +421,6 @@ function ItemModal({
                   </View>
                 )}
 
-                
                 {showExpiration && (
                   <View className="gap-2">
                     <Text className="text-xs font-semibold text-label-primary">
@@ -437,7 +452,6 @@ function ItemModal({
                 )}
               </View>
 
-             
               {isDetail ? (
                 <View className="gap-3">
                   <Pressable

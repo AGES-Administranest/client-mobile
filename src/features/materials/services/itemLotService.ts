@@ -1,8 +1,8 @@
 import { apiClient } from 'shared/services/apiClient';
 import { sessionStore } from 'shared/services/sessionStore';
 
+// Idem itemService: o userId vem da sessão, não do chamador.
 export type CreateItemLotPayload = {
-  userId: string;
   quantity: number;
   unitCost: number;
   expirationDate?: string;
@@ -22,18 +22,25 @@ export type ItemLotResult = {
   updatedAt: string;
 };
 
-function authOptions() {
+// CreateItemLotDto exige userId UUID; sem sessão a chamada só pode dar 400.
+function requireSession() {
   const session = sessionStore.get();
-  return session ? { token: session.idToken } : undefined;
+  if (!session?.userId) {
+    throw new Error(
+      'No active session: sign in first, or set EXPO_PUBLIC_DEV_USER_ID and EXPO_PUBLIC_DEV_ID_TOKEN.',
+    );
+  }
+  return session;
 }
 
 export async function createItemLot(
   itemId: string,
   payload: CreateItemLotPayload,
 ): Promise<ItemLotResult> {
+  const session = requireSession();
   return apiClient.post<ItemLotResult>(
     `/item/${itemId}/lot`,
-    payload,
-    authOptions(),
+    { ...payload, userId: session.userId },
+    { token: session.idToken },
   );
 }

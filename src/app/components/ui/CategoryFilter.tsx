@@ -13,7 +13,7 @@ type CategoryFilterProps = {
   value: string;
   onValueChange: (value: string) => void;
   className?: string;
- 
+
   bordered?: boolean;
 };
 

@@ -38,14 +38,13 @@ export type MaterialItem = {
   id: string;
   segment: MaterialSegment;
   name: string;
-  category: string; 
+  category: string;
   price: number;
   unit: string;
   quantity: number;
   minQuantity: number;
   belowMinimum: boolean;
 };
-
 
 const CATEGORY_LABEL: Record<BackendItemCategory, string> = {
   MEDICATION: 'Medicamento',
@@ -66,12 +65,10 @@ const UNIT_LABEL: Record<BackendMeasurementUnit, string> = {
   OTHER: 'un',
 };
 
-
 export const UNIT_OPTIONS: readonly string[] = Array.from(
   new Set(Object.values(UNIT_LABEL)),
 );
 
-/
 export const CATEGORY_OPTIONS: readonly {
   value: BackendItemCategory;
   label: string;
@@ -99,11 +96,9 @@ export function backendItemToMaterial(item: BackendItem): MaterialItem {
   };
 }
 
-
 export function backendUnitLabel(unit: BackendMeasurementUnit): string {
   return UNIT_LABEL[unit] ?? unit;
 }
-
 
 export function toBackendUnit(unit: string): BackendMeasurementUnit {
   const normalized = unit.trim().toLowerCase();

@@ -61,7 +61,6 @@ export function formatDateInput(value: string): string {
   return [day, month, year].filter(part => part.length > 0).join('/');
 }
 
-
 export function isPastDate(value: string, today: Date = new Date()): boolean {
   const digits = digitsOnly(value);
   if (digits.length !== 8) return false;
