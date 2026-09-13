@@ -45,10 +45,10 @@ type UploadConfirmation = { contentLength: number; contentType: string };
 /** The backend's error codes are the contract (ADR-07), not its messages. */
 const FAILURE_BY_CODE: Record<string, UploadFailure> = {
   INVOICE_FILE_TOO_LARGE: 'tooLarge',
-  PEDIDO_ARQUIVO_DUPLICADO: 'duplicateFile',
+  INVOICE_FILE_DUPLICATED: 'duplicateFile',
   USER_NOT_PROVISIONED: 'notProvisioned',
-  PEDIDO_UPLOAD_NAO_CONCLUIDO: 'notConfirmed',
-  PEDIDO_UPLOAD_DIVERGENTE: 'notConfirmed',
+  INVOICE_UPLOAD_NOT_FINISHED: 'notConfirmed',
+  INVOICE_UPLOAD_MISMATCH: 'notConfirmed',
 };
 
 export async function uploadInvoiceDocument(

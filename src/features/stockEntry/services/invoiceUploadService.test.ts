@@ -131,7 +131,7 @@ describe('uploadInvoiceDocument', () => {
 
   it('reads the failure from the error code, not the message', async () => {
     fetchMock.mockResolvedValueOnce(
-      jsonResponse({ code: 'PEDIDO_ARQUIVO_DUPLICADO' }, 409),
+      jsonResponse({ code: 'INVOICE_FILE_DUPLICATED' }, 409),
     );
 
     await expect(uploadInvoiceDocument(DOCUMENT)).rejects.toMatchObject({
