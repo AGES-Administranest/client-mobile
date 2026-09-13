@@ -46,7 +46,7 @@ type UploadConfirmation = { contentLength: number; contentType: string };
 const FAILURE_BY_CODE: Record<string, UploadFailure> = {
   INVOICE_FILE_TOO_LARGE: 'tooLarge',
   PEDIDO_ARQUIVO_DUPLICADO: 'duplicateFile',
-  USUARIO_NAO_PROVISIONADO: 'notProvisioned',
+  USER_NOT_PROVISIONED: 'notProvisioned',
   PEDIDO_UPLOAD_NAO_CONCLUIDO: 'notConfirmed',
   PEDIDO_UPLOAD_DIVERGENTE: 'notConfirmed',
 };
