@@ -32,13 +32,6 @@ const SCREENS: Record<TabValue, React.ComponentType> = {
   reports: ReportsScreen,
 };
 
-// A US09 substituirá este snapshot pelos dados autenticados do estoque.
-// Enquanto isso, o observador permanece montado sem interpretar loading como vazio.
-const INVENTORY_LOADING: InventoryAlertSnapshot = {
-  status: 'loading',
-  userId: null,
-};
-
 export function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -49,14 +42,30 @@ export function App() {
   return (
     <I18nProvider>
       <SafeAreaProvider>
-        <InventoryAlertObserver snapshot={INVENTORY_LOADING} />
         <AuthProvider>
           <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+          <AccountInventoryAlerts />
           <AppContent />
         </AuthProvider>
       </SafeAreaProvider>
     </I18nProvider>
   );
+}
+
+// Inventory alerts are stored per user (alert timestamps, dismissed alerts,
+// expiry schedules), keyed by the signed-in account's id in the API. This
+// stays mounted across sign out and sign in on purpose: the observer only
+// cancels the previous person's scheduled notifications when it sees the id
+// change (to null on sign out, or to another account), which an unmount would
+// skip. Inventory data is still 'loading' until US09 loads it from the API.
+export function AccountInventoryAlerts() {
+  const { account } = useAuth();
+  const snapshot = React.useMemo<InventoryAlertSnapshot>(
+    () => ({ status: 'loading', userId: account?.id ?? null }),
+    [account?.id],
+  );
+
+  return <InventoryAlertObserver snapshot={snapshot} />;
 }
 
 function AppContent() {

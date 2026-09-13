@@ -204,6 +204,7 @@ Imports use `app/*`, `features/*`, and `shared/*` instead of relative `../../..`
 Local (on-device) notifications go through [`expo-notifications`](https://docs.expo.dev/versions/latest/sdk/notifications/), wrapped by `src/shared/services/notifications.ts` — `initNotifications()` (called once in `App.tsx`, creates the Android channel), `requestNotificationPermission()`, `scheduleNotification()` and `cancelNotification()`. Features should use that wrapper, not import `expo-notifications` directly.
 
 - **Permission** is required on iOS and on Android 13+; `scheduleNotification()` asks for it on demand, so nothing prompts the user on app start.
+- **Per account:** inventory alerts are stored under the signed-in account's id (`account.id` from `useAuth()`). `App.tsx` keeps `InventoryAlertObserver` mounted inside `AuthProvider`, so signing out or switching accounts cancels the previous person's scheduled notifications.
 - **Web** has no implementation — every function is a no-op there, so the web target keeps building.
 - **Testing:** iOS works in Expo Go. On Android, `expo-notifications` is limited in Expo Go since SDK 53 — use a native/dev build (`npm run android`).
 
