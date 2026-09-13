@@ -7,7 +7,10 @@ export type ScanFailure =
   | 'noTextLayer'
   | 'noItems'
   | 'ocrUnavailable'
-  | 'permissionDenied';
+  | 'permissionDenied'
+  // Picked from the library but not something the presigned policy accepts —
+  // a PNG screenshot, a HEIC photo.
+  | 'unsupportedType';
 
 export class ScanError extends Error {
   constructor(public readonly reason: ScanFailure) {
