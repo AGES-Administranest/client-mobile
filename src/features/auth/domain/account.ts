@@ -16,8 +16,3 @@ export const TERMS_VERSION = '2026-09-01';
 export function needsTermsAcceptance(account: Account): boolean {
   return !account.termsAcceptedAt || account.termsVersion !== TERMS_VERSION;
 }
-
-// The API's error envelope (backend docs/tratamento-de-erros.md).
-export type ApiErrorBody = {
-  code?: string;
-};

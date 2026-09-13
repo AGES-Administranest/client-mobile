@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useAuth } from 'features/auth';
+
 import { InvoiceDocument, PickedFile } from '../domain/invoiceDocument';
 import { ScannedItem } from '../domain/stockItem';
 import { describeDocument } from '../services/invoiceDocumentService';
@@ -70,6 +72,7 @@ export function useStockEntryFlow(
   const [document, setDocument] = useState<InvoiceDocument | null>(null);
   const [failure, setFailure] = useState<StockEntryFailure | null>(null);
   const isMounted = useRef(true);
+  const { session } = useAuth();
 
   useEffect(() => {
     isMounted.current = true;
@@ -111,9 +114,16 @@ export function useStockEntryFlow(
           return;
         }
 
+        // Unreachable: App.tsx only renders the tab with a session open.
+        if (!session) {
+          throw new Error(
+            'No session: the stock-entry tab should not be open.',
+          );
+        }
+
         // Hash, size, mime and the invoice id, all read from the file itself.
         const uploaded = await describeDocument(picked);
-        await uploadInvoiceDocument(uploaded);
+        await uploadInvoiceDocument(uploaded, session.idToken);
         if (!isMounted.current) {
           return;
         }
@@ -134,7 +144,7 @@ export function useStockEntryFlow(
         setStep('idle');
       }
     },
-    [],
+    [session],
   );
 
   const recognizePhoto = useCallback(

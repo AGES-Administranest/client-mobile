@@ -8,24 +8,8 @@
  * "algo deu errado".
  */
 
-const DEFAULT_BASE_URL = 'http://localhost:3000';
-
 /** The error envelope every failing route returns. */
 type ErrorEnvelope = { code?: string; message?: string };
-
-type TokenProvider = () => string | null;
-
-/**
- * There is no sign-in screen yet, so nothing holds a session and requests go
- * out unauthenticated — which only works against a backend running with
- * `DEV_AUTH_BYPASS=true`. When the login lands, it calls `setAuthTokenProvider`
- * once and every request below starts carrying the IdToken.
- */
-let readToken: TokenProvider = () => null;
-
-export function setAuthTokenProvider(provider: TokenProvider): void {
-  readToken = provider;
-}
 
 export class ApiError extends Error {
   constructor(readonly status: number, readonly code: string, message: string) {
@@ -42,24 +26,32 @@ export class NetworkError extends Error {
 }
 
 export function apiBaseUrl(): string {
-  return (process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_BASE_URL).replace(
-    /\/+$/,
-    '',
-  );
+  const url = process.env.EXPO_PUBLIC_API_URL;
+
+  if (!url) {
+    throw new Error(
+      'EXPO_PUBLIC_API_URL is not set. Point it at the Administranest backend ' +
+        '(http://localhost:3000 locally — see .env.example).',
+    );
+  }
+
+  return url.replace(/\/+$/, '');
 }
 
 /** POSTs JSON and returns the parsed body. `T` is what the route documents. */
-export async function postJson<T>(path: string, body?: unknown): Promise<T> {
-  const token = readToken();
-
+export async function postJson<T>(
+  path: string,
+  idToken: string,
+  body?: unknown,
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${apiBaseUrl()}${path}`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Authorization: `Bearer ${idToken}`,
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });

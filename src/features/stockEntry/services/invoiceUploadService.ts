@@ -53,6 +53,7 @@ const FAILURE_BY_CODE: Record<string, UploadFailure> = {
 
 export async function uploadInvoiceDocument(
   document: InvoiceDocument,
+  idToken: string,
 ): Promise<void> {
   // The API refuses this with a 413 anyway; refusing here saves the round trip
   // and, more to the point, the wait before the user is told.
@@ -60,12 +61,15 @@ export async function uploadInvoiceDocument(
     throw new UploadError('tooLarge');
   }
 
-  await sendToBucket(document);
-  await confirmUpload(document);
+  await sendToBucket(document, idToken);
+  await confirmUpload(document, idToken);
 }
 
-async function sendToBucket(document: InvoiceDocument): Promise<void> {
-  const target = await requestUploadTarget(document);
+async function sendToBucket(
+  document: InvoiceDocument,
+  idToken: string,
+): Promise<void> {
+  const target = await requestUploadTarget(document, idToken);
 
   try {
     await postToBucket(target, document);
@@ -79,7 +83,7 @@ async function sendToBucket(document: InvoiceDocument): Promise<void> {
   // A policy lives 10 minutes and a mobile upload dies mid-flight for a living.
   // Both are fixed by the same thing: a policy signed now, over the same key —
   // no new draft, nothing already typed is lost (§7.2).
-  await postToBucket(await requestUploadTarget(document), document);
+  await postToBucket(await requestUploadTarget(document, idToken), document);
 }
 
 /**
@@ -94,24 +98,38 @@ function isWorthReissuing(error: unknown): boolean {
   );
 }
 
-function requestUploadTarget(document: InvoiceDocument): Promise<UploadTarget> {
+function requestUploadTarget(
+  document: InvoiceDocument,
+  idToken: string,
+): Promise<UploadTarget> {
   return callApi(() =>
-    postJson<UploadTarget>(`/stock-entries/${document.id}/upload-url`, {
-      filename: document.name,
-      fileMimeType: document.mimeType,
-      fileHash: document.hash,
-      fileBytesSize: document.sizeBytes,
-    }),
+    postJson<UploadTarget>(
+      `/stock-entries/${document.id}/upload-url`,
+      idToken,
+      {
+        filename: document.name,
+        fileMimeType: document.mimeType,
+        fileHash: document.hash,
+        fileBytesSize: document.sizeBytes,
+      },
+    ),
   );
 }
 
 /** The API checks the bucket here; until it answers, nothing is uploaded. */
-async function confirmUpload(document: InvoiceDocument): Promise<void> {
+async function confirmUpload(
+  document: InvoiceDocument,
+  idToken: string,
+): Promise<void> {
   await callApi(() =>
-    postJson<UploadConfirmation>(`/stock-entries/${document.id}/uploaded`),
+    postJson<UploadConfirmation>(
+      `/stock-entries/${document.id}/uploaded`,
+      idToken,
+    ),
   );
 }
 
+/** No token here: S3 is authorized by the signed policy, not by Cognito. */
 async function postToBucket(
   target: UploadTarget,
   document: InvoiceDocument,

@@ -1,7 +1,1 @@
-export {
-  apiBaseUrl,
-  ApiError,
-  NetworkError,
-  postJson,
-  setAuthTokenProvider,
-} from './apiClient';
+export { apiBaseUrl, ApiError, NetworkError, postJson } from './apiClient';
