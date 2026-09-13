@@ -10,6 +10,7 @@ const VALID_SIGN_UP = {
   email: 'ana@example.com',
   password: 'Passw0rd@',
   passwordConfirmation: 'Passw0rd@',
+  acceptedTerms: true,
 };
 
 describe('validateLoginForm', () => {
@@ -69,6 +70,12 @@ describe('validateSignUpForm', () => {
     expect(
       validateSignUpForm({ ...VALID_SIGN_UP, passwordConfirmation: 'other' }),
     ).toEqual({ passwordConfirmation: 'passwordMismatch' });
+  });
+
+  it('requires accepting the terms of use and privacy policy', () => {
+    expect(
+      validateSignUpForm({ ...VALID_SIGN_UP, acceptedTerms: false }),
+    ).toEqual({ acceptedTerms: 'termsRequired' });
   });
 
   it('keeps the login rules for e-mail and password', () => {

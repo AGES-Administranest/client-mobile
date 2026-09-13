@@ -19,6 +19,7 @@ const EMPTY_FORM: SignUpForm = {
   email: '',
   password: '',
   passwordConfirmation: '',
+  acceptedTerms: false,
 };
 
 export function useSignUpForm({ onNeedsConfirmation }: UseSignUpFormOptions) {
@@ -27,10 +28,16 @@ export function useSignUpForm({ onNeedsConfirmation }: UseSignUpFormOptions) {
   const [errors, setErrors] = useState<FormErrors<SignUpForm>>({});
   const { isSubmitting, errorKey, run } = useSubmit();
 
-  const setField = useCallback((field: keyof SignUpForm, value: string) => {
-    setForm(current => ({ ...current, [field]: value }));
-    setErrors(current => ({ ...current, [field]: undefined }));
-  }, []);
+  const setField = useCallback(
+    <TField extends keyof SignUpForm>(
+      field: TField,
+      value: SignUpForm[TField],
+    ) => {
+      setForm(current => ({ ...current, [field]: value }));
+      setErrors(current => ({ ...current, [field]: undefined }));
+    },
+    [],
+  );
 
   const submit = useCallback(() => {
     const validation = validateSignUpForm(form);
@@ -46,7 +53,9 @@ export function useSignUpForm({ onNeedsConfirmation }: UseSignUpFormOptions) {
       const result = await signUp(email, form.password, form.name.trim());
 
       if (result.isConfirmed) {
-        await signIn(email, form.password);
+        // The box was ticked above, so the account is opened with the terms
+        // already recorded instead of asking again on the next screen.
+        await signIn(email, form.password, { acceptTerms: true });
       } else {
         onNeedsConfirmation(email, form.password);
       }

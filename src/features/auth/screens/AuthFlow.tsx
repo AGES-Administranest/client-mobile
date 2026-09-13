@@ -39,6 +39,7 @@ export function AuthFlow() {
           email={step.email}
           password={step.password}
           resendOnMount={step.resendOnMount}
+          acceptTerms={step.acceptTerms}
           onBack={step.from === 'login' ? goToLogin : goToSignUp}
         />
       );

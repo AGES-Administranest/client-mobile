@@ -141,6 +141,10 @@
       "or": "or",
       "login": "Log in"
     },
+    "social": {
+      "divider": "or continue with",
+      "google": "Continue with Google"
+    },
     "fields": {
       "name": "Name",
       "email": "E-mail",
@@ -170,7 +174,8 @@
     "validation": {
       "required": "This field is required.",
       "invalidEmail": "Enter a valid e-mail.",
-      "passwordMismatch": "Passwords do not match."
+      "passwordMismatch": "Passwords do not match.",
+      "termsRequired": "Accept the terms to continue."
     },
     "errors": {
       "invalidCredentials": "Incorrect e-mail or password.",
@@ -183,7 +188,19 @@
       "sessionExpired": "Your session has expired. Please log in again.",
       "tooManyAttempts": "Too many attempts. Wait a moment and try again.",
       "networkUnavailable": "No connection. Check your internet and try again.",
-      "unknown": "Something went wrong. Please try again."
+      "unknown": "Something went wrong. Please try again.",
+      "accountUsesOtherSignIn": "This e-mail already has an account with another way to sign in. Use the same method you signed up with (e-mail and password, or Google)."
+    },
+    "terms": {
+      "title": "Terms of use",
+      "description": "Hi, {{name}}. To use Administranest, accept the terms of use and the privacy policy.",
+      "checkbox": "I have read and accept the Terms of Use and the Privacy Policy.",
+      "submit": "Accept and continue",
+      "signOut": "Sign out"
+    },
+    "account": {
+      "menu": "Account",
+      "signOut": "Sign out"
     }
   }
 }

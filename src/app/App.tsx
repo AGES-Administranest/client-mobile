@@ -3,7 +3,13 @@ import { StatusBar, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { TabBar, type TabValue } from 'app/components/ui/tabbar';
-import { AuthFlow, AuthProvider, useAuth } from 'features/auth';
+import {
+  AuthFlow,
+  AuthProvider,
+  needsTermsAcceptance,
+  TermsScreen,
+  useAuth,
+} from 'features/auth';
 import { ClinicsScreen } from 'features/clinics';
 import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
@@ -54,11 +60,16 @@ export function App() {
 }
 
 function AppContent() {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const [tab, setTab] = React.useState<TabValue>('day');
 
-  if (!session) {
+  if (!session || !account) {
     return <AuthFlow />;
+  }
+
+  // No use of the app without consent to the current terms (US25).
+  if (needsTermsAcceptance(account)) {
+    return <TermsScreen />;
   }
 
   const Screen = SCREENS[tab];
