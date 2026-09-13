@@ -241,18 +241,19 @@ emulator and against real AWS.
 
 #### Configuration
 
-Four `EXPO_PUBLIC_*` variables in `.env`, documented in
+Five `EXPO_PUBLIC_*` variables in `.env`, documented in
 [`.env.example`](./.env.example). They are inlined into the bundle at build time, so
 nothing secret can live there — and nothing needs to, since the Cognito app client is
 public by design.
 
-Three of them point at Cognito. The fourth, `EXPO_PUBLIC_API_URL`, points at the
+Four of them point at Cognito. The fifth, `EXPO_PUBLIC_API_URL`, points at the
 Administranest backend: Cognito is where the app signs in, but the user's own record
 lives in our API, created by `POST /auth/session` on the first valid login.
 
 To point the app at the local emulator, run `npm run dev:bootstrap` in the backend repo
-and copy the `COGNITO_CLIENT_ID` it writes to `backend/.aws-local.env`. The backend
-itself runs outside Docker (`npm run start:dev` there) on port 3000.
+and copy the `COGNITO_CLIENT_ID` and `COGNITO_OAUTH_URL` it writes to
+`backend/.aws-local.env`. The backend itself runs outside Docker (`npm run start:dev`
+there) on port 3000.
 
 On the Android emulator, `localhost` is the emulator, not your machine — use
 `http://10.0.2.2:<port>` for both the Cognito endpoint and the API.
@@ -276,9 +277,35 @@ try {
 table); `services/` holds the calls. Screens should import from `features/auth` only.
 
 The feature also owns the signed-out flow. `AuthProvider` (wrapped around the app in
-`App.tsx`) holds the session and exposes `useAuth()` → `{ session, signIn, signOut }`;
+`App.tsx`) holds the session and exposes
+`useAuth()` → `{ session, signIn, signInWithProvider, signOut }`;
 `App.tsx` renders `AuthFlow` (welcome → login / sign-up → e-mail confirmation) while
 there is no session, and the tabs once there is one.
+
+#### Continue with Google / Apple
+
+The one place that does not use `fetch` against the Cognito API: social sign-in goes
+through **Cognito federation** (backend ADR-13). `signInWithProvider('Google')` opens
+the user pool's `/oauth2/authorize` with `identity_provider=Google` in an in-app browser
+(`expo-auth-session`), using the **authorization code flow with PKCE** — the app is a
+public client, so the code verifier is what stops an intercepted code from being
+redeemed by someone else. The code is exchanged at `/oauth2/token` and becomes the
+**same `AuthSession`** a password sign in produces: refresh and sign out need nothing
+new, and the backend cannot tell the two apart.
+
+- The return address is `administranest://auth/callback` in a native build,
+  `exp://<host>:8081/--/auth/callback` in Expo Go and `<origin>/auth/callback` on web.
+  Cognito only accepts addresses registered on the app client — the backend bootstrap
+  registers the simulator and web ones; a physical phone on Expo Go needs its LAN
+  address added there.
+- Closing the browser or declining at the provider resolves to `null` and shows no
+  error.
+- Locally, the Google and Apple screens are a fake IdP from the backend's Compose file:
+  type any e-mail as the user.
+
+**Not handled yet:** the same e-mail with a password account and a Google account are
+two different Cognito users (`POST /auth/session` answers 409 for the second), and a
+social account skips the terms of use shown on sign-up. Both are open in ADR-13.
 
 **Not included yet, by design:** persisting the session across app launches, calling
 `POST /auth/session` after login, and a navigation library (`AuthFlow` switches steps

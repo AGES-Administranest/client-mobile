@@ -7,10 +7,13 @@ import { AuthFlow } from './AuthFlow';
 import { AuthError } from '../domain/authErrors';
 import { AuthProvider, useAuth } from '../hooks/AuthContext';
 import * as authService from '../services/authService';
+import * as socialAuthService from '../services/socialAuthService';
 
 jest.mock('../services/authService');
+jest.mock('../services/socialAuthService');
 
 const service = jest.mocked(authService);
+const socialService = jest.mocked(socialAuthService);
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -98,6 +101,58 @@ describe('welcome', () => {
     expect(content).toContain('Seja bem-vindo(a)');
     expect(byLabel(renderer, 'Criar conta')).toBeDefined();
     expect(byLabel(renderer, 'Login')).toBeDefined();
+  });
+});
+
+describe('social sign in', () => {
+  it('offers Google and Apple on the welcome and login screens', async () => {
+    const renderer = await renderFlow();
+
+    expect(byLabel(renderer, 'Continuar com Google')).toBeDefined();
+    expect(byLabel(renderer, 'Continuar com Apple')).toBeDefined();
+
+    await press(renderer, 'Login');
+
+    expect(byLabel(renderer, 'Continuar com Google')).toBeDefined();
+    expect(byLabel(renderer, 'Continuar com Apple')).toBeDefined();
+  });
+
+  it('stores the session of the provider the user picked', async () => {
+    socialService.signInWithProvider.mockResolvedValue(SESSION);
+    const renderer = await renderFlow();
+
+    await press(renderer, 'Continuar com Apple');
+
+    expect(socialService.signInWithProvider).toHaveBeenCalledWith(
+      'SignInWithApple',
+    );
+    expect(sessionSeen).toEqual(SESSION);
+  });
+
+  it('stays quiet when the user backs out of the provider screen', async () => {
+    socialService.signInWithProvider.mockResolvedValue(null);
+    const renderer = await renderFlow();
+    const before = texts(renderer);
+
+    await press(renderer, 'Continuar com Google');
+
+    expect(sessionSeen).toBeNull();
+    expect(texts(renderer)).toBe(before);
+  });
+
+  it('shows the generic message when the provider flow fails', async () => {
+    socialService.signInWithProvider.mockRejectedValue(
+      new AuthError('NETWORK_UNAVAILABLE'),
+    );
+    const renderer = await renderFlow();
+
+    await press(renderer, 'Login');
+    await press(renderer, 'Continuar com Google');
+
+    expect(texts(renderer)).toContain(
+      'Sem conexão. Verifique sua internet e tente novamente.',
+    );
+    expect(sessionSeen).toBeNull();
   });
 });
 

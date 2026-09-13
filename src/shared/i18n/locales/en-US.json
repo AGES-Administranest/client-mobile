@@ -95,6 +95,11 @@
       "or": "or",
       "login": "Log in"
     },
+    "social": {
+      "divider": "or continue with",
+      "google": "Continue with Google",
+      "apple": "Continue with Apple"
+    },
     "fields": {
       "name": "Name",
       "email": "E-mail",

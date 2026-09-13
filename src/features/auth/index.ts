@@ -19,5 +19,7 @@ export {
   signUp,
   type SignUpResult,
 } from './services/authService';
+export { type SocialProvider } from './domain/socialSignIn';
+export { signInWithProvider } from './services/socialAuthService';
 export { AuthProvider, useAuth } from './hooks/AuthContext';
 export { AuthFlow } from './screens/AuthFlow';

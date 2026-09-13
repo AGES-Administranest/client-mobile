@@ -3,9 +3,12 @@ import { useTranslation } from 'shared/i18n';
 import { AuthButton } from '../components/AuthButton';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormMessage } from '../components/FormMessage';
+import { OrDivider } from '../components/OrDivider';
+import { SocialSignInButtons } from '../components/SocialSignInButtons';
 import { TextField } from '../components/TextField';
 import { fieldErrorKey } from '../hooks/authMessageKeys';
 import { useLoginForm } from '../hooks/useLoginForm';
+import { useSocialSignIn } from '../hooks/useSocialSignIn';
 
 type LoginScreenProps = {
   onBack: () => void;
@@ -21,6 +24,7 @@ export function LoginScreen({
   const { t } = useTranslation();
   const { form, errors, setField, submit, isSubmitting, errorKey } =
     useLoginForm({ onUnconfirmed });
+  const social = useSocialSignIn();
 
   const fieldError = (field: keyof typeof errors) => {
     const key = fieldErrorKey(errors[field]);
@@ -67,13 +71,27 @@ export function LoginScreen({
         label={t('auth.login.submit')}
         onPress={submit}
         isLoading={isSubmitting}
+        disabled={social.isSubmitting}
         className="mt-2"
       />
+
+      <OrDivider label={t('auth.social.divider')} />
+      <SocialSignInButtons
+        labels={{
+          Google: t('auth.social.google'),
+          SignInWithApple: t('auth.social.apple'),
+        }}
+        onPress={social.signInWith}
+        pendingProvider={social.pendingProvider}
+        disabled={isSubmitting || social.isSubmitting}
+      />
+      <FormMessage message={social.errorKey ? t(social.errorKey) : null} />
+
       <AuthButton
         variant="link"
         label={t('auth.login.noAccount')}
         onPress={onCreateAccount}
-        disabled={isSubmitting}
+        disabled={isSubmitting || social.isSubmitting}
         className="mt-2"
       />
     </AuthLayout>

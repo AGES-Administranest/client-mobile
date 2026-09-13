@@ -9,10 +9,26 @@ import { ButtonPrimary, LabelSecondary } from '../../../theme/colors';
 type AuthButtonProps = {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'link';
+  variant?: 'primary' | 'outline' | 'link';
   isLoading?: boolean;
   disabled?: boolean;
   className?: string;
+};
+
+const BUTTON_CLASSES: Record<
+  NonNullable<AuthButtonProps['variant']>,
+  string
+> = {
+  primary: 'my-1.5 h-14 w-full bg-button-primary shadow-md active:opacity-80',
+  outline:
+    'my-1.5 h-14 w-full border border-border-primary bg-transparent active:opacity-70',
+  link: 'h-11',
+};
+
+const TEXT_CLASSES: Record<NonNullable<AuthButtonProps['variant']>, string> = {
+  primary: 'text-[17px] font-semibold tracking-[0.3px] text-label-secondary',
+  outline: 'text-[16px] font-medium text-label-primary',
+  link: 'text-[15px] font-medium text-label-quartenery',
 };
 
 export function AuthButton({
@@ -27,31 +43,18 @@ export function AuthButton({
 
   return (
     <Button
-      variant={isPrimary ? 'default' : 'link'}
+      variant={variant === 'link' ? 'link' : 'default'}
       shape="pill"
       onPress={onPress}
       disabled={disabled || isLoading}
       accessibilityLabel={label}
       accessibilityState={{ disabled: disabled || isLoading, busy: isLoading }}
-      className={cn(
-        isPrimary
-          ? 'my-1.5 h-14 w-full bg-button-primary shadow-md active:opacity-80'
-          : 'h-11',
-        className,
-      )}
+      className={cn(BUTTON_CLASSES[variant], className)}
     >
       {isLoading ? (
         <ActivityIndicator color={isPrimary ? LabelSecondary : ButtonPrimary} />
       ) : (
-        <Text
-          className={
-            isPrimary
-              ? 'text-[17px] font-semibold tracking-[0.3px] text-label-secondary'
-              : 'text-[15px] font-medium text-label-quartenery'
-          }
-        >
-          {label}
-        </Text>
+        <Text className={TEXT_CLASSES[variant]}>{label}</Text>
       )}
     </Button>
   );

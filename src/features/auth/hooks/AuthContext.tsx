@@ -8,11 +8,15 @@ import {
 } from 'react';
 
 import { AuthSession } from '../domain/session';
+import { SocialProvider } from '../domain/socialSignIn';
 import * as authService from '../services/authService';
+import * as socialAuthService from '../services/socialAuthService';
 
 type AuthContextValue = {
   session: AuthSession | null;
   signIn: (email: string, password: string) => Promise<void>;
+  // Resolves to false when the user backed out of the provider's screen.
+  signInWithProvider: (provider: SocialProvider) => Promise<boolean>;
   signOut: () => Promise<void>;
 };
 
@@ -35,6 +39,18 @@ export function AuthProvider({
     setSession(await authService.signIn(email.trim(), password));
   }, []);
 
+  // A social account ends in the same session as a password one: same tokens,
+  // same refresh and sign out (backend ADR-13).
+  const signInWithProvider = useCallback(async (provider: SocialProvider) => {
+    const signedIn = await socialAuthService.signInWithProvider(provider);
+    if (!signedIn) {
+      return false;
+    }
+
+    setSession(signedIn);
+    return true;
+  }, []);
+
   const signOut = useCallback(async () => {
     const current = session;
     setSession(null);
@@ -46,8 +62,8 @@ export function AuthProvider({
   }, [session]);
 
   const value = useMemo(
-    () => ({ session, signIn, signOut }),
-    [session, signIn, signOut],
+    () => ({ session, signIn, signInWithProvider, signOut }),
+    [session, signIn, signInWithProvider, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
