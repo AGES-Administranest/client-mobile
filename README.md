@@ -277,10 +277,31 @@ try {
 table); `services/` holds the calls. Screens should import from `features/auth` only.
 
 The feature also owns the signed-out flow. `AuthProvider` (wrapped around the app in
-`App.tsx`) holds the session and exposes
-`useAuth()` → `{ session, signIn, signInWithProvider, signOut }`;
+`App.tsx`) holds the session and the account, and exposes
+`useAuth()` → `{ session, account, signIn, signInWithProvider, acceptTerms, signOut }`.
 `App.tsx` renders `AuthFlow` (welcome → login / sign-up → e-mail confirmation) while
-there is no session, and the tabs once there is one.
+there is no session, `TermsScreen` while the account has not accepted the current terms,
+and the tabs after that.
+
+#### The account in the API
+
+Signing in to Cognito is not enough to use the app: every backend route answers
+`401 USER_NOT_PROVISIONED` until the user's record exists there. So after any sign in —
+password or Google — the provider calls `POST /auth/session` with the id token, and only
+then sets `session` and `account` together; no screen ever sees one without the other.
+If the API refuses, the Cognito tokens are revoked and the error goes to the form.
+
+- **Terms of use (US25).** Sign-up has a required checkbox; after the e-mail is confirmed
+  the account is opened and `POST /auth/terms` records the current `TERMS_VERSION`. An
+  account without consent to that version — someone who came in through Google, or an
+  older version — sees `TermsScreen` before the tabs. Bump `TERMS_VERSION` when the texts
+  change and everyone is asked again. The texts themselves are a separate card.
+- **Same e-mail, two ways in.** A password account and a Google account with one e-mail
+  are two Cognito users; the second gets `409` from the API and the form says to use the
+  method the account was created with (ADR-13, option i). The conflict only surfaces
+  after Cognito authenticated the person, so naming it reveals nothing.
+- **Signing out** is on the account button at the top of the home screen until the
+  Profile tab exists.
 
 #### Continue with Google
 
@@ -306,12 +327,8 @@ new, and the backend cannot tell the two apart.
   be reconsidered: Apple requires it when an iOS app offers another social login
   (guideline 4.8). Adding it is one more `SocialProvider` — same flow, see ADR-13.
 
-**Not handled yet:** the same e-mail with a password account and a Google account are
-two different Cognito users (`POST /auth/session` answers 409 for the second), and a
-social account skips the terms of use shown on sign-up. Both are open in ADR-13.
-
-**Not included yet, by design:** persisting the session across app launches, calling
-`POST /auth/session` after login, and a navigation library (`AuthFlow` switches steps
+**Not included yet, by design:** persisting the session across app launches, refreshing
+the id token before calling the API, and a navigation library (`AuthFlow` switches steps
 with local state). The session currently lives only in memory — persistence needs a
 storage dependency, which is a separate decision and a separate card.
 

@@ -14,6 +14,7 @@ const ERROR_KEYS: Record<AuthErrorCode, TranslationKey> = {
   INVALID_PASSWORD_FORMAT: 'auth.errors.invalidData',
   USER_NOT_CONFIRMED: 'auth.errors.userNotConfirmed',
   SESSION_EXPIRED: 'auth.errors.sessionExpired',
+  ACCOUNT_USES_OTHER_SIGN_IN: 'auth.errors.accountUsesOtherSignIn',
   TOO_MANY_ATTEMPTS: 'auth.errors.tooManyAttempts',
   NETWORK_UNAVAILABLE: 'auth.errors.networkUnavailable',
   UNKNOWN: 'auth.errors.unknown',
@@ -23,6 +24,7 @@ const FIELD_ERROR_KEYS: Record<AuthFieldError, TranslationKey> = {
   required: 'auth.validation.required',
   invalidEmail: 'auth.validation.invalidEmail',
   passwordMismatch: 'auth.validation.passwordMismatch',
+  termsRequired: 'auth.validation.termsRequired',
 };
 
 export function authErrorCodeOf(error: unknown): AuthErrorCode {

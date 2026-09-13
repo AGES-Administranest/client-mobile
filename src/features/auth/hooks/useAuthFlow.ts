@@ -10,6 +10,8 @@ export type AuthStep =
       password: string;
       resendOnMount: boolean;
       from: 'login' | 'signUp';
+      // True only when coming from sign-up, where the terms box was ticked.
+      acceptTerms: boolean;
     };
 
 // No navigation library yet, so the unauthenticated flow is a small state
@@ -29,6 +31,7 @@ export function useAuthFlow() {
         password,
         resendOnMount: false,
         from: 'signUp',
+        acceptTerms: true,
       }),
     [],
   );
@@ -41,6 +44,7 @@ export function useAuthFlow() {
         password,
         resendOnMount: true,
         from: 'login',
+        acceptTerms: false,
       }),
     [],
   );

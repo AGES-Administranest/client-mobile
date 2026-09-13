@@ -17,12 +17,15 @@ type UseConfirmSignUpOptions = {
   password: string;
   // True when arriving from login: Cognito does not send a new code on its own.
   resendOnMount?: boolean;
+  // Carried over from sign-up, where the terms box was already ticked.
+  acceptTerms?: boolean;
 };
 
 export function useConfirmSignUp({
   email,
   password,
   resendOnMount = false,
+  acceptTerms = false,
 }: UseConfirmSignUpOptions) {
   const { signIn } = useAuth();
   const [code, setCodeValue] = useState('');
@@ -47,9 +50,9 @@ export function useConfirmSignUp({
 
     return run(async () => {
       await confirmSignUp(email, code.trim());
-      await signIn(email, password);
+      await signIn(email, password, { acceptTerms });
     });
-  }, [code, email, password, run, signIn]);
+  }, [acceptTerms, code, email, password, run, signIn]);
 
   const resend = useCallback(() => {
     setNoticeKey(null);
