@@ -1,5 +1,4 @@
 import { apiClient } from 'shared/services/apiClient';
-import { sessionStore } from 'shared/services/sessionStore';
 
 import type {
   BackendItem,
@@ -7,7 +6,10 @@ import type {
   BackendMeasurementUnit,
 } from '../domain/materialsFilter';
 
-// userId sai da sessão dentro do service: quem chama não tem como errá-lo.
+// O dono do item vem do token: o backend lê o usuário do Authorization e
+// recusa `userId` no corpo ou na query (400, forbidNonWhitelisted). Por isso
+// nenhum payload daqui carrega userId — só o idToken, que quem chama recebe de
+// useAuth().
 export type CreateItemPayload = {
   category: BackendItemCategory;
   unit: BackendMeasurementUnit;
@@ -28,64 +30,39 @@ export type DeletedItem = {
 // derruba a listagem inteira.
 const MAX_PAGE_SIZE = 100;
 
-// Toda rota de item exige um userId UUID. Sem sessão a chamada só pode
-// falhar no servidor, então falhamos aqui — com um erro que diz o porquê.
-function requireSession() {
-  const session = sessionStore.get();
-  if (!session?.userId) {
-    throw new Error(
-      'No active session: sign in first, or set EXPO_PUBLIC_DEV_USER_ID and EXPO_PUBLIC_DEV_ID_TOKEN.',
-    );
-  }
-  return session;
-}
-
-function authOptions(token: string) {
-  return { token };
-}
-
-export async function fetchItems(): Promise<BackendItem[]> {
-  const session = requireSession();
+export async function fetchItems(idToken: string): Promise<BackendItem[]> {
   const query = new URLSearchParams({
-    userId: session.userId,
     active: 'true',
     sort: 'name',
     page: '1',
     limit: String(MAX_PAGE_SIZE),
   });
-  return apiClient.get<BackendItem[]>(
-    `/item?${query.toString()}`,
-    authOptions(session.idToken),
-  );
+  return apiClient.get<BackendItem[]>(`/item?${query.toString()}`, {
+    token: idToken,
+  });
 }
 
 export async function createItem(
+  idToken: string,
   payload: CreateItemPayload,
 ): Promise<BackendItem> {
-  const session = requireSession();
-  return apiClient.post<BackendItem>(
-    '/item',
-    { ...payload, userId: session.userId },
-    authOptions(session.idToken),
-  );
+  return apiClient.post<BackendItem>('/item', payload, { token: idToken });
 }
 
+// Item de outra conta responde 404: o backend não confirma que ele existe.
 export async function updateItem(
+  idToken: string,
   id: string,
   payload: UpdateItemPayload,
 ): Promise<BackendItem> {
-  const session = requireSession();
-  return apiClient.patch<BackendItem>(
-    `/item/${id}`,
-    payload,
-    authOptions(session.idToken),
-  );
+  return apiClient.patch<BackendItem>(`/item/${id}`, payload, {
+    token: idToken,
+  });
 }
 
-export async function deleteItem(id: string): Promise<DeletedItem> {
-  const session = requireSession();
-  return apiClient.delete<DeletedItem>(
-    `/item/${id}`,
-    authOptions(session.idToken),
-  );
+export async function deleteItem(
+  idToken: string,
+  id: string,
+): Promise<DeletedItem> {
+  return apiClient.delete<DeletedItem>(`/item/${id}`, { token: idToken });
 }

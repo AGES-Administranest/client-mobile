@@ -1,5 +1,6 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { MaterialsScreen } from 'features/materials';
 import { createItemLot } from 'features/materials/services/itemLotService';
 import {
@@ -17,6 +18,26 @@ jest.mock('features/materials/services/itemService', () => ({
 jest.mock('features/materials/services/itemLotService', () => ({
   createItemLot: jest.fn(),
 }));
+
+// A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
+jest.mock('features/auth/services/authService', () => ({}));
+jest.mock('features/auth/services/socialAuthService', () => ({}));
+jest.mock('features/auth/services/accountApi', () => ({}));
+
+const SESSION = {
+  idToken: 'id-token',
+  accessToken: 'access',
+  refreshToken: 'refresh',
+  expiresAt: 1,
+};
+
+const ACCOUNT: Account = {
+  id: 'user-1',
+  name: 'Bruna Senha',
+  email: 'bruna@example.com',
+  termsAcceptedAt: '2026-09-13T12:00:00.000Z',
+  termsVersion: TERMS_VERSION,
+};
 
 const fetchItemsMock = fetchItems as jest.MockedFunction<typeof fetchItems>;
 const createItemMock = createItem as jest.MockedFunction<typeof createItem>;
@@ -36,7 +57,9 @@ async function renderScreen() {
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
-        <MaterialsScreen />
+        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+          <MaterialsScreen />
+        </AuthProvider>
       </I18nProvider>,
     );
   });
@@ -147,6 +170,7 @@ test.each([
   await createWithCategory(label);
 
   expect(createItemMock).toHaveBeenCalledWith(
+    SESSION.idToken,
     expect.objectContaining({ category: expected }),
   );
 });
@@ -332,7 +356,7 @@ describe('supplier', () => {
       pressWithText(renderer, 'Confirmar')!.props.onPress();
     });
 
-    const [payload] = createItemMock.mock.calls[0];
+    const [, payload] = createItemMock.mock.calls[0];
     expect(payload).not.toHaveProperty('supplierId');
   });
 });

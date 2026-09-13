@@ -177,13 +177,14 @@ src/
 
 A feature only needs the subfolders it actually uses — don't create empty `domain/`/`services/` just to follow the template.
 
-**`src/features/home`** uses every subfolder and is meant as a living reference for the pattern — the `feature-dev`, `feature-mentor`, and `repo-review` skills all point here rather than hardcoding a feature name. If `home` is ever removed or simplified, update this section to point at whichever feature best demonstrates the full pattern next, so those skills keep working without edits:
+**`src/features/home`** uses almost every subfolder and is meant as a living reference for the pattern — the `feature-dev`, `feature-mentor`, and `repo-review` skills all point here rather than hardcoding a feature name. If `home` is ever removed or simplified, update this section to point at whichever feature best demonstrates the full pattern next, so those skills keep working without edits:
 
 - `domain/getGreetingPeriod.ts` — a pure function (plus its unit test) with no framework dependency.
-- `services/currentUserService.ts` — the data layer, stubbed until there's a real endpoint.
-- `hooks/useHomeScreen.ts` — wires the domain rule and the service call together for the screen.
+- `hooks/useHomeScreen.ts` — wires the domain rule and the signed-in account (`useAuth()`) together for the screen.
 - `components/AppTitle.tsx`, `components/GreetingCard.tsx` — presentational components, feature-local, receiving already-translated strings as props.
 - `screens/HomeScreen.tsx` — composes the components and hook; the only place that touches `useTranslation`.
+
+`home` no longer has a `services/` folder — its data is the account `features/auth` already holds. For a data layer that calls the API, see `src/features/materials/services` (below, under [Calling the API](#calling-the-api)).
 
 ### Dependency rules
 
@@ -241,18 +242,19 @@ emulator and against real AWS.
 
 #### Configuration
 
-Four `EXPO_PUBLIC_*` variables in `.env`, documented in
+Five `EXPO_PUBLIC_*` variables in `.env`, documented in
 [`.env.example`](./.env.example). They are inlined into the bundle at build time, so
 nothing secret can live there — and nothing needs to, since the Cognito app client is
 public by design.
 
-Three of them point at Cognito. The fourth, `EXPO_PUBLIC_API_URL`, points at the
+Four of them point at Cognito. The fifth, `EXPO_PUBLIC_API_URL`, points at the
 Administranest backend: Cognito is where the app signs in, but the user's own record
 lives in our API, created by `POST /auth/session` on the first valid login.
 
 To point the app at the local emulator, run `npm run dev:bootstrap` in the backend repo
-and copy the `COGNITO_CLIENT_ID` it writes to `backend/.aws-local.env`. The backend
-itself runs outside Docker (`npm run start:dev` there) on port 3000.
+and copy the `COGNITO_CLIENT_ID` and `COGNITO_OAUTH_URL` it writes to
+`backend/.aws-local.env`. The backend itself runs outside Docker (`npm run start:dev`
+there) on port 3000.
 
 On the Android emulator, `localhost` is the emulator, not your machine — use
 `http://10.0.2.2:<port>` for both the Cognito endpoint and the API.
@@ -276,12 +278,73 @@ try {
 table); `services/` holds the calls. Screens should import from `features/auth` only.
 
 The feature also owns the signed-out flow. `AuthProvider` (wrapped around the app in
-`App.tsx`) holds the session and exposes `useAuth()` → `{ session, signIn, signOut }`;
+`App.tsx`) holds the session and the account, and exposes
+`useAuth()` → `{ session, account, signIn, signInWithProvider, acceptTerms, signOut }`.
 `App.tsx` renders `AuthFlow` (welcome → login / sign-up → e-mail confirmation) while
-there is no session, and the tabs once there is one.
+there is no session, `TermsScreen` while the account has not accepted the current terms,
+and the tabs after that.
 
-**Not included yet, by design:** persisting the session across app launches, calling
-`POST /auth/session` after login, and a navigation library (`AuthFlow` switches steps
+#### The account in the API
+
+Signing in to Cognito is not enough to use the app: every backend route answers
+`401 USER_NOT_PROVISIONED` until the user's record exists there. So after any sign in —
+password or Google — the provider calls `POST /auth/session` with the id token, and only
+then sets `session` and `account` together; no screen ever sees one without the other.
+If the API refuses, the Cognito tokens are revoked and the error goes to the form.
+
+- **Terms of use (US25).** Sign-up has a required checkbox; after the e-mail is confirmed
+  the account is opened and `POST /auth/terms` records the current `TERMS_VERSION`. An
+  account without consent to that version — someone who came in through Google, or an
+  older version — sees `TermsScreen` before the tabs. Bump `TERMS_VERSION` when the texts
+  change and everyone is asked again. The texts themselves are a separate card.
+- **Same e-mail, two ways in.** A password account and a Google account with one e-mail
+  are two Cognito users; the second gets `409` from the API and the form says to use the
+  method the account was created with (ADR-13, option i). The conflict only surfaces
+  after Cognito authenticated the person, so naming it reveals nothing.
+- **Signing out** is on the account button at the top of the home screen until the
+  Profile tab exists.
+
+#### Calling the API
+
+Every backend route requires `Authorization: Bearer <idToken>` and takes the owner from
+the token — it rejects a `userId` in a body or query with `400`, and answers `404` for
+another account's record. So a feature's services never send `userId`: they take the id
+token as a parameter and pass it to `apiClient` (`shared/services/apiClient`), which
+sends it as the bearer header and throws `ApiError(message, code, status)`. The hook
+reads the token from `useAuth().session.idToken` and hands it to the service — services
+stay framework-free and there is no second session store. See
+`src/features/materials/services/itemService.ts` and `hooks/useMaterialsScreen.ts`.
+
+A `401` (`UNAUTHENTICATED`, `TOKEN_EXPIRED`, `TOKEN_INVALID`, `USER_NOT_PROVISIONED`)
+must reach the screen as an error — never as an empty list. Until the id token is
+refreshed before API calls (see below), the fix for the user is signing in again.
+
+#### Continue with Google
+
+The one place that does not use `fetch` against the Cognito API: social sign-in goes
+through **Cognito federation** (backend ADR-13). `signInWithProvider('Google')` opens
+the user pool's `/oauth2/authorize` with `identity_provider=Google` in an in-app browser
+(`expo-auth-session`), using the **authorization code flow with PKCE** — the app is a
+public client, so the code verifier is what stops an intercepted code from being
+redeemed by someone else. The code is exchanged at `/oauth2/token` and becomes the
+**same `AuthSession`** a password sign in produces: refresh and sign out need nothing
+new, and the backend cannot tell the two apart.
+
+- The return address is `administranest://auth/callback` in a native build,
+  `exp://<host>:8081/--/auth/callback` in Expo Go and `<origin>/auth/callback` on web.
+  Cognito only accepts addresses registered on the app client — the backend bootstrap
+  registers the simulator and web ones; a physical phone on Expo Go needs its LAN
+  address added there.
+- Closing the browser or declining at the provider resolves to `null` and shows no
+  error.
+- Locally, the Google screen is a fake IdP from the backend's Compose file: type any
+  e-mail as the user.
+- Sign in with Apple is out of scope for now. Before shipping to the App Store it has to
+  be reconsidered: Apple requires it when an iOS app offers another social login
+  (guideline 4.8). Adding it is one more `SocialProvider` — same flow, see ADR-13.
+
+**Not included yet, by design:** persisting the session across app launches, refreshing
+the id token before calling the API, and a navigation library (`AuthFlow` switches steps
 with local state). The session currently lives only in memory — persistence needs a
 storage dependency, which is a separate decision and a separate card.
 

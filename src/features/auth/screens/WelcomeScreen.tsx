@@ -6,7 +6,10 @@ import { useTranslation } from 'shared/i18n';
 
 import { AuthButton } from '../components/AuthButton';
 import { BrandHeader } from '../components/BrandHeader';
+import { FormMessage } from '../components/FormMessage';
 import { OrDivider } from '../components/OrDivider';
+import { SocialSignInButtons } from '../components/SocialSignInButtons';
+import { useSocialSignIn } from '../hooks/useSocialSignIn';
 
 type WelcomeScreenProps = {
   onCreateAccount: () => void;
@@ -19,6 +22,7 @@ export function WelcomeScreen({
 }: WelcomeScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const social = useSocialSignIn();
 
   return (
     <View
@@ -39,9 +43,23 @@ export function WelcomeScreen({
         <AuthButton
           label={t('auth.welcome.createAccount')}
           onPress={onCreateAccount}
+          disabled={social.isSubmitting}
         />
         <OrDivider label={t('auth.welcome.or')} />
-        <AuthButton label={t('auth.welcome.login')} onPress={onLogin} />
+        <AuthButton
+          label={t('auth.welcome.login')}
+          onPress={onLogin}
+          disabled={social.isSubmitting}
+        />
+
+        <OrDivider label={t('auth.social.divider')} />
+        <SocialSignInButtons
+          labels={{ Google: t('auth.social.google') }}
+          onPress={social.signInWith}
+          pendingProvider={social.pendingProvider}
+          disabled={social.isSubmitting}
+        />
+        <FormMessage message={social.errorKey ? t(social.errorKey) : null} />
       </View>
     </View>
   );

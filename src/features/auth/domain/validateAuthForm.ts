@@ -1,4 +1,8 @@
-export type AuthFieldError = 'required' | 'invalidEmail' | 'passwordMismatch';
+export type AuthFieldError =
+  | 'required'
+  | 'invalidEmail'
+  | 'passwordMismatch'
+  | 'termsRequired';
 
 export type LoginForm = {
   email: string;
@@ -8,6 +12,8 @@ export type LoginForm = {
 export type SignUpForm = LoginForm & {
   name: string;
   passwordConfirmation: string;
+  // Terms of use and privacy policy (US25): no account without it.
+  acceptedTerms: boolean;
 };
 
 export type FormErrors<TForm> = Partial<Record<keyof TForm, AuthFieldError>>;
@@ -42,6 +48,10 @@ export function validateSignUpForm(form: SignUpForm): FormErrors<SignUpForm> {
     errors.passwordConfirmation = 'required';
   } else if (form.password !== form.passwordConfirmation) {
     errors.passwordConfirmation = 'passwordMismatch';
+  }
+
+  if (!form.acceptedTerms) {
+    errors.acceptedTerms = 'termsRequired';
   }
 
   return errors;

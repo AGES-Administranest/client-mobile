@@ -1,5 +1,6 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { MaterialsScreen } from 'features/materials';
 import { fetchItems } from 'features/materials/services/itemService';
 import { I18nProvider } from 'shared/i18n';
@@ -12,6 +13,26 @@ jest.mock('features/materials/services/itemService', () => ({
   updateItem: jest.fn(),
   deleteItem: jest.fn(),
 }));
+
+// A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
+jest.mock('features/auth/services/authService', () => ({}));
+jest.mock('features/auth/services/socialAuthService', () => ({}));
+jest.mock('features/auth/services/accountApi', () => ({}));
+
+const SESSION = {
+  idToken: 'id-token',
+  accessToken: 'access',
+  refreshToken: 'refresh',
+  expiresAt: 1,
+};
+
+const ACCOUNT: Account = {
+  id: 'user-1',
+  name: 'Bruna Senha',
+  email: 'bruna@example.com',
+  termsAcceptedAt: '2026-09-13T12:00:00.000Z',
+  termsVersion: TERMS_VERSION,
+};
 
 const fetchItemsMock = fetchItems as jest.MockedFunction<typeof fetchItems>;
 
@@ -26,7 +47,9 @@ async function renderScreen() {
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
-        <MaterialsScreen />
+        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+          <MaterialsScreen />
+        </AuthProvider>
       </I18nProvider>,
     );
   });
@@ -88,4 +111,18 @@ test('switching segment keeps the empty state', async () => {
   });
 
   expect(getTexts(renderer)).toContain('Nenhum item encontrado');
+});
+
+test('a rejected session shows the session message instead of an empty list', async () => {
+  const { ApiError } = jest.requireActual<
+    typeof import('shared/services/apiClient')
+  >('shared/services/apiClient');
+  fetchItemsMock.mockRejectedValue(
+    new ApiError('Token expired', 'TOKEN_EXPIRED', 401),
+  );
+
+  const renderer = await renderScreen();
+
+  expect(getTexts(renderer)).toContain('Sua sessão expirou');
+  expect(getTexts(renderer)).not.toContain('Nenhum item encontrado');
 });

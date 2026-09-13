@@ -16,7 +16,7 @@ The `materials` feature (`src/features/materials`) currently renders a placehold
 | Feature | Reason |
 | --- | --- |
 | "+ Adicionar material" flow (bottom sheet / form) | Button is rendered and reachable, but the add-material form/bottom-sheet is a separate story — button is a no-op placeholder for now |
-| Real backend integration | No materials API exists yet; service layer stubs realistic mock data, matching `currentUserService.ts` convention |
+| Real backend integration | No materials API existed when this spec was written, so the service layer stubbed mock data. Since superseded: `features/materials/services` calls `/item` with the session's id token (no `userId`) |
 | Equipment category set behind the "Equipamentos" segment | Only "Insumos e medicamentos" categories are in the reference mock; equipment categories are assumed identical shape, mock data provided, no dedicated design reference |
 | Search/sort | Not present in the mock |
 

@@ -17,28 +17,14 @@ import { SegmentedControl } from 'app/components/ui/segmented-control';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import type { TranslationKey } from 'shared/i18n/dictionary';
-import { ApiError } from 'shared/services/apiClient';
 
 import {
   ALL_CATEGORIES,
   CATEGORY_OPTIONS,
   UNIT_OPTIONS,
 } from '../domain/materialsFilter';
+import { materialsErrorKey } from '../hooks/materialsErrorKeys';
 import { useMaterialsScreen } from '../hooks/useMaterialsScreen';
-
-const ERROR_MESSAGE_KEYS: Record<string, TranslationKey> = {
-  DUPLICATED_ITEM_PRESENTATION: 'materials.errorDuplicatedItem',
-  DUPLICATED_SUPPLIER_NAME: 'materials.errorDuplicatedSupplier',
-};
-
-// O código do erro é o contrato estável com o backend (ADR-07). Sem isto, um
-// 409 de nome repetido chegava na tela como "não foi possível salvar".
-function errorKeyFor(error: unknown, fallback: TranslationKey): TranslationKey {
-  if (error instanceof ApiError && error.code) {
-    return ERROR_MESSAGE_KEYS[error.code] ?? fallback;
-  }
-  return fallback;
-}
 
 export function MaterialsScreen() {
   const { t } = useTranslation();
@@ -95,7 +81,7 @@ export function MaterialsScreen() {
       await onConfirmAdd(draft);
       closeModal();
     } catch (saveError) {
-      setActionError(errorKeyFor(saveError, 'materials.errorSave'));
+      setActionError(materialsErrorKey(saveError, 'materials.errorSave'));
     } finally {
       setIsSaving(false);
     }
@@ -119,7 +105,7 @@ export function MaterialsScreen() {
     try {
       await onDeleteItem(target.id);
     } catch (deleteError) {
-      setActionError(errorKeyFor(deleteError, 'materials.errorDelete'));
+      setActionError(materialsErrorKey(deleteError, 'materials.errorDelete'));
     }
   }
 

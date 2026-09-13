@@ -1,6 +1,7 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { sessionStore } from 'shared/services/sessionStore';
+import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
+import { ApiError } from 'shared/services/apiClient';
 
 import { useMaterialsScreen } from './useMaterialsScreen';
 import type { BackendItem } from '../domain/materialsFilter';
@@ -21,6 +22,10 @@ jest.mock('../services/itemService', () => ({
 jest.mock('../services/itemLotService', () => ({
   createItemLot: jest.fn(),
 }));
+// A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
+jest.mock('features/auth/services/authService', () => ({}));
+jest.mock('features/auth/services/socialAuthService', () => ({}));
+jest.mock('features/auth/services/accountApi', () => ({}));
 
 const fetchItemsMock = fetchItems as jest.MockedFunction<typeof fetchItems>;
 const createItemMock = createItem as jest.MockedFunction<typeof createItem>;
@@ -30,7 +35,20 @@ const createItemLotMock = createItemLot as jest.MockedFunction<
   typeof createItemLot
 >;
 
-const USER_ID = '3f1a2b4c-5d6e-4f70-8a91-b2c3d4e5f607';
+const SESSION = {
+  idToken: 'id-token',
+  accessToken: 'access',
+  refreshToken: 'refresh',
+  expiresAt: 1,
+};
+
+const ACCOUNT: Account = {
+  id: 'user-1',
+  name: 'Bruna Senha',
+  email: 'bruna@example.com',
+  termsAcceptedAt: '2026-09-13T12:00:00.000Z',
+  termsVersion: TERMS_VERSION,
+};
 
 const EXISTING: BackendItem = {
   id: 'item-1',
@@ -61,7 +79,6 @@ const baseDraft = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  sessionStore.set({ userId: USER_ID, idToken: 'token' });
   fetchItemsMock.mockResolvedValue([EXISTING]);
   createItemMock.mockResolvedValue({ ...EXISTING, id: 'item-new' });
   updateItemMock.mockResolvedValue(EXISTING);
@@ -82,7 +99,11 @@ async function mountHook() {
   }
 
   await act(async () => {
-    ReactTestRenderer.create(<Harness />);
+    ReactTestRenderer.create(
+      <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+        <Harness />
+      </AuthProvider>,
+    );
   });
 
   return { result };
@@ -101,6 +122,7 @@ test('editing an existing item updates it instead of creating a duplicate', asyn
   });
 
   expect(updateItemMock).toHaveBeenCalledWith(
+    SESSION.idToken,
     'item-1',
     expect.objectContaining({ name: 'Dipirona 1g' }),
   );
@@ -120,6 +142,7 @@ test('editing persists the minimum stock the form shows', async () => {
   });
 
   expect(updateItemMock).toHaveBeenCalledWith(
+    SESSION.idToken,
     'item-1',
     expect.objectContaining({ minimumStock: 15 }),
   );
@@ -150,6 +173,7 @@ test('adding stock to an item already in the list creates a lot, not an item', a
 
   expect(createItemMock).not.toHaveBeenCalled();
   expect(createItemLotMock).toHaveBeenCalledWith(
+    SESSION.idToken,
     'item-1',
     expect.objectContaining({ quantity: 7 }),
   );
@@ -163,7 +187,7 @@ test('deleting an item removes it from the list', async () => {
     await result.current.onDeleteItem('item-1');
   });
 
-  expect(deleteItemMock).toHaveBeenCalledWith('item-1');
+  expect(deleteItemMock).toHaveBeenCalledWith(SESSION.idToken, 'item-1');
   expect(result.current.items).toHaveLength(0);
 });
 
@@ -180,6 +204,7 @@ test('sends the expiration the user typed as an ISO date', async () => {
   });
 
   expect(createItemLotMock).toHaveBeenCalledWith(
+    SESSION.idToken,
     'item-1',
     expect.objectContaining({ expirationDate: '2027-03-31' }),
   );
@@ -198,7 +223,33 @@ test('ignores an incomplete expiration instead of sending garbage', async () => 
   });
 
   expect(createItemLotMock).toHaveBeenCalledWith(
+    SESSION.idToken,
     'item-1',
     expect.objectContaining({ expirationDate: undefined }),
   );
+});
+
+test('loads the stock with the id token of the signed-in session', async () => {
+  await mountHook();
+
+  expect(fetchItemsMock).toHaveBeenCalledWith(SESSION.idToken);
+});
+
+test('a rejected token surfaces as a session error, not as an empty stock', async () => {
+  fetchItemsMock.mockRejectedValue(
+    new ApiError('Token expired', 'TOKEN_EXPIRED', 401),
+  );
+
+  const { result } = await mountHook();
+
+  expect(result.current.error).toBe('materials.errorSession');
+  expect(result.current.isLoading).toBe(false);
+});
+
+test('any other load failure keeps the generic load error', async () => {
+  fetchItemsMock.mockRejectedValue(new Error('network down'));
+
+  const { result } = await mountHook();
+
+  expect(result.current.error).toBe('materials.errorLoad');
 });
