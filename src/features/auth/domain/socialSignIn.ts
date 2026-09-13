@@ -4,12 +4,9 @@ import { AuthSession } from './session';
 // The names the Cognito user pool gives its identity providers. They are sent
 // as `identity_provider` and are the same locally and in production — locally
 // the backend registers them against a fake IdP (backend ADR-13).
-export type SocialProvider = 'Google' | 'SignInWithApple';
+export type SocialProvider = 'Google';
 
-export const SOCIAL_PROVIDERS: readonly SocialProvider[] = [
-  'Google',
-  'SignInWithApple',
-];
+export const SOCIAL_PROVIDERS: readonly SocialProvider[] = ['Google'];
 
 // What the browser step can end in, reduced to what the app acts on.
 export type BrowserOutcome =

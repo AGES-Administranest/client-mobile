@@ -4,8 +4,8 @@ import { useAuth } from './AuthContext';
 import { useSubmit } from './useSubmit';
 import { SocialProvider } from '../domain/socialSignIn';
 
-// Drives the "continue with Google / Apple" buttons: one provider at a time,
-// the pressed one shows the spinner, and backing out shows no error.
+// Drives the "continue with Google" button: one sign in at a time, the pressed
+// provider shows the spinner, and backing out shows no error.
 export function useSocialSignIn() {
   const { signInWithProvider } = useAuth();
   const { isSubmitting, errorKey, run } = useSubmit();

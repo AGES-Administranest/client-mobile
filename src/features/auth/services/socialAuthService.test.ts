@@ -60,7 +60,7 @@ describe('signInWithProvider', () => {
     authorizeWith({ code: 'the-code' });
     mockExchange.mockResolvedValue(TOKENS as never);
 
-    await signInWithProvider('SignInWithApple', () => NOW);
+    await signInWithProvider('Google', () => NOW);
 
     expect(mockAuthRequest).toHaveBeenCalledWith({
       clientId: 'test-client',
@@ -68,7 +68,7 @@ describe('signInWithProvider', () => {
       responseType: 'code',
       scopes: ['openid', 'email', 'profile'],
       usePKCE: true,
-      extraParams: { identity_provider: 'SignInWithApple' },
+      extraParams: { identity_provider: 'Google' },
     });
     expect(mockPromptAsync).toHaveBeenCalledWith(
       { authorizationEndpoint: 'http://localhost:4566/oauth2/authorize' },

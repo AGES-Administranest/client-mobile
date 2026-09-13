@@ -282,7 +282,7 @@ The feature also owns the signed-out flow. `AuthProvider` (wrapped around the ap
 `App.tsx` renders `AuthFlow` (welcome → login / sign-up → e-mail confirmation) while
 there is no session, and the tabs once there is one.
 
-#### Continue with Google / Apple
+#### Continue with Google
 
 The one place that does not use `fetch` against the Cognito API: social sign-in goes
 through **Cognito federation** (backend ADR-13). `signInWithProvider('Google')` opens
@@ -300,8 +300,11 @@ new, and the backend cannot tell the two apart.
   address added there.
 - Closing the browser or declining at the provider resolves to `null` and shows no
   error.
-- Locally, the Google and Apple screens are a fake IdP from the backend's Compose file:
-  type any e-mail as the user.
+- Locally, the Google screen is a fake IdP from the backend's Compose file: type any
+  e-mail as the user.
+- Sign in with Apple is out of scope for now. Before shipping to the App Store it has to
+  be reconsidered: Apple requires it when an iOS app offers another social login
+  (guideline 4.8). Adding it is one more `SocialProvider` — same flow, see ADR-13.
 
 **Not handled yet:** the same e-mail with a password account and a Google account are
 two different Cognito users (`POST /auth/session` answers 409 for the second), and a

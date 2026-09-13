@@ -77,10 +77,7 @@ export function LoginScreen({
 
       <OrDivider label={t('auth.social.divider')} />
       <SocialSignInButtons
-        labels={{
-          Google: t('auth.social.google'),
-          SignInWithApple: t('auth.social.apple'),
-        }}
+        labels={{ Google: t('auth.social.google') }}
         onPress={social.signInWith}
         pendingProvider={social.pendingProvider}
         disabled={isSubmitting || social.isSubmitting}

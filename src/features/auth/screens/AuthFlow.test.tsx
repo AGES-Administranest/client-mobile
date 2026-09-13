@@ -105,27 +105,24 @@ describe('welcome', () => {
 });
 
 describe('social sign in', () => {
-  it('offers Google and Apple on the welcome and login screens', async () => {
+  it('offers Google, and only Google, on the welcome and login screens', async () => {
     const renderer = await renderFlow();
 
     expect(byLabel(renderer, 'Continuar com Google')).toBeDefined();
-    expect(byLabel(renderer, 'Continuar com Apple')).toBeDefined();
+    expect(byLabel(renderer, 'Continuar com Apple')).toBeUndefined();
 
     await press(renderer, 'Login');
 
     expect(byLabel(renderer, 'Continuar com Google')).toBeDefined();
-    expect(byLabel(renderer, 'Continuar com Apple')).toBeDefined();
   });
 
-  it('stores the session of the provider the user picked', async () => {
+  it('stores the session of the Google sign in', async () => {
     socialService.signInWithProvider.mockResolvedValue(SESSION);
     const renderer = await renderFlow();
 
-    await press(renderer, 'Continuar com Apple');
+    await press(renderer, 'Continuar com Google');
 
-    expect(socialService.signInWithProvider).toHaveBeenCalledWith(
-      'SignInWithApple',
-    );
+    expect(socialService.signInWithProvider).toHaveBeenCalledWith('Google');
     expect(sessionSeen).toEqual(SESSION);
   });
 

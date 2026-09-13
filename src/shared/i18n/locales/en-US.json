@@ -97,8 +97,7 @@
     },
     "social": {
       "divider": "or continue with",
-      "google": "Continue with Google",
-      "apple": "Continue with Apple"
+      "google": "Continue with Google"
     },
     "fields": {
       "name": "Name",
