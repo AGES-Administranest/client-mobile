@@ -3,6 +3,7 @@ import { useTranslation } from 'shared/i18n';
 import { AuthButton } from '../components/AuthButton';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormMessage } from '../components/FormMessage';
+import { TermsCheckbox } from '../components/TermsCheckbox';
 import { TextField } from '../components/TextField';
 import { fieldErrorKey } from '../hooks/authMessageKeys';
 import { useSignUpForm } from '../hooks/useSignUpForm';
@@ -82,6 +83,13 @@ export function SignUpScreen({
         returnKeyType="done"
         onSubmitEditing={submit}
         editable={!isSubmitting}
+      />
+      <TermsCheckbox
+        label={t('auth.terms.checkbox')}
+        checked={form.acceptedTerms}
+        onChange={value => setField('acceptedTerms', value)}
+        error={fieldError('acceptedTerms')}
+        disabled={isSubmitting}
       />
 
       <FormMessage message={errorKey ? t(errorKey) : null} />

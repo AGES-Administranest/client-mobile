@@ -4,16 +4,23 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 import { I18nProvider } from 'shared/i18n';
 
 import { AuthFlow } from './AuthFlow';
+import { TermsScreen } from './TermsScreen';
+import { Account, TERMS_VERSION } from '../domain/account';
 import { AuthError } from '../domain/authErrors';
 import { AuthProvider, useAuth } from '../hooks/AuthContext';
+import * as accountApi from '../services/accountApi';
 import * as authService from '../services/authService';
 import * as socialAuthService from '../services/socialAuthService';
 
 jest.mock('../services/authService');
 jest.mock('../services/socialAuthService');
+jest.mock('../services/accountApi');
 
 const service = jest.mocked(authService);
 const socialService = jest.mocked(socialAuthService);
+const api = jest.mocked(accountApi);
+
+const TERMS_LABEL = 'Li e aceito os Termos de Uso e a Política de Privacidade.';
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -27,10 +34,27 @@ const SESSION = {
   expiresAt: 1,
 };
 
+const ACCOUNT: Account = {
+  id: 'user-1',
+  name: 'Ana Souza',
+  email: 'ana@example.com',
+  termsAcceptedAt: null,
+  termsVersion: null,
+};
+
+const ACCEPTED: Account = {
+  ...ACCOUNT,
+  termsAcceptedAt: '2026-09-13T12:00:00.000Z',
+  termsVersion: TERMS_VERSION,
+};
+
 let sessionSeen: unknown = null;
+let accountSeen: unknown = null;
 
 function SessionProbe() {
-  sessionSeen = useAuth().session;
+  const auth = useAuth();
+  sessionSeen = auth.session;
+  accountSeen = auth.account;
   return null;
 }
 
@@ -89,6 +113,10 @@ async function type(
 beforeEach(() => {
   jest.resetAllMocks();
   sessionSeen = null;
+  accountSeen = null;
+  api.createSession.mockResolvedValue(ACCOUNT);
+  api.acceptTerms.mockResolvedValue(ACCEPTED);
+  service.signOut.mockResolvedValue();
 });
 
 describe('welcome', () => {
@@ -175,7 +203,28 @@ describe('login', () => {
     await press(renderer, 'Entrar');
 
     expect(service.signIn).toHaveBeenCalledWith('ana@example.com', 'Passw0rd@');
+    expect(api.createSession).toHaveBeenCalledWith('id');
     expect(sessionSeen).toEqual(SESSION);
+    expect(accountSeen).toEqual(ACCOUNT);
+  });
+
+  it('explains an e-mail that already signs in another way, and stays signed out', async () => {
+    service.signIn.mockResolvedValue(SESSION);
+    api.createSession.mockRejectedValue(
+      new AuthError('ACCOUNT_USES_OTHER_SIGN_IN'),
+    );
+    const renderer = await renderFlow();
+
+    await press(renderer, 'Login');
+    await type(renderer, 'E-mail', 'ana@example.com');
+    await type(renderer, 'Senha', 'Passw0rd@');
+    await press(renderer, 'Entrar');
+
+    expect(texts(renderer)).toContain(
+      'Este e-mail já tem uma conta com outra forma de entrar.',
+    );
+    expect(service.signOut).toHaveBeenCalledWith(SESSION);
+    expect(sessionSeen).toBeNull();
   });
 
   it('shows one generic message for wrong credentials', async () => {
@@ -215,7 +264,18 @@ describe('sign up', () => {
     await type(renderer, 'E-mail', 'ana@example.com');
     await type(renderer, 'Senha', 'Passw0rd@');
     await type(renderer, 'Confirmar senha', 'Passw0rd@');
+    await press(renderer, TERMS_LABEL);
   }
+
+  it('does not create the account without accepting the terms', async () => {
+    const renderer = await renderFlow();
+    await fillSignUp(renderer);
+    await press(renderer, TERMS_LABEL);
+    await press(renderer, 'Criar conta');
+
+    expect(texts(renderer)).toContain('Aceite os termos para continuar.');
+    expect(service.signUp).not.toHaveBeenCalled();
+  });
 
   it('rejects a password confirmation that does not match', async () => {
     const renderer = await renderFlow();
@@ -227,7 +287,7 @@ describe('sign up', () => {
     expect(service.signUp).not.toHaveBeenCalled();
   });
 
-  it('confirms the code and signs the new user in', async () => {
+  it('confirms the code, signs the new user in and records the terms', async () => {
     service.signUp.mockResolvedValue({ userSub: 'sub', isConfirmed: false });
     service.confirmSignUp.mockResolvedValue();
     service.signIn.mockResolvedValue(SESSION);
@@ -252,7 +312,10 @@ describe('sign up', () => {
       '123456',
     );
     expect(service.signIn).toHaveBeenCalledWith('ana@example.com', 'Passw0rd@');
+    expect(api.createSession).toHaveBeenCalledWith('id');
+    expect(api.acceptTerms).toHaveBeenCalledWith('id', TERMS_VERSION);
     expect(sessionSeen).toEqual(SESSION);
+    expect(accountSeen).toEqual(ACCEPTED);
   });
 
   it('keeps the user on the confirmation step when the code is wrong', async () => {
@@ -267,5 +330,64 @@ describe('sign up', () => {
 
     expect(texts(renderer)).toContain('Código inválido.');
     expect(service.signIn).not.toHaveBeenCalled();
+  });
+});
+
+describe('terms screen', () => {
+  async function renderTerms() {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <SafeAreaProvider initialMetrics={METRICS}>
+          <I18nProvider>
+            <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+              <SessionProbe />
+              <TermsScreen />
+            </AuthProvider>
+          </I18nProvider>
+        </SafeAreaProvider>,
+      );
+    });
+
+    return renderer;
+  }
+
+  it('greets the account and asks for consent before recording it', async () => {
+    const renderer = await renderTerms();
+
+    expect(texts(renderer)).toContain('Olá, Ana Souza.');
+    await press(renderer, 'Aceitar e continuar');
+
+    expect(texts(renderer)).toContain('Aceite os termos para continuar.');
+    expect(api.acceptTerms).not.toHaveBeenCalled();
+  });
+
+  it('records the current version once the box is ticked', async () => {
+    const renderer = await renderTerms();
+
+    await press(renderer, TERMS_LABEL);
+    await press(renderer, 'Aceitar e continuar');
+
+    expect(api.acceptTerms).toHaveBeenCalledWith('id', TERMS_VERSION);
+    expect(accountSeen).toEqual(ACCEPTED);
+  });
+
+  it('lets the person leave the account instead of accepting', async () => {
+    const renderer = await renderTerms();
+
+    await act(async () => {
+      renderer.root
+        .findAll(
+          node =>
+            node.props.accessibilityLabel === 'Sair da conta' &&
+            typeof node.props.onPress === 'function',
+        )[0]
+        .props.onPress();
+    });
+
+    expect(service.signOut).toHaveBeenCalledWith(SESSION);
+    expect(sessionSeen).toBeNull();
+    expect(accountSeen).toBeNull();
   });
 });

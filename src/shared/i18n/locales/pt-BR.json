@@ -128,7 +128,8 @@
     "validation": {
       "required": "Campo obrigatório.",
       "invalidEmail": "Informe um e-mail válido.",
-      "passwordMismatch": "As senhas não coincidem."
+      "passwordMismatch": "As senhas não coincidem.",
+      "termsRequired": "Aceite os termos para continuar."
     },
     "errors": {
       "invalidCredentials": "E-mail ou senha incorretos.",
@@ -141,7 +142,19 @@
       "sessionExpired": "Sua sessão expirou. Entre novamente.",
       "tooManyAttempts": "Muitas tentativas. Aguarde um pouco e tente novamente.",
       "networkUnavailable": "Sem conexão. Verifique sua internet e tente novamente.",
-      "unknown": "Algo deu errado. Tente novamente."
+      "unknown": "Algo deu errado. Tente novamente.",
+      "accountUsesOtherSignIn": "Este e-mail já tem uma conta com outra forma de entrar. Use o mesmo método do cadastro (e-mail e senha, ou Google)."
+    },
+    "terms": {
+      "title": "Termos de uso",
+      "description": "Olá, {{name}}. Para usar o Administranest, aceite os termos de uso e a política de privacidade.",
+      "checkbox": "Li e aceito os Termos de Uso e a Política de Privacidade.",
+      "submit": "Aceitar e continuar",
+      "signOut": "Sair da conta"
+    },
+    "account": {
+      "menu": "Conta",
+      "signOut": "Sair da conta"
     }
   }
 }

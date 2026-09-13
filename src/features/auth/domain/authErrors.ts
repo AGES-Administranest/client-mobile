@@ -7,6 +7,7 @@ export type AuthErrorCode =
   | 'INVALID_PASSWORD_FORMAT'
   | 'USER_NOT_CONFIRMED'
   | 'SESSION_EXPIRED'
+  | 'ACCOUNT_USES_OTHER_SIGN_IN'
   | 'TOO_MANY_ATTEMPTS'
   | 'NETWORK_UNAVAILABLE'
   | 'UNKNOWN';
@@ -46,6 +47,22 @@ export function toAuthErrorCode(cognitoType: string): AuthErrorCode {
     default:
       return 'UNKNOWN';
   }
+}
+
+// Errors from the Administranest API while opening the account. A 409 only
+// happens after Cognito already authenticated the person, so naming the
+// problem reveals nothing to someone guessing e-mails.
+export function fromApiError(status: number, code?: string): AuthErrorCode {
+  if (status === 409 && code === 'USER_EMAIL_ALREADY_REGISTERED') {
+    return 'ACCOUNT_USES_OTHER_SIGN_IN';
+  }
+  if (status === 401) {
+    return 'SESSION_EXPIRED';
+  }
+  if (status === 429) {
+    return 'TOO_MANY_ATTEMPTS';
+  }
+  return 'UNKNOWN';
 }
 
 function stripNamespace(cognitoType: string): string {
