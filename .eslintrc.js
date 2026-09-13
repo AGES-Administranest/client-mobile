@@ -1,5 +1,7 @@
 module.exports = {
   root: true,
+  // Build output, not source: linting a webpack bundle only yields noise.
+  ignorePatterns: ['dist/', 'web-build/'],
   extends: '@react-native',
   plugins: ['import'],
   rules: {
