@@ -35,6 +35,7 @@
       "cancel": "Cancel"
     },
     "loading": "Reading the invoice...",
+    "uploading": "Sending the document...",
     "review": {
       "confirm": "Confirm",
       "found": "{{count}} items found · tap to fix",
@@ -48,7 +49,15 @@
       "noTextLayer": "This PDF has no selectable text (it looks scanned). Please send a digitally generated PDF.",
       "noItems": "We couldn't find any items in this document. Check that it is an invoice or quote.",
       "ocrUnavailable": "Photo recognition needs a development build (it does not work in Expo Go). Use \"Attach PDF\" for now.",
-      "permissionDenied": "We need your permission to access photos."
+      "permissionDenied": "We need your permission to access photos.",
+      "unsupportedType": "We only take a PDF or a JPEG photo. Take the photo in the app or pick another file.",
+      "offline": "No internet connection. Sending needs a network — try again once it is back.",
+      "tooLarge": "This file is over 15 MB. Take the photo again or send a smaller PDF.",
+      "duplicateFile": "This document was sent before. Open the existing entry instead of creating another.",
+      "notProvisioned": "Your account is not finished yet. Sign out and sign in again.",
+      "uploadRejected": "The upload was refused. Please try again.",
+      "notConfirmed": "The file did not arrive complete. Please send it again.",
+      "unexpected": "Something went wrong while sending. Try again in a moment."
     }
   },
   "tabbar": {

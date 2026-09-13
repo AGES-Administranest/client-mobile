@@ -51,8 +51,12 @@ export function StockEntryFlow() {
       </Modal>
 
       <LoadingOverlay
-        visible={flow.step === 'processing'}
-        label={t('stockEntry.loading')}
+        visible={flow.step === 'uploading' || flow.step === 'processing'}
+        label={t(
+          flow.step === 'uploading'
+            ? 'stockEntry.uploading'
+            : 'stockEntry.loading',
+        )}
       />
 
       <StockReviewScreen

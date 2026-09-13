@@ -35,6 +35,7 @@
       "cancel": "Cancelar"
     },
     "loading": "Lendo a nota...",
+    "uploading": "Enviando o documento...",
     "review": {
       "confirm": "Confirmar",
       "found": "{{count}} itens encontrados · toque para corrigir",
@@ -48,7 +49,15 @@
       "noTextLayer": "Este PDF não tem texto selecionável (parece digitalizado). Envie um PDF gerado digitalmente.",
       "noItems": "Não encontramos itens neste documento. Confira se é uma nota ou cotação.",
       "ocrUnavailable": "A leitura por foto precisa de um build de desenvolvimento (não funciona no Expo Go). Use \"Anexar PDF\" por enquanto.",
-      "permissionDenied": "Precisamos da sua permissão para acessar as fotos."
+      "permissionDenied": "Precisamos da sua permissão para acessar as fotos.",
+      "unsupportedType": "Só aceitamos PDF ou foto em JPEG. Tire a foto pelo app ou escolha outro arquivo.",
+      "offline": "Sem conexão com a internet. O envio precisa de rede — tente de novo quando voltar.",
+      "tooLarge": "Este arquivo passa de 15 MB. Tire a foto de novo ou envie um PDF menor.",
+      "duplicateFile": "Este documento já foi enviado antes. Abra a entrada existente em vez de criar outra.",
+      "notProvisioned": "Sua conta ainda não terminou de ser criada. Saia e entre de novo no app.",
+      "uploadRejected": "O envio do arquivo foi recusado. Tente de novo.",
+      "notConfirmed": "O arquivo não chegou completo ao servidor. Tente enviar de novo.",
+      "unexpected": "Algo deu errado no envio. Tente de novo em instantes."
     }
   },
   "tabbar": {
