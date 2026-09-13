@@ -11,6 +11,7 @@ type ConfirmSignUpScreenProps = {
   email: string;
   password: string;
   resendOnMount: boolean;
+  acceptTerms: boolean;
   onBack: () => void;
 };
 
@@ -18,6 +19,7 @@ export function ConfirmSignUpScreen({
   email,
   password,
   resendOnMount,
+  acceptTerms,
   onBack,
 }: ConfirmSignUpScreenProps) {
   const { t } = useTranslation();
@@ -30,7 +32,7 @@ export function ConfirmSignUpScreen({
     isSubmitting,
     errorKey,
     noticeKey,
-  } = useConfirmSignUp({ email, password, resendOnMount });
+  } = useConfirmSignUp({ email, password, resendOnMount, acceptTerms });
 
   const codeErrorKey = fieldErrorKey(codeError);
 
