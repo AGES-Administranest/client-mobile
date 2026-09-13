@@ -2,6 +2,7 @@
   "expo": {
     "name": "ClientMobile",
     "slug": "client-mobile",
+    "scheme": "administranest",
     "version": "0.0.1",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -28,7 +29,8 @@
         {
           "photosPermission": "Permita o acesso às fotos para escolher a imagem de uma nota fiscal."
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }
