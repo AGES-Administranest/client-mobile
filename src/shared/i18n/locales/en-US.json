@@ -84,7 +84,34 @@
           "other": "un"
         }
       },
-      "quantity": "{{quantity}} {{unit}}"
+      "quantity": "{{quantity}} {{unit}}",
+      "newEntry": "New entry",
+      "savedMessage": "Update saved"
+    },
+    "outputAdjustment": {
+      "title": "Stock output adjustment",
+      "close": "Close",
+      "itemLabel": "Item",
+      "itemPlaceholder": "Select the item",
+      "quantityLabel": "Quantity",
+      "quantityPlaceholder": "0",
+      "reasonLabel": "Reason",
+      "otherReasonLabel": "Describe the reason",
+      "otherReasonPlaceholder": "Write what happened",
+      "save": "Save",
+      "reasons": {
+        "loss": "Loss",
+        "expiration": "Expiration",
+        "breakage": "Breakage",
+        "other": "Other"
+      },
+      "errors": {
+        "required": "Required field",
+        "mustBePositive": "Quantity must be greater than zero",
+        "INSUFFICIENT_STOCK": "Quantity is above the available balance ({{available}}).",
+        "ITEM_NOT_FOUND": "Item not found.",
+        "UNKNOWN": "Could not save the adjustment."
+      }
     }
   },
   "tabbar": {
