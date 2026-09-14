@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import * as React from 'react';
-import { StatusBar, useColorScheme, View } from 'react-native';
+import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -62,19 +62,19 @@ function AppContent() {
   }
 
   const Screen = SCREENS[tab];
-  const gradientStyle = { flex: 1, paddingTop: insets.top };
   const tabBarWrapperStyle = { paddingBottom: insets.bottom };
 
   return (
-    <LinearGradient
-      colors={Colors.background.primary.colors}
-      locations={Colors.background.primary.locations}
-      style={gradientStyle}
-    >
+    <View className="flex-1" style={{ paddingTop: insets.top }}>
+      <LinearGradient
+        colors={Colors.background.primary.colors}
+        locations={Colors.background.primary.locations}
+        style={StyleSheet.absoluteFill}
+      />
       <Screen />
       <View style={tabBarWrapperStyle}>
         <TabBar value={tab} onValueChange={setTab} className="mx-4 mb-[25px]" />
       </View>
-    </LinearGradient>
+    </View>
   );
 }
