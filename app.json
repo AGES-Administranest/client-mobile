@@ -2,6 +2,7 @@
   "expo": {
     "name": "ClientMobile",
     "slug": "client-mobile",
+    "scheme": "administranest",
     "version": "0.0.1",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -15,6 +16,7 @@
     },
     "web": {
       "bundler": "metro"
-    }
+    },
+    "plugins": ["expo-web-browser"]
   }
 }
