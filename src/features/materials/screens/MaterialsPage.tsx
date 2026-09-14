@@ -15,6 +15,7 @@ import type {
 } from 'app/components/ui/item-modal/item-modal';
 import { SegmentedControl } from 'app/components/ui/segmented-control';
 import { Text } from 'app/components/ui/text';
+import { StockEntryFlow } from 'features/stockEntry';
 import { useTranslation } from 'shared/i18n';
 import type { TranslationKey } from 'shared/i18n/dictionary';
 
@@ -148,6 +149,7 @@ export function MaterialsScreen() {
           />
         ))}
       </ScrollView>
+      <StockEntryFlow />
       <Button
         shape="pill"
         icon={Plus}

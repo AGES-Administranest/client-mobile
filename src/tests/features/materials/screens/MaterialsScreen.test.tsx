@@ -1,3 +1,4 @@
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
@@ -18,6 +19,12 @@ jest.mock('features/materials/services/itemService', () => ({
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
+
+// The stock-entry sheets on this page read the safe-area insets.
+const METRICS = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const SESSION = {
   idToken: 'id-token',
@@ -46,11 +53,13 @@ async function renderScreen() {
 
   await act(async () => {
     renderer = ReactTestRenderer.create(
-      <I18nProvider>
-        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-          <MaterialsScreen />
-        </AuthProvider>
-      </I18nProvider>,
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <MaterialsScreen />
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
     );
   });
 
@@ -65,10 +74,13 @@ function getTexts(renderer: ReactTestRenderer.ReactTestRenderer) {
     .join(' | ');
 }
 
+// A pill is the only button here that reports whether it is selected — the
+// page's action buttons (add, stock entry) are plain buttons.
 function getCategoryPills(renderer: ReactTestRenderer.ReactTestRenderer) {
   return renderer.root.findAll(
     node =>
       node.props.accessibilityRole === 'button' &&
+      node.props.accessibilityState?.selected !== undefined &&
       typeof node.props.onPress === 'function',
   );
 }

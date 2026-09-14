@@ -68,6 +68,43 @@
     "deleteConfirmTitle": "Delete item",
     "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
   },
+  "stockEntry": {
+    "trigger": "Register entry",
+    "menu": {
+      "scanNote": "Scan invoice",
+      "attachPdf": "Attach PDF",
+      "typeItem": "Enter item"
+    },
+    "scan": {
+      "instruction": "Position the document inside the marked area",
+      "capture": "Capture image",
+      "permission": "We need the camera to scan the invoice",
+      "allowCamera": "Allow camera",
+      "fromLibrary": "Choose from library",
+      "cancel": "Cancel"
+    },
+    "uploading": "Sending the document...",
+    "review": {
+      "confirm": "Confirm",
+      "found": "{{count}} items found · tap to fix",
+      "foundOne": "1 item found · tap to fix",
+      "namePlaceholder": "Item name",
+      "checkItem": "Check the name and quantity",
+      "remove": "Delete item"
+    },
+    "errors": {
+      "dismiss": "Got it",
+      "permissionDenied": "We need your permission to access photos.",
+      "unsupportedType": "We only take a PDF or a JPEG photo. Take the photo in the app or pick another file.",
+      "offline": "No internet connection. Sending needs a network — try again once it is back.",
+      "tooLarge": "This file is over 15 MB. Take the photo again or send a smaller PDF.",
+      "duplicateFile": "This document was sent before. Open the existing entry instead of creating another.",
+      "notProvisioned": "Your account is not finished yet. Sign out and sign in again.",
+      "uploadRejected": "The upload was refused. Please try again.",
+      "notConfirmed": "The file did not arrive complete. Please send it again.",
+      "unexpected": "Something went wrong while sending. Try again in a moment."
+    }
+  },
   "stock": {
     "movementHistory": {
       "title": "Movement history",

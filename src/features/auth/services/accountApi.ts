@@ -1,18 +1,7 @@
-import { Account, ApiErrorBody } from '../domain/account';
+import { ApiError, NetworkError, postJson } from 'shared/api';
+
+import { Account } from '../domain/account';
 import { AuthError, fromApiError } from '../domain/authErrors';
-
-function apiUrl(): string {
-  const url = process.env.EXPO_PUBLIC_API_URL;
-
-  if (!url) {
-    throw new Error(
-      'EXPO_PUBLIC_API_URL is not set. Point it at the Administranest backend ' +
-        '(http://localhost:3000 locally — see .env.example).',
-    );
-  }
-
-  return url.replace(/\/+$/, '');
-}
 
 // The backend validates the id token: it is the one that carries the e-mail
 // (backend ADR-02 and the US34.2 guard).
@@ -21,28 +10,17 @@ async function post(
   idToken: string,
   body?: Record<string, unknown>,
 ): Promise<Account> {
-  let response: Response;
   try {
-    response = await fetch(`${apiUrl()}${path}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-        ...(body ? { 'Content-Type': 'application/json' } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-  } catch {
-    throw new AuthError('NETWORK_UNAVAILABLE');
+    return toAccount(await postJson<unknown>(path, idToken, body));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw new AuthError(fromApiError(error.status, error.code), error.code);
+    }
+    if (error instanceof NetworkError) {
+      throw new AuthError('NETWORK_UNAVAILABLE');
+    }
+    throw error;
   }
-
-  const payload: unknown = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const { code } = (payload ?? {}) as ApiErrorBody;
-    throw new AuthError(fromApiError(response.status, code), code);
-  }
-
-  return toAccount(payload);
 }
 
 // Creates the user's record on the first sign in and refreshes it on every

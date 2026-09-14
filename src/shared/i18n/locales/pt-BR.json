@@ -68,6 +68,43 @@
     "deleteConfirmTitle": "Excluir item",
     "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
   },
+  "stockEntry": {
+    "trigger": "Registrar entrada",
+    "menu": {
+      "scanNote": "Escanear nota",
+      "attachPdf": "Anexar PDF",
+      "typeItem": "Digitar insumo"
+    },
+    "scan": {
+      "instruction": "Posicione o documento dentro da área demarcada",
+      "capture": "Capturar imagem",
+      "permission": "Precisamos da câmera para escanear a nota",
+      "allowCamera": "Permitir câmera",
+      "fromLibrary": "Escolher da galeria",
+      "cancel": "Cancelar"
+    },
+    "uploading": "Enviando o documento...",
+    "review": {
+      "confirm": "Confirmar",
+      "found": "{{count}} itens encontrados · toque para corrigir",
+      "foundOne": "1 item encontrado · toque para corrigir",
+      "namePlaceholder": "Nome do item",
+      "checkItem": "Confira o nome e a quantidade",
+      "remove": "Excluir item"
+    },
+    "errors": {
+      "dismiss": "Entendi",
+      "permissionDenied": "Precisamos da sua permissão para acessar as fotos.",
+      "unsupportedType": "Só aceitamos PDF ou foto em JPEG. Tire a foto pelo app ou escolha outro arquivo.",
+      "offline": "Sem conexão com a internet. O envio precisa de rede — tente de novo quando voltar.",
+      "tooLarge": "Este arquivo passa de 15 MB. Tire a foto de novo ou envie um PDF menor.",
+      "duplicateFile": "Este documento já foi enviado antes. Abra a entrada existente em vez de criar outra.",
+      "notProvisioned": "Sua conta ainda não terminou de ser criada. Saia e entre de novo no app.",
+      "uploadRejected": "O envio do arquivo foi recusado. Tente de novo.",
+      "notConfirmed": "O arquivo não chegou completo ao servidor. Tente enviar de novo.",
+      "unexpected": "Algo deu errado no envio. Tente de novo em instantes."
+    }
+  },
   "stock": {
     "movementHistory": {
       "title": "Histórico de movimentações",
