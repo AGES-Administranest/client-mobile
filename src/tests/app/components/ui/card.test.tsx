@@ -95,3 +95,50 @@ test('shows an alert icon only on items below the minimum', async () => {
 
   expect(svgsWhenBelow.length).toBeGreaterThan(svgsWhenOk.length);
 });
+
+test('renders an extra warning message when quantity is at or below minimum quantity', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await act(() => {
+    renderer = ReactTestRenderer.create(
+      <I18nProvider>
+        <MaterialCard
+          name="Propofol 10mg/ml 20ml"
+          category="Medicamento"
+          price={19.9}
+          unit="ampola"
+          quantity={10}
+          minQuantity={10}
+        />
+      </I18nProvider>,
+    );
+  });
+
+  const texts = renderer!.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children);
+
+  expect(JSON.stringify(texts)).toContain('Item no estoque mínimo');
+});
+
+test('translates the stock warning for the selected language', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+  await act(() => {
+    renderer = ReactTestRenderer.create(
+      <I18nProvider initialLocale="en-US">
+        <MaterialCard
+          name="Isoflurano"
+          category="Drug"
+          price={185}
+          unit="vial"
+          quantity={2}
+          minQuantity={3}
+          belowMinimum
+        />
+      </I18nProvider>,
+    );
+  });
+  expect(JSON.stringify(renderer!.toJSON())).toContain(
+    'Item below minimum stock',
+  );
+});

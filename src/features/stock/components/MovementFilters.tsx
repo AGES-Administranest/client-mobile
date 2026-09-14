@@ -7,6 +7,8 @@ import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import type { CalendarRange } from 'shared/utils/calendar';
 
+import { LabelTertiary } from '../../../theme/colors';
+
 type MovementFiltersProps = {
   itemName: string;
   onItemNameChange: (value: string) => void;
@@ -52,7 +54,7 @@ function MovementFilters({
           placeholder={searchPlaceholder}
           accessibilityLabel={searchPlaceholder}
           className="flex-1 text-base text-label-primary"
-          placeholderTextColor="#777777"
+          placeholderTextColor={LabelTertiary}
           autoCorrect={false}
         />
       </View>

@@ -30,10 +30,7 @@ import { useMaterialsScreen } from '../hooks/useMaterialsScreen';
 export function MaterialsScreen() {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
-  // Uma única folha para ver e para editar. Eram duas <Modal>, e alternar
-  // entre elas trocava um desaparecimento seco (o Modal some na hora, sem
-  // esperar a animação de saída) por outra folha subindo — daí a transição
-  // estranha ao clicar em "Editar". Trocando só o modo, a folha nem se mexe.
+
   const [modalMode, setModalMode] = useState<ItemModalMode | null>(null);
   const [modalItem, setModalItem] = useState<StockItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<StockItem | null>(null);

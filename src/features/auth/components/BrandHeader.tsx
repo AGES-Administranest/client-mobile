@@ -10,7 +10,7 @@ type BrandHeaderProps = {
   compact?: boolean;
 };
 
-const LOGO_ASPECT_RATIO = 285 / 141;
+const LOGO_ASPECT_RATIO = 284 / 141;
 
 export function BrandHeader({
   name,
@@ -32,8 +32,8 @@ export function BrandHeader({
       <Text
         className={
           compact
-            ? 'mt-3 text-xl font-extrabold uppercase tracking-[2px] text-label-quartenery'
-            : 'mt-5 text-[26px] font-extrabold uppercase tracking-[2.5px] text-label-quartenery'
+            ? '-mt-6 text-xl font-extrabold uppercase tracking-[2px] text-label-quartenery'
+            : '-mt-16 text-[26px] font-extrabold uppercase tracking-[2.5px] text-label-quartenery'
         }
       >
         {name}

@@ -4,11 +4,32 @@ import { I18nProvider } from 'shared/i18n';
 
 import { MovementHistoryScreen } from './MovementHistoryScreen';
 import type { StockMovement } from '../domain/stockMovement';
+import { createOutputAdjustment } from '../services/stockAdjustmentService';
+import { StockAdjustmentError } from '../services/stockAdjustmentService';
 import { fetchStockMovements } from '../services/stockMovementService';
 
 jest.mock('../services/stockMovementService', () => ({
   fetchStockMovements: jest.fn(),
 }));
+
+jest.mock('../services/stockAdjustmentService', () => {
+  const actual = jest.requireActual('../services/stockAdjustmentService');
+
+  return {
+    ...actual,
+    fetchAdjustableItems: jest.fn(() =>
+      Promise.resolve([
+        {
+          id: 'item-1',
+          name: 'Propofol 10mg/ml 20ml',
+          unit: 'ampoule',
+          availableQuantity: 8,
+        },
+      ]),
+    ),
+    createOutputAdjustment: jest.fn(() => Promise.resolve()),
+  };
+});
 
 const fetchMock = fetchStockMovements as jest.MockedFunction<
   typeof fetchStockMovements
@@ -49,16 +70,29 @@ const EXPIRATION_ADJUSTMENT: StockMovement = {
   occurredAt: '2026-08-29T17:20:00',
 };
 
-async function mount() {
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+
+afterEach(() => {
+  while (mounted.length > 0) {
+    const renderer = mounted.pop();
+    act(() => {
+      renderer?.unmount();
+    });
+  }
+});
+
+async function mount(props: { savedMessageDurationMs?: number } = {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
-        <MovementHistoryScreen />
+        <MovementHistoryScreen {...props} />
       </I18nProvider>,
     );
   });
+
+  mounted.push(renderer!);
 
   return renderer!;
 }
@@ -69,6 +103,14 @@ function readTexts(renderer: ReactTestRenderer.ReactTestRenderer) {
       .findAllByType('Text' as never)
       .map(node => node.props.children),
   ).replace(/\u00a0/g, ' ');
+}
+
+async function wait(ms: number) {
+  await act(async () => {
+    await new Promise<void>(resolve => {
+      setTimeout(() => resolve(), ms);
+    });
+  });
 }
 
 async function renderScreen() {
@@ -196,10 +238,17 @@ test('offers a retry when the history fails to load, and recovers on success', a
 
   fetchMock.mockResolvedValueOnce([PURCHASE_INBOUND]);
 
-  const [retryButton] = renderer.root.findAll(
-    node =>
-      node.props.role === 'button' && typeof node.props.onPress === 'function',
-  );
+  const retryButton = renderer.root
+    .findAll(
+      node =>
+        node.props.role === 'button' &&
+        typeof node.props.onPress === 'function',
+    )
+    .find(node =>
+      node
+        .findAllByType('Text' as never)
+        .some(label => label.props.children === 'Tentar novamente'),
+    )!;
 
   await act(async () => {
     retryButton.props.onPress();
@@ -417,5 +466,173 @@ describe('calendar visibility', () => {
     });
 
     expect(isCalendarOpen(renderer)).toBe(true);
+  });
+});
+
+describe('output adjustment', () => {
+  const createMock = createOutputAdjustment as jest.MockedFunction<
+    typeof createOutputAdjustment
+  >;
+
+  beforeEach(() => {
+    fetchMock.mockResolvedValue([PURCHASE_INBOUND]);
+    createMock.mockReset().mockResolvedValue(undefined);
+  });
+
+  function pressableWithText(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    text: string,
+  ) {
+    return renderer.root
+      .findAll(
+        node =>
+          (node.props.role === 'button' ||
+            node.props.accessibilityRole === 'button') &&
+          typeof node.props.onPress === 'function',
+      )
+      .find(node =>
+        node
+          .findAllByType('Text' as never)
+          .some(label => label.props.children === text),
+      )!;
+  }
+
+  function byLabel(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    label: string,
+  ) {
+    return renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === label &&
+        (typeof node.props.onPress === 'function' ||
+          typeof node.props.onChangeText === 'function'),
+    );
+  }
+
+  async function fillValidAdjustment(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+  ) {
+    await act(async () => {
+      pressableWithText(renderer, 'Novo lançamento').props.onPress();
+    });
+
+    await act(async () => {
+      byLabel(renderer, 'Item').props.onPress();
+    });
+
+    await act(async () => {
+      renderer.root
+        .find(node => node.props.testID === 'item-option-item-1')
+        .props.onPress();
+    });
+
+    await act(async () => {
+      byLabel(renderer, 'Quantidade').props.onChangeText('2');
+    });
+
+    await act(async () => {
+      byLabel(renderer, 'Perda').props.onPress();
+    });
+  }
+
+  it('opens the adjustment form from the button above the title', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      pressableWithText(renderer, 'Novo lançamento').props.onPress();
+    });
+
+    expect(readTexts(renderer)).toContain('Registro de ajuste de saída');
+  });
+
+  it('shows the saved message and closes the form on success', async () => {
+    const renderer = await mount();
+
+    await fillValidAdjustment(renderer);
+
+    await act(async () => {
+      pressableWithText(renderer, 'Salvar').props.onPress();
+    });
+
+    expect(createMock).toHaveBeenCalledWith({
+      itemId: 'item-1',
+      quantity: 2,
+      reason: 'loss',
+      notes: null,
+    });
+    expect(readTexts(renderer)).toContain('Atualização salva');
+
+    const modal = renderer.root.findAll(
+      node => node.props.visible !== undefined && node.props.transparent,
+    );
+
+    expect(modal.every(node => node.props.visible === false)).toBe(true);
+  });
+
+  it('hides the saved message after a few seconds', async () => {
+    const renderer = await mount({ savedMessageDurationMs: 200 });
+
+    await fillValidAdjustment(renderer);
+
+    await act(async () => {
+      pressableWithText(renderer, 'Salvar').props.onPress();
+    });
+
+    expect(readTexts(renderer)).toContain('Atualização salva');
+
+    await wait(600);
+
+    expect(readTexts(renderer)).not.toContain('Atualização salva');
+  });
+
+  it('restarts the countdown when a second adjustment is saved', async () => {
+    const renderer = await mount({ savedMessageDurationMs: 500 });
+
+    await fillValidAdjustment(renderer);
+    await act(async () => {
+      pressableWithText(renderer, 'Salvar').props.onPress();
+    });
+
+    await wait(150);
+
+    await fillValidAdjustment(renderer);
+    await act(async () => {
+      pressableWithText(renderer, 'Salvar').props.onPress();
+    });
+
+    await wait(200);
+
+    expect(readTexts(renderer)).toContain('Atualização salva');
+
+    await wait(900);
+
+    expect(readTexts(renderer)).not.toContain('Atualização salva');
+  });
+
+  it('reports what went wrong and keeps the form open on failure', async () => {
+    createMock.mockRejectedValueOnce(
+      new StockAdjustmentError('Insufficient stock', 'INSUFFICIENT_STOCK', {
+        available: 8,
+      }),
+    );
+
+    const renderer = await mount();
+
+    await fillValidAdjustment(renderer);
+
+    await act(async () => {
+      pressableWithText(renderer, 'Salvar').props.onPress();
+    });
+
+    const texts = readTexts(renderer);
+
+    expect(texts).toContain('Quantidade maior que o saldo disponível (8).');
+    expect(texts).not.toContain('Atualização salva');
+
+    const modal = renderer.root.findAll(
+      node => node.props.visible !== undefined && node.props.transparent,
+    );
+
+    expect(modal.some(node => node.props.visible === true)).toBe(true);
   });
 });

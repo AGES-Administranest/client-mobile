@@ -62,13 +62,10 @@ function texts(renderer: ReactTestRenderer.ReactTestRenderer) {
 
 beforeEach(() => mockSignOut.mockClear());
 
-it('greets the signed-in account by first name', async () => {
+it('shows the day-to-day tab label', async () => {
   const renderer = await renderHome();
 
-  expect(texts(renderer)).toMatch(
-    /(Bom dia|Boa tarde|Boa noite|Boa madrugada), Bruna!/,
-  );
-  expect(texts(renderer)).not.toContain('Ana');
+  expect(texts(renderer)).toContain('Dia-Dia');
 });
 
 it('signs out from the account menu', async () => {
