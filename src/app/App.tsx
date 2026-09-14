@@ -1,6 +1,10 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import * as React from 'react';
-import { StatusBar, useColorScheme, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 import { TabBar, type TabValue } from 'app/components/ui/tabbar';
 import {
@@ -22,6 +26,7 @@ import { ReportsScreen } from 'features/reports';
 import { I18nProvider } from 'shared/i18n';
 import { initNotifications } from 'shared/services';
 
+import { Colors } from '../theme/colors';
 import '../../global.css';
 
 const SCREENS: Record<TabValue, React.ComponentType> = {
@@ -71,6 +76,7 @@ export function AccountInventoryAlerts() {
 function AppContent() {
   const { session, account } = useAuth();
   const [tab, setTab] = React.useState<TabValue>('day');
+  const insets = useSafeAreaInsets();
 
   if (!session || !account) {
     return <AuthFlow />;
@@ -82,11 +88,19 @@ function AppContent() {
   }
 
   const Screen = SCREENS[tab];
+  const tabBarWrapperStyle = { paddingBottom: insets.bottom };
 
   return (
-    <View className="flex-1">
+    <View className="flex-1" style={{ paddingTop: insets.top }}>
+      <LinearGradient
+        colors={Colors.background.primary.colors}
+        locations={Colors.background.primary.locations}
+        style={StyleSheet.absoluteFill}
+      />
       <Screen />
-      <TabBar value={tab} onValueChange={setTab} className="mx-4 mb-[25px]" />
+      <View style={tabBarWrapperStyle}>
+        <TabBar value={tab} onValueChange={setTab} className="mx-4 mb-[25px]" />
+      </View>
     </View>
   );
 }

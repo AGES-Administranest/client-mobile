@@ -101,6 +101,7 @@ export function InventoryOverview({
               unit={item.unit}
               quantity={item.quantity}
               minQuantity={item.minimumStock}
+              belowMinimum={alert.lowStock}
               alerts={alert.expiringLots.map(lot =>
                 t('inventory.card.expiry', {
                   date: formatExpirationDate(lot.expirationDate),

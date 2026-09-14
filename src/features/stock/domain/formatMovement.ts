@@ -1,3 +1,5 @@
+import { fromCalendarDate } from 'shared/utils/calendar';
+
 import { getSignedTotal, type StockMovement } from './stockMovement';
 
 const CURRENCY = 'BRL';
@@ -38,11 +40,22 @@ export function formatQuantity(
   });
 }
 
-export function formatMovementDate(occurredAt: string, locale: string): string {
+function formatDayAndMonth(date: Date, locale: string): string {
   const formatted = new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: 'short',
-  }).format(new Date(occurredAt));
+  }).format(date);
 
   return formatted.replace(' de ', ' ').replace(/\.$/, '');
+}
+
+export function formatMovementDate(occurredAt: string, locale: string): string {
+  return formatDayAndMonth(new Date(occurredAt), locale);
+}
+
+export function formatCalendarDate(
+  calendarDate: string,
+  locale: string,
+): string {
+  return formatDayAndMonth(fromCalendarDate(calendarDate), locale);
 }
