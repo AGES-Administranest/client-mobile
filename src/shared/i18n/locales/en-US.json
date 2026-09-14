@@ -4,17 +4,6 @@
     "loading": "Loading...",
     "retry": "Retry"
   },
-  "home": {
-    "title": "Administranest",
-    "subtitle": "client-mobile is up and running.",
-    "greeting": {
-      "morning": "Good morning, {{name}}!",
-      "afternoon": "Good afternoon, {{name}}!",
-      "evening": "Good evening, {{name}}!",
-      "night": "Hello, {{name}}!"
-    },
-    "cta": "Continue"
-  },
   "segmentedControl": {
     "supplies": "Supplies and medicines",
     "equipment": "Equipment"
