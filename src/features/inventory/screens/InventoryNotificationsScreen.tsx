@@ -37,7 +37,10 @@ export function InventoryNotificationsScreen({
 
   if (status === 'loading') {
     return (
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        className="flex-1 bg-background-modal"
+        contentContainerClassName="gap-3 px-4 py-6"
+      >
         <Text style={styles.heading}>{t('inventory.notifications.title')}</Text>
         <Text style={styles.empty}>{t('inventory.overview.loading')}</Text>
       </ScrollView>
@@ -83,7 +86,10 @@ function ReadyInventoryNotifications({
         });
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      className="flex-1 bg-background-modal"
+      contentContainerClassName="gap-3 px-4 py-6"
+    >
       <Text style={styles.heading}>{t('inventory.notifications.title')}</Text>
 
       {notifications.length === 0 ? (
@@ -112,12 +118,6 @@ function ReadyInventoryNotifications({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#F2F2F7',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-  },
   empty: {
     color: '#9E9E9E',
     fontSize: 14,
