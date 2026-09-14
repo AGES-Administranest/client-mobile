@@ -2,8 +2,21 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File as FsFile } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 
-import { ScanError } from './invoiceScanService';
 import { imageMimeType, PickedFile } from '../domain/invoiceDocument';
+
+/** Why a document could not be picked — mapped to a message in the UI. */
+export type PickFailure =
+  | 'permissionDenied'
+  // Picked from the library but not something the presigned policy accepts —
+  // a PNG screenshot, a HEIC photo.
+  | 'unsupportedType';
+
+export class PickError extends Error {
+  constructor(public readonly reason: PickFailure) {
+    super(reason);
+    this.name = 'PickError';
+  }
+}
 
 // On web the picker hands back the browser File object directly; on native we
 // only get a uri, which expo-file-system reads for us.
@@ -54,12 +67,13 @@ export async function pickPdf(): Promise<PickedFile | null> {
 export async function pickInvoiceImage(): Promise<PickedFile | null> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) {
-    throw new ScanError('permissionDenied');
+    throw new PickError('permissionDenied');
   }
 
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
-    // Full quality: downscaling costs the OCR the small print on an invoice.
+    // Full quality: the small print on an invoice is what the server has to
+    // read, and downscaling is what loses it.
     quality: 1,
   });
 
@@ -83,7 +97,7 @@ export async function readImageFile(
   const name = fileName ?? uri.split('/').pop() ?? 'invoice.jpg';
   const mimeType = imageMimeType(name, declaredMimeType);
   if (!mimeType) {
-    throw new ScanError('unsupportedType');
+    throw new PickError('unsupportedType');
   }
 
   return {

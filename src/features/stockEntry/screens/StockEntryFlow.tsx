@@ -13,7 +13,7 @@ import { MessageOverlay } from '../components/MessageOverlay';
 import { useStockEntryFlow } from '../hooks/useStockEntryFlow';
 
 // Entry point for the stock-entry feature. Wires the screens together with
-// local state (menu → capture/attach → extraction → review).
+// local state (menu → capture/attach → upload → review).
 export function StockEntryFlow() {
   const { t } = useTranslation();
   const flow = useStockEntryFlow();
@@ -51,12 +51,8 @@ export function StockEntryFlow() {
       </Modal>
 
       <LoadingOverlay
-        visible={flow.step === 'uploading' || flow.step === 'processing'}
-        label={t(
-          flow.step === 'uploading'
-            ? 'stockEntry.uploading'
-            : 'stockEntry.loading',
-        )}
+        visible={flow.step === 'uploading'}
+        label={t('stockEntry.uploading')}
       />
 
       <StockReviewScreen

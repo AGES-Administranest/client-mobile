@@ -104,9 +104,7 @@ export function StockReviewScreen({
                   >
                     <EditableInventoryItemCard
                       name={item.name}
-                      subtitle={[item.unit, item.dosage]
-                        .filter(Boolean)
-                        .join(' · ')}
+                      subtitle={item.unit}
                       quantity={item.quantity}
                       namePlaceholder={t('stockEntry.review.namePlaceholder')}
                       onChangeName={name => onRenameItem(item.id, name)}

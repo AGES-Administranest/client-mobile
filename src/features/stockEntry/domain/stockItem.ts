@@ -1,5 +1,5 @@
-// Framework-free domain model for an item extracted from an invoice, either
-// from a PDF's text layer or from OCR over a photo.
+// Framework-free domain model for an item of a stock entry, as the backend's
+// extraction returns it.
 export type ScannedItem = {
   id: string;
   /** Item name including its dosage, e.g. "PROPOFOL 10MG/ML F/A 20ML". */
@@ -7,10 +7,6 @@ export type ScannedItem = {
   quantity: number;
   /** Unit-of-measure code from the invoice, e.g. "FA", "AM", "UN". */
   unit: string;
-  /** Dosage pulled out of the name, e.g. "10MG/ML" — `null` when absent. */
-  dosage: string | null;
-  /** The source line, kept so a user can check what was recognised. */
-  rawLine: string;
 };
 
 const MIN_NAME_LENGTH = 3;

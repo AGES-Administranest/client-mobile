@@ -58,7 +58,7 @@ describe('uploadInvoiceDocument', () => {
 
   beforeEach(() => {
     fetchMock = jest.fn();
-    global.fetch = fetchMock as unknown as typeof fetch;
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
   });
 
   const calls = () => fetchMock.mock.calls as [string, RequestInit][];

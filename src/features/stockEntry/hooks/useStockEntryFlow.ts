@@ -6,12 +6,8 @@ import { InvoiceDocument, PickedFile } from '../domain/invoiceDocument';
 import { ScannedItem } from '../domain/stockItem';
 import { describeDocument } from '../services/invoiceDocumentService';
 import {
-  extractItemsFromPdf,
-  extractItemsFromPhotoRows,
-  ScanError,
-  ScanFailure,
-} from '../services/invoiceScanService';
-import {
+  PickError,
+  PickFailure,
   pickInvoiceImage,
   pickPdf,
   readImageFile,
@@ -21,18 +17,16 @@ import {
   UploadError,
   UploadFailure,
 } from '../services/invoiceUploadService';
-import { mlKitOcrProvider, OcrProvider } from '../services/ocrProvider';
 
 export type StockEntryStep =
   | 'idle' // nothing open
   | 'menu' // bottom-sheet with the 3 entry options
   | 'scanning' // full-screen camera
   | 'uploading' // hashing the file and sending it to the bucket
-  | 'processing' // extraction is running
   | 'review'; // bottom-sheet with the extracted items
 
 /** Anything that can stop the flow, from either half of it. */
-export type StockEntryFailure = ScanFailure | UploadFailure;
+export type StockEntryFailure = PickFailure | UploadFailure;
 
 type StockEntryFlow = {
   step: StockEntryStep;
@@ -56,17 +50,15 @@ type StockEntryFlow = {
 };
 
 function toFailure(error: unknown): StockEntryFailure {
-  if (error instanceof ScanError || error instanceof UploadError) {
+  if (error instanceof PickError || error instanceof UploadError) {
     return error.reason;
   }
   return 'unexpected';
 }
 
 // Owns the UI state for the stock-entry flow and wires picking → upload →
-// extraction. Screens stay declarative; orchestration lives here.
-export function useStockEntryFlow(
-  ocr: OcrProvider = mlKitOcrProvider,
-): StockEntryFlow {
+// review. Screens stay declarative; orchestration lives here.
+export function useStockEntryFlow(): StockEntryFlow {
   const [step, setStep] = useState<StockEntryStep>('idle');
   const [items, setItems] = useState<ScannedItem[]>([]);
   const [document, setDocument] = useState<InvoiceDocument | null>(null);
@@ -90,18 +82,15 @@ export function useStockEntryFlow(
   const dismissFailure = useCallback(() => setFailure(null), []);
 
   /**
-   * The whole entry: pick a file, put it in the bucket, then read it.
+   * The whole entry: pick a file and put it in the bucket.
    *
-   * The upload comes first on purpose — the document is what the entry is
-   * evidence of, so it is attached even when extraction later finds nothing
-   * (§3.1). Extraction still runs on the phone; when it moves to the server
-   * (D2), what changes here is the `extract` step, not the two before it.
+   * The document is what the entry is evidence of, so it is attached before
+   * anything else happens (§3.1). Reading it is the server's job (D2), and
+   * the app is not wired to that yet — so the review opens empty and the user
+   * types the items in.
    */
   const runEntry = useCallback(
-    async (
-      pick: () => Promise<PickedFile | null>,
-      extract: (uploaded: InvoiceDocument) => Promise<ScannedItem[]>,
-    ) => {
+    async (pick: () => Promise<PickedFile | null>) => {
       setStep('uploading');
       try {
         const picked = await pick();
@@ -128,13 +117,7 @@ export function useStockEntryFlow(
           return;
         }
         setDocument(uploaded);
-
-        setStep('processing');
-        const extracted = await extract(uploaded);
-        if (!isMounted.current) {
-          return;
-        }
-        setItems(extracted);
+        setItems([]);
         setStep('review');
       } catch (error) {
         if (!isMounted.current) {
@@ -147,33 +130,20 @@ export function useStockEntryFlow(
     [session],
   );
 
-  const recognizePhoto = useCallback(
-    async (uploaded: InvoiceDocument) => {
-      // Web has no file on disk and no ML Kit either; both paths end here.
-      if (!uploaded.uri) {
-        throw new ScanError('ocrUnavailable');
-      }
-      return extractItemsFromPhotoRows(await ocr.recognizeRows(uploaded.uri));
-    },
-    [ocr],
-  );
-
   const attachPdf = useCallback(() => {
-    runEntry(pickPdf, uploaded =>
-      Promise.resolve(extractItemsFromPdf(uploaded.bytes)),
-    );
+    runEntry(pickPdf);
   }, [runEntry]);
 
   const capture = useCallback(
     (imageUri: string) => {
-      runEntry(() => readImageFile(imageUri), recognizePhoto);
+      runEntry(() => readImageFile(imageUri));
     },
-    [recognizePhoto, runEntry],
+    [runEntry],
   );
 
   const pickFromLibrary = useCallback(() => {
-    runEntry(pickInvoiceImage, recognizePhoto);
-  }, [recognizePhoto, runEntry]);
+    runEntry(pickInvoiceImage);
+  }, [runEntry]);
 
   const renameItem = useCallback((id: string, name: string) => {
     setItems(current =>

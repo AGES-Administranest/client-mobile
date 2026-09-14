@@ -41,7 +41,6 @@
       "fromLibrary": "Choose from library",
       "cancel": "Cancel"
     },
-    "loading": "Reading the invoice...",
     "uploading": "Sending the document...",
     "review": {
       "confirm": "Confirm",
@@ -53,9 +52,6 @@
     },
     "errors": {
       "dismiss": "Got it",
-      "noTextLayer": "This PDF has no selectable text (it looks scanned). Please send a digitally generated PDF.",
-      "noItems": "We couldn't find any items in this document. Check that it is an invoice or quote.",
-      "ocrUnavailable": "Photo recognition needs a development build (it does not work in Expo Go). Use \"Attach PDF\" for now.",
       "permissionDenied": "We need your permission to access photos.",
       "unsupportedType": "We only take a PDF or a JPEG photo. Take the photo in the app or pick another file.",
       "offline": "No internet connection. Sending needs a network — try again once it is back.",

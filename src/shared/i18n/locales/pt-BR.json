@@ -41,7 +41,6 @@
       "fromLibrary": "Escolher da galeria",
       "cancel": "Cancelar"
     },
-    "loading": "Lendo a nota...",
     "uploading": "Enviando o documento...",
     "review": {
       "confirm": "Confirmar",
@@ -53,9 +52,6 @@
     },
     "errors": {
       "dismiss": "Entendi",
-      "noTextLayer": "Este PDF não tem texto selecionável (parece digitalizado). Envie um PDF gerado digitalmente.",
-      "noItems": "Não encontramos itens neste documento. Confira se é uma nota ou cotação.",
-      "ocrUnavailable": "A leitura por foto precisa de um build de desenvolvimento (não funciona no Expo Go). Use \"Anexar PDF\" por enquanto.",
       "permissionDenied": "Precisamos da sua permissão para acessar as fotos.",
       "unsupportedType": "Só aceitamos PDF ou foto em JPEG. Tire a foto pelo app ou escolha outro arquivo.",
       "offline": "Sem conexão com a internet. O envio precisa de rede — tente de novo quando voltar.",

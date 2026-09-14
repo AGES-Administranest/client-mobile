@@ -1,8 +1,6 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
-    // `node` is needed by tests that read fixture files from disk.
-    "types": ["node", "jest"],
     "paths": {
       "app/*": ["./src/app/*"],
       "features/*": ["./src/features/*"],

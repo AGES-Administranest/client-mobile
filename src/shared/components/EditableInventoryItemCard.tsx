@@ -14,7 +14,7 @@ const NAME_INPUT_STYLE = Platform.select({
 
 type EditableInventoryItemCardProps = {
   name: string;
-  /** Secondary line, e.g. the unit and dosage read from the invoice. */
+  /** Secondary line, e.g. the unit read from the invoice. */
   subtitle?: string;
   quantity: number;
   namePlaceholder?: string;
@@ -39,9 +39,9 @@ export function EditableInventoryItemCard({
   // number is pushed up on every keystroke.
   const [quantityText, setQuantityText] = useState(() => String(quantity));
 
-  // Extracted items carry positional ids ("item-0"), so a second extraction can
-  // hand this instance a different item under the same key. Comparing parsed
-  // values leaves a field the user has just emptied alone.
+  // Extracted items carry positional ids, so a second extraction can hand
+  // this instance a different item under the same key. Comparing parsed values
+  // leaves a field the user has just emptied alone.
   useEffect(() => {
     setQuantityText(current =>
       Number(current === '' ? '0' : current) === quantity

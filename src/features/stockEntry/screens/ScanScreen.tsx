@@ -37,7 +37,7 @@ export function ScanScreen({
     }
     setIsCapturing(true);
     try {
-      // Full quality: the invoice's small print is what the OCR has to read.
+      // Full quality: the invoice's small print is what the server has to read.
       const photo = await camera.current?.takePictureAsync({ quality: 1 });
       if (photo?.uri) {
         onCapture(photo.uri);

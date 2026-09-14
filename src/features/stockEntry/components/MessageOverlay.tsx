@@ -11,8 +11,9 @@ type MessageOverlayProps = {
   onDismiss: () => void;
 };
 
-// Shown when an extraction can't produce items (scanned PDF, no items found,
-// OCR engine not wired yet) — explains what happened instead of failing mute.
+// Shown when the entry can't go on (permission refused, a file type the
+// bucket won't take, an upload that failed) — explains what happened instead
+// of failing mute.
 export function MessageOverlay({
   visible,
   message,
