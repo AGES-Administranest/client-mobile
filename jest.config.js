@@ -1,5 +1,6 @@
 module.exports = {
   preset: 'jest-expo',
+  setupFiles: ['<rootDir>/jest/setup.js'],
   // CI runners render these component trees ~5x slower than local; the 5000ms
   // default trips flaky timeouts under load.
   testTimeout: 15000,

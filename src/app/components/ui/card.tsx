@@ -37,6 +37,7 @@ type MaterialCardProps = {
   quantity: number;
   minQuantity: number;
   belowMinimum?: boolean;
+  alerts?: readonly string[];
   className?: string;
   onPress?: () => void;
 };
@@ -49,45 +50,59 @@ function MaterialCard({
   quantity,
   minQuantity,
   belowMinimum = false,
+  alerts = [],
   className,
   onPress,
 }: MaterialCardProps) {
   const { t } = useTranslation();
+  const atMinimum = quantity === minQuantity;
+  const showStockWarning = belowMinimum || atMinimum;
 
   return (
     <Pressable onPress={onPress}>
       <Card
         variant="material"
         className={cn(
-          'flex-col items-stretch',
-          belowMinimum && 'border border-alert-primary',
+          'flex-col items-stretch gap-1 rounded-[14px]',
+          (showStockWarning || alerts.length > 0) &&
+            'border-2 border-alert-primary',
           className,
         )}
       >
-        <View className="w-full flex-row items-center justify-between">
-          <View className="flex-1 gap-1">
-            <Text className="font-bold" numberOfLines={1}>
-              {name}
-            </Text>
-            <Text variant="muted">
+        <View className="flex-row items-start gap-3">
+          <View className="min-w-0 flex-1 gap-1">
+            <Text className="text-sm font-semibold leading-[21px]">{name}</Text>
+            <Text variant="muted" className="text-xs leading-[18px]">
               {category} · R$ {price.toFixed(2)}/{unit}
             </Text>
           </View>
-          <View className="items-end gap-1">
-            <Text className="text-1 font-bold">{quantity}</Text>
-            <Text variant="muted" className="text-xs">
+          <View className="shrink-0 items-end">
+            <Text className="text-lg font-bold leading-[27px]">{quantity}</Text>
+            <Text variant="muted" className="text-[11px] leading-[17px]">
               min. {minQuantity}
             </Text>
           </View>
         </View>
-        {belowMinimum && (
-          <View className="mt-1 flex-row items-center gap-1.5">
-            <Icon as={TriangleAlert} size={14} className="text-alert-primary" />
-            <Text className="text-xs font-medium text-alert-primary">
-              {t('materials.lowStockWarning')}
+        {showStockWarning ? (
+          <View className="flex-row items-center gap-[3px]">
+            <Icon as={TriangleAlert} size={10} className="text-alert-primary" />
+            <Text className="flex-1 text-xs leading-[18px] text-alert-primary">
+              {t(
+                atMinimum
+                  ? 'inventory.card.atMinimum'
+                  : 'inventory.card.belowMinimum',
+              )}
             </Text>
           </View>
-        )}
+        ) : null}
+        {alerts.map(alert => (
+          <View key={alert} className="flex-row items-center gap-[3px]">
+            <Icon as={TriangleAlert} size={10} className="text-alert-primary" />
+            <Text className="flex-1 text-xs leading-[18px] text-alert-primary">
+              {alert}
+            </Text>
+          </View>
+        ))}
       </Card>
     </Pressable>
   );

@@ -65,7 +65,7 @@ function ConfirmSheet({
       animationType="none"
       onRequestClose={onCancel}
     >
-      <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
+      <Animated.View className="flex-1" style={{ opacity: overlayOpacity }}>
         <Pressable
           className="flex-1 justify-end bg-background-shade"
           onPress={onCancel}

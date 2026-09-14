@@ -112,6 +112,19 @@ test('edit modal submits the minimum stock it shows', async () => {
   });
 });
 
+// currentQuantity é um cache das stock_movement no backend (ver o comentário
+// em useMaterialsScreen): o PATCH de edição nunca manda quantity, então um
+// campo editável aqui só engana quem tenta ajustar o estoque por ele.
+test('edit modal does not let the current stock quantity be edited', async () => {
+  const renderer = await mountThenOpen({ mode: 'create' });
+
+  const quantityInput = renderer.root
+    .findAll(node => typeof node.props.onChangeText === 'function')
+    .find(node => node.props.value === '25')!;
+
+  expect(quantityInput.props.editable).toBe(false);
+});
+
 const IN_STOCK: StockItem[] = [
   { ...ITEM, id: 'a', name: 'Dipirona 500mg', expiration: '2027-03-31' },
   { ...ITEM, id: 'b', name: 'Dipirona 1g', expiration: null },
