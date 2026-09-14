@@ -81,13 +81,13 @@ afterEach(() => {
   }
 });
 
-async function mount() {
+async function mount(props: { savedMessageDurationMs?: number } = {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
-        <MovementHistoryScreen />
+        <MovementHistoryScreen {...props} />
       </I18nProvider>,
     );
   });
@@ -103,6 +103,14 @@ function readTexts(renderer: ReactTestRenderer.ReactTestRenderer) {
       .findAllByType('Text' as never)
       .map(node => node.props.children),
   ).replace(/\u00a0/g, ' ');
+}
+
+async function wait(ms: number) {
+  await act(async () => {
+    await new Promise<void>(resolve => {
+      setTimeout(() => resolve(), ms);
+    });
+  });
 }
 
 async function renderScreen() {
@@ -562,69 +570,43 @@ describe('output adjustment', () => {
   });
 
   it('hides the saved message after a few seconds', async () => {
-    jest.useFakeTimers();
+    const renderer = await mount({ savedMessageDurationMs: 200 });
 
-    try {
-      const renderer = await mount();
+    await fillValidAdjustment(renderer);
 
-      await fillValidAdjustment(renderer);
+    await act(async () => {
+      pressableWithText(renderer, 'Salvar').props.onPress();
+    });
 
-      await act(async () => {
-        pressableWithText(renderer, 'Salvar').props.onPress();
-      });
+    expect(readTexts(renderer)).toContain('Atualização salva');
 
-      expect(readTexts(renderer)).toContain('Atualização salva');
+    await wait(600);
 
-      await act(async () => {
-        jest.advanceTimersByTime(3000);
-      });
-
-      expect(readTexts(renderer)).toContain('Atualização salva');
-
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(readTexts(renderer)).not.toContain('Atualização salva');
-    } finally {
-      jest.useRealTimers();
-    }
+    expect(readTexts(renderer)).not.toContain('Atualização salva');
   });
 
   it('restarts the countdown when a second adjustment is saved', async () => {
-    jest.useFakeTimers();
+    const renderer = await mount({ savedMessageDurationMs: 500 });
 
-    try {
-      const renderer = await mount();
+    await fillValidAdjustment(renderer);
+    await act(async () => {
+      pressableWithText(renderer, 'Salvar').props.onPress();
+    });
 
-      await fillValidAdjustment(renderer);
-      await act(async () => {
-        pressableWithText(renderer, 'Salvar').props.onPress();
-      });
+    await wait(150);
 
-      await act(async () => {
-        jest.advanceTimersByTime(3500);
-      });
+    await fillValidAdjustment(renderer);
+    await act(async () => {
+      pressableWithText(renderer, 'Salvar').props.onPress();
+    });
 
-      await fillValidAdjustment(renderer);
-      await act(async () => {
-        pressableWithText(renderer, 'Salvar').props.onPress();
-      });
+    await wait(200);
 
-      await act(async () => {
-        jest.advanceTimersByTime(3500);
-      });
+    expect(readTexts(renderer)).toContain('Atualização salva');
 
-      expect(readTexts(renderer)).toContain('Atualização salva');
+    await wait(900);
 
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(readTexts(renderer)).not.toContain('Atualização salva');
-    } finally {
-      jest.useRealTimers();
-    }
+    expect(readTexts(renderer)).not.toContain('Atualização salva');
   });
 
   it('reports what went wrong and keeps the form open on failure', async () => {

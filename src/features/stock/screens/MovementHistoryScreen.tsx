@@ -32,7 +32,13 @@ import { useOutputAdjustment } from '../hooks/useOutputAdjustment';
 
 const SAVED_MESSAGE_DURATION_MS = 3000;
 
-export function MovementHistoryScreen() {
+type MovementHistoryScreenProps = {
+  savedMessageDurationMs?: number;
+};
+
+export function MovementHistoryScreen({
+  savedMessageDurationMs = SAVED_MESSAGE_DURATION_MS,
+}: MovementHistoryScreenProps = {}) {
   const { t, locale } = useTranslation();
   const { movements, isLoading, hasError, retry } = useMovementHistory();
   const {
@@ -53,10 +59,10 @@ export function MovementHistoryScreen() {
       return;
     }
 
-    const timer = setTimeout(() => setSavedAt(null), SAVED_MESSAGE_DURATION_MS);
+    const timer = setTimeout(() => setSavedAt(null), savedMessageDurationMs);
 
     return () => clearTimeout(timer);
-  }, [savedAt]);
+  }, [savedAt, savedMessageDurationMs]);
 
   const reasonLabels = Object.fromEntries(
     ADJUSTMENT_REASONS.map(reason => [
