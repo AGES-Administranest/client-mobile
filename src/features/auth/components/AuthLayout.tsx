@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft } from 'lucide-react-native';
 import { ReactNode } from 'react';
 import {
@@ -12,6 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+
+import { Colors } from '../../../theme/colors';
 
 type AuthLayoutProps = {
   title: string;
@@ -31,43 +34,50 @@ export function AuthLayout({
   const insets = useSafeAreaInsets();
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-background-modal"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: insets.top + 8,
-            paddingBottom: insets.bottom + 24,
-          },
-        ]}
+    <View className="flex-1">
+      <LinearGradient
+        colors={Colors.background.primary.colors}
+        locations={Colors.background.primary.locations}
+        style={StyleSheet.absoluteFill}
+      />
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Pressable
-          onPress={onBack}
-          accessibilityRole="button"
-          accessibilityLabel={backLabel}
-          hitSlop={8}
-          className="ml-3 h-11 w-11 items-center justify-center"
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingTop: insets.top + 8,
+              paddingBottom: insets.bottom + 24,
+            },
+          ]}
         >
-          <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
-        </Pressable>
+          <Pressable
+            onPress={onBack}
+            accessibilityRole="button"
+            accessibilityLabel={backLabel}
+            hitSlop={8}
+            className="ml-3 h-11 w-11 items-center justify-center"
+          >
+            <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
+          </Pressable>
 
-        <View className="w-full px-7 pt-4">
-          <Text className="text-[26px] font-bold text-label-quartenery">
-            {title}
-          </Text>
-          {description ? (
-            <Text className="mt-2 text-[15px] text-label-tertiary">
-              {description}
+          <View className="w-full px-7 pt-4">
+            <Text className="text-[26px] font-bold text-label-quartenery">
+              {title}
             </Text>
-          ) : null}
-          <View className="mt-8 w-full">{children}</View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            {description ? (
+              <Text className="mt-2 text-[15px] text-label-tertiary">
+                {description}
+              </Text>
+            ) : null}
+            <View className="mt-8 w-full">{children}</View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
