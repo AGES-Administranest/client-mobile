@@ -4,6 +4,7 @@ import { useAuth } from 'features/auth';
 
 import { InvoiceDocument, PickedFile } from '../domain/invoiceDocument';
 import { ScannedItem } from '../domain/stockItem';
+import { fetchExtractedItems } from '../services/extractionService';
 import { describeDocument } from '../services/invoiceDocumentService';
 import {
   PickError,
@@ -82,12 +83,12 @@ export function useStockEntryFlow(): StockEntryFlow {
   const dismissFailure = useCallback(() => setFailure(null), []);
 
   /**
-   * The whole entry: pick a file and put it in the bucket.
+   * The whole entry: pick a file, put it in the bucket, then read it.
    *
    * The document is what the entry is evidence of, so it is attached before
-   * anything else happens (§3.1). Reading it is the server's job (D2), and
-   * the app is not wired to that yet — so the review opens empty and the user
-   * types the items in.
+   * anything else happens (§3.1). Reading it is the server's job (D2); until
+   * the app is wired to that, `fetchExtractedItems` answers with a fixed
+   * invoice so the review can be exercised.
    */
   const runEntry = useCallback(
     async (pick: () => Promise<PickedFile | null>) => {
@@ -117,7 +118,12 @@ export function useStockEntryFlow(): StockEntryFlow {
           return;
         }
         setDocument(uploaded);
-        setItems([]);
+
+        const extracted = await fetchExtractedItems(uploaded.id);
+        if (!isMounted.current) {
+          return;
+        }
+        setItems(extracted);
         setStep('review');
       } catch (error) {
         if (!isMounted.current) {
