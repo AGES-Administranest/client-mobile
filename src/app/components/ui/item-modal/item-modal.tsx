@@ -442,7 +442,8 @@ function ItemModal({
                   </Text>
                   <TextInput
                     value={quantity}
-                    editable={!isDetail}
+                    
+                    editable={!isDetail && !isEditing}
                     onChangeText={text => setQuantity(digitsOnly(text))}
                     keyboardType="numeric"
                     placeholder="0"
