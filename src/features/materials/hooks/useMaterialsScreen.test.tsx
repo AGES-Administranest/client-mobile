@@ -2,6 +2,7 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { ApiError } from 'shared/services/apiClient';
+import { publishInventoryChange } from 'shared/services/inventoryEvents';
 
 import { useMaterialsScreen } from './useMaterialsScreen';
 import type { BackendItem } from '../domain/materialsFilter';
@@ -22,6 +23,9 @@ jest.mock('../services/itemService', () => ({
 jest.mock('../services/itemLotService', () => ({
   createItemLot: jest.fn(),
 }));
+jest.mock('shared/services/inventoryEvents', () => ({
+  publishInventoryChange: jest.fn(),
+}));
 // A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
@@ -34,6 +38,8 @@ const deleteItemMock = deleteItem as jest.MockedFunction<typeof deleteItem>;
 const createItemLotMock = createItemLot as jest.MockedFunction<
   typeof createItemLot
 >;
+const publishInventoryChangeMock =
+  publishInventoryChange as jest.MockedFunction<typeof publishInventoryChange>;
 
 const SESSION = {
   idToken: 'id-token',
@@ -177,6 +183,7 @@ test('adding stock to an item already in the list creates a lot, not an item', a
     'item-1',
     expect.objectContaining({ quantity: 7 }),
   );
+  expect(publishInventoryChangeMock).toHaveBeenCalledTimes(1);
 });
 
 test('deleting an item removes it from the list', async () => {

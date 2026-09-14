@@ -18,13 +18,15 @@ import { ClinicsScreen } from 'features/clinics';
 import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
 import {
+  inventoryAlertDataFromItems,
   InventoryAlertObserver,
   type InventoryAlertSnapshot,
 } from 'features/inventory';
-import { MaterialsScreen } from 'features/materials';
+import { fetchItems, MaterialsScreen } from 'features/materials';
 import { ReportsScreen } from 'features/reports';
 import { I18nProvider } from 'shared/i18n';
 import { initNotifications } from 'shared/services';
+import { subscribeToInventoryChanges } from 'shared/services/inventoryEvents';
 
 import { Colors } from '../theme/colors';
 import '../../global.css';
@@ -57,18 +59,49 @@ export function App() {
   );
 }
 
-// Inventory alerts are stored per user (alert timestamps, dismissed alerts,
-// expiry schedules), keyed by the signed-in account's id in the API. This
-// stays mounted across sign out and sign in on purpose: the observer only
-// cancels the previous person's scheduled notifications when it sees the id
-// change (to null on sign out, or to another account), which an unmount would
-// skip. Inventory data is still 'loading' until US09 loads it from the API.
 export function AccountInventoryAlerts() {
-  const { account } = useAuth();
-  const snapshot = React.useMemo<InventoryAlertSnapshot>(
-    () => ({ status: 'loading', userId: account?.id ?? null }),
-    [account?.id],
-  );
+  const { account, session } = useAuth();
+  const userId = account?.id ?? null;
+  const idToken = session?.idToken ?? null;
+  const [snapshot, setSnapshot] = React.useState<InventoryAlertSnapshot>({
+    status: 'loading',
+    userId,
+  });
+
+  React.useEffect(() => {
+    let isMounted = true;
+    let latestRequest = 0;
+
+    const loadInventory = () => {
+      const request = ++latestRequest;
+      setSnapshot({ status: 'loading', userId });
+
+      if (!userId || !idToken) return;
+
+      fetchItems(idToken)
+        .then(items => {
+          if (!isMounted || request !== latestRequest) return;
+          setSnapshot({
+            status: 'ready',
+            userId,
+            ...inventoryAlertDataFromItems(items),
+          });
+        })
+        .catch(error => {
+          if (!isMounted || request !== latestRequest) return;
+          console.warn('[AccountInventoryAlerts] inventory load failed', error);
+        });
+    };
+
+    loadInventory();
+    const unsubscribe = subscribeToInventoryChanges(loadInventory);
+
+    return () => {
+      isMounted = false;
+      latestRequest += 1;
+      unsubscribe();
+    };
+  }, [idToken, userId]);
 
   return <InventoryAlertObserver snapshot={snapshot} />;
 }

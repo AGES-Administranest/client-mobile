@@ -12,12 +12,9 @@ import type { MonitoredItem } from '../domain/lowStockAlert';
 import { useInventoryNotifications } from '../hooks/useInventoryNotifications';
 
 type InventoryNotificationsScreenProps = {
-  status?: 'loading' | 'ready';
+  status?: 'loading' | 'ready' | 'error';
   userId: string;
-  /**
-   * Recebida por prop: quem tem a lista de itens é a aba de Estoque. Quando o
-   * CRUD da US09 existir, é ela que passa os dados reais aqui.
-   */
+  /** Dados reais de estoque carregados pela tela chamadora. */
   items: readonly MonitoredItem[];
   lots: readonly ExpiringLot[];
   referenceDate?: Date;
@@ -43,6 +40,18 @@ export function InventoryNotificationsScreen({
       >
         <Text style={styles.heading}>{t('inventory.notifications.title')}</Text>
         <Text style={styles.empty}>{t('inventory.overview.loading')}</Text>
+      </ScrollView>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <ScrollView
+        className="flex-1 bg-background-modal"
+        contentContainerClassName="gap-3 px-4 py-6"
+      >
+        <Text style={styles.heading}>{t('inventory.notifications.title')}</Text>
+        <Text style={styles.empty}>{t('inventory.notifications.error')}</Text>
       </ScrollView>
     );
   }

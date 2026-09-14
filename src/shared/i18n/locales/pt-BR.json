@@ -22,6 +22,7 @@
     "notifications": {
       "title": "Notificações",
       "empty": "Nenhum alerta no momento.",
+      "error": "Não foi possível carregar os alertas.",
       "lowStockTitle": "{{name}} com estoque baixo",
       "lowStockBody": "{{quantity}} unidades restantes (mín. {{minimum}})",
       "expiryTitle": "{{name}} irá vencer",

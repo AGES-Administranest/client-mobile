@@ -22,6 +22,7 @@
     "notifications": {
       "title": "Notifications",
       "empty": "No alerts right now.",
+      "error": "Could not load the alerts.",
       "lowStockTitle": "{{name}} is low on stock",
       "lowStockBody": "{{quantity}} units remaining (min. {{minimum}})",
       "expiryTitle": "{{name}} is about to expire",

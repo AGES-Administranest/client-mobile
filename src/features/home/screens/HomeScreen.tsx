@@ -7,10 +7,9 @@ import { Icon } from 'app/components/ui/icon';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { useAuth } from 'features/auth';
 import {
+  inventoryAlertDataFromItems,
   InventoryNotificationsScreen,
-  isValidExpirationDate,
-  type ExpiringLot,
-  type MonitoredItem,
+  type InventoryAlertData,
 } from 'features/inventory';
 import { fetchItems } from 'features/materials';
 import { useTranslation } from 'shared/i18n';
@@ -21,42 +20,27 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [accountVisible, setAccountVisible] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
-  const [monitoredItems, setMonitoredItems] = useState<MonitoredItem[]>([]);
-  const [expiringLots, setExpiringLots] = useState<ExpiringLot[]>([]);
+  const [notificationStatus, setNotificationStatus] = useState<
+    'loading' | 'ready' | 'error'
+  >('loading');
+  const [inventory, setInventory] = useState<InventoryAlertData>({
+    items: [],
+    lots: [],
+  });
 
   const openNotifications = useCallback(() => {
     setNotificationsVisible(true);
     if (!session) return;
-    fetchItems(session.idToken).then(backendItems => {
-      setMonitoredItems(
-        backendItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          unit: item.unit,
-          quantity: parseFloat(item.currentQuantity),
-          minimumStock: item.minimumStock ? parseFloat(item.minimumStock) : 0,
-        })),
-      );
-      // ponytail: the backend only exposes each item's nearest lot
-      // (`nearestExpiration`), not the full lot list — an item with more than
-      // one lot expiring soon only shows the closest one. Add when a
-      // lot-listing endpoint exists.
-      setExpiringLots(
-        backendItems
-          .filter(
-            (item): item is typeof item & { nearestExpiration: string } =>
-              item.nearestExpiration !== null &&
-              isValidExpirationDate(item.nearestExpiration),
-          )
-          .map(item => ({
-            id: item.id,
-            itemId: item.id,
-            name: item.name,
-            expirationDate:
-              item.nearestExpiration as ExpiringLot['expirationDate'],
-          })),
-      );
-    });
+    setNotificationStatus('loading');
+    fetchItems(session.idToken)
+      .then(backendItems => {
+        setInventory(inventoryAlertDataFromItems(backendItems));
+        setNotificationStatus('ready');
+      })
+      .catch(error => {
+        console.warn('[HomeScreen] inventory load failed', error);
+        setNotificationStatus('error');
+      });
   }, [session]);
 
   return (
@@ -99,9 +83,10 @@ export function HomeScreen() {
             <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
           </Pressable>
           <InventoryNotificationsScreen
+            status={notificationStatus}
             userId={account?.id ?? ''}
-            items={monitoredItems}
-            lots={expiringLots}
+            items={inventory.items}
+            lots={inventory.lots}
           />
         </View>
       </Modal>

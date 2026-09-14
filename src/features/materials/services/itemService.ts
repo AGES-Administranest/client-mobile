@@ -46,7 +46,9 @@ export async function createItem(
   idToken: string,
   payload: CreateItemPayload,
 ): Promise<BackendItem> {
-  return apiClient.post<BackendItem>('/item', payload, { token: idToken });
+  return apiClient.post<BackendItem>('/item', payload, {
+    token: idToken,
+  });
 }
 
 // Item de outra conta responde 404: o backend não confirma que ele existe.

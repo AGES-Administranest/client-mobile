@@ -16,3 +16,7 @@ export type { ExpiringLot, IsoDate } from './domain/expiryAlert';
 export type { InventoryNotification } from './domain/inventoryNotifications';
 export type { InventoryDisplayItem } from './domain/inventoryOverview';
 export type { InventoryAlertSnapshot } from './components/InventoryAlertObserver';
+export {
+  inventoryAlertDataFromItems,
+  type InventoryAlertData,
+} from './domain/inventorySnapshot';

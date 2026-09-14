@@ -6,6 +6,7 @@ import type { SegmentValue } from 'app/components/ui/segmented-control';
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
 import { ApiError } from 'shared/services/apiClient';
+import { publishInventoryChange } from 'shared/services/inventoryEvents';
 
 import { materialsErrorKey } from './materialsErrorKeys';
 import {
@@ -173,6 +174,7 @@ export function useMaterialsScreen(): MaterialsScreenState {
         setAllBackendItems(prev =>
           prev.map(item => (item.id === updated.id ? updated : item)),
         );
+        publishInventoryChange();
         return;
       }
 
@@ -209,6 +211,7 @@ export function useMaterialsScreen(): MaterialsScreenState {
 
       const refreshed = await fetchItems(token);
       setAllBackendItems(refreshed);
+      publishInventoryChange();
     },
     [idToken],
   );
@@ -217,6 +220,7 @@ export function useMaterialsScreen(): MaterialsScreenState {
     async (id: string) => {
       await deleteItem(requireToken(idToken), id);
       setAllBackendItems(prev => prev.filter(item => item.id !== id));
+      publishInventoryChange();
     },
     [idToken],
   );
