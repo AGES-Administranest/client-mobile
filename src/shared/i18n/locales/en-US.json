@@ -39,6 +39,17 @@
       "description": "Stock inbounds, outbounds and adjustments",
       "appointmentLink": "Appointment · {{appointment}}",
       "empty": "No movement recorded yet.",
+      "emptyFiltered": "No movement matches the filter.",
+      "filters": {
+        "searchPlaceholder": "Search by item",
+        "period": "Period",
+        "periodRange": "{{from}} to {{to}}",
+        "periodSingle": "{{day}}",
+        "periodFrom": "From {{from}}",
+        "clear": "Clear",
+        "previousMonth": "Previous month",
+        "nextMonth": "Next month"
+      },
       "error": "Could not load the history.",
       "origins": {
         "manualPurchase": "Manual purchase",

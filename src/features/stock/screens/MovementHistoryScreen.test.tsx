@@ -75,6 +75,56 @@ async function renderScreen() {
   return readTexts(await mount());
 }
 
+function searchInput(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root.find(
+    node =>
+      node.props.accessibilityLabel === 'Buscar por item' &&
+      typeof node.props.onChangeText === 'function',
+  );
+}
+
+function periodToggle(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root.find(
+    node =>
+      node.props.accessibilityState?.expanded !== undefined &&
+      typeof node.props.onPress === 'function',
+  );
+}
+
+function dayCell(renderer: ReactTestRenderer.ReactTestRenderer, date: string) {
+  return renderer.root.find(
+    node =>
+      node.props.testID === date && typeof node.props.onPress === 'function',
+  );
+}
+
+function isCalendarOpen(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return (
+    renderer.root.findAll(
+      node =>
+        typeof node.props.testID === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(node.props.testID),
+    ).length > 0
+  );
+}
+
+async function pickSingleDay(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  date: string,
+) {
+  await act(async () => {
+    periodToggle(renderer).props.onPress();
+  });
+
+  await act(async () => {
+    dayCell(renderer, date).props.onPress();
+  });
+
+  await act(async () => {
+    dayCell(renderer, date).props.onPress();
+  });
+}
+
 beforeEach(() => fetchMock.mockReset());
 
 test('lists inbounds, appointment outbounds and manual adjustments with date, value, quantity and origin', async () => {
@@ -159,4 +209,213 @@ test('offers a retry when the history fails to load, and recovers on success', a
 
   expect(texts).toContain('Seringa 60ml (cx 30un)');
   expect(texts).not.toContain('Não foi possível carregar o histórico.');
+});
+
+describe('filters', () => {
+  beforeEach(() => {
+    fetchMock.mockResolvedValue([
+      APPOINTMENT_OUTBOUND,
+      PURCHASE_INBOUND,
+      EXPIRATION_ADJUSTMENT,
+    ]);
+  });
+
+  it('filters by item name as the user types', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      searchInput(renderer).props.onChangeText('seringa');
+    });
+
+    const texts = readTexts(renderer);
+
+    expect(texts).toContain('Seringa 60ml (cx 30un)');
+    expect(texts).not.toContain('Propofol');
+    expect(texts).not.toContain('Soro');
+  });
+
+  it('ignores accents and case in the item search', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      searchInput(renderer).props.onChangeText('FISIOLOGICO');
+    });
+
+    const texts = readTexts(renderer);
+
+    expect(texts).toContain('Soro fisiológico 500ml');
+    expect(texts).not.toContain('Propofol');
+  });
+
+  it('returns only that day when the same day is picked as start and end', async () => {
+    const renderer = await mount();
+
+    await pickSingleDay(renderer, '2026-09-05');
+
+    const texts = readTexts(renderer);
+
+    expect(texts).toContain('Seringa 60ml (cx 30un)');
+    expect(texts).not.toContain('Propofol');
+    expect(texts).not.toContain('Soro');
+  });
+
+  it('returns every movement inside a multi-day period', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      periodToggle(renderer).props.onPress();
+    });
+
+    await act(async () => {
+      renderer.root
+        .find(
+          node =>
+            node.props.accessibilityLabel === 'Mês anterior' &&
+            typeof node.props.onPress === 'function',
+        )
+        .props.onPress();
+    });
+
+    await act(async () => {
+      dayCell(renderer, '2026-08-12').props.onPress();
+    });
+
+    await act(async () => {
+      dayCell(renderer, '2026-08-29').props.onPress();
+    });
+
+    const texts = readTexts(renderer);
+
+    expect(texts).toContain('Propofol 10mg/ml 20ml');
+    expect(texts).toContain('Soro fisiológico 500ml');
+    expect(texts).not.toContain('Seringa');
+  });
+
+  it('combines the item and the period filters', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      searchInput(renderer).props.onChangeText('propofol');
+    });
+
+    await pickSingleDay(renderer, '2026-09-05');
+
+    expect(readTexts(renderer)).toContain(
+      'Nenhuma movimentação encontrada para o filtro.',
+    );
+  });
+
+  it('tells the user nothing matched, not that there is no history', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      searchInput(renderer).props.onChangeText('cetamina');
+    });
+
+    const texts = readTexts(renderer);
+
+    expect(texts).toContain('Nenhuma movimentação encontrada para o filtro.');
+    expect(texts).not.toContain('Nenhuma movimentação registrada.');
+  });
+
+  it('restores the full history when the filters are cleared', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      searchInput(renderer).props.onChangeText('seringa');
+    });
+
+    expect(readTexts(renderer)).not.toContain('Propofol');
+
+    await act(async () => {
+      renderer.root
+        .find(
+          node =>
+            node.props.accessibilityLabel === 'Limpar' &&
+            typeof node.props.onPress === 'function',
+        )
+        .props.onPress();
+    });
+
+    const texts = readTexts(renderer);
+
+    expect(texts).toContain('Propofol 10mg/ml 20ml');
+    expect(texts).toContain('Seringa 60ml (cx 30un)');
+    expect(texts).toContain('Soro fisiológico 500ml');
+  });
+
+  it('shows the picked period on the filter button', async () => {
+    const renderer = await mount();
+
+    expect(readTexts(renderer)).toContain('Período');
+
+    await pickSingleDay(renderer, '2026-09-05');
+
+    expect(readTexts(renderer)).toContain('05 set');
+  });
+});
+
+describe('calendar visibility', () => {
+  beforeEach(() => {
+    fetchMock.mockResolvedValue([
+      APPOINTMENT_OUTBOUND,
+      PURCHASE_INBOUND,
+      EXPIRATION_ADJUSTMENT,
+    ]);
+  });
+
+  it('stays open while only the start of the period is picked', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      periodToggle(renderer).props.onPress();
+    });
+
+    expect(isCalendarOpen(renderer)).toBe(true);
+
+    await act(async () => {
+      dayCell(renderer, '2026-09-05').props.onPress();
+    });
+
+    expect(isCalendarOpen(renderer)).toBe(true);
+  });
+
+  it('closes once start and end are both picked', async () => {
+    const renderer = await mount();
+
+    await pickSingleDay(renderer, '2026-09-05');
+
+    expect(isCalendarOpen(renderer)).toBe(false);
+    expect(readTexts(renderer)).toContain('05 set');
+  });
+
+  it('closes on a multi-day period too', async () => {
+    const renderer = await mount();
+
+    await act(async () => {
+      periodToggle(renderer).props.onPress();
+    });
+
+    await act(async () => {
+      dayCell(renderer, '2026-09-01').props.onPress();
+    });
+
+    await act(async () => {
+      dayCell(renderer, '2026-09-10').props.onPress();
+    });
+
+    expect(isCalendarOpen(renderer)).toBe(false);
+  });
+
+  it('can be reopened to pick a different period', async () => {
+    const renderer = await mount();
+
+    await pickSingleDay(renderer, '2026-09-05');
+
+    await act(async () => {
+      periodToggle(renderer).props.onPress();
+    });
+
+    expect(isCalendarOpen(renderer)).toBe(true);
+  });
 });

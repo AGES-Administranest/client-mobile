@@ -39,6 +39,17 @@
       "description": "Entradas, saídas e ajustes de estoque",
       "appointmentLink": "Atendimento · {{appointment}}",
       "empty": "Nenhuma movimentação registrada.",
+      "emptyFiltered": "Nenhuma movimentação encontrada para o filtro.",
+      "filters": {
+        "searchPlaceholder": "Buscar por item",
+        "period": "Período",
+        "periodRange": "{{from}} até {{to}}",
+        "periodSingle": "{{day}}",
+        "periodFrom": "A partir de {{from}}",
+        "clear": "Limpar",
+        "previousMonth": "Mês anterior",
+        "nextMonth": "Próximo mês"
+      },
       "error": "Não foi possível carregar o histórico.",
       "origins": {
         "manualPurchase": "Compra manual",
