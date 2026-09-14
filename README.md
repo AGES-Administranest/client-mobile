@@ -177,13 +177,14 @@ src/
 
 A feature only needs the subfolders it actually uses — don't create empty `domain/`/`services/` just to follow the template.
 
-**`src/features/home`** uses every subfolder and is meant as a living reference for the pattern — the `feature-dev`, `feature-mentor`, and `repo-review` skills all point here rather than hardcoding a feature name. If `home` is ever removed or simplified, update this section to point at whichever feature best demonstrates the full pattern next, so those skills keep working without edits:
+**`src/features/home`** uses almost every subfolder and is meant as a living reference for the pattern — the `feature-dev`, `feature-mentor`, and `repo-review` skills all point here rather than hardcoding a feature name. If `home` is ever removed or simplified, update this section to point at whichever feature best demonstrates the full pattern next, so those skills keep working without edits:
 
 - `domain/getGreetingPeriod.ts` — a pure function (plus its unit test) with no framework dependency.
-- `services/currentUserService.ts` — the data layer, stubbed until there's a real endpoint.
-- `hooks/useHomeScreen.ts` — wires the domain rule and the service call together for the screen.
+- `hooks/useHomeScreen.ts` — wires the domain rule and the signed-in account (`useAuth()`) together for the screen.
 - `components/AppTitle.tsx`, `components/GreetingCard.tsx` — presentational components, feature-local, receiving already-translated strings as props.
 - `screens/HomeScreen.tsx` — composes the components and hook; the only place that touches `useTranslation`.
+
+`home` no longer has a `services/` folder — its data is the account `features/auth` already holds. For a data layer that calls the API, see `src/features/materials/services` (below, under [Calling the API](#calling-the-api)).
 
 ### Dependency rules
 
@@ -302,6 +303,21 @@ If the API refuses, the Cognito tokens are revoked and the error goes to the for
   after Cognito authenticated the person, so naming it reveals nothing.
 - **Signing out** is on the account button at the top of the home screen until the
   Profile tab exists.
+
+#### Calling the API
+
+Every backend route requires `Authorization: Bearer <idToken>` and takes the owner from
+the token — it rejects a `userId` in a body or query with `400`, and answers `404` for
+another account's record. So a feature's services never send `userId`: they take the id
+token as a parameter and pass it to `apiClient` (`shared/services/apiClient`), which
+sends it as the bearer header and throws `ApiError(message, code, status)`. The hook
+reads the token from `useAuth().session.idToken` and hands it to the service — services
+stay framework-free and there is no second session store. See
+`src/features/materials/services/itemService.ts` and `hooks/useMaterialsScreen.ts`.
+
+A `401` (`UNAUTHENTICATED`, `TOKEN_EXPIRED`, `TOKEN_INVALID`, `USER_NOT_PROVISIONED`)
+must reach the screen as an error — never as an empty list. Until the id token is
+refreshed before API calls (see below), the fix for the user is signing in again.
 
 #### Continue with Google
 

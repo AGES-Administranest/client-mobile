@@ -19,7 +19,7 @@ export function StockEntryFlow() {
   const flow = useStockEntryFlow();
 
   return (
-    <View className="flex-1 items-center justify-center bg-background-modal px-5">
+    <View>
       <ActionButton
         label={t('stockEntry.trigger')}
         icon={<Icon as={Plus} size={16} />}
