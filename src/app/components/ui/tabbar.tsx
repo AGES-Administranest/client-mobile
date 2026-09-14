@@ -46,28 +46,32 @@ function TabBar({ value, onValueChange, className }: TabBarProps) {
             onPress={() => onValueChange(tab.value)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            className={cn(
-              'flex-1 items-center gap-1 rounded-full py-2',
-              active && 'bg-details-primary shadow-sm shadow-black/5',
-            )}
+            className="flex-1 items-center py-2"
           >
-            <Icon
-              as={tab.icon}
+            <View
               className={cn(
-                'size-5',
-                active ? 'text-label-quartenery' : 'text-muted-foreground',
-              )}
-            />
-            <Text
-              className={cn(
-                'text-[10px]',
-                active
-                  ? 'text-label-quartenery font-medium'
-                  : 'text-muted-foreground',
+                'items-center gap-1 rounded-[64px] px-3 py-1.5',
+                active && 'bg-details-primary shadow-sm shadow-black/5',
               )}
             >
-              {t(tab.labelKey)}
-            </Text>
+              <Icon
+                as={tab.icon}
+                className={cn(
+                  'size-5',
+                  active ? 'text-label-quartenery' : 'text-muted-foreground',
+                )}
+              />
+              <Text
+                className={cn(
+                  'text-[10px]',
+                  active
+                    ? 'text-label-quartenery font-medium'
+                    : 'text-muted-foreground',
+                )}
+              >
+                {t(tab.labelKey)}
+              </Text>
+            </View>
           </Pressable>
         );
       })}

@@ -17,7 +17,7 @@ const segmentVariants = cva(
   {
     variants: {
       active: {
-        true: 'bg-white shadow-sm shadow-black/5',
+        true: 'bg-details-primary shadow-sm shadow-black/5',
         false: '',
       },
     },
@@ -55,7 +55,7 @@ function SegmentedControl({
   return (
     <View
       className={cn(
-        'flex-row items-stretch rounded-lg bg-details-primary p-2',
+        'flex-row items-stretch rounded-lg bg-white p-2',
         className,
       )}
     >
