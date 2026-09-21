@@ -3,8 +3,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StockItem } from 'app/components/ui/item-modal/domain/itemModal';
 import type { ItemDraft } from 'app/components/ui/item-modal/item-modal';
 import type { SegmentValue } from 'app/components/ui/segmented-control';
+<<<<<<< HEAD
 import { sessionStore } from 'shared/services/sessionStore';
 
+=======
+import { useAuth } from 'features/auth';
+import type { TranslationKey } from 'shared/i18n';
+import { ApiError } from 'shared/services/apiClient';
+
+import { materialsErrorKey } from './materialsErrorKeys';
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 import {
   ALL_CATEGORIES,
   backendItemToMaterial,
@@ -17,7 +25,16 @@ import {
   type MaterialItem,
 } from '../domain/materialsFilter';
 import { createItemLot } from '../services/itemLotService';
+<<<<<<< HEAD
 import { createItem, deleteItem, fetchItems } from '../services/itemService';
+=======
+import {
+  createItem,
+  deleteItem,
+  fetchItems,
+  updateItem,
+} from '../services/itemService';
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 
 type MaterialsScreenState = {
   segment: SegmentValue;
@@ -26,8 +43,14 @@ type MaterialsScreenState = {
   onCategoryChange: (category: string) => void;
   categories: string[];
   items: MaterialItem[];
+<<<<<<< HEAD
   isLoading: boolean;
   error: string | null;
+=======
+  stockItems: StockItem[];
+  isLoading: boolean;
+  error: TranslationKey | null;
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   onConfirmAdd: (draft: ItemDraft) => Promise<void>;
   onDeleteItem: (id: string) => Promise<void>;
   getStockItem: (id: string) => StockItem | null;
@@ -42,6 +65,7 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+<<<<<<< HEAD
 function parseExpirationDate(value: string): string | undefined {
   if (!value.trim()) return undefined;
   const d = new Date(value);
@@ -49,6 +73,27 @@ function parseExpirationDate(value: string): string | undefined {
   return d.toISOString().slice(0, 10);
 }
 
+=======
+// O formulário entrega a validade como DD/MM/AAAA. `new Date('31/03/2027')` é
+// Invalid Date, então a validade digitada era descartada em silêncio e nunca
+// chegava ao backend; aqui ela é convertida para o ISO que o lote espera.
+function parseExpirationDate(value: string): string | undefined {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length !== 8) return undefined;
+
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+  const isRealDate =
+    parsed.getFullYear() === Number(year) &&
+    parsed.getMonth() === Number(month) - 1 &&
+    parsed.getDate() === Number(day);
+
+  return isRealDate ? `${year}-${month}-${day}` : undefined;
+}
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 
 function backendItemToStockItem(item: BackendItem): StockItem {
   return {
@@ -59,22 +104,56 @@ function backendItemToStockItem(item: BackendItem): StockItem {
     unit: backendUnitLabel(item.unit),
     quantity: parseFloat(item.currentQuantity),
     minQuantity: item.minimumStock ? parseFloat(item.minimumStock) : 0,
+<<<<<<< HEAD
     expiration: null,
   };
 }
 
 export function useMaterialsScreen(): MaterialsScreenState {
+=======
+    expiration: item.nearestExpiration,
+  };
+}
+
+// Sem token a chamada só pode voltar 401; falhar antes com o mesmo erro
+// mantém uma única mensagem de sessão na tela.
+function requireToken(idToken: string | null): string {
+  if (!idToken) {
+    throw new ApiError('No active session', 'UNAUTHENTICATED', 401);
+  }
+  return idToken;
+}
+
+export function useMaterialsScreen(): MaterialsScreenState {
+  // App.tsx só monta as abas com sessão e conta abertas, então o token está
+  // sempre aqui; o null só existe no tipo.
+  const { session } = useAuth();
+  const idToken = session?.idToken ?? null;
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   const [segment, setSegment] = useState<SegmentValue>('supplies');
   const [category, setCategory] = useState<string>(ALL_CATEGORIES);
   const [allBackendItems, setAllBackendItems] = useState<BackendItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+<<<<<<< HEAD
   const [error, setError] = useState<string | null>(null);
+=======
+  const [error, setError] = useState<TranslationKey | null>(null);
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 
   const allItems = useMemo(
     () => allBackendItems.map(backendItemToMaterial),
     [allBackendItems],
   );
 
+<<<<<<< HEAD
+=======
+  // Alimenta a busca por nome do modal de cadastro.
+  const stockItems = useMemo(
+    () => allBackendItems.map(backendItemToStockItem),
+    [allBackendItems],
+  );
+
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   function onSegmentChange(nextSegment: SegmentValue) {
     setSegment(nextSegment);
     setCategory(ALL_CATEGORIES);
@@ -86,14 +165,25 @@ export function useMaterialsScreen(): MaterialsScreenState {
     setIsLoading(true);
     setError(null);
 
+<<<<<<< HEAD
     fetchItems()
+=======
+    // async para que a falta de token caia no mesmo .catch de uma falha da API.
+    (async () => fetchItems(requireToken(idToken)))()
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
       .then(backendItems => {
         if (!isMounted) return;
         setAllBackendItems(backendItems);
       })
+<<<<<<< HEAD
       .catch(() => {
         if (!isMounted) return;
         setError('materials.errorLoad');
+=======
+      .catch(loadError => {
+        if (!isMounted) return;
+        setError(materialsErrorKey(loadError, 'materials.errorLoad'));
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
       })
       .finally(() => {
         if (!isMounted) return;
@@ -103,6 +193,7 @@ export function useMaterialsScreen(): MaterialsScreenState {
     return () => {
       isMounted = false;
     };
+<<<<<<< HEAD
   }, []);
 
   
@@ -118,11 +209,23 @@ export function useMaterialsScreen(): MaterialsScreenState {
 
     if (!targetItemId) {
       
+=======
+  }, [idToken]);
+
+  const onConfirmAdd = useCallback(
+    async (draft: ItemDraft) => {
+      const token = requireToken(idToken);
+      const quantity = parseFloat(draft.quantity) || 0;
+      const unitCost = parseCurrency(draft.unitCost);
+      const expirationDate = parseExpirationDate(draft.expiration);
+      const receivedOn = todayIso();
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
       const minimumStock =
         draft.minQuantity !== null
           ? parseFloat(draft.minQuantity) || 0
           : undefined;
 
+<<<<<<< HEAD
       const newItem = await createItem({
         userId,
         category: draft.category as BackendItemCategory,
@@ -155,6 +258,70 @@ export function useMaterialsScreen(): MaterialsScreenState {
     await deleteItem(id);
     setAllBackendItems(prev => prev.filter(item => item.id !== id));
   }, []);
+=======
+      // Editar mexe nos atributos do item (PATCH /item/:id). O saldo não vai
+      // aqui: currentQuantity é um cache das stock_movement no backend, e o
+      // modal de edição já vem preenchido com o saldo atual — mandá-lo como
+      // lote dobraria o estoque.
+      if (draft.editingItemId) {
+        const updated = await updateItem(token, draft.editingItemId, {
+          name: draft.name,
+          category: draft.category as BackendItemCategory,
+          unit: toBackendUnit(draft.unit),
+          defaultUnitCost: unitCost || undefined,
+          minimumStock,
+        });
+        setAllBackendItems(prev =>
+          prev.map(item => (item.id === updated.id ? updated : item)),
+        );
+        return;
+      }
+
+      let targetItemId = draft.selectedItemId;
+
+      if (!targetItemId) {
+        // `draft.supplierName` é campo livre e ainda NÃO é enviado: o item só
+        // aceita `supplierId` (FK), e o cadastro de fornecedor ainda não existe
+        // na tela. O service de fornecedor já está pronto no backend — quando o
+        // cadastro entrar, é aqui que o id passa a ser resolvido.
+        const newItem = await createItem(token, {
+          category: draft.category as BackendItemCategory,
+          unit: toBackendUnit(draft.unit),
+          name: draft.name,
+          defaultUnitCost: unitCost || undefined,
+          minimumStock,
+        });
+
+        targetItemId = newItem.id;
+
+        setAllBackendItems(prev => [...prev, newItem]);
+      }
+
+      // CreateItemLotDto exige @IsPositive() em quantity: cadastrar um item sem
+      // estoque inicial não pode abrir lote nenhum, senão volta 400.
+      if (quantity > 0) {
+        await createItemLot(token, targetItemId, {
+          quantity,
+          unitCost,
+          expirationDate,
+          receivedOn,
+        });
+      }
+
+      const refreshed = await fetchItems(token);
+      setAllBackendItems(refreshed);
+    },
+    [idToken],
+  );
+
+  const onDeleteItem = useCallback(
+    async (id: string) => {
+      await deleteItem(requireToken(idToken), id);
+      setAllBackendItems(prev => prev.filter(item => item.id !== id));
+    },
+    [idToken],
+  );
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 
   const getStockItem = useCallback(
     (id: string): StockItem | null => {
@@ -174,6 +341,10 @@ export function useMaterialsScreen(): MaterialsScreenState {
     onCategoryChange: setCategory,
     categories,
     items,
+<<<<<<< HEAD
+=======
+    stockItems,
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
     isLoading,
     error,
     onConfirmAdd,

@@ -36,6 +36,7 @@ yarn-error.log
 
 # Web build (expo export --platform web)
 dist/
+web-build/
 
 # Ruby / CocoaPods
 **/Pods/

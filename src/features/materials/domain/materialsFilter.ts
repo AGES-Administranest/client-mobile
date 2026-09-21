@@ -24,6 +24,12 @@ export type BackendItem = {
   defaultUnitCost: string | null;
   minimumStock: string | null;
   currentQuantity: string;
+<<<<<<< HEAD
+=======
+  // Validade do lote mais próximo ainda com saldo (AAAA-MM-DD), calculada
+  // pelo backend a partir dos lotes do item.
+  nearestExpiration: string | null;
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -38,7 +44,11 @@ export type MaterialItem = {
   id: string;
   segment: MaterialSegment;
   name: string;
+<<<<<<< HEAD
   category: string; 
+=======
+  category: string;
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   price: number;
   unit: string;
   quantity: number;
@@ -46,7 +56,10 @@ export type MaterialItem = {
   belowMinimum: boolean;
 };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 const CATEGORY_LABEL: Record<BackendItemCategory, string> = {
   MEDICATION: 'Medicamento',
   ANESTHETIC: 'Anestésico',
@@ -66,12 +79,18 @@ const UNIT_LABEL: Record<BackendMeasurementUnit, string> = {
   OTHER: 'un',
 };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 export const UNIT_OPTIONS: readonly string[] = Array.from(
   new Set(Object.values(UNIT_LABEL)),
 );
 
+<<<<<<< HEAD
 /
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 export const CATEGORY_OPTIONS: readonly {
   value: BackendItemCategory;
   label: string;
@@ -99,12 +118,18 @@ export function backendItemToMaterial(item: BackendItem): MaterialItem {
   };
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 export function backendUnitLabel(unit: BackendMeasurementUnit): string {
   return UNIT_LABEL[unit] ?? unit;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 export function toBackendUnit(unit: string): BackendMeasurementUnit {
   const normalized = unit.trim().toLowerCase();
   const map: Record<string, BackendMeasurementUnit> = {

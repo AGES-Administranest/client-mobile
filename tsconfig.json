@@ -4,7 +4,8 @@
     "paths": {
       "app/*": ["./src/app/*"],
       "features/*": ["./src/features/*"],
-      "shared/*": ["./src/shared/*"]
+      "shared/*": ["./src/shared/*"],
+      "theme/*": ["./src/theme/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"],

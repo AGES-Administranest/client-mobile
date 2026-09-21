@@ -66,3 +66,79 @@ test('renders the low-stock warning and red border when belowMinimum is true', a
     views.some(view => view.props.className?.includes('border-alert-primary')),
   ).toBe(true);
 });
+
+test('shows an alert icon only on items below the minimum', async () => {
+  function render(belowMinimum: boolean) {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = ReactTestRenderer.create(
+        <I18nProvider>
+          <MaterialCard
+            name="Isoflurano 250ml"
+            category="Anestésico"
+            price={280}
+            unit="frasco"
+            quantity={2}
+            minQuantity={3}
+            belowMinimum={belowMinimum}
+          />
+        </I18nProvider>,
+      );
+    });
+    return renderer!;
+  }
+
+  const svgsWhenBelow = render(true).root.findAllByType(
+    'RNSVGSvgView' as never,
+  );
+  const svgsWhenOk = render(false).root.findAllByType('RNSVGSvgView' as never);
+
+  expect(svgsWhenBelow.length).toBeGreaterThan(svgsWhenOk.length);
+});
+
+test('renders an extra warning message when quantity is at or below minimum quantity', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await act(() => {
+    renderer = ReactTestRenderer.create(
+      <I18nProvider>
+        <MaterialCard
+          name="Propofol 10mg/ml 20ml"
+          category="Medicamento"
+          price={19.9}
+          unit="ampola"
+          quantity={10}
+          minQuantity={10}
+        />
+      </I18nProvider>,
+    );
+  });
+
+  const texts = renderer!.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children);
+
+  expect(JSON.stringify(texts)).toContain('Item no estoque mínimo');
+});
+
+test('translates the stock warning for the selected language', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+  await act(() => {
+    renderer = ReactTestRenderer.create(
+      <I18nProvider initialLocale="en-US">
+        <MaterialCard
+          name="Isoflurano"
+          category="Drug"
+          price={185}
+          unit="vial"
+          quantity={2}
+          minQuantity={3}
+          belowMinimum
+        />
+      </I18nProvider>,
+    );
+  });
+  expect(JSON.stringify(renderer!.toJSON())).toContain(
+    'Item below minimum stock',
+  );
+});

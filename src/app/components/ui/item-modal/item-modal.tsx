@@ -11,6 +11,10 @@ import {
   View,
 } from 'react-native';
 
+<<<<<<< HEAD
+=======
+import { Button } from 'app/components/ui/button';
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
@@ -22,6 +26,10 @@ import {
   formatDateInput,
   formatExpiration,
   isPastDate,
+<<<<<<< HEAD
+=======
+  toDateInput,
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   shouldShowAddOption,
   shouldShowMinQuantity,
   type StockItem,
@@ -48,11 +56,25 @@ type ItemModalProps = {
 export type ItemDraft = {
   category: string;
   name: string;
+<<<<<<< HEAD
   selectedItemId: string | null; 
   unitCost: string;
   unit: string;
   quantity: string;
   minQuantity: string | null; 
+=======
+  // Campo livre por enquanto: ainda não há cadastro de fornecedor, então o
+  // valor não é persistido. Ver o comentário em useMaterialsScreen.
+  supplierName: string | null;
+  // Item cujos próprios atributos estão sendo alterados (PATCH).
+  editingItemId: string | null;
+  // Item existente escolhido no dropdown para receber um lote novo.
+  selectedItemId: string | null;
+  unitCost: string;
+  unit: string;
+  quantity: string;
+  minQuantity: string | null;
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   expiration: string;
 };
 
@@ -70,8 +92,13 @@ function ItemModal({
 }: ItemModalProps) {
   const { t, locale } = useTranslation();
   const isDetail = mode === 'detail';
+<<<<<<< HEAD
 
   
+=======
+  const isEditing = !isDetail && item !== null;
+
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -97,9 +124,16 @@ function ItemModal({
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(item);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [unitDropdownOpen, setUnitDropdownOpen] = useState(false);
+<<<<<<< HEAD
   
   const [showLotFields, setShowLotFields] = useState(isDetail || item !== null);
   
+=======
+  const [supplierName, setSupplierName] = useState('');
+
+  const [showLotFields, setShowLotFields] = useState(isDetail || item !== null);
+
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [unitCost, setUnitCost] = useState(item ? String(item.unitCost) : '');
   const [unit, setUnit] = useState(item?.unit ?? '');
@@ -107,7 +141,13 @@ function ItemModal({
   const [minQuantity, setMinQuantity] = useState(
     item ? String(item.minQuantity) : '',
   );
+<<<<<<< HEAD
   const [expiration, setExpiration] = useState(item?.expiration ?? '');
+=======
+  const [expiration, setExpiration] = useState(
+    toDateInput(item?.expiration ?? null),
+  );
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 
   const matches = useMemo(() => {
     const byCategory = items.filter(i => i.category === category);
@@ -115,11 +155,29 @@ function ItemModal({
   }, [items, category, query]);
 
   const showAddOption = shouldShowAddOption(query, matches);
+<<<<<<< HEAD
   
   const showMinQuantity =
     !isDetail && showLotFields && shouldShowMinQuantity(selectedItem);
   
   const showExpiration = isDetail || showLotFields;
+=======
+
+  const showMinQuantity =
+    isDetail ||
+    isEditing ||
+    (showLotFields && shouldShowMinQuantity(selectedItem));
+
+  // Dar entrada num item que já existe abre um lote novo: o que se informa é
+  // quanto entrou, não a validade — que ficaria herdada do lote anterior.
+  const isAddingToExisting = !isDetail && !isEditing && selectedItem !== null;
+  const showExpiration = (isDetail || showLotFields) && !isAddingToExisting;
+  // Fornecedor é atributo do item, não do lote: aparece ao cadastrar um item
+  // novo, não ao dar entrada de estoque num que já existe.
+  const showSupplier =
+    !isDetail && !isEditing && showLotFields && !isAddingToExisting;
+
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   const expirationInPast = !isDetail && isPastDate(expiration);
 
   const selectedCategoryLabel =
@@ -129,13 +187,21 @@ function ItemModal({
     category: selectedCategoryLabel,
   });
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   const namePlaceholder = t('itemModal.namePlaceholder', {
     category: selectedCategoryLabel.toLowerCase(),
   });
 
+<<<<<<< HEAD
  
   function clearFields() {
+=======
+  function clearFields() {
+    setSupplierName('');
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
     setQuery('');
     setSelectedItem(null);
     setDropdownOpen(false);
@@ -149,6 +215,7 @@ function ItemModal({
     setIsAddingNew(false);
   }
 
+<<<<<<< HEAD
   
   useEffect(() => {
     if (visible && !isDetail && !item) {
@@ -159,19 +226,58 @@ function ItemModal({
 
   function handleSelectExisting(existing: StockItem) {
     
+=======
+  // Os useState acima só valem na montagem. O modal fica montado entre
+  // aberturas, então trocar `item` (abrir em modo edição) não reinicializa
+  // nada — sem este efeito a edição abria com os campos vazios e o submit
+  // caía no fluxo de criação, duplicando o item.
+  useEffect(() => {
+    if (!visible) return;
+
+    if (item) {
+      setCategory(item.category);
+      setQuery(item.name);
+      setSelectedItem(item);
+      setUnitCost(String(item.unitCost));
+      setUnit(item.unit);
+      setQuantity(String(item.quantity));
+      setMinQuantity(String(item.minQuantity));
+      setExpiration(toDateInput(item.expiration));
+      setDropdownOpen(false);
+      setShowLotFields(true);
+      setIsAddingNew(false);
+      return;
+    }
+
+    if (isDetail) return;
+
+    setCategory(categoryOptions[0]?.value ?? '');
+    clearFields();
+  }, [visible, isDetail, item, categoryOptions]);
+
+  function handleSelectExisting(existing: StockItem) {
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
     setSelectedItem(existing);
     setQuery(existing.name);
     setUnitCost(String(existing.unitCost));
     setUnit(existing.unit);
+<<<<<<< HEAD
     setQuantity(String(existing.quantity));
     setExpiration(existing.expiration ?? '');
+=======
+    setQuantity('');
+    setExpiration('');
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
     setDropdownOpen(false);
     setShowLotFields(true);
     setIsAddingNew(false);
   }
 
   function handleAddNew() {
+<<<<<<< HEAD
     
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
     setSelectedItem(null);
     setDropdownOpen(false);
     setShowLotFields(true);
@@ -180,8 +286,15 @@ function ItemModal({
 
   function handleChangeName(text: string) {
     setQuery(text);
+<<<<<<< HEAD
     setSelectedItem(null); // digitar de novo desfaz a seleção anterior
     
+=======
+    if (isEditing) return;
+
+    setSelectedItem(null); // digitar de novo desfaz a seleção anterior
+
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
     if (!isAddingNew) {
       setDropdownOpen(true);
     }
@@ -192,12 +305,22 @@ function ItemModal({
     onConfirm?.({
       category,
       name: query,
+<<<<<<< HEAD
       selectedItemId: selectedItem?.id ?? null,
+=======
+      editingItemId: isEditing ? item.id : null,
+      selectedItemId: isEditing ? null : selectedItem?.id ?? null,
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
       unitCost,
       unit,
       quantity,
       minQuantity: showMinQuantity ? minQuantity : null,
+<<<<<<< HEAD
       expiration,
+=======
+      expiration: showExpiration ? expiration : '',
+      supplierName: showSupplier ? supplierName.trim() || null : null,
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
     });
   }
 
@@ -249,7 +372,17 @@ function ItemModal({
                     onValueChange={value => {
                       if (isDetail) return;
                       setCategory(value);
+<<<<<<< HEAD
                       clearFields();
+=======
+                      // Trocar a categoria invalida um item escolhido no
+                      // dropdown (ele era de outra categoria), mas não pode
+                      // apagar o que já foi digitado: como "Medicamento" é a
+                      // categoria inicial, limpar tudo aqui inviabilizava
+                      // cadastrar anestésico e descartável.
+                      setSelectedItem(null);
+                      setDropdownOpen(false);
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                     }}
                   />
                 </View>
@@ -264,7 +397,11 @@ function ItemModal({
                     editable={!isDetail}
                     onChangeText={handleChangeName}
                     onFocus={() => {
+<<<<<<< HEAD
                       if (!isAddingNew) setDropdownOpen(true);
+=======
+                      if (!isAddingNew && !isEditing) setDropdownOpen(true);
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                     }}
                     placeholder={namePlaceholder}
                     placeholderTextColor={LabelTertiary}
@@ -283,6 +420,7 @@ function ItemModal({
                                 key={m.id}
                                 onPress={() => handleSelectExisting(m)}
                               >
+<<<<<<< HEAD
                                 <View>
                                   <Text className="text-[15px] font-medium text-label-primary">
                                     {m.name}
@@ -290,6 +428,17 @@ function ItemModal({
                                   <Text className="text-[13px] text-label-tertiary">
                                     {formatExpiration(m.expiration, locale)}
                                   </Text>
+=======
+                                <View className="gap-0.5">
+                                  <Text className="text-[15px] font-medium text-label-primary">
+                                    {m.name}
+                                  </Text>
+                                  {m.expiration && (
+                                    <Text className="text-[13px] text-label-tertiary">
+                                      {formatExpiration(m.expiration, locale)}
+                                    </Text>
+                                  )}
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                                 </View>
                               </Pressable>
                             ))}
@@ -310,6 +459,25 @@ function ItemModal({
                     )}
                 </View>
 
+<<<<<<< HEAD
+=======
+                {showSupplier && (
+                  <View className="gap-2">
+                    <Text className="text-xs font-semibold text-label-primary">
+                      {t('itemModal.supplierLabel')}
+                    </Text>
+                    <TextInput
+                      value={supplierName}
+                      onChangeText={setSupplierName}
+                      placeholder={t('itemModal.supplierPlaceholder')}
+                      placeholderTextColor={LabelTertiary}
+                      selectionColor={LabelPrimary}
+                      className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                    />
+                  </View>
+                )}
+
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                 {/* CUSTO UNITÁRIO + UNIDADE */}
                 <View className="z-10 flex-row gap-3">
                   <View className="flex-1 gap-2">
@@ -370,14 +538,21 @@ function ItemModal({
                   </View>
                 </View>
 
+<<<<<<< HEAD
                 
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                 <View className="gap-2">
                   <Text className="text-xs font-semibold text-label-primary">
                     {t('itemModal.quantityLabel')}
                   </Text>
                   <TextInput
                     value={quantity}
+<<<<<<< HEAD
                     editable={!isDetail}
+=======
+                    editable={!isDetail && !isEditing}
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                     onChangeText={text => setQuantity(digitsOnly(text))}
                     keyboardType="numeric"
                     placeholder="0"
@@ -387,7 +562,10 @@ function ItemModal({
                   />
                 </View>
 
+<<<<<<< HEAD
                
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                 {showMinQuantity && (
                   <View className="gap-2">
                     <Text className="text-xs font-semibold text-label-primary">
@@ -395,6 +573,10 @@ function ItemModal({
                     </Text>
                     <TextInput
                       value={minQuantity}
+<<<<<<< HEAD
+=======
+                      editable={!isDetail}
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                       onChangeText={text => setMinQuantity(digitsOnly(text))}
                       keyboardType="numeric"
                       placeholder="0"
@@ -405,7 +587,10 @@ function ItemModal({
                   </View>
                 )}
 
+<<<<<<< HEAD
                 
+=======
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                 {showExpiration && (
                   <View className="gap-2">
                     <Text className="text-xs font-semibold text-label-primary">
@@ -437,6 +622,7 @@ function ItemModal({
                 )}
               </View>
 
+<<<<<<< HEAD
              
               {isDetail ? (
                 <View className="gap-3">
@@ -456,6 +642,29 @@ function ItemModal({
                       {t('itemModal.delete')}
                     </Text>
                   </Pressable>
+=======
+              {isDetail ? (
+                <View className="gap-3">
+                  <Button
+                    shape="pill"
+                    className="h-[49px] w-full"
+                    onPress={() => item && onEdit?.(item)}
+                  >
+                    <Text className="text-base font-semibold">
+                      {t('itemModal.edit')}
+                    </Text>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    shape="pill"
+                    className="h-[49px] w-full"
+                    onPress={() => item && onDelete?.(item)}
+                  >
+                    <Text className="text-base font-semibold">
+                      {t('itemModal.delete')}
+                    </Text>
+                  </Button>
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
                 </View>
               ) : (
                 <Pressable

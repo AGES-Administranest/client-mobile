@@ -42,11 +42,25 @@ export function formatExpiration(
   locale: string,
 ): string {
   if (!expiration) return '';
+<<<<<<< HEAD
+=======
+
+  // `new Date('2027-03-31')` é interpretado como meia-noite UTC; formatado em
+  // um fuso negativo (BRT é UTC-3) isso cai no dia anterior. Como validade é
+  // uma data sem hora, ela é montada no fuso local.
+  const [year, month, day] = expiration.slice(0, 10).split('-').map(Number);
+  if (!year || !month || !day) return '';
+
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+<<<<<<< HEAD
   }).format(new Date(expiration));
+=======
+  }).format(new Date(year, month - 1, day));
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 }
 
 export function digitsOnly(value: string): string {
@@ -61,6 +75,24 @@ export function formatDateInput(value: string): string {
   return [day, month, year].filter(part => part.length > 0).join('/');
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * `2027-03-31` (o formato da API) para `31/03/2027` (o do campo mascarado).
+ *
+ * O campo só formata no `onChangeText`; preencher a partir da API passa por
+ * aqui. Sem isso o ISO cru aparecia invertido na tela e o `isPastDate` o lia
+ * como dia 20 / mês 27, marcando uma validade futura como vencida.
+ */
+export function toDateInput(isoDate: string | null): string {
+  if (!isoDate) return '';
+
+  const [year, month, day] = isoDate.slice(0, 10).split('-');
+  if (!year || !month || !day) return '';
+
+  return `${day}/${month}/${year}`;
+}
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
 
 export function isPastDate(value: string, today: Date = new Date()): boolean {
   const digits = digitsOnly(value);
@@ -71,6 +103,17 @@ export function isPastDate(value: string, today: Date = new Date()): boolean {
   const year = Number(digits.slice(4, 8));
   const parsed = new Date(year, month - 1, day);
 
+<<<<<<< HEAD
+=======
+  // Data impossível (31/02, ou um ISO que escorregou para cá) não é "passada":
+  // dizer que é trava o formulário num erro que o usuário não consegue corrigir.
+  const isRealDate =
+    parsed.getFullYear() === year &&
+    parsed.getMonth() === month - 1 &&
+    parsed.getDate() === day;
+  if (!isRealDate) return false;
+
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   const todayMidnight = new Date(
     today.getFullYear(),
     today.getMonth(),

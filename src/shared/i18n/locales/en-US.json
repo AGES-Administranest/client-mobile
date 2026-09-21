@@ -4,16 +4,51 @@
     "loading": "Loading...",
     "retry": "Retry"
   },
-  "home": {
-    "title": "Administranest",
-    "subtitle": "client-mobile is up and running.",
-    "greeting": {
-      "morning": "Good morning, {{name}}!",
-      "afternoon": "Good afternoon, {{name}}!",
-      "evening": "Good evening, {{name}}!",
-      "night": "Hello, {{name}}!"
+  "inventory": {
+    "alert": {
+      "titleSingular": "Low stock",
+      "bodySingular": "{{name}}: {{quantity}} {{unit}} left (minimum {{minimum}}).",
+      "titlePlural": "{{total}} items below the minimum",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} and {{remaining}} more"
     },
-    "cta": "Continue"
+    "expiryAlert": {
+      "titleSingular": "Expiration date approaching",
+      "bodySingular": "{{name}} expires on {{expirationDate}}.",
+      "titlePlural": "{{total}} items nearing expiration",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} and {{remaining}} more"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No alerts right now.",
+      "lowStockTitle": "{{name}} is low on stock",
+      "lowStockBody": "{{quantity}} units remaining (min. {{minimum}})",
+      "expiryTitle": "{{name}} is about to expire",
+      "expiryBody": "{{name}} expires on {{date}}",
+      "delete": "Delete"
+    },
+    "elapsed": {
+      "minutes": "{{value}} min ago",
+      "hours": "{{value}} h ago",
+      "days": "{{value}} d ago"
+    },
+    "card": {
+      "atMinimum": "Item at minimum stock",
+      "belowMinimum": "Item below minimum stock",
+      "expiry": "Lot expires on {{date}}"
+    },
+    "overview": {
+      "title": "Inventory",
+      "subtitle": "Track materials that need attention.",
+      "attention": "Items that need attention",
+      "lowStockSingular": "{{count}} item below minimum",
+      "lowStockPlural": "{{count}} items below minimum",
+      "expirySingular": "{{count}} lot nearing expiration",
+      "expiryPlural": "{{count}} lots nearing expiration",
+      "loading": "Loading inventory...",
+      "empty": "No materials registered."
+    }
   },
   "segmentedControl": {
     "supplies": "Supplies and medicines",
@@ -26,16 +61,68 @@
     "emptyFilter": "No items found in this category.",
     "errorLoad": "Could not load the items.",
     "errorSave": "Could not save the item.",
+    "errorDuplicatedItem": "An item with this name and unit already exists. The name is unique per unit, regardless of category.",
+    "errorDuplicatedSupplier": "A supplier with this name already exists.",
     "errorDelete": "Could not delete the item.",
+    "errorSession": "Your session has expired. Sign out and sign in again.",
     "deleteConfirmTitle": "Delete item",
     "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
   },
+  "stockEntry": {
+    "trigger": "Register entry",
+    "menu": {
+      "scanNote": "Scan invoice",
+      "attachPdf": "Attach PDF",
+      "typeItem": "Enter item"
+    },
+    "scan": {
+      "instruction": "Position the document inside the marked area",
+      "capture": "Capture image",
+      "permission": "We need the camera to scan the invoice",
+      "allowCamera": "Allow camera",
+      "fromLibrary": "Choose from library",
+      "cancel": "Cancel"
+    },
+    "uploading": "Sending the document...",
+    "review": {
+      "confirm": "Confirm",
+      "found": "{{count}} items found · tap to fix",
+      "foundOne": "1 item found · tap to fix",
+      "namePlaceholder": "Item name",
+      "checkItem": "Check the name and quantity",
+      "remove": "Delete item"
+    },
+    "errors": {
+      "dismiss": "Got it",
+      "permissionDenied": "We need your permission to access photos.",
+      "unsupportedType": "We only take a PDF or a JPEG photo. Take the photo in the app or pick another file.",
+      "offline": "No internet connection. Sending needs a network — try again once it is back.",
+      "tooLarge": "This file is over 15 MB. Take the photo again or send a smaller PDF.",
+      "duplicateFile": "This document was sent before. Open the existing entry instead of creating another.",
+      "notProvisioned": "Your account is not finished yet. Sign out and sign in again.",
+      "uploadRejected": "The upload was refused. Please try again.",
+      "notConfirmed": "The file did not arrive complete. Please send it again.",
+      "unexpected": "Something went wrong while sending. Try again in a moment."
+    }
+  },
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   "stock": {
     "movementHistory": {
       "title": "Movement history",
       "description": "Stock inbounds, outbounds and adjustments",
       "appointmentLink": "Appointment · {{appointment}}",
       "empty": "No movement recorded yet.",
+      "emptyFiltered": "No movement matches the filter.",
+      "filters": {
+        "searchPlaceholder": "Search by item",
+        "period": "Period",
+        "periodRange": "{{from}} to {{to}}",
+        "periodSingle": "{{day}}",
+        "periodFrom": "From {{from}}",
+        "clear": "Clear",
+        "previousMonth": "Previous month",
+        "nextMonth": "Next month"
+      },
       "error": "Could not load the history.",
       "origins": {
         "manualPurchase": "Manual purchase",
@@ -81,7 +168,34 @@
           "other": "un"
         }
       },
-      "quantity": "{{quantity}} {{unit}}"
+      "quantity": "{{quantity}} {{unit}}",
+      "newEntry": "New entry",
+      "savedMessage": "Update saved"
+    },
+    "outputAdjustment": {
+      "title": "Stock output adjustment",
+      "close": "Close",
+      "itemLabel": "Item",
+      "itemPlaceholder": "Select the item",
+      "quantityLabel": "Quantity",
+      "quantityPlaceholder": "0",
+      "reasonLabel": "Reason",
+      "otherReasonLabel": "Describe the reason",
+      "otherReasonPlaceholder": "Write what happened",
+      "save": "Save",
+      "reasons": {
+        "loss": "Loss",
+        "expiration": "Expiration",
+        "breakage": "Breakage",
+        "other": "Other"
+      },
+      "errors": {
+        "required": "Required field",
+        "mustBePositive": "Quantity must be greater than zero",
+        "INSUFFICIENT_STOCK": "Quantity is above the available balance ({{available}}).",
+        "ITEM_NOT_FOUND": "Item not found.",
+        "UNKNOWN": "Could not save the adjustment."
+      }
     }
   },
   "tabbar": {
@@ -105,6 +219,13 @@
     "unitCostPlaceholder": "Enter the cost",
     "unitLabel": "UNIT",
     "unitPlaceholder": "Enter the unit",
+<<<<<<< HEAD
+=======
+    "supplierLabel": "SUPPLIER",
+    "supplierPlaceholder": "Select the supplier",
+    "supplierAddOption": "+ Add supplier \"{{name}}\"",
+    "supplierSearchPlaceholder": "Search or type a new one",
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
     "quantityLabel": "QUANTITY",
     "minQuantityLabel": "MINIMUM STOCK QUANTITY",
     "expirationLabel": "EXPIRATION",
@@ -114,5 +235,81 @@
     "edit": "Edit",
     "delete": "Delete",
     "cancel": "Cancel"
+<<<<<<< HEAD
+=======
+  },
+  "auth": {
+    "back": "Back",
+    "brand": {
+      "tagline": "Veterinary Anesthesia"
+    },
+    "welcome": {
+      "greeting": "Welcome",
+      "createAccount": "Create account",
+      "or": "or",
+      "login": "Log in"
+    },
+    "social": {
+      "divider": "or continue with",
+      "google": "Continue with Google"
+    },
+    "fields": {
+      "name": "Name",
+      "email": "E-mail",
+      "password": "Password",
+      "passwordConfirmation": "Confirm password",
+      "code": "Confirmation code"
+    },
+    "login": {
+      "title": "Log in",
+      "description": "Use your account e-mail and password.",
+      "submit": "Log in",
+      "noAccount": "No account yet? Create one"
+    },
+    "signUp": {
+      "title": "Create account",
+      "description": "Fill in your details to get started.",
+      "submit": "Create account",
+      "hasAccount": "Already have an account? Log in"
+    },
+    "confirm": {
+      "title": "Confirm your e-mail",
+      "description": "We sent a confirmation code to {{email}}.",
+      "submit": "Confirm",
+      "resend": "Resend code",
+      "resent": "We sent you a new code."
+    },
+    "validation": {
+      "required": "This field is required.",
+      "invalidEmail": "Enter a valid e-mail.",
+      "passwordMismatch": "Passwords do not match.",
+      "termsRequired": "Accept the terms to continue."
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect e-mail or password.",
+      "emailAlreadyRegistered": "Could not create an account with this e-mail.",
+      "invalidCode": "Invalid code.",
+      "expiredCode": "This code has expired. Request a new one.",
+      "weakPassword": "The password must have at least 8 characters, with uppercase and lowercase letters, numbers and symbols.",
+      "invalidData": "Check the information you entered.",
+      "userNotConfirmed": "Confirm your e-mail before logging in.",
+      "sessionExpired": "Your session has expired. Please log in again.",
+      "tooManyAttempts": "Too many attempts. Wait a moment and try again.",
+      "networkUnavailable": "No connection. Check your internet and try again.",
+      "unknown": "Something went wrong. Please try again.",
+      "accountUsesOtherSignIn": "This e-mail already has an account with another way to sign in. Use the same method you signed up with (e-mail and password, or Google)."
+    },
+    "terms": {
+      "title": "Terms of use",
+      "description": "Hi, {{name}}. To use Administranest, accept the terms of use and the privacy policy.",
+      "checkbox": "I have read and accept the Terms of Use and the Privacy Policy.",
+      "submit": "Accept and continue",
+      "signOut": "Sign out"
+    },
+    "account": {
+      "menu": "Account",
+      "signOut": "Sign out"
+    }
+>>>>>>> 26292fa88c7840646634c148984de0ef18123c8a
   }
 }

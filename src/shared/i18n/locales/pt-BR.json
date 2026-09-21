@@ -4,16 +4,51 @@
     "loading": "Carregando...",
     "retry": "Tentar novamente"
   },
-  "home": {
-    "title": "Administranest",
-    "subtitle": "O client-mobile está no ar.",
-    "greeting": {
-      "morning": "Bom dia, {{name}}!",
-      "afternoon": "Boa tarde, {{name}}!",
-      "evening": "Boa noite, {{name}}!",
-      "night": "Boa madrugada, {{name}}!"
+  "inventory": {
+    "alert": {
+      "titleSingular": "Estoque baixo",
+      "bodySingular": "{{name}}: restam {{quantity}} {{unit}} (mínimo {{minimum}}).",
+      "titlePlural": "{{total}} itens abaixo do mínimo",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
     },
-    "cta": "Continuar"
+    "expiryAlert": {
+      "titleSingular": "Validade próxima do vencimento",
+      "bodySingular": "{{name}} vence em {{expirationDate}}.",
+      "titlePlural": "{{total}} itens próximos do vencimento",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
+    },
+    "notifications": {
+      "title": "Notificações",
+      "empty": "Nenhum alerta no momento.",
+      "lowStockTitle": "{{name}} com estoque baixo",
+      "lowStockBody": "{{quantity}} unidades restantes (mín. {{minimum}})",
+      "expiryTitle": "{{name}} irá vencer",
+      "expiryBody": "{{name}} vence em {{date}}",
+      "delete": "Apagar"
+    },
+    "elapsed": {
+      "minutes": "há {{value}} min",
+      "hours": "há {{value}} h",
+      "days": "há {{value}} d"
+    },
+    "card": {
+      "atMinimum": "Item no estoque mínimo",
+      "belowMinimum": "Item abaixo da quantidade mínima",
+      "expiry": "Lote vence em {{date}}"
+    },
+    "overview": {
+      "title": "Estoque",
+      "subtitle": "Acompanhe os materiais que precisam de atenção.",
+      "attention": "Itens que precisam de atenção",
+      "lowStockSingular": "{{count}} item abaixo do mínimo",
+      "lowStockPlural": "{{count}} itens abaixo do mínimo",
+      "expirySingular": "{{count}} lote próximo do vencimento",
+      "expiryPlural": "{{count}} lotes próximos do vencimento",
+      "loading": "Carregando estoque...",
+      "empty": "Nenhum material cadastrado."
+    }
   },
   "segmentedControl": {
     "supplies": "Insumos e medicamentos",
@@ -26,9 +61,49 @@
     "emptyFilter": "Nenhum item encontrado nesta categoria.",
     "errorLoad": "Não foi possível carregar os itens.",
     "errorSave": "Não foi possível salvar o item.",
+    "errorDuplicatedItem": "Já existe um item com esse nome e unidade. O nome é único por unidade, independente da categoria.",
+    "errorDuplicatedSupplier": "Já existe um fornecedor com esse nome.",
     "errorDelete": "Não foi possível excluir o item.",
+    "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
     "deleteConfirmTitle": "Excluir item",
     "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
+  },
+  "stockEntry": {
+    "trigger": "Registrar entrada",
+    "menu": {
+      "scanNote": "Escanear nota",
+      "attachPdf": "Anexar PDF",
+      "typeItem": "Digitar insumo"
+    },
+    "scan": {
+      "instruction": "Posicione o documento dentro da área demarcada",
+      "capture": "Capturar imagem",
+      "permission": "Precisamos da câmera para escanear a nota",
+      "allowCamera": "Permitir câmera",
+      "fromLibrary": "Escolher da galeria",
+      "cancel": "Cancelar"
+    },
+    "uploading": "Enviando o documento...",
+    "review": {
+      "confirm": "Confirmar",
+      "found": "{{count}} itens encontrados · toque para corrigir",
+      "foundOne": "1 item encontrado · toque para corrigir",
+      "namePlaceholder": "Nome do item",
+      "checkItem": "Confira o nome e a quantidade",
+      "remove": "Excluir item"
+    },
+    "errors": {
+      "dismiss": "Entendi",
+      "permissionDenied": "Precisamos da sua permissão para acessar as fotos.",
+      "unsupportedType": "Só aceitamos PDF ou foto em JPEG. Tire a foto pelo app ou escolha outro arquivo.",
+      "offline": "Sem conexão com a internet. O envio precisa de rede — tente de novo quando voltar.",
+      "tooLarge": "Este arquivo passa de 15 MB. Tire a foto de novo ou envie um PDF menor.",
+      "duplicateFile": "Este documento já foi enviado antes. Abra a entrada existente em vez de criar outra.",
+      "notProvisioned": "Sua conta ainda não terminou de ser criada. Saia e entre de novo no app.",
+      "uploadRejected": "O envio do arquivo foi recusado. Tente de novo.",
+      "notConfirmed": "O arquivo não chegou completo ao servidor. Tente enviar de novo.",
+      "unexpected": "Algo deu errado no envio. Tente de novo em instantes."
+    }
   },
   "stock": {
     "movementHistory": {
@@ -36,6 +111,17 @@
       "description": "Entradas, saídas e ajustes de estoque",
       "appointmentLink": "Atendimento · {{appointment}}",
       "empty": "Nenhuma movimentação registrada.",
+      "emptyFiltered": "Nenhuma movimentação encontrada para o filtro.",
+      "filters": {
+        "searchPlaceholder": "Buscar por item",
+        "period": "Período",
+        "periodRange": "{{from}} até {{to}}",
+        "periodSingle": "{{day}}",
+        "periodFrom": "A partir de {{from}}",
+        "clear": "Limpar",
+        "previousMonth": "Mês anterior",
+        "nextMonth": "Próximo mês"
+      },
       "error": "Não foi possível carregar o histórico.",
       "origins": {
         "manualPurchase": "Compra manual",
@@ -81,7 +167,34 @@
           "other": "un"
         }
       },
-      "quantity": "{{quantity}} {{unit}}"
+      "quantity": "{{quantity}} {{unit}}",
+      "newEntry": "Novo lançamento",
+      "savedMessage": "Atualização salva"
+    },
+    "outputAdjustment": {
+      "title": "Registro de ajuste de saída",
+      "close": "Fechar",
+      "itemLabel": "Item",
+      "itemPlaceholder": "Selecione o item",
+      "quantityLabel": "Quantidade",
+      "quantityPlaceholder": "0",
+      "reasonLabel": "Motivo",
+      "otherReasonLabel": "Descreva o motivo",
+      "otherReasonPlaceholder": "Escreva o que aconteceu",
+      "save": "Salvar",
+      "reasons": {
+        "loss": "Perda",
+        "expiration": "Vencimento",
+        "breakage": "Quebra",
+        "other": "Outro"
+      },
+      "errors": {
+        "required": "Campo obrigatório",
+        "mustBePositive": "A quantidade deve ser maior que zero",
+        "INSUFFICIENT_STOCK": "Quantidade maior que o saldo disponível ({{available}}).",
+        "ITEM_NOT_FOUND": "Item não encontrado.",
+        "UNKNOWN": "Não foi possível salvar o ajuste."
+      }
     }
   },
   "tabbar": {
@@ -105,6 +218,10 @@
     "unitCostPlaceholder": "Digite o custo",
     "unitLabel": "UNIDADE",
     "unitPlaceholder": "Digite a unidade",
+    "supplierLabel": "FORNECEDOR",
+    "supplierPlaceholder": "Selecione o fornecedor",
+    "supplierAddOption": "+ Adicionar fornecedor \"{{name}}\"",
+    "supplierSearchPlaceholder": "Busque ou digite um novo",
     "quantityLabel": "QUANTIDADE",
     "minQuantityLabel": "QUANTIDADE MÍNIMA NO ESTOQUE",
     "expirationLabel": "VALIDADE",
@@ -114,5 +231,78 @@
     "edit": "Editar",
     "delete": "Excluir",
     "cancel": "Cancelar"
+  },
+  "auth": {
+    "back": "Voltar",
+    "brand": {
+      "tagline": "Anestesia Veterinária"
+    },
+    "welcome": {
+      "greeting": "Seja bem-vindo(a)",
+      "createAccount": "Criar conta",
+      "or": "ou",
+      "login": "Login"
+    },
+    "social": {
+      "divider": "ou continue com",
+      "google": "Continuar com Google"
+    },
+    "fields": {
+      "name": "Nome",
+      "email": "E-mail",
+      "password": "Senha",
+      "passwordConfirmation": "Confirmar senha",
+      "code": "Código de confirmação"
+    },
+    "login": {
+      "title": "Entrar",
+      "description": "Acesse com o e-mail e a senha da sua conta.",
+      "submit": "Entrar",
+      "noAccount": "Ainda não tem conta? Criar conta"
+    },
+    "signUp": {
+      "title": "Criar conta",
+      "description": "Preencha seus dados para começar.",
+      "submit": "Criar conta",
+      "hasAccount": "Já tem conta? Entrar"
+    },
+    "confirm": {
+      "title": "Confirme seu e-mail",
+      "description": "Enviamos um código de confirmação para {{email}}.",
+      "submit": "Confirmar",
+      "resend": "Reenviar código",
+      "resent": "Enviamos um novo código."
+    },
+    "validation": {
+      "required": "Campo obrigatório.",
+      "invalidEmail": "Informe um e-mail válido.",
+      "passwordMismatch": "As senhas não coincidem.",
+      "termsRequired": "Aceite os termos para continuar."
+    },
+    "errors": {
+      "invalidCredentials": "E-mail ou senha incorretos.",
+      "emailAlreadyRegistered": "Não foi possível criar a conta com este e-mail.",
+      "invalidCode": "Código inválido.",
+      "expiredCode": "Este código expirou. Peça um novo.",
+      "weakPassword": "A senha precisa ter ao menos 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos.",
+      "invalidData": "Verifique os dados informados.",
+      "userNotConfirmed": "Confirme seu e-mail antes de entrar.",
+      "sessionExpired": "Sua sessão expirou. Entre novamente.",
+      "tooManyAttempts": "Muitas tentativas. Aguarde um pouco e tente novamente.",
+      "networkUnavailable": "Sem conexão. Verifique sua internet e tente novamente.",
+      "unknown": "Algo deu errado. Tente novamente.",
+      "accountUsesOtherSignIn": "Este e-mail já tem uma conta com outra forma de entrar. Use o mesmo método do cadastro (e-mail e senha, ou Google)."
+    },
+    "terms": {
+      "title": "Termos de uso",
+      "description": "Olá, {{name}}. Para usar o Administranest, aceite os termos de uso e a política de privacidade.",
+      "checkbox": "Li e aceito os Termos de Uso e a Política de Privacidade.",
+      "submit": "Aceitar e continuar",
+      "signOut": "Sair da conta"
+    },
+    "account": {
+      "menu": "Conta",
+      "signOut": "Sair da conta"
+    }
   }
 }
