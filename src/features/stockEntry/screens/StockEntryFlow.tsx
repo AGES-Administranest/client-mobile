@@ -12,11 +12,26 @@ import { LoadingOverlay } from '../components/LoadingOverlay';
 import { MessageOverlay } from '../components/MessageOverlay';
 import { useStockEntryFlow } from '../hooks/useStockEntryFlow';
 
+type StockEntryFlowProps = {
+  // "Digitar insumo" opens the item form, which belongs to whoever owns the
+  // stock and its persistence (today `features/materials`). This flow only
+  // reports the intent and closes its own menu; without a handler the option
+  // just dismisses, as it did before the form existed.
+  onTypeItem?: () => void;
+};
+
 // Entry point for the stock-entry feature. Wires the screens together with
 // local state (menu → capture/attach → upload → review).
-export function StockEntryFlow() {
+export function StockEntryFlow({ onTypeItem }: StockEntryFlowProps = {}) {
   const { t } = useTranslation();
   const flow = useStockEntryFlow();
+
+  function handleTypeItem() {
+    // Close first: the sheet animates out while the form animates in, instead
+    // of the two sitting stacked.
+    flow.closeMenu();
+    onTypeItem?.();
+  }
 
   return (
     <View>
@@ -31,8 +46,7 @@ export function StockEntryFlow() {
         onClose={flow.closeMenu}
         onScanNote={flow.startScan}
         onAttachPdf={flow.attachPdf}
-        // "Digitar insumo" has no designed screen yet.
-        onTypeItem={flow.closeMenu}
+        onTypeItem={handleTypeItem}
       />
 
       {/* A Modal, not an early return: returning here would leave the tab it
