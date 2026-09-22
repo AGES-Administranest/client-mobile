@@ -197,6 +197,14 @@
       }
     }
   },
+  "appointments": {
+    "conflict": {
+      "title": "Conflito de horário",
+      "message": "Este horário conflita com {{procedure}} às {{time}} no {{location}}. Deseja confirmar mesmo assim?",
+      "confirm": "Confirmar",
+      "adjust": "Ajustar horário"
+    }
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",

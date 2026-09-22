@@ -197,6 +197,14 @@
       }
     }
   },
+  "appointments": {
+    "conflict": {
+      "title": "Schedule conflict",
+      "message": "This time conflicts with {{procedure}} at {{time}} in {{location}}. Do you want to confirm anyway?",
+      "confirm": "Confirm",
+      "adjust": "Adjust time"
+    }
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
