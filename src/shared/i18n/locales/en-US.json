@@ -200,7 +200,8 @@
   "appointments": {
     "conflict": {
       "title": "Schedule conflict",
-      "message": "This time conflicts with {{procedure}} at {{time}} in {{location}}. Do you want to confirm anyway?",
+      "message": "This time conflicts with {{procedure}} at {{time}}. Do you want to confirm anyway?",
+      "unnamedProcedure": "another appointment",
       "confirm": "Confirm",
       "adjust": "Adjust time"
     }

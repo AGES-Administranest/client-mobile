@@ -3,18 +3,18 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 import { ConflictAlertSheet } from 'features/appointments';
 import { I18nProvider } from 'shared/i18n';
 
-async function renderSheet(onConfirm = () => {}, onAdjust = () => {}) {
+async function renderSheet(
+  onConfirm = () => {},
+  onAdjust = () => {},
+  procedureName: string | null = 'Orquiectomia',
+) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
         <ConflictAlertSheet
           visible
-          conflictingAppointment={{
-            procedure: 'Orquiectomia',
-            time: '14:00',
-            location: 'Clínica Central',
-          }}
+          conflictingAppointment={{ procedureName, time: '14:00' }}
           onConfirm={onConfirm}
           onAdjust={onAdjust}
         />
@@ -38,7 +38,18 @@ test('shows the conflict title and the interpolated message', async () => {
   expect(contents).toContain('Conflito de horário');
   expect(contents).toContain('Orquiectomia');
   expect(contents).toContain('14:00');
-  expect(contents).toContain('Clínica Central');
+});
+
+test('falls back to a generic label when the conflicting appointment has no procedure name', async () => {
+  const renderer = await renderSheet(
+    () => {},
+    () => {},
+    null,
+  );
+
+  const contents = textContents(renderer).join(' ');
+
+  expect(contents).toContain('outro atendimento');
 });
 
 test('confirming and adjusting call the right handler', async () => {
