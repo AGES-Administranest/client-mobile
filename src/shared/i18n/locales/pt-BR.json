@@ -207,7 +207,7 @@
       "empty": "Nenhum item encontrado.",
       "error": "Não foi possível buscar os itens.",
       "termTooShort": "Digite ao menos 2 caracteres.",
-      "overBalance": "Acima do saldo disponível ({{balance}} {{unit}}). O estoque ficará negativo."
+      "insufficientStock": "Quantidade acima do saldo disponível. O estoque ficará negativo após este registro."
     }
   },
   "tabbar": {

@@ -207,7 +207,7 @@
       "empty": "No items found.",
       "error": "Could not search for items.",
       "termTooShort": "Type at least 2 characters.",
-      "overBalance": "Above the available balance ({{balance}} {{unit}}). Stock will go negative."
+      "insufficientStock": "Quantity above the available balance. Stock will go negative after this entry."
     }
   },
   "tabbar": {
