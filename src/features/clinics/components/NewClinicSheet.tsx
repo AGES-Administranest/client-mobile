@@ -177,54 +177,60 @@ function NewClinicSheet({
           />
         </Animated.View>
 
+        {/* O className não era aplicado neste Animated.View (na web o sheet
+            aparecia sem fundo e sem padding): a animação fica nele e o visual
+            vai no View de dentro, como no ItemModal. */}
         <Animated.View
-          className="gap-4 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
           style={{
             maxHeight: SCREEN_HEIGHT * 0.9,
             transform: [{ translateY: sheetTranslateY }],
           }}
         >
-          <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
+          <View className="shrink gap-4 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
+            <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
 
-          <Text className="text-xl font-bold text-label-primary">{title}</Text>
-
-          <View className="h-px bg-details-primary" />
-
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerClassName="gap-4 pb-1"
-          >
-            {renderField('name')}
-            {renderField('cnpj')}
-            {renderField('addressLine')}
-            <View className="flex-row gap-3">
-              {renderField('city', 'flex-1')}
-              {renderField('state', 'w-20')}
-            </View>
-            {renderField('phone')}
-            {renderField('email')}
-            {renderField('contactName')}
-          </ScrollView>
-
-          {failureMessage ? (
-            <View className="rounded-xl border border-alert-primary bg-white p-3">
-              <Text className="text-sm text-alert-primary">
-                {failureMessage}
-              </Text>
-            </View>
-          ) : null}
-
-          <Button
-            shape="pill"
-            className="h-[49px] w-full"
-            onPress={onSubmit}
-            disabled={isSaving}
-          >
-            <Icon as={Check} className="size-5" />
-            <Text className="font-semibold">
-              {isSaving ? savingLabel : confirmLabel}
+            <Text className="text-xl font-bold text-label-primary">
+              {title}
             </Text>
-          </Button>
+
+            <View className="h-px bg-details-primary" />
+
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              contentContainerClassName="gap-4 pb-1"
+            >
+              {renderField('name')}
+              {renderField('cnpj')}
+              {renderField('addressLine')}
+              <View className="flex-row gap-3">
+                {renderField('city', 'flex-1')}
+                {renderField('state', 'w-20')}
+              </View>
+              {renderField('phone')}
+              {renderField('email')}
+              {renderField('contactName')}
+            </ScrollView>
+
+            {failureMessage ? (
+              <View className="rounded-xl border border-alert-primary bg-white p-3">
+                <Text className="text-sm text-alert-primary">
+                  {failureMessage}
+                </Text>
+              </View>
+            ) : null}
+
+            <Button
+              shape="pill"
+              className="h-[49px] w-full"
+              onPress={onSubmit}
+              disabled={isSaving}
+            >
+              <Icon as={Check} className="size-5" />
+              <Text className="font-semibold">
+                {isSaving ? savingLabel : confirmLabel}
+              </Text>
+            </Button>
+          </View>
         </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
