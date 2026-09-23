@@ -201,7 +201,7 @@
     "day": "Day-to-Day",
     "finance": "Finance",
     "materials": "Materials",
-    "clinics": "Clinics",
+    "partners": "Partners",
     "reports": "Reports"
   },
   "optionsModal": {
@@ -304,5 +304,16 @@
       "menu": "Account",
       "signOut": "Sign out"
     }
+  },
+  "partners": {
+    "segments": {
+      "clinics": "Clinics",
+      "suppliers": "Suppliers"
+    },
+    "clinicsCountOne": "{{count}} clinic",
+    "clinicsCountOther": "{{count}} clinics",
+    "addClinic": "Add clinic",
+    "suppliersEmpty": "Suppliers are not available here yet.",
+    "errorLoad": "Could not load partners."
   }
 }

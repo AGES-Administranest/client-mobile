@@ -201,7 +201,7 @@
     "day": "Dia-Dia",
     "finance": "Finança",
     "materials": "Materiais",
-    "clinics": "Clínicas",
+    "partners": "Parceiros",
     "reports": "Relatórios"
   },
   "optionsModal": {
@@ -304,5 +304,16 @@
       "menu": "Conta",
       "signOut": "Sair da conta"
     }
+  },
+  "partners": {
+    "segments": {
+      "clinics": "Clínicas",
+      "suppliers": "Fornecedores"
+    },
+    "clinicsCountOne": "{{count}} clínica",
+    "clinicsCountOther": "{{count}} clínicas",
+    "addClinic": "Adicionar clínica",
+    "suppliersEmpty": "Fornecedores ainda não estão disponíveis aqui.",
+    "errorLoad": "Não foi possível carregar os parceiros."
   }
 }

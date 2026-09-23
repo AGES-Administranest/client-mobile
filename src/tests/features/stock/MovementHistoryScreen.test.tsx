@@ -2,11 +2,11 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { I18nProvider } from 'shared/i18n';
 
-import { MovementHistoryScreen } from './MovementHistoryScreen';
-import type { StockMovement } from '../domain/stockMovement';
-import { createOutputAdjustment } from '../services/stockAdjustmentService';
-import { StockAdjustmentError } from '../services/stockAdjustmentService';
-import { fetchStockMovements } from '../services/stockMovementService';
+import { MovementHistoryScreen } from '../../../features/stock/screens/MovementHistoryScreen';
+import type { StockMovement } from '../../../features/stock/domain/stockMovement';
+import { createOutputAdjustment } from '../../../features/stock/services/stockAdjustmentService';
+import { StockAdjustmentError } from '../../../features/stock/services/stockAdjustmentService';
+import { fetchStockMovements } from '../../../features/stock/services/stockMovementService';
 
 jest.mock('../services/stockMovementService', () => ({
   fetchStockMovements: jest.fn(),
