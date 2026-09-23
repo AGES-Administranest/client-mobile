@@ -34,7 +34,7 @@ type SupplySelectorSheetProps = {
   errorMessage: string;
   loadingMessage: string;
   termTooShortMessage: string;
-  overBalanceMessage: string;
+  insufficientStockMessage: string;
   /**
    * Cada linha traz o preço do seu próprio item, então o texto não cabe numa
    * prop já pronta. Quem chama passa a função e mantém a formatação fora
@@ -79,7 +79,7 @@ function SupplySelectorSheet({
   errorMessage,
   loadingMessage,
   termTooShortMessage,
-  overBalanceMessage,
+  insufficientStockMessage,
   formatPrice,
 }: SupplySelectorSheetProps) {
   function renderList() {
@@ -185,16 +185,14 @@ function SupplySelectorSheet({
               selectionColor={LabelPrimary}
               className={cn(
                 'rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary',
-                isOverBalance
-                  ? 'border-alert-primary'
-                  : 'border-details-primary',
+                isOverBalance ? 'border-destructive' : 'border-details-primary',
               )}
             />
             {/* O aviso compara com o saldo do item escolhido: sem escolha não
                 há com o que comparar. */}
             {selected && isOverBalance && (
-              <Text className="text-xs text-alert-primary">
-                {overBalanceMessage}
+              <Text className="text-xs text-destructive">
+                {insufficientStockMessage}
               </Text>
             )}
           </View>
