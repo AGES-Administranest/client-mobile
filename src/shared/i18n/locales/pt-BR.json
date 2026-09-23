@@ -197,6 +197,23 @@
       }
     }
   },
+  "clinics": {
+    "title": "Parceiros",
+    "editTitle": "Editar",
+    "fields": {
+      "name": "Nome da clínica",
+      "address": "Endereço",
+      "cityState": "Cidade / Estado",
+      "phone": "Contato",
+      "responsible": "Responsável"
+    },
+    "actions": {
+      "call": "Entrar em contato",
+      "edit": "Editar clínica",
+      "confirm": "Confirmar",
+      "delete": "Excluir"
+    }
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",

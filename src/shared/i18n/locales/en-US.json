@@ -197,6 +197,23 @@
       }
     }
   },
+  "clinics": {
+    "title": "Partners",
+    "editTitle": "Edit",
+    "fields": {
+      "name": "Clinic name",
+      "address": "Address",
+      "cityState": "City / State",
+      "phone": "Contact",
+      "responsible": "Responsible"
+    },
+    "actions": {
+      "call": "Call",
+      "edit": "Edit clinic",
+      "confirm": "Confirm",
+      "delete": "Delete"
+    }
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
