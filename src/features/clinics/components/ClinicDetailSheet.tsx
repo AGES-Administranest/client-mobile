@@ -82,17 +82,19 @@ function ClinicDetailSheet({
     setDraft(clinic);
   }, [visible, clinic]);
 
-  const selected = clinic;
-  if (!selected || !draft) {
+  if (!clinic || !draft) {
     return null;
   }
+
+  const selected = clinic;
+  const phone = selected.phone;
 
   function update(field: keyof Clinic, value: string) {
     setDraft(current => (current ? { ...current, [field]: value } : current));
   }
 
   function handleCall() {
-    const digits = selected.phone.replace(/\D/g, '');
+    const digits = phone.replace(/\D/g, '');
     if (!digits) {
       return;
     }
