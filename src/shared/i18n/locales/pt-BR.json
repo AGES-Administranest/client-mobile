@@ -197,6 +197,72 @@
       }
     }
   },
+  "clinics": {
+    "addClinic": "Adicionar clínica",
+    "newClinic": {
+      "title": "Nova clínica",
+      "close": "Fechar",
+      "confirm": "Confirmar",
+      "saving": "Salvando...",
+      "fields": {
+        "name": {
+          "label": "Nome da clínica",
+          "placeholder": "Digite o nome da clínica"
+        },
+        "cnpj": {
+          "label": "CNPJ",
+          "placeholder": "00.000.000/0000-00"
+        },
+        "addressLine": {
+          "label": "Endereço",
+          "placeholder": "Digite a rua, número e bairro"
+        },
+        "city": {
+          "label": "Cidade",
+          "placeholder": "Ex: São Paulo"
+        },
+        "state": {
+          "label": "UF",
+          "placeholder": "SP"
+        },
+        "phone": {
+          "label": "Contato",
+          "placeholder": "(00) 00000-0000"
+        },
+        "email": {
+          "label": "E-mail",
+          "placeholder": "contato@clinica.com.br"
+        },
+        "contactName": {
+          "label": "Responsável",
+          "placeholder": "Nome do médico responsável"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Informe o nome da clínica.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres."
+        },
+        "cnpj": {
+          "invalid": "O CNPJ precisa ter 14 dígitos."
+        },
+        "state": {
+          "invalid": "Informe uma UF válida, como SP."
+        },
+        "phone": {
+          "invalid": "Informe o telefone com DDD."
+        },
+        "email": {
+          "invalid": "Informe um e-mail válido."
+        }
+      },
+      "failures": {
+        "duplicatedName": "Já existe uma clínica com esse nome.",
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "unknown": "Não foi possível salvar a clínica. Tente novamente."
+      }
+    }
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",

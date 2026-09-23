@@ -197,6 +197,72 @@
       }
     }
   },
+  "clinics": {
+    "addClinic": "Add clinic",
+    "newClinic": {
+      "title": "New clinic",
+      "close": "Close",
+      "confirm": "Confirm",
+      "saving": "Saving...",
+      "fields": {
+        "name": {
+          "label": "Clinic name",
+          "placeholder": "Enter the clinic name"
+        },
+        "cnpj": {
+          "label": "CNPJ",
+          "placeholder": "00.000.000/0000-00"
+        },
+        "addressLine": {
+          "label": "Address",
+          "placeholder": "Enter street, number and neighborhood"
+        },
+        "city": {
+          "label": "City",
+          "placeholder": "e.g. São Paulo"
+        },
+        "state": {
+          "label": "State",
+          "placeholder": "SP"
+        },
+        "phone": {
+          "label": "Phone",
+          "placeholder": "(00) 00000-0000"
+        },
+        "email": {
+          "label": "E-mail",
+          "placeholder": "contact@clinic.com"
+        },
+        "contactName": {
+          "label": "Person in charge",
+          "placeholder": "Name of the veterinarian in charge"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Enter the clinic name.",
+          "tooShort": "The name must have at least 2 characters."
+        },
+        "cnpj": {
+          "invalid": "The CNPJ must have 14 digits."
+        },
+        "state": {
+          "invalid": "Enter a valid state code, like SP."
+        },
+        "phone": {
+          "invalid": "Enter the phone number with its area code."
+        },
+        "email": {
+          "invalid": "Enter a valid e-mail."
+        }
+      },
+      "failures": {
+        "duplicatedName": "A clinic with this name already exists.",
+        "session": "Your session has expired. Sign out and sign in again.",
+        "unknown": "Could not save the clinic. Please try again."
+      }
+    }
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
