@@ -1,4 +1,4 @@
-import { Bell, ChevronLeft, LogOut, UserRound } from 'lucide-react-native';
+import { Plus, Bell, ChevronLeft, LogOut, UserRound } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import {
   type MonitoredItem,
 } from 'features/inventory';
 import { fetchItems } from 'features/materials';
+import { DiaDiaScreen } from 'features/procedures';
 import { useTranslation } from 'shared/i18n';
 
 export function HomeScreen() {
@@ -21,6 +22,7 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [accountVisible, setAccountVisible] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const [newProcedureVisible, setNewProcedureVisible] = useState(false);
   const [monitoredItems, setMonitoredItems] = useState<MonitoredItem[]>([]);
   const [expiringLots, setExpiringLots] = useState<ExpiringLot[]>([]);
 
@@ -37,10 +39,6 @@ export function HomeScreen() {
           minimumStock: item.minimumStock ? parseFloat(item.minimumStock) : 0,
         })),
       );
-      // ponytail: the backend only exposes each item's nearest lot
-      // (`nearestExpiration`), not the full lot list — an item with more than
-      // one lot expiring soon only shows the closest one. Add when a
-      // lot-listing endpoint exists.
       setExpiringLots(
         backendItems
           .filter(
@@ -80,6 +78,15 @@ export function HomeScreen() {
         <Icon as={UserRound} className="size-5 text-label-quartenery" />
       </Pressable>
       <Text className="text-2xl font-semibold">{t('tabbar.day')}</Text>
+      <Pressable
+        onPress={() => setNewProcedureVisible(true)}
+        accessibilityRole="button"
+        accessibilityLabel={t('procedures.newProcedure')}
+        hitSlop={8}
+        className="absolute bottom-6 right-4 h-14 w-14 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+      >
+        <Icon as={Plus} className="size-7 text-label-secondary" />
+      </Pressable>
       <Modal
         visible={notificationsVisible}
         animationType="slide"
@@ -119,6 +126,10 @@ export function HomeScreen() {
             },
           },
         ]}
+      />
+      <DiaDiaScreen
+        visible={newProcedureVisible}
+        onClose={() => setNewProcedureVisible(false)}
       />
     </View>
   );
