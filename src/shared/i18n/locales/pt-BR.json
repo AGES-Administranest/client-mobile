@@ -348,7 +348,6 @@
       "REQUIRED": "Campo obrigatório",
       "INVALID_NUMBER": "Número inválido",
       "MUST_BE_POSITIVE": "Deve ser maior que zero",
-      "MUST_BE_NON_NEGATIVE": "Não pode ser negativo",
       "MUST_BE_INTEGER": "Deve ser um número inteiro",
       "AGE_OUT_OF_RANGE": "Idade deve estar entre 0 e 100",
       "END_BEFORE_START": "O fim deve ser depois do início",

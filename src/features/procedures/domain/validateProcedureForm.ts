@@ -18,6 +18,9 @@ export function validateProcedureForm(
   if (values.procedureName.trim() === '') {
     errors.procedureName = 'REQUIRED';
   }
+  if (values.location.trim() === '') {
+    errors.location = 'REQUIRED';
+  }
 
   if (values.date.trim() === '') {
     errors.date = 'REQUIRED';
@@ -65,8 +68,8 @@ export function validateProcedureForm(
     const weight = parseDecimal(values.weightKg);
     if (weight === null) {
       errors.weightKg = 'INVALID_NUMBER';
-    } else if (weight < 0) {
-      errors.weightKg = 'MUST_BE_NON_NEGATIVE';
+    } else if (weight <= 0) {
+      errors.weightKg = 'MUST_BE_POSITIVE';
     }
   }
 
@@ -81,12 +84,14 @@ export function validateProcedureForm(
     }
   }
 
-  if (values.amount.trim() !== '') {
+  if (values.amount.trim() === '') {
+    errors.amount = 'REQUIRED';
+  } else {
     const amount = parseDecimal(values.amount);
     if (amount === null) {
       errors.amount = 'INVALID_NUMBER';
-    } else if (amount < 0) {
-      errors.amount = 'MUST_BE_NON_NEGATIVE';
+    } else if (amount <= 0) {
+      errors.amount = 'MUST_BE_POSITIVE';
     }
   }
 
