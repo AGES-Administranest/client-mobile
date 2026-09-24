@@ -1,6 +1,8 @@
 export type Species = 'CANINE' | 'FELINE' | 'OTHER';
 
-export type AsaClassification = 'I' | 'II' | 'III' | 'IV';
+export const ASA_CLASSIFICATIONS = ['I', 'II', 'III', 'IV'] as const;
+
+export type AsaClassification = (typeof ASA_CLASSIFICATIONS)[number];
 
 export type ProcedureTextField =
   | 'patientName'
@@ -9,7 +11,10 @@ export type ProcedureTextField =
   | 'weightKg'
   | 'patientAgeYears'
   | 'amount'
-  | 'notes';
+  | 'notes'
+  | 'date'
+  | 'startTime'
+  | 'endTime';
 
 export interface ProcedureFormValues {
   patientName: string;
@@ -20,8 +25,9 @@ export interface ProcedureFormValues {
   weightKg: string;
   patientAgeYears: string;
   amount: string;
-  startsAt: Date | null;
-  endsAt: Date | null;
+  date: string;
+  startTime: string;
+  endTime: string;
   notes: string;
 }
 
@@ -32,7 +38,9 @@ export type FieldErrorCode =
   | 'MUST_BE_NON_NEGATIVE'
   | 'MUST_BE_INTEGER'
   | 'AGE_OUT_OF_RANGE'
-  | 'END_BEFORE_START';
+  | 'END_BEFORE_START'
+  | 'INVALID_DATE'
+  | 'INVALID_TIME';
 
 export type ProcedureErrors = Partial<
   Record<keyof ProcedureFormValues, FieldErrorCode>
@@ -61,7 +69,8 @@ export const EMPTY_PROCEDURE_FORM: ProcedureFormValues = {
   weightKg: '',
   patientAgeYears: '',
   amount: '',
-  startsAt: null,
-  endsAt: null,
+  date: '',
+  startTime: '',
+  endTime: '',
   notes: '',
 };

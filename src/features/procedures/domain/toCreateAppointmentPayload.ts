@@ -1,4 +1,5 @@
 import { parseDecimal } from './parseDecimal';
+import { combineDateAndTime } from './parseProcedureDateTime';
 import type {
   CreateAppointmentPayload,
   ProcedureFormValues,
@@ -7,12 +8,16 @@ import type {
 export function toCreateAppointmentPayload(
   values: ProcedureFormValues,
 ): CreateAppointmentPayload {
+  const startsAt = combineDateAndTime(values.date, values.startTime);
   const payload: CreateAppointmentPayload = {
-    startsAt: values.startsAt!.toISOString(),
+    startsAt: startsAt!.toISOString(),
   };
 
-  if (values.endsAt !== null) {
-    payload.endsAt = values.endsAt.toISOString();
+  if (values.endTime.trim() !== '') {
+    const endsAt = combineDateAndTime(values.date, values.endTime);
+    if (endsAt !== null) {
+      payload.endsAt = endsAt.toISOString();
+    }
   }
   if (values.patientName.trim() !== '') {
     payload.patientName = values.patientName.trim();

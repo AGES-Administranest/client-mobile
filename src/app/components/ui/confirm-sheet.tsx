@@ -18,7 +18,7 @@ type ConfirmSheetProps = {
   title: string;
   message: string;
   confirmLabel: string;
-  cancelLabel: string;
+  cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -91,14 +91,16 @@ function ConfirmSheet({
               >
                 <Text className="font-semibold">{confirmLabel}</Text>
               </Button>
-              <Button
-                variant="outline"
-                shape="pill"
-                className="h-[49px] w-full"
-                onPress={onCancel}
-              >
-                <Text className="font-semibold">{cancelLabel}</Text>
-              </Button>
+              {cancelLabel ? (
+                <Button
+                  variant="outline"
+                  shape="pill"
+                  className="h-[49px] w-full"
+                  onPress={onCancel}
+                >
+                  <Text className="font-semibold">{cancelLabel}</Text>
+                </Button>
+              ) : null}
             </Pressable>
           </Animated.View>
         </Pressable>
