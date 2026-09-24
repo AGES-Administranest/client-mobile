@@ -317,5 +317,55 @@
       "menu": "Conta",
       "signOut": "Sair da conta"
     }
+  },
+  "procedures": {
+    "newProcedure": "Novo atendimento",
+    "form": {
+      "title": "Novo atendimento",
+      "confirm": "Confirmar",
+      "submitError": "Não foi possível salvar. Tente novamente."
+    },
+    "conflict": {
+      "title": "Conflito de horário",
+      "message": "Você já possui um atendimento nesse horário.",
+      "changeInfo": "Alterar informações"
+    },
+    "fields": {
+      "patientName": "Paciente",
+      "procedureName": "Procedimento",
+      "location": "Clínica",
+      "species": "Espécie",
+      "asaClassification": "Classificação ASA",
+      "weightKg": "Peso (kg)",
+      "patientAgeYears": "Idade",
+      "amount": "Valor do atendimento",
+      "startTime": "Início",
+      "endTime": "Fim",
+      "date": "Data",
+      "notes": "Observações"
+    },
+    "placeholders": {
+      "patientName": "Nome do animal",
+      "procedureName": "Ex: Orquiectomia",
+      "location": "Nome da clínica",
+      "number": "0",
+      "time": "HH:MM",
+      "date": "DD/MM/YYYY"
+    },
+    "species": {
+      "canine": "Canino",
+      "feline": "Felino",
+      "other": "Outro"
+    },
+    "errors": {
+      "REQUIRED": "Campo obrigatório",
+      "INVALID_NUMBER": "Número inválido",
+      "MUST_BE_POSITIVE": "Deve ser maior que zero",
+      "MUST_BE_INTEGER": "Deve ser um número inteiro",
+      "AGE_OUT_OF_RANGE": "Idade deve estar entre 0 e 100",
+      "END_BEFORE_START": "O fim deve ser depois do início",
+      "INVALID_DATE": "Data inválida",
+      "INVALID_TIME": "Hora inválida"
+    }
   }
 }
