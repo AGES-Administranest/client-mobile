@@ -78,15 +78,14 @@ function AppContent() {
   const [tab, setTab] = React.useState<TabValue>('day');
   const insets = useSafeAreaInsets();
 
-  // TEMPORARIO: pular login para ver a tela. REVERTER antes do PR.
-  // if (!session || !account) {
-  //   return <AuthFlow />;
-  // }
+  if (!session || !account) {
+    return <AuthFlow />;
+  }
 
   // No use of the app without consent to the current terms (US25).
-  // if (needsTermsAcceptance(account)) {
-  //   return <TermsScreen />;
-  // }
+  if (needsTermsAcceptance(account)) {
+    return <TermsScreen />;
+  }
 
   const Screen = SCREENS[tab];
   const tabBarWrapperStyle = { paddingBottom: insets.bottom };

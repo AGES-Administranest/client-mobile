@@ -1,4 +1,10 @@
-import { Plus, Bell, ChevronLeft, LogOut, UserRound } from 'lucide-react-native';
+import {
+  Plus,
+  Bell,
+  ChevronLeft,
+  LogOut,
+  UserRound,
+} from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
