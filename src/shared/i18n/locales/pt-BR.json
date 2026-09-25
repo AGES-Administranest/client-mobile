@@ -304,5 +304,48 @@
       "menu": "Conta",
       "signOut": "Sair da conta"
     }
+  },
+  "appointments": {
+    "title": "Agendamentos",
+    "calendar": {
+      "prevMonth": "Mês anterior",
+      "nextMonth": "Próximo mês"
+    },
+    "viewMonth": "Ver mês",
+    "attendances": "ATENDIMENTOS",
+    "revenue": "RECEITA",
+    "estimated": "estimado",
+    "agenda": "AGENDA",
+    "addAttendance": "+ Adicionar Atendimento",
+    "sectionTitle": "PROCEDIMENTOS DO MÊS OU DIA",
+    "emptyDay": "Nenhum agendamento para este dia.",
+    "emptyDaySub": "Toque no botão abaixo para agendar um procedimento.",
+    "newAppointment": "+ Novo agendamento",
+    "status": {
+      "scheduled": "Agendado",
+      "completed": "Concluído",
+      "canceled": "Cancelado"
+    },
+    "species": {
+      "canine": "Canino",
+      "feline": "Felino",
+      "other": "Outro"
+    },
+    "form": {
+      "title": "Novo Agendamento",
+      "patientNameLabel": "NOME DO PACIENTE / ANIMAL",
+      "patientNamePlaceholder": "Ex: Mel, Thor...",
+      "speciesLabel": "ESPÉCIE",
+      "procedureLabel": "PROCEDIMENTO",
+      "procedurePlaceholder": "Ex: Orquiectomia, Tartarectomia...",
+      "dateLabel": "DATA (AAAA-MM-DD)",
+      "timeLabel": "HORÁRIO (HH:MM)",
+      "locationLabel": "LOCAL / CLÍNICA",
+      "locationPlaceholder": "Ex: Clínica VetCare",
+      "notesLabel": "OBSERVAÇÕES",
+      "notesPlaceholder": "Recomendações anestésicas, histórico...",
+      "submit": "Confirmar Agendamento",
+      "cancel": "Cancelar"
+    }
   }
 }
