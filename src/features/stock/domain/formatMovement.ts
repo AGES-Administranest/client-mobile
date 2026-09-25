@@ -1,4 +1,5 @@
 import { fromCalendarDate } from 'shared/utils/calendar';
+import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
 import { getSignedTotal, type StockMovement } from './stockMovement';
 
@@ -38,15 +39,6 @@ export function formatQuantity(
   return Math.abs(movement.quantity).toLocaleString(locale, {
     maximumFractionDigits: 3,
   });
-}
-
-function formatDayAndMonth(date: Date, locale: string): string {
-  const formatted = new Intl.DateTimeFormat(locale, {
-    day: '2-digit',
-    month: 'short',
-  }).format(date);
-
-  return formatted.replace(' de ', ' ').replace(/\.$/, '');
 }
 
 export function formatMovementDate(occurredAt: string, locale: string): string {
