@@ -1,6 +1,8 @@
 import {
   addMonths,
   buildMonthGrid,
+  formatCalendarDate,
+  formatDayAndMonth,
   fromCalendarDate,
   isRangeComplete,
   isWithinCalendarRange,
@@ -168,5 +170,41 @@ describe('isRangeComplete', () => {
     [{ from: '2026-09-08', to: '2026-09-15' }, true],
   ])('%o -> %s', (range, expected) => {
     expect(isRangeComplete(range)).toBe(expected);
+  });
+});
+
+describe('formatCalendarDate', () => {
+  it('formats a calendar date the same way a movement date is formatted', () => {
+    expect(formatCalendarDate('2026-08-12', 'pt-BR')).toBe('12 ago');
+  });
+
+  it('does not shift the day backwards in a negative UTC offset', () => {
+    expect(formatCalendarDate('2026-09-08', 'pt-BR')).toBe('08 set');
+    expect(formatCalendarDate('2026-01-01', 'pt-BR')).toBe('01 jan');
+  });
+
+  it('follows the locale order', () => {
+    expect(formatCalendarDate('2026-08-12', 'en-US')).toBe('Aug 12');
+  });
+});
+
+describe('formatDayAndMonth', () => {
+  it('pads the day by default', () => {
+    expect(formatDayAndMonth(new Date(2026, 8, 7), 'pt-BR')).toBe('07 set');
+  });
+
+  it('can leave the day unpadded', () => {
+    expect(formatDayAndMonth(new Date(2026, 8, 7), 'pt-BR', 'numeric')).toBe(
+      '7 set',
+    );
+    expect(formatDayAndMonth(new Date(2026, 7, 17), 'pt-BR', 'numeric')).toBe(
+      '17 ago',
+    );
+  });
+
+  it('follows the locale order without padding', () => {
+    expect(formatDayAndMonth(new Date(2026, 8, 7), 'en-US', 'numeric')).toBe(
+      'Sep 7',
+    );
   });
 });

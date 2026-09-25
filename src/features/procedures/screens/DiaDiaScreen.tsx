@@ -1,45 +1,91 @@
+import { Plus } from 'lucide-react-native';
 import { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { Icon } from 'app/components/ui/icon';
+import { Text } from 'app/components/ui/text';
 import {
   NewClientSheet,
   useNewClientForm,
   type ClientType,
 } from 'features/clients';
 import { useTranslation } from 'shared/i18n';
+import {
+  formatCalendarDate,
+  isRangeComplete,
+  type CalendarRange,
+} from 'shared/utils/calendar';
 
 import {
   ProcedureFormSheet,
   type ProcedureFormTexts,
 } from '../components/ProcedureFormSheet';
 import {
+  ProcedureHistoryList,
+  type ProcedureHistoryListItem,
+} from '../components/ProcedureHistoryList';
+import { ProcedurePeriodFilter } from '../components/ProcedurePeriodFilter';
+import {
+  formatAppointmentAmount,
+  formatShortDate,
+  toAsaBadgeValue,
+} from '../domain/formatProcedure';
+import {
   ASA_CLASSIFICATIONS,
   type FieldErrorCode,
   type ProcedureFormValues,
+  type ProcedureHistoryItem,
+  type Species,
 } from '../domain/procedure.types';
+import { useDiaDia } from '../hooks/useDiaDia';
 import { useProcedureForm } from '../hooks/useProcedureForm';
 
-type DiaDiaScreenProps = {
-  visible: boolean;
-  onClose: () => void;
-};
+const SPECIES_LABEL_KEYS = {
+  CANINE: 'procedures.species.canine',
+  FELINE: 'procedures.species.feline',
+  OTHER: 'procedures.species.other',
+} as const satisfies Record<Species, string>;
 
-export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
-  const { t } = useTranslation();
+export function DiaDiaScreen() {
+  const { t, locale } = useTranslation();
+  const diaDia = useDiaDia();
+  const [formVisible, setFormVisible] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const {
     values,
     errors,
     submitting,
     submitFailed,
     timeConflict,
+    isEditing,
     client,
     setField,
     setTextField,
     submit,
+    begin,
     dismissTimeConflict,
-  } = useProcedureForm(onClose, visible);
+  } = useProcedureForm(() => {
+    setFormVisible(false);
+    diaDia.refresh();
+  }, formVisible);
   const newClient = useNewClientForm();
   const [newClientVisible, setNewClientVisible] = useState(false);
+
+  function openCreateForm(): void {
+    begin(null);
+    setFormVisible(true);
+  }
+
+  function openEditForm(id: string): void {
+    const item = diaDia.items.find(
+      candidate => candidate.appointment.id === id,
+    );
+    if (item) {
+      begin(item);
+      setFormVisible(true);
+    }
+  }
 
   function closeNewClient(): void {
     setNewClientVisible(false);
@@ -77,7 +123,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
   };
 
   const texts: ProcedureFormTexts = {
-    title: t('procedures.form.title'),
+    title: t(isEditing ? 'procedures.form.editTitle' : 'procedures.form.title'),
     confirm: t('procedures.form.confirm'),
     labels,
     placeholders: {
@@ -110,10 +156,112 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     INDIVIDUAL: t('clients.newClient.types.individual'),
   };
 
+  const periodLabel = (range: CalendarRange): string => {
+    if (range.from === null) {
+      return t('procedures.list.filters.period');
+    }
+
+    const from = formatCalendarDate(range.from, locale);
+
+    if (range.to === null) {
+      return t('procedures.list.filters.periodFrom', { from });
+    }
+    if (range.to === range.from) {
+      return t('procedures.list.filters.periodSingle', { day: from });
+    }
+
+    return t('procedures.list.filters.periodRange', {
+      from,
+      to: formatCalendarDate(range.to, locale),
+    });
+  };
+
+  const listItems: ProcedureHistoryListItem[] = diaDia.items.map(
+    ({ appointment, clientName }: ProcedureHistoryItem) => {
+      const speciesKey = appointment.species
+        ? SPECIES_LABEL_KEYS[appointment.species]
+        : undefined;
+      const asa = toAsaBadgeValue(appointment.asa);
+
+      return {
+        id: appointment.id,
+        patientName: appointment.patientName ?? '',
+        speciesLabel: speciesKey ? t(speciesKey) : undefined,
+        asaLabel: asa
+          ? t('procedures.list.asaBadge', { value: asa })
+          : undefined,
+        procedureName: appointment.procedureName ?? '',
+        clientName: clientName ?? t('procedures.list.clientNotInformed'),
+        date: formatShortDate(appointment.startsAt, locale),
+        amount: formatAppointmentAmount(appointment.amount, locale),
+      };
+    },
+  );
+
+  const filter = (
+    <View className="gap-4">
+      <Text variant="h4">{t('procedures.list.title')}</Text>
+      <ProcedurePeriodFilter
+        range={diaDia.range}
+        onRangeChange={range => {
+          diaDia.setRange(range);
+
+          if (isRangeComplete(range)) {
+            setIsCalendarOpen(false);
+          }
+        }}
+        isCalendarOpen={isCalendarOpen}
+        onToggleCalendar={() => setIsCalendarOpen(open => !open)}
+        onClear={() => {
+          diaDia.clearRange();
+          setIsCalendarOpen(false);
+        }}
+        canClear={diaDia.isFiltering}
+        locale={locale}
+        periodLabel={periodLabel(diaDia.range)}
+        clearLabel={t('procedures.list.filters.clear')}
+        previousMonthLabel={t('procedures.list.filters.previousMonth')}
+        nextMonthLabel={t('procedures.list.filters.nextMonth')}
+      />
+    </View>
+  );
+
   return (
-    <>
+    <View className="flex-1">
+      <ProcedureHistoryList
+        items={listItems}
+        header={filter}
+        isLoading={diaDia.isLoading}
+        isLoadingMore={diaDia.isLoadingMore}
+        loadingMoreLabel={t('procedures.list.loadingMore')}
+        emptyMessage={t(
+          diaDia.isFiltering
+            ? 'procedures.list.emptyFiltered'
+            : 'procedures.list.empty',
+        )}
+        error={
+          diaDia.hasError
+            ? {
+                message: t('procedures.list.error'),
+                retryLabel: t('common.retry'),
+                onRetry: diaDia.retry,
+              }
+            : undefined
+        }
+        onPressItem={openEditForm}
+        onEndReached={diaDia.loadMore}
+      />
+      <Pressable
+        onPress={openCreateForm}
+        accessibilityRole="button"
+        accessibilityLabel={t('procedures.newProcedure')}
+        hitSlop={8}
+        className="absolute bottom-6 right-4 h-14 w-14 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+      >
+        <Icon as={Plus} className="size-7 text-label-secondary" />
+      </Pressable>
       <ProcedureFormSheet
-        visible={visible}
+        visible={formVisible}
         values={values}
         submitting={submitting}
         submitFailed={submitFailed}
@@ -127,7 +275,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onChangeSpecies={value => setField('species', value)}
         onChangeAsa={value => setField('asaClassification', value)}
         onSubmit={submit}
-        onClose={onClose}
+        onClose={() => setFormVisible(false)}
       />
       <NewClientSheet
         visible={newClientVisible}
@@ -169,6 +317,6 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onConfirm={dismissTimeConflict}
         onCancel={dismissTimeConflict}
       />
-    </>
+    </View>
   );
 }

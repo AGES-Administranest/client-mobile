@@ -1,5 +1,4 @@
 import {
-  formatCalendarDate,
   formatMovementDate,
   formatQuantity,
   formatSignedQuantity,
@@ -121,20 +120,5 @@ describe('formatMovementDate', () => {
 
   it('pads the day to two digits', () => {
     expect(formatMovementDate('2026-09-01T09:30:00', 'pt-BR')).toBe('01 set');
-  });
-});
-
-describe('formatCalendarDate', () => {
-  it('formats a calendar date the same way a movement date is formatted', () => {
-    expect(formatCalendarDate('2026-08-12', 'pt-BR')).toBe('12 ago');
-  });
-
-  it('does not shift the day backwards in a negative UTC offset', () => {
-    expect(formatCalendarDate('2026-09-08', 'pt-BR')).toBe('08 set');
-    expect(formatCalendarDate('2026-01-01', 'pt-BR')).toBe('01 jan');
-  });
-
-  it('follows the locale order', () => {
-    expect(formatCalendarDate('2026-08-12', 'en-US')).toBe('Aug 12');
   });
 });

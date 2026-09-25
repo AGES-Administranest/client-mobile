@@ -1,8 +1,11 @@
-import { toCreateAppointmentPayload } from './toCreateAppointmentPayload';
+import {
+  toCreateAppointmentPayload,
+  toUpdateAppointmentPayload,
+} from './toCreateAppointmentPayload';
 import { validProcedureForm as valid } from './validProcedureForm.fixture';
 
 describe('toCreateAppointmentPayload', () => {
-  it('converte data e hora local para ISO e nunca envia status nem userId', () => {
+  it('converte data e hora local para ISO e nunca envia userId', () => {
     const payload = toCreateAppointmentPayload(valid);
     expect(payload.startsAt).toBe(
       new Date(2026, 7, 6, 9, 0, 0, 0).toISOString(),
@@ -10,8 +13,11 @@ describe('toCreateAppointmentPayload', () => {
     expect(payload.endsAt).toBe(
       new Date(2026, 7, 6, 10, 0, 0, 0).toISOString(),
     );
-    expect(payload).not.toHaveProperty('status');
     expect(payload).not.toHaveProperty('userId');
+  });
+
+  it('registra como COMPLETED: o backend assume SCHEDULED sem status', () => {
+    expect(toCreateAppointmentPayload(valid).status).toBe('COMPLETED');
   });
 
   it('parseia vírgula decimal em number', () => {
@@ -74,5 +80,22 @@ describe('toCreateAppointmentPayload', () => {
     expect(
       toCreateAppointmentPayload({ ...valid, species: null }),
     ).not.toHaveProperty('species');
+  });
+});
+
+describe('toUpdateAppointmentPayload', () => {
+  it('leva os mesmos campos do cadastro, menos o status', () => {
+    const { status, ...created } = toCreateAppointmentPayload(valid);
+
+    expect(status).toBe('COMPLETED');
+    expect(toUpdateAppointmentPayload(valid)).toEqual(created);
+  });
+
+  it('não envia status: editar não muda o andamento do atendimento', () => {
+    expect(toUpdateAppointmentPayload(valid)).not.toHaveProperty('status');
+  });
+
+  it('não envia userId', () => {
+    expect(toUpdateAppointmentPayload(valid)).not.toHaveProperty('userId');
   });
 });

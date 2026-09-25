@@ -12,12 +12,20 @@ import {
   EMPTY_PROCEDURE_FORM,
   type ProcedureErrors,
   type ProcedureFormValues,
+  type ProcedureHistoryItem,
   type ProcedureTextField,
 } from '../domain/procedure.types';
 import { applyFieldMask } from '../domain/procedureMasks';
-import { toCreateAppointmentPayload } from '../domain/toCreateAppointmentPayload';
+import {
+  toCreateAppointmentPayload,
+  toUpdateAppointmentPayload,
+} from '../domain/toCreateAppointmentPayload';
+import { toProcedureFormValues } from '../domain/toProcedureFormValues';
 import { validateProcedureForm } from '../domain/validateProcedureForm';
-import { createAppointment } from '../services/procedureService';
+import {
+  createAppointment,
+  updateAppointment,
+} from '../services/procedureService';
 
 export function useProcedureForm(onSuccess: () => void, visible: boolean) {
   const { session } = useAuth();
@@ -30,6 +38,9 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
   const [selectedClient, setSelectedClient] = useState<ClientOption | null>(
     null,
   );
+  // Fica preenchido depois de salvar: o sheet ainda está fechando, e limpar
+  // aqui trocaria o título para "Novo atendimento" no meio da animação.
+  const [editing, setEditing] = useState<ProcedureHistoryItem | null>(null);
   const clientSearch = useClientSearch({
     active: visible,
     paused: selectedClient !== null,
@@ -81,6 +92,37 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     setTimeConflict(false);
   }
 
+  // Prepara o formulário para abrir. Sem `target` é um cadastro novo: o
+  // rascunho continua onde estava, a não ser que venha de uma edição.
+  function begin(target: ProcedureHistoryItem | null): void {
+    if (target === null) {
+      if (editing !== null) {
+        reset();
+        setEditing(null);
+      }
+      return;
+    }
+
+    const { appointment, clientName } = target;
+    // Sem o nome o campo ficaria vazio apontando para um clientId: quem edita
+    // um registro antigo (só com `location`) escolhe o tomador de novo.
+    const knownClient =
+      appointment.clientId !== null && clientName !== null
+        ? { id: appointment.clientId, name: clientName }
+        : null;
+
+    setValues({
+      ...toProcedureFormValues(appointment),
+      clientId: knownClient?.id ?? null,
+    });
+    setSelectedClient(knownClient);
+    clientSearch.onTermChange(knownClient?.name ?? '');
+    setErrors({});
+    setSubmitFailed(false);
+    setTimeConflict(false);
+    setEditing(target);
+  }
+
   function dismissTimeConflict(): void {
     setTimeConflict(false);
   }
@@ -99,10 +141,18 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     setSubmitting(true);
     setSubmitFailed(false);
     try {
-      await createAppointment(
-        session.idToken,
-        toCreateAppointmentPayload(values),
-      );
+      if (editing) {
+        await updateAppointment(
+          session.idToken,
+          editing.appointment.id,
+          toUpdateAppointmentPayload(values),
+        );
+      } else {
+        await createAppointment(
+          session.idToken,
+          toCreateAppointmentPayload(values),
+        );
+      }
       reset();
       onSuccess();
     } catch (error) {
@@ -128,6 +178,7 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     submitting,
     submitFailed,
     timeConflict,
+    isEditing: editing !== null,
     client: {
       term: clientSearch.term,
       status: clientSearch.status,
@@ -140,6 +191,7 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     setTextField,
     submit,
     reset,
+    begin,
     dismissTimeConflict,
   };
 }

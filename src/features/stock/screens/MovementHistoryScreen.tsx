@@ -6,7 +6,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
-import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
+import {
+  formatCalendarDate,
+  isRangeComplete,
+  type CalendarRange,
+} from 'shared/utils/calendar';
 
 import { MovementFilters } from '../components/MovementFilters';
 import {
@@ -15,7 +19,6 @@ import {
 } from '../components/MovementList';
 import { OutputAdjustmentModal } from '../components/OutputAdjustmentModal';
 import {
-  formatCalendarDate,
   formatMovementDate,
   formatQuantity,
   formatSignedValue,

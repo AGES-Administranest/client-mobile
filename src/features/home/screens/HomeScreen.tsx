@@ -1,10 +1,4 @@
-import {
-  Plus,
-  Bell,
-  ChevronLeft,
-  LogOut,
-  UserRound,
-} from 'lucide-react-native';
+import { Bell, ChevronLeft, LogOut, UserRound } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,7 +22,6 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [accountVisible, setAccountVisible] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
-  const [newProcedureVisible, setNewProcedureVisible] = useState(false);
   const [monitoredItems, setMonitoredItems] = useState<MonitoredItem[]>([]);
   const [expiringLots, setExpiringLots] = useState<ExpiringLot[]>([]);
 
@@ -64,7 +57,11 @@ export function HomeScreen() {
   }, [session]);
 
   return (
-    <View className="flex-1 items-center justify-center">
+    <View className="flex-1">
+      <View className="h-[68px] items-center justify-center pt-3">
+        <Text className="text-2xl font-semibold">{t('tabbar.day')}</Text>
+      </View>
+      <DiaDiaScreen />
       <Pressable
         onPress={openNotifications}
         accessibilityRole="button"
@@ -82,16 +79,6 @@ export function HomeScreen() {
         className="absolute right-4 top-3 h-11 w-11 items-center justify-center rounded-full bg-details-primary active:opacity-70"
       >
         <Icon as={UserRound} className="size-5 text-label-quartenery" />
-      </Pressable>
-      <Text className="text-2xl font-semibold">{t('tabbar.day')}</Text>
-      <Pressable
-        onPress={() => setNewProcedureVisible(true)}
-        accessibilityRole="button"
-        accessibilityLabel={t('procedures.newProcedure')}
-        hitSlop={8}
-        className="absolute bottom-6 right-4 h-14 w-14 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-      >
-        <Icon as={Plus} className="size-7 text-label-secondary" />
       </Pressable>
       <Modal
         visible={notificationsVisible}
@@ -132,10 +119,6 @@ export function HomeScreen() {
             },
           },
         ]}
-      />
-      <DiaDiaScreen
-        visible={newProcedureVisible}
-        onClose={() => setNewProcedureVisible(false)}
       />
     </View>
   );

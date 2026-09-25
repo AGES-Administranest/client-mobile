@@ -5,3 +5,4 @@ export type { Client, ClientOption, ClientType } from './domain/client';
 export type { ClientSearchStatus } from './domain/clientSearch';
 export { useClientSearch } from './hooks/useClientSearch';
 export { useNewClientForm } from './hooks/useNewClientForm';
+export { fetchClients } from './services/clientService';

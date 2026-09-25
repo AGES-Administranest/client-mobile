@@ -5,11 +5,11 @@ import type {
   ProcedureFormValues,
 } from './procedure.types';
 
-export function toCreateAppointmentPayload(
+function toAppointmentFields(
   values: ProcedureFormValues,
-): CreateAppointmentPayload {
+): Omit<CreateAppointmentPayload, 'status'> {
   const startsAt = combineDateAndTime(values.date, values.startTime);
-  const payload: CreateAppointmentPayload = {
+  const payload: Omit<CreateAppointmentPayload, 'status'> = {
     startsAt: startsAt!.toISOString(),
   };
 
@@ -57,4 +57,18 @@ export function toCreateAppointmentPayload(
   }
 
   return payload;
+}
+
+// Sem `status` o backend grava SCHEDULED, e a listagem do Dia a Dia só traz
+// COMPLETED: o formulário registra um procedimento que já aconteceu.
+export function toCreateAppointmentPayload(
+  values: ProcedureFormValues,
+): CreateAppointmentPayload {
+  return { ...toAppointmentFields(values), status: 'COMPLETED' };
+}
+
+export function toUpdateAppointmentPayload(
+  values: ProcedureFormValues,
+): Partial<CreateAppointmentPayload> {
+  return toAppointmentFields(values);
 }

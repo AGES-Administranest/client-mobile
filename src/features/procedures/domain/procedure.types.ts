@@ -1,5 +1,7 @@
 export type Species = 'CANINE' | 'FELINE' | 'OTHER';
 
+export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELED';
+
 export const ASA_CLASSIFICATIONS = ['I', 'II', 'III', 'IV'] as const;
 
 export type AsaClassification = (typeof ASA_CLASSIFICATIONS)[number];
@@ -45,6 +47,7 @@ export type ProcedureErrors = Partial<
 >;
 
 export interface CreateAppointmentPayload {
+  status?: AppointmentStatus;
   startsAt: string;
   endsAt?: string;
   patientName?: string;
@@ -57,6 +60,42 @@ export interface CreateAppointmentPayload {
   amount?: number;
   notes?: string;
 }
+
+// Espelho do AppointmentEntity do backend. Campo opcional lá vem como
+// `| null`, nunca ausente; `location` é o texto livre de antes do clientId.
+export type AppointmentResult = {
+  id: string;
+  clientId: string | null;
+  procedureName: string | null;
+  startsAt: string;
+  endsAt: string | null;
+  location: string | null;
+  amount: string | null;
+  patientName: string | null;
+  ownerName: string | null;
+  species: Species | null;
+  patientAgeYears: number | null;
+  weightKg: string | null;
+  asa: string | null;
+  notes: string | null;
+  status: AppointmentStatus;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+};
+
+export type AppointmentsQuery = {
+  status?: AppointmentStatus;
+  page: number;
+  pageSize: number;
+  from?: string;
+  to?: string;
+};
+
+export type ProcedureHistoryItem = {
+  appointment: AppointmentResult;
+  clientName: string | null;
+};
 
 export const EMPTY_PROCEDURE_FORM: ProcedureFormValues = {
   patientName: '',

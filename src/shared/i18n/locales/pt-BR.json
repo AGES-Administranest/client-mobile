@@ -309,6 +309,7 @@
     "newProcedure": "Novo atendimento",
     "form": {
       "title": "Novo atendimento",
+      "editTitle": "Editar atendimento",
       "confirm": "Confirmar",
       "location": "Local",
       "newClient": "Novo tomador",
@@ -359,6 +360,24 @@
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
       "empty": "Nenhum tomador encontrado"
+    },
+    "list": {
+      "title": "Atendimentos realizados",
+      "empty": "Nenhum atendimento registrado.",
+      "emptyFiltered": "Nenhum atendimento encontrado para o período.",
+      "loadingMore": "Carregando mais…",
+      "error": "Não foi possível carregar os atendimentos.",
+      "clientNotInformed": "Local não informado",
+      "asaBadge": "ASA {{value}}",
+      "filters": {
+        "period": "Período",
+        "periodRange": "{{from}} até {{to}}",
+        "periodSingle": "{{day}}",
+        "periodFrom": "A partir de {{from}}",
+        "clear": "Limpar",
+        "previousMonth": "Mês anterior",
+        "nextMonth": "Próximo mês"
+      }
     }
   },
   "clients": {

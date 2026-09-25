@@ -95,3 +95,23 @@ export function selectRangeDay(
 
   return { from: range.from, to: day };
 }
+
+export function formatDayAndMonth(
+  date: Date,
+  locale: string,
+  dayStyle: 'numeric' | '2-digit' = '2-digit',
+): string {
+  const formatted = new Intl.DateTimeFormat(locale, {
+    day: dayStyle,
+    month: 'short',
+  }).format(date);
+
+  return formatted.replace(' de ', ' ').replace(/\.$/, '');
+}
+
+export function formatCalendarDate(
+  calendarDate: string,
+  locale: string,
+): string {
+  return formatDayAndMonth(fromCalendarDate(calendarDate), locale);
+}

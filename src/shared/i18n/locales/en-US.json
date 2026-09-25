@@ -309,6 +309,7 @@
     "newProcedure": "New appointment",
     "form": {
       "title": "New appointment",
+      "editTitle": "Edit appointment",
       "confirm": "Confirm",
       "location": "Location",
       "newClient": "New client",
@@ -359,6 +360,24 @@
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
       "empty": "No clients found"
+    },
+    "list": {
+      "title": "Completed appointments",
+      "empty": "No appointments recorded.",
+      "emptyFiltered": "No appointments found for this period.",
+      "loadingMore": "Loading more…",
+      "error": "Couldn't load appointments.",
+      "clientNotInformed": "Location not provided",
+      "asaBadge": "ASA {{value}}",
+      "filters": {
+        "period": "Period",
+        "periodRange": "{{from}} to {{to}}",
+        "periodSingle": "{{day}}",
+        "periodFrom": "From {{from}}",
+        "clear": "Clear",
+        "previousMonth": "Previous month",
+        "nextMonth": "Next month"
+      }
     }
   },
   "clients": {
