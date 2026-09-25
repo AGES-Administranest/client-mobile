@@ -310,6 +310,7 @@
     "form": {
       "title": "New appointment",
       "confirm": "Confirm",
+      "close": "Close",
       "submitError": "Couldn't save. Please try again."
     },
     "conflict": {

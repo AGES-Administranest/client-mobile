@@ -310,6 +310,7 @@
     "form": {
       "title": "Novo atendimento",
       "confirm": "Confirmar",
+      "close": "Fechar",
       "submitError": "Não foi possível salvar. Tente novamente."
     },
     "conflict": {

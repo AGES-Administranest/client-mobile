@@ -56,6 +56,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
   const texts: ProcedureFormTexts = {
     title: t('procedures.form.title'),
     confirm: t('procedures.form.confirm'),
+    close: t('procedures.form.close'),
     labels,
     placeholders: {
       patientName: t('procedures.placeholders.patientName'),
