@@ -197,6 +197,20 @@
       }
     }
   },
+  "appointments": {
+    "detailsTitle": "Appointment details",
+    "loading": "Loading appointment...",
+    "clientLabel": "SERVICE RECIPIENT",
+    "notesLabel": "NOTES",
+    "exportToCalendar": "Add to calendar",
+    "exportSuccessTitle": "Added to calendar",
+    "exportSuccess": "Appointment added to your calendar.",
+    "exportPermissionDeniedTitle": "Permission required",
+    "exportPermissionDenied": "We could not access your calendar. Enable calendar permission in your device settings to add this appointment.",
+    "exportErrorTitle": "Could not add appointment",
+    "exportError": "Something went wrong while adding the appointment to your calendar. Please try again.",
+    "dismiss": "Got it"
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",

@@ -197,6 +197,20 @@
       }
     }
   },
+  "appointments": {
+    "detailsTitle": "Detalhes do agendamento",
+    "loading": "Carregando agendamento...",
+    "clientLabel": "TOMADOR DE SERVIÇO",
+    "notesLabel": "OBSERVAÇÕES",
+    "exportToCalendar": "Adicionar à agenda",
+    "exportSuccessTitle": "Adicionado à agenda",
+    "exportSuccess": "Agendamento adicionado à sua agenda.",
+    "exportPermissionDeniedTitle": "Permissão necessária",
+    "exportPermissionDenied": "Não conseguimos acessar sua agenda. Habilite a permissão de calendário nas configurações do dispositivo para adicionar este agendamento.",
+    "exportErrorTitle": "Não foi possível adicionar",
+    "exportError": "Algo deu errado ao adicionar o agendamento à sua agenda. Tente novamente.",
+    "dismiss": "Entendi"
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",
