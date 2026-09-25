@@ -33,6 +33,12 @@
           "photosPermission": "Permita o acesso às fotos para escolher a imagem de uma nota fiscal."
         }
       ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Permita o acesso à agenda para adicionar um agendamento ao seu calendário."
+        }
+      ],
       "expo-web-browser"
     ]
   }
