@@ -7,7 +7,6 @@ export type AsaClassification = (typeof ASA_CLASSIFICATIONS)[number];
 export type ProcedureTextField =
   | 'patientName'
   | 'procedureName'
-  | 'location'
   | 'weightKg'
   | 'patientAgeYears'
   | 'amount'
@@ -19,7 +18,7 @@ export type ProcedureTextField =
 export interface ProcedureFormValues {
   patientName: string;
   procedureName: string;
-  location: string;
+  clientId: string | null;
   species: Species | null;
   asaClassification: AsaClassification | null;
   weightKg: string;
@@ -50,7 +49,7 @@ export interface CreateAppointmentPayload {
   endsAt?: string;
   patientName?: string;
   procedureName?: string;
-  location?: string;
+  clientId?: string;
   species?: Species;
   asa?: AsaClassification;
   weightKg?: number;
@@ -62,7 +61,7 @@ export interface CreateAppointmentPayload {
 export const EMPTY_PROCEDURE_FORM: ProcedureFormValues = {
   patientName: '',
   procedureName: '',
-  location: '',
+  clientId: null,
   species: null,
   asaClassification: null,
   weightKg: '',

@@ -25,8 +25,8 @@ export function toCreateAppointmentPayload(
   if (values.procedureName.trim() !== '') {
     payload.procedureName = values.procedureName.trim();
   }
-  if (values.location.trim() !== '') {
-    payload.location = values.location.trim();
+  if (values.clientId !== null) {
+    payload.clientId = values.clientId;
   }
   if (values.species !== null) {
     payload.species = values.species;

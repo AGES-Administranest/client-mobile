@@ -310,6 +310,8 @@
     "form": {
       "title": "Novo atendimento",
       "confirm": "Confirmar",
+      "location": "Local",
+      "newClient": "Novo tomador",
       "submitError": "Não foi possível salvar. Tente novamente."
     },
     "conflict": {
@@ -320,7 +322,6 @@
     "fields": {
       "patientName": "Paciente",
       "procedureName": "Procedimento",
-      "location": "Clínica",
       "species": "Espécie",
       "asaClassification": "Classificação ASA",
       "weightKg": "Peso (kg)",
@@ -334,7 +335,7 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Nome da clínica",
+      "location": "Buscar tomador pelo nome",
       "number": "0",
       "time": "HH:MM",
       "date": "DD/MM/YYYY"
@@ -353,6 +354,46 @@
       "END_BEFORE_START": "O fim deve ser depois do início",
       "INVALID_DATE": "Data inválida",
       "INVALID_TIME": "Hora inválida"
+    },
+    "clientSearch": {
+      "loading": "Buscando…",
+      "error": "Não foi possível buscar. Tente novamente.",
+      "empty": "Nenhum tomador encontrado"
+    }
+  },
+  "clients": {
+    "newClient": {
+      "title": "Novo tomador",
+      "type": "Tipo",
+      "types": {
+        "clinic": "Clínica",
+        "individual": "Pessoa física"
+      },
+      "fields": {
+        "name": {
+          "label": "Nome",
+          "placeholder": "Nome do tomador"
+        },
+        "phone": {
+          "label": "Telefone (opcional)",
+          "placeholder": "DDD + número"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Campo obrigatório",
+          "tooShort": "Informe ao menos 2 caracteres"
+        }
+      },
+      "confirm": "Cadastrar",
+      "saving": "Salvando…",
+      "cancel": "Cancelar",
+      "close": "Fechar",
+      "failures": {
+        "duplicatedName": "Já existe um tomador com esse nome.",
+        "session": "Sua sessão expirou. Entre novamente.",
+        "unknown": "Não foi possível cadastrar. Tente novamente."
+      }
     }
   }
 }

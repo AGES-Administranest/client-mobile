@@ -18,8 +18,8 @@ export function validateProcedureForm(
   if (values.procedureName.trim() === '') {
     errors.procedureName = 'REQUIRED';
   }
-  if (values.location.trim() === '') {
-    errors.location = 'REQUIRED';
+  if (values.clientId === null) {
+    errors.clientId = 'REQUIRED';
   }
 
   if (values.date.trim() === '') {

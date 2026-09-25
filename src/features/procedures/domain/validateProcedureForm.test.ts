@@ -6,19 +6,19 @@ describe('validateProcedureForm', () => {
     expect(validateProcedureForm(valid)).toEqual({});
   });
 
-  it('exige paciente, procedimento, local, valor, data e hora de início quando vazios', () => {
+  it('exige paciente, procedimento, tomador, valor, data e hora de início quando vazios', () => {
     const errors = validateProcedureForm({
       ...valid,
       patientName: '   ',
       procedureName: '',
-      location: '  ',
+      clientId: null,
       amount: '  ',
       date: '',
       startTime: '',
     });
     expect(errors.patientName).toBe('REQUIRED');
     expect(errors.procedureName).toBe('REQUIRED');
-    expect(errors.location).toBe('REQUIRED');
+    expect(errors.clientId).toBe('REQUIRED');
     expect(errors.amount).toBe('REQUIRED');
     expect(errors.date).toBe('REQUIRED');
     expect(errors.startTime).toBe('REQUIRED');
