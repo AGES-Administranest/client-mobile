@@ -328,6 +328,11 @@
       "newClient": "Novo tomador",
       "submitError": "Não foi possível salvar. Tente novamente."
     },
+    "supplyPrompt": {
+      "title": "Deseja registrar os insumos utilizados neste procedimento?",
+      "confirm": "Sim",
+      "cancel": "Agora não"
+    },
     "fields": {
       "patientName": "Paciente",
       "procedureName": "Procedimento",

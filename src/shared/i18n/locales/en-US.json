@@ -328,6 +328,11 @@
       "newClient": "New client",
       "submitError": "Couldn't save. Please try again."
     },
+    "supplyPrompt": {
+      "title": "Do you want to record the supplies used in this procedure?",
+      "confirm": "Yes",
+      "cancel": "Not now"
+    },
     "fields": {
       "patientName": "Patient",
       "procedureName": "Procedure",

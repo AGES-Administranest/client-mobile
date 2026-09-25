@@ -1,10 +1,16 @@
 import { useState } from 'react';
 
+import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import {
   NewClientSheet,
   useNewClientForm,
   type ClientType,
 } from 'features/clients';
+import {
+  formatSupplyPrice,
+  SupplySelectorSheet,
+  useSupplySelector,
+} from 'features/stock';
 import { useTranslation } from 'shared/i18n';
 
 import {
@@ -31,12 +37,16 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     submitting,
     submitFailed,
     client,
+    supplyPrompt,
     setField,
     setTextField,
     submit,
+    acceptSupplyPrompt,
+    finishSupplyPrompt,
   } = useProcedureForm(onClose, visible);
   const newClient = useNewClientForm();
   const [newClientVisible, setNewClientVisible] = useState(false);
+  const supplySelector = useSupplySelector();
 
   function closeNewClient(): void {
     setNewClientVisible(false);
@@ -49,6 +59,20 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
       client.onCreated(created);
       closeNewClient();
     }
+  }
+
+  function closeSupplySelector(): void {
+    supplySelector.reset();
+    finishSupplyPrompt();
+  }
+
+  function confirmSupply(): void {
+    if (!supplySelector.submit()) {
+      return;
+    }
+    // Ainda não existe endpoint para vincular insumos a um atendimento, então
+    // a seleção confirmada não é persistida em lugar nenhum.
+    closeSupplySelector();
   }
 
   const errorText = (code?: FieldErrorCode): string | undefined =>
@@ -113,7 +137,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
   return (
     <>
       <ProcedureFormSheet
-        visible={visible}
+        visible={visible && supplyPrompt === null}
         values={values}
         submitting={submitting}
         submitFailed={submitFailed}
@@ -160,6 +184,50 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onChangeType={newClient.setType}
         onSubmit={registerNewClient}
         onClose={closeNewClient}
+      />
+      <ConfirmSheet
+        visible={supplyPrompt?.step === 'confirm'}
+        title={t('procedures.supplyPrompt.title')}
+        confirmLabel={t('procedures.supplyPrompt.confirm')}
+        cancelLabel={t('procedures.supplyPrompt.cancel')}
+        onConfirm={acceptSupplyPrompt}
+        onCancel={finishSupplyPrompt}
+      />
+      <SupplySelectorSheet
+        visible={supplyPrompt?.step === 'selector'}
+        onClose={closeSupplySelector}
+        onConfirm={confirmSupply}
+        term={supplySelector.term}
+        onTermChange={supplySelector.onTermChange}
+        options={supplySelector.options}
+        isLoading={supplySelector.isLoading}
+        hasError={supplySelector.hasError}
+        isTermTooShort={supplySelector.isTermTooShort}
+        selected={supplySelector.selected}
+        onSelect={supplySelector.onSelect}
+        quantity={supplySelector.quantity}
+        onQuantityChange={supplySelector.onQuantityChange}
+        isOverBalance={supplySelector.isOverBalance}
+        canSubmit={supplySelector.canSubmit}
+        title={t('stock.supplySelector.title')}
+        materialLabel={t('stock.supplySelector.materialLabel')}
+        searchPlaceholder={t('stock.supplySelector.searchPlaceholder')}
+        quantityLabel={t('stock.supplySelector.quantityLabel')}
+        confirmLabel={t('stock.supplySelector.confirm')}
+        closeLabel={t('stock.supplySelector.close')}
+        emptyMessage={t('stock.supplySelector.empty')}
+        errorMessage={t('stock.supplySelector.error')}
+        loadingMessage={t('stock.supplySelector.loading')}
+        termTooShortMessage={t('stock.supplySelector.termTooShort')}
+        overBalanceMessage={
+          supplySelector.selected
+            ? t('stock.supplySelector.overBalance', {
+                balance: supplySelector.selected.balance,
+                unit: supplySelector.selected.unit,
+              })
+            : ''
+        }
+        formatPrice={option => formatSupplyPrice(option.price)}
       />
     </>
   );
