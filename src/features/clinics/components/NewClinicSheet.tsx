@@ -11,9 +11,11 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  useWindowDimensions,
   View,
   type TextInputProps,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
@@ -28,6 +30,10 @@ import {
 } from '../domain/clinicForm';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+// Faixa do fundo escurecido que continua aparecendo acima do sheet mais alto,
+// para ainda dar para fechar tocando fora.
+const SHEET_TOP_GAP = 8;
 
 const INPUT_PROPS: Record<ClinicField, TextInputProps> = {
   name: { autoCapitalize: 'words', maxLength: CLINIC_FIELD_MAX_LENGTH.name },
@@ -97,7 +103,7 @@ function ClinicInput({
         placeholderTextColor={LabelTertiary}
         selectionColor={LabelPrimary}
         className={cn(
-          'rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary',
+          'rounded-xl border bg-white px-4 py-2.5 text-[15px] text-label-primary',
           error ? 'border-alert-primary' : 'border-border-primary',
         )}
       />
@@ -123,6 +129,8 @@ function NewClinicSheet({
   onSubmit,
   onClose,
 }: NewClinicSheetProps) {
+  const { height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -180,9 +188,12 @@ function NewClinicSheet({
         {/* O className não era aplicado neste Animated.View (na web o sheet
             aparecia sem fundo e sem padding): a animação fica nele e o visual
             vai no View de dentro, como no ItemModal. */}
+        {/* Como no Figma, o form inteiro cabe sem rolagem: o sheet pode subir
+            até logo abaixo da barra de status. A ScrollView só entra em tela
+            pequena ou com o teclado aberto. */}
         <Animated.View
           style={{
-            maxHeight: SCREEN_HEIGHT * 0.9,
+            maxHeight: windowHeight - insets.top - SHEET_TOP_GAP,
             transform: [{ translateY: sheetTranslateY }],
           }}
         >
@@ -197,7 +208,7 @@ function NewClinicSheet({
 
             <ScrollView
               keyboardShouldPersistTaps="handled"
-              contentContainerClassName="gap-4 pb-1"
+              contentContainerClassName="gap-3.5 pb-1"
             >
               {renderField('name')}
               {renderField('cnpj')}

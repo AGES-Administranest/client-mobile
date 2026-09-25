@@ -1,3 +1,5 @@
+import { Dimensions } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { NewClinicSheet, type NewClinicSheetProps } from './NewClinicSheet';
@@ -6,6 +8,11 @@ import {
   type ClinicDraft,
   type ClinicField,
 } from '../domain/clinicForm';
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const FIELD_TEXTS: NewClinicSheetProps['fieldTexts'] = {
   name: { label: 'Nome da clínica', placeholder: 'Digite o nome da clínica' },
@@ -47,19 +54,21 @@ async function render({
 
   await act(() => {
     renderer = ReactTestRenderer.create(
-      <NewClinicSheet
-        visible
-        draft={{ ...EMPTY_CLINIC_DRAFT, ...draft }}
-        fieldErrors={fieldErrors}
-        failureMessage={failureMessage}
-        isSaving={isSaving}
-        title="Nova clínica"
-        fieldTexts={FIELD_TEXTS}
-        confirmLabel="Confirmar"
-        savingLabel="Salvando..."
-        closeLabel="Fechar"
-        {...spies}
-      />,
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <NewClinicSheet
+          visible
+          draft={{ ...EMPTY_CLINIC_DRAFT, ...draft }}
+          fieldErrors={fieldErrors}
+          failureMessage={failureMessage}
+          isSaving={isSaving}
+          title="Nova clínica"
+          fieldTexts={FIELD_TEXTS}
+          confirmLabel="Confirmar"
+          savingLabel="Salvando..."
+          closeLabel="Fechar"
+          {...spies}
+        />
+      </SafeAreaProvider>,
     );
   });
 
@@ -190,4 +199,18 @@ test('closes when the backdrop is tapped', async () => {
   });
 
   expect(spies.onClose).toHaveBeenCalledTimes(1);
+});
+
+test('grows past 90% of the screen but never under the status bar', async () => {
+  const { renderer } = await render();
+  const windowHeight = Dimensions.get('window').height;
+
+  const [sheet] = renderer.root.findAll(
+    node => typeof node.props.style?.maxHeight === 'number',
+  );
+
+  expect(sheet.props.style.maxHeight).toBeGreaterThan(windowHeight * 0.9);
+  expect(sheet.props.style.maxHeight).toBeLessThanOrEqual(
+    windowHeight - METRICS.insets.top,
+  );
 });

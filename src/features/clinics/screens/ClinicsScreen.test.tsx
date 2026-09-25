@@ -1,3 +1,4 @@
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import {
@@ -24,6 +25,11 @@ jest.mock('features/auth/services/accountApi', () => ({}));
 const createClientMock = createClient as jest.MockedFunction<
   typeof createClient
 >;
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const SESSION: AuthSession = {
   idToken: 'id-token',
@@ -69,11 +75,13 @@ async function render() {
 
   await act(async () => {
     renderer = ReactTestRenderer.create(
-      <I18nProvider>
-        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-          <ClinicsScreen />
-        </AuthProvider>
-      </I18nProvider>,
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <ClinicsScreen />
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
     );
   });
 
