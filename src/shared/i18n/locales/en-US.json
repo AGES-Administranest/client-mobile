@@ -195,6 +195,19 @@
         "ITEM_NOT_FOUND": "Item not found.",
         "UNKNOWN": "Could not save the adjustment."
       }
+    },
+    "supplySelector": {
+      "title": "Add supply",
+      "materialLabel": "MATERIAL",
+      "searchPlaceholder": "Search by item name",
+      "quantityLabel": "QUANTITY",
+      "confirm": "Confirm",
+      "close": "Close",
+      "loading": "Searching...",
+      "empty": "No items found.",
+      "error": "Could not search for items.",
+      "termTooShort": "Type at least 2 characters.",
+      "insufficientStock": "Quantity above the available balance. Stock will go negative after this entry."
     }
   },
   "tabbar": {

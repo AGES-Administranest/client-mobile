@@ -195,6 +195,19 @@
         "ITEM_NOT_FOUND": "Item não encontrado.",
         "UNKNOWN": "Não foi possível salvar o ajuste."
       }
+    },
+    "supplySelector": {
+      "title": "Adicionar insumo",
+      "materialLabel": "MATERIAL",
+      "searchPlaceholder": "Busque pelo nome do item",
+      "quantityLabel": "QUANTIDADE",
+      "confirm": "Confirmar",
+      "close": "Fechar",
+      "loading": "Buscando...",
+      "empty": "Nenhum item encontrado.",
+      "error": "Não foi possível buscar os itens.",
+      "termTooShort": "Digite ao menos 2 caracteres.",
+      "insufficientStock": "Quantidade acima do saldo disponível. O estoque ficará negativo após este registro."
     }
   },
   "tabbar": {
