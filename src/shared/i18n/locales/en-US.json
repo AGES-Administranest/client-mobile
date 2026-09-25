@@ -330,6 +330,11 @@
       "message": "You already have an appointment at this time.",
       "changeInfo": "Change information"
     },
+    "supplyPrompt": {
+      "title": "Do you want to record the supplies used in this procedure?",
+      "confirm": "Yes",
+      "cancel": "Not now"
+    },
     "fields": {
       "patientName": "Patient",
       "procedureName": "Procedure",

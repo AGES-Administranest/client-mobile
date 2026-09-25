@@ -14,6 +14,11 @@ import { toCreateAppointmentPayload } from '../domain/toCreateAppointmentPayload
 import { validateProcedureForm } from '../domain/validateProcedureForm';
 import { createAppointment } from '../services/procedureService';
 
+type SupplyPrompt = {
+  appointmentId: string;
+  step: 'confirm' | 'selector';
+};
+
 export function useProcedureForm(onSuccess: () => void) {
   const { session } = useAuth();
   const [values, setValues] =
@@ -22,6 +27,7 @@ export function useProcedureForm(onSuccess: () => void) {
   const [submitting, setSubmitting] = useState(false);
   const [submitFailed, setSubmitFailed] = useState(false);
   const [timeConflict, setTimeConflict] = useState(false);
+  const [supplyPrompt, setSupplyPrompt] = useState<SupplyPrompt | null>(null);
 
   function setField<K extends keyof ProcedureFormValues>(
     key: K,
@@ -45,6 +51,18 @@ export function useProcedureForm(onSuccess: () => void) {
     setTimeConflict(false);
   }
 
+  function acceptSupplyPrompt(): void {
+    setSupplyPrompt(prev => (prev ? { ...prev, step: 'selector' } : prev));
+  }
+
+  // O atendimento já está salvo aqui: recusar ou concluir os insumos só
+  // encerra o formulário, não desfaz nada.
+  function finishSupplyPrompt(): void {
+    setSupplyPrompt(null);
+    reset();
+    onSuccess();
+  }
+
   async function submit(): Promise<void> {
     const validation = validateProcedureForm(values);
     setErrors(validation);
@@ -59,12 +77,13 @@ export function useProcedureForm(onSuccess: () => void) {
     setSubmitting(true);
     setSubmitFailed(false);
     try {
-      await createAppointment(
+      const appointment = await createAppointment(
         session.idToken,
         toCreateAppointmentPayload(values),
       );
-      reset();
-      onSuccess();
+      // Os valores só são limpos ao fim da pergunta; a tela esconde o
+      // formulário enquanto ela está aberta.
+      setSupplyPrompt({ appointmentId: appointment.id, step: 'confirm' });
     } catch (error) {
       // O Figma também prevê "Confirmar mesmo assim", mas o backend sempre recusa
       // o conflito (não há como forçar). Fica de fora até haver decisão de produto
@@ -88,10 +107,13 @@ export function useProcedureForm(onSuccess: () => void) {
     submitting,
     submitFailed,
     timeConflict,
+    supplyPrompt,
     setField,
     setTextField,
     submit,
     reset,
     dismissTimeConflict,
+    acceptSupplyPrompt,
+    finishSupplyPrompt,
   };
 }

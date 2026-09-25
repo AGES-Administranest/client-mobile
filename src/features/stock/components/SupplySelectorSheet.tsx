@@ -4,8 +4,8 @@ import { Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
+import { LabelPrimary, LabelTertiary } from 'theme/colors';
 
-import { LabelPrimary, LabelTertiary } from '../../../theme/colors';
 import type { SupplyOption } from '../domain/supplySelection';
 
 type SupplySelectorSheetProps = {

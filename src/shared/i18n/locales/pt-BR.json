@@ -330,6 +330,11 @@
       "message": "Você já possui um atendimento nesse horário.",
       "changeInfo": "Alterar informações"
     },
+    "supplyPrompt": {
+      "title": "Deseja registrar os insumos utilizados neste procedimento?",
+      "confirm": "Sim",
+      "cancel": "Agora não"
+    },
     "fields": {
       "patientName": "Paciente",
       "procedureName": "Procedimento",
