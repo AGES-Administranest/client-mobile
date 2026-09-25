@@ -16,7 +16,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 type ConfirmSheetProps = {
   visible: boolean;
   title: string;
-  message: string;
+  message?: string;
   confirmLabel: string;
   cancelLabel?: string;
   onConfirm: () => void;
@@ -82,7 +82,11 @@ function ConfirmSheet({
               <Text className="text-xl font-bold text-label-primary">
                 {title}
               </Text>
-              <Text className="text-[15px] text-label-primary">{message}</Text>
+              {message ? (
+                <Text className="text-[15px] text-label-primary">
+                  {message}
+                </Text>
+              ) : null}
 
               <Button
                 shape="pill"
@@ -93,7 +97,6 @@ function ConfirmSheet({
               </Button>
               {cancelLabel ? (
                 <Button
-                  variant="outline"
                   shape="pill"
                   className="h-[49px] w-full"
                   onPress={onCancel}

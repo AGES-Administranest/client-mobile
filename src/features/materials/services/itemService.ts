@@ -42,6 +42,25 @@ export async function fetchItems(idToken: string): Promise<BackendItem[]> {
   });
 }
 
+// `search` casa parte do nome, sem diferenciar maiúsculas. O backend ignora o
+// termo com menos de 2 caracteres e devolve o catálogo inteiro — quem chama
+// decide se vale perguntar (ver isSearchable em features/stock).
+export async function searchItems(
+  idToken: string,
+  term: string,
+): Promise<BackendItem[]> {
+  const query = new URLSearchParams({
+    search: term.trim(),
+    active: 'true',
+    sort: 'name',
+    page: '1',
+    limit: String(MAX_PAGE_SIZE),
+  });
+  return apiClient.get<BackendItem[]>(`/item?${query.toString()}`, {
+    token: idToken,
+  });
+}
+
 export async function createItem(
   idToken: string,
   payload: CreateItemPayload,
