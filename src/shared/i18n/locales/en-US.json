@@ -304,5 +304,57 @@
       "menu": "Account",
       "signOut": "Sign out"
     }
+  },
+  "procedures": {
+    "newProcedure": "New appointment",
+    "form": {
+      "title": "New appointment",
+      "confirm": "Confirm",
+      "close": "Close",
+      "submitError": "Couldn't save. Please try again."
+    },
+    "conflict": {
+      "title": "Time conflict",
+      "message": "You already have an appointment at this time.",
+      "changeInfo": "Change information"
+    },
+    "fields": {
+      "patientName": "Patient",
+      "procedureName": "Procedure",
+      "location": "Clinic",
+      "species": "Species",
+      "asaClassification": "ASA classification",
+      "weightKg": "Weight (kg)",
+      "patientAgeYears": "Age",
+      "amount": "Appointment value",
+      "startTime": "Start",
+      "endTime": "End",
+      "date": "Date",
+      "notes": "Notes"
+    },
+    "placeholders": {
+      "patientName": "Animal's name",
+      "procedureName": "e.g. Neutering",
+      "location": "Clinic name",
+      "number": "0",
+      "time": "HH:MM",
+      "date": "DD/MM/YYYY"
+    },
+    "species": {
+      "canine": "Canine",
+      "feline": "Feline",
+      "other": "Other"
+    },
+    "errors": {
+      "REQUIRED": "Required field",
+      "INVALID_NUMBER": "Invalid number",
+      "MUST_BE_POSITIVE": "Must be greater than zero",
+      "MUST_BE_NON_NEGATIVE": "Cannot be negative",
+      "MUST_BE_INTEGER": "Must be a whole number",
+      "AGE_OUT_OF_RANGE": "Age must be between 0 and 100",
+      "END_BEFORE_START": "End must be after start",
+      "INVALID_DATE": "Invalid date",
+      "INVALID_TIME": "Invalid time"
+    }
   }
 }
