@@ -36,14 +36,14 @@ describe('toCreateAppointmentPayload', () => {
   it('omite campos opcionais vazios', () => {
     const payload = toCreateAppointmentPayload({
       ...valid,
-      location: '',
+      clientId: null,
       amount: '',
       weightKg: '',
       patientAgeYears: '',
       notes: '',
       endTime: '',
     });
-    expect(payload).not.toHaveProperty('location');
+    expect(payload).not.toHaveProperty('clientId');
     expect(payload).not.toHaveProperty('amount');
     expect(payload).not.toHaveProperty('weightKg');
     expect(payload).not.toHaveProperty('patientAgeYears');
@@ -56,13 +56,17 @@ describe('toCreateAppointmentPayload', () => {
       ...valid,
       patientName: '  Rex ',
       procedureName: ' Orquiectomia  ',
-      location: ' Clínica ',
       notes: '  obs  ',
     });
     expect(payload.patientName).toBe('Rex');
     expect(payload.procedureName).toBe('Orquiectomia');
-    expect(payload.location).toBe('Clínica');
     expect(payload.notes).toBe('obs');
+  });
+
+  it('envia o clientId do tomador selecionado, sem enviar location', () => {
+    const payload = toCreateAppointmentPayload({ ...valid, clientId: 'c-42' });
+    expect(payload.clientId).toBe('c-42');
+    expect(payload).not.toHaveProperty('location');
   });
 
   it('envia a espécie selecionada e omite quando não há seleção', () => {

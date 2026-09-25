@@ -13,6 +13,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
+import {
+  ClientAutocomplete,
+  type ClientAutocompleteMessages,
+  type ClientOption,
+  type ClientSearchStatus,
+} from 'features/clients';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type {
@@ -32,6 +38,14 @@ export type ProcedureFormTexts = {
   speciesOptions: { value: Species; label: string }[];
   asaOptions: AsaClassification[];
   errors: Partial<Record<keyof ProcedureFormValues, string>>;
+  clientSearchMessages: ClientAutocompleteMessages;
+  newClient: string;
+};
+
+export type ProcedureClientField = {
+  term: string;
+  status: ClientSearchStatus;
+  options: ClientOption[];
 };
 
 type ProcedureFormSheetProps = {
@@ -41,7 +55,11 @@ type ProcedureFormSheetProps = {
   submitFailed: boolean;
   submitErrorText: string;
   texts: ProcedureFormTexts;
+  client: ProcedureClientField;
   onChangeText: (key: ProcedureTextField, value: string) => void;
+  onChangeClientTerm: (term: string) => void;
+  onSelectClient: (client: ClientOption) => void;
+  onPressNewClient: () => void;
   onChangeSpecies: (value: Species) => void;
   onChangeAsa: (value: AsaClassification) => void;
   onSubmit: () => void;
@@ -55,7 +73,11 @@ export function ProcedureFormSheet({
   submitFailed,
   submitErrorText,
   texts,
+  client,
   onChangeText,
+  onChangeClientTerm,
+  onSelectClient,
+  onPressNewClient,
   onChangeSpecies,
   onChangeAsa,
   onSubmit,
@@ -134,12 +156,18 @@ export function ProcedureFormSheet({
                   error={texts.errors.procedureName}
                   onChangeText={v => onChangeText('procedureName', v)}
                 />
-                <Field
-                  label={texts.labels.location}
-                  placeholder={texts.placeholders.location}
-                  value={values.location}
-                  error={texts.errors.location}
-                  onChangeText={v => onChangeText('location', v)}
+                <ClientAutocomplete
+                  label={texts.labels.clientId}
+                  placeholder={texts.placeholders.clientId}
+                  value={client.term}
+                  error={texts.errors.clientId}
+                  status={client.status}
+                  options={client.options}
+                  messages={texts.clientSearchMessages}
+                  newClientLabel={texts.newClient}
+                  onChangeText={onChangeClientTerm}
+                  onSelect={onSelectClient}
+                  onPressNewClient={onPressNewClient}
                 />
 
                 <View className="flex-row gap-3">

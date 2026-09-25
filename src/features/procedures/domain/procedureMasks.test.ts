@@ -66,7 +66,6 @@ describe('applyFieldMask', () => {
   it.each([
     'patientName',
     'procedureName',
-    'location',
     'weightKg',
     'patientAgeYears',
     'amount',
