@@ -108,11 +108,11 @@ export function ProcedureFormSheet({
 
         <Animated.View
           style={{
-            maxHeight: SCREEN_HEIGHT * 0.9,
+            maxHeight: SCREEN_HEIGHT * 0.99,
             transform: [{ translateY: sheetTranslateY }],
           }}
         >
-          <View className="shrink gap-4 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
+          <View className="shrink gap-3 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
             <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
 
             <Text className="text-xl font-bold text-label-primary">
