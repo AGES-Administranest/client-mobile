@@ -13,6 +13,9 @@ jest.mock('features/auth/services/authService', () => ({
 }));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
+jest.mock('features/appointments/services/appointmentService', () => ({
+  fetchAppointments: jest.fn().mockResolvedValue([]),
+}));
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -91,4 +94,19 @@ it('signs out from the account menu', async () => {
   });
 
   expect(mockSignOut).toHaveBeenCalledWith(SESSION);
+});
+
+it('transitions to monthly calendar view when "Ver mês" button is pressed', async () => {
+  const renderer = await renderHome();
+
+  const viewMonthBtn = renderer.root.findAll(
+    node => node.props.accessibilityLabel === 'Ver mês',
+  )[0];
+  expect(viewMonthBtn).toBeDefined();
+
+  await act(async () => {
+    viewMonthBtn.props.onPress();
+  });
+
+  expect(texts(renderer)).toContain('PROCEDIMENTOS DO MÊS OU DIA');
 });

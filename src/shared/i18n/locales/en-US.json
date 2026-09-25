@@ -304,5 +304,48 @@
       "menu": "Account",
       "signOut": "Sign out"
     }
+  },
+  "appointments": {
+    "title": "Appointments",
+    "calendar": {
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "viewMonth": "View month",
+    "attendances": "APPOINTMENTS",
+    "revenue": "REVENUE",
+    "estimated": "estimated",
+    "agenda": "SCHEDULE",
+    "addAttendance": "+ Add appointment",
+    "sectionTitle": "PROCEDURES FOR MONTH OR DAY",
+    "emptyDay": "No appointments for this day.",
+    "emptyDaySub": "Tap the button below to schedule an appointment.",
+    "newAppointment": "+ New appointment",
+    "status": {
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "canceled": "Canceled"
+    },
+    "species": {
+      "canine": "Canine",
+      "feline": "Feline",
+      "other": "Other"
+    },
+    "form": {
+      "title": "New Appointment",
+      "patientNameLabel": "PATIENT / ANIMAL NAME",
+      "patientNamePlaceholder": "E.g. Mel, Thor...",
+      "speciesLabel": "SPECIES",
+      "procedureLabel": "PROCEDURE",
+      "procedurePlaceholder": "E.g. Orchiectomy, Scaling...",
+      "dateLabel": "DATE (YYYY-MM-DD)",
+      "timeLabel": "TIME (HH:MM)",
+      "locationLabel": "LOCATION / CLINIC",
+      "locationPlaceholder": "E.g. VetCare Clinic",
+      "notesLabel": "NOTES",
+      "notesPlaceholder": "Anesthetic notes, patient history...",
+      "submit": "Confirm Appointment",
+      "cancel": "Cancel"
+    }
   }
 }
