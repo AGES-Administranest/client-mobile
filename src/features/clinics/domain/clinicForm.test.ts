@@ -14,10 +14,6 @@ import {
   type ClinicDraft,
 } from './clinicForm';
 
-function draft(overrides: Partial<ClinicDraft> = {}): ClinicDraft {
-  return { ...EMPTY_CLINIC_DRAFT, name: 'Clínica VetNova', ...overrides };
-}
-
 const FULL_DRAFT: ClinicDraft = {
   name: 'Clínica VetNova',
   cnpj: '11.222.333/0001-81',
@@ -28,6 +24,14 @@ const FULL_DRAFT: ClinicDraft = {
   email: 'contato@vetnova.com.br',
   contactName: 'Dr. André Matos',
 };
+
+function draft(overrides: Partial<ClinicDraft> = {}): ClinicDraft {
+  return { ...FULL_DRAFT, ...overrides };
+}
+
+function nameOnly(overrides: Partial<ClinicDraft> = {}): ClinicDraft {
+  return { ...EMPTY_CLINIC_DRAFT, name: 'Clínica VetNova', ...overrides };
+}
 
 describe('digitsOnly', () => {
   it('keeps only the digits of a masked value', () => {
@@ -125,8 +129,16 @@ describe('maskClinicField', () => {
 });
 
 describe('validateClinicDraft', () => {
-  it('accepts a clinic that has only a name', () => {
-    expect(validateClinicDraft(draft())).toEqual({});
+  it('requires every field except the name when only the name was filled', () => {
+    expect(validateClinicDraft(nameOnly())).toEqual({
+      cnpj: 'required',
+      addressLine: 'required',
+      city: 'required',
+      state: 'required',
+      phone: 'required',
+      email: 'required',
+      contactName: 'required',
+    });
   });
 
   it('accepts a clinic with every field filled', () => {
@@ -144,7 +156,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', undefined],
+    ['', 'required'],
     ['11.222.333/0001-8', 'invalid'],
     ['11.222.333/0001-81', undefined],
   ])('checks the CNPJ %p', (cnpj, error) => {
@@ -152,7 +164,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', undefined],
+    ['', 'required'],
     ['(11) 3456-789', 'invalid'],
     ['(11) 3456-7890', undefined],
     ['(11) 93456-7890', undefined],
@@ -161,7 +173,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', undefined],
+    ['', 'required'],
     ['S', 'invalid'],
     ['XX', 'invalid'],
     ['SP', undefined],
@@ -171,7 +183,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', undefined],
+    ['', 'required'],
     ['contato@vetnova.com.br', undefined],
     ['  contato@vetnova.com  ', undefined],
     ['contato@vetnova', 'invalid'],
@@ -204,7 +216,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', undefined],
+    ['', 'required'],
     ['Rua A', undefined],
     ['Rua', 'tooShort'],
     ['  R1  ', 'tooShort'],
@@ -217,20 +229,18 @@ describe('validateClinicDraft', () => {
     ["D'Ávila-Sul", 'SP', undefined],
     ['S', 'SP', 'tooShort'],
     ['Sao Paulo 2', 'SP', 'invalid'],
-    ['São Paulo', '', undefined],
     ['', 'SP', 'required'],
+    ['   ', 'SP', 'required'],
   ])('checks the city %p with state %p', (city, state, error) => {
     expect(validateClinicDraft(draft({ city, state })).city).toBe(error);
   });
 
-  it('asks for the state when only the city was filled', () => {
-    expect(validateClinicDraft(draft({ city: 'São Paulo' })).state).toBe(
-      'required',
-    );
+  it('asks for the state even when the city was filled', () => {
+    expect(validateClinicDraft(draft({ state: '' })).state).toBe('required');
   });
 
   it.each([
-    ['', undefined],
+    ['', 'required'],
     ['Dr. André Matos', undefined],
     ['A', 'tooShort'],
     ['Dr. 123', 'invalid'],
@@ -275,7 +285,7 @@ describe('isClinicDraftValid', () => {
 describe('toCreateClientPayload', () => {
   it('sends only the type and the trimmed name when nothing else was filled', () => {
     expect(
-      toCreateClientPayload(draft({ name: '  Clínica VetNova  ' })),
+      toCreateClientPayload(nameOnly({ name: '  Clínica VetNova  ' })),
     ).toStrictEqual({ type: 'CLINIC', name: 'Clínica VetNova' });
   });
 
@@ -295,16 +305,21 @@ describe('toCreateClientPayload', () => {
   });
 
   it('only sends the CNPJ type together with a CNPJ', () => {
-    expect(toCreateClientPayload(draft())).not.toHaveProperty('taxIdType');
+    expect(toCreateClientPayload(nameOnly())).not.toHaveProperty('taxIdType');
     expect(
-      toCreateClientPayload(draft({ cnpj: '11.222.333/0001-81' })),
+      toCreateClientPayload(nameOnly({ cnpj: '11.222.333/0001-81' })),
     ).toMatchObject({ taxId: '11222333000181', taxIdType: 'CNPJ' });
   });
 
   it('leaves out fields that hold only spaces', () => {
     expect(
       toCreateClientPayload(
-        draft({ email: '   ', city: ' ', addressLine: '  ', contactName: ' ' }),
+        nameOnly({
+          email: '   ',
+          city: ' ',
+          addressLine: '  ',
+          contactName: ' ',
+        }),
       ),
     ).toStrictEqual({ type: 'CLINIC', name: 'Clínica VetNova' });
   });
@@ -370,7 +385,7 @@ describe('applyClinicDraft', () => {
 
   it('turns emptied fields back into null and keeps the rest of the client', () => {
     expect(
-      applyClinicDraft(CLIENT, draft({ name: ' Nova Vet ' })),
+      applyClinicDraft(CLIENT, nameOnly({ name: ' Nova Vet ' })),
     ).toStrictEqual({
       ...CLIENT,
       name: 'Nova Vet',

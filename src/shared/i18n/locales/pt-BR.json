@@ -244,33 +244,39 @@
           "tooShort": "O nome precisa ter pelo menos 2 caracteres."
         },
         "cnpj": {
-          "invalid": "O CNPJ precisa ter 14 dígitos."
+          "required": "Informe o CNPJ.",
+          "invalid": "O CNPJ informado não é válido."
         },
         "state": {
-          "invalid": "Informe uma UF válida, como SP.",
-          "required": "Informe a UF junto com a cidade."
+          "required": "Informe a UF.",
+          "invalid": "Informe uma UF válida, como SP."
         },
         "phone": {
+          "required": "Informe o telefone.",
           "invalid": "Informe o telefone com DDD."
         },
         "email": {
+          "required": "Informe o e-mail.",
           "invalid": "Informe um e-mail válido."
         },
         "addressLine": {
+          "required": "Informe o endereço.",
           "tooShort": "O endereço precisa ter pelo menos 5 caracteres."
         },
         "city": {
-          "required": "Informe a cidade junto com a UF.",
+          "required": "Informe a cidade.",
           "tooShort": "A cidade precisa ter pelo menos 2 letras.",
           "invalid": "A cidade só pode ter letras."
         },
         "contactName": {
+          "required": "Informe o nome do responsável.",
           "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
           "invalid": "O nome só pode ter letras."
         }
       },
       "failures": {
         "duplicatedName": "Já existe uma clínica com esse nome.",
+        "duplicatedTaxId": "Já existe uma clínica com esse CNPJ.",
         "session": "Sua sessão expirou. Saia da conta e entre novamente.",
         "unknown": "Não foi possível salvar a clínica. Tente novamente."
       }
@@ -284,7 +290,8 @@
       "editTitle": "Editar",
       "confirm": "Confirmar",
       "delete": "Excluir"
-    }
+    },
+    "loadFailure": "Não foi possível carregar as clínicas."
   },
   "tabbar": {
     "day": "Dia-Dia",

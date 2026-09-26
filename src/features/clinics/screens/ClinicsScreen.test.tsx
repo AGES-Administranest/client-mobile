@@ -12,18 +12,34 @@ import { ApiError } from 'shared/services/apiClient';
 
 import { ClinicsScreen } from './ClinicsScreen';
 import type { Client } from '../domain/client';
-import { createClient } from '../services/clientService';
+import {
+  createClient,
+  deleteClient,
+  fetchClinics,
+  updateClient,
+} from '../services/clientService';
 
 jest.mock('../services/clientService', () => ({
   createClient: jest.fn(),
+  deleteClient: jest.fn(),
+  fetchClinics: jest.fn(),
+  updateClient: jest.fn(),
 }));
-// A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
 
 const createClientMock = createClient as jest.MockedFunction<
   typeof createClient
+>;
+const deleteClientMock = deleteClient as jest.MockedFunction<
+  typeof deleteClient
+>;
+const fetchClinicsMock = fetchClinics as jest.MockedFunction<
+  typeof fetchClinics
+>;
+const updateClientMock = updateClient as jest.MockedFunction<
+  typeof updateClient
 >;
 
 const METRICS = {
@@ -50,14 +66,14 @@ const CREATED: Client = {
   id: 'client-1',
   type: 'CLINIC',
   name: 'Clínica VetNova',
-  taxId: null,
-  taxIdType: null,
-  contactName: null,
-  email: null,
-  phone: null,
-  addressLine: null,
-  city: null,
-  state: null,
+  taxId: '11222333000181',
+  taxIdType: 'CNPJ',
+  contactName: 'Dr. André Matos',
+  email: 'contato@vetnova.com.br',
+  phone: '1134567890',
+  addressLine: 'Rua das Hortênsias, 340',
+  city: 'Campinas',
+  state: 'SP',
   serviceDays: [],
   paymentTermsDays: null,
   preferredPaymentMethod: null,
@@ -68,6 +84,18 @@ const CREATED: Client = {
 
 beforeEach(() => {
   createClientMock.mockReset().mockResolvedValue(CREATED);
+  deleteClientMock
+    .mockReset()
+    .mockResolvedValue({ id: CREATED.id, name: CREATED.name });
+  fetchClinicsMock.mockReset().mockResolvedValue([]);
+  updateClientMock.mockReset().mockImplementation((_token, id, payload) =>
+    Promise.resolve({
+      ...CREATED,
+      id,
+      name: payload.name ?? CREATED.name,
+      city: payload.city ?? null,
+    }),
+  );
 });
 
 async function render() {
@@ -149,6 +177,38 @@ test('starts with no clinics listed', async () => {
   expect(textsOf(renderer)).toContain('Nenhuma clínica cadastrada.');
 });
 
+test('lists the clinics the backend returns', async () => {
+  fetchClinicsMock.mockResolvedValue([CREATED]);
+
+  const renderer = await render();
+
+  expect(fetchClinicsMock).toHaveBeenCalledWith('id-token');
+  expect(textsOf(renderer)).toContain('Clínica VetNova');
+  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada.');
+});
+
+test('says when the clinics could not be loaded', async () => {
+  fetchClinicsMock.mockRejectedValue(new ApiError('boom', null, 500));
+
+  const renderer = await render();
+
+  expect(textsOf(renderer)).toContain('Não foi possível carregar as clínicas.');
+});
+
+async function fillClinic(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  name = 'Clínica VetNova',
+) {
+  await typeInto(renderer, 'Nome da clínica', name);
+  await typeInto(renderer, 'CNPJ', '11222333000181');
+  await typeInto(renderer, 'Endereço', 'Rua das Hortênsias, 340');
+  await typeInto(renderer, 'Cidade', 'Campinas');
+  await typeInto(renderer, 'UF', 'SP');
+  await typeInto(renderer, 'Contato', '1134567890');
+  await typeInto(renderer, 'E-mail', 'contato@vetnova.com.br');
+  await typeInto(renderer, 'Responsável', 'Dr. André Matos');
+}
+
 test('opens the new clinic sheet from the "Adicionar clínica" button', async () => {
   const renderer = await render();
 
@@ -168,19 +228,35 @@ test('keeps the sheet open and explains what is missing', async () => {
 
   expect(createClientMock).not.toHaveBeenCalled();
   expect(isSheetOpen(renderer)).toBe(true);
-  expect(textsOf(renderer)).toContain('Informe o nome da clínica.');
+  const shown = textsOf(renderer);
+  expect(shown).toContain('Informe o nome da clínica.');
+  expect(shown).toContain('Informe o CNPJ.');
+  expect(shown).toContain('Informe o endereço.');
+  expect(shown).toContain('Informe a cidade.');
+  expect(shown).toContain('Informe a UF.');
+  expect(shown).toContain('Informe o telefone.');
+  expect(shown).toContain('Informe o e-mail.');
+  expect(shown).toContain('Informe o nome do responsável.');
 });
 
 test('saves the clinic and closes the sheet', async () => {
   const renderer = await render();
   await press(renderer, 'Adicionar clínica');
-  await typeName(renderer, 'Clínica VetNova');
+  await fillClinic(renderer);
 
   await press(renderer, 'Confirmar');
 
   expect(createClientMock).toHaveBeenCalledWith('id-token', {
     type: 'CLINIC',
     name: 'Clínica VetNova',
+    taxId: '11222333000181',
+    taxIdType: 'CNPJ',
+    addressLine: 'Rua das Hortênsias, 340',
+    city: 'Campinas',
+    state: 'SP',
+    phone: '1134567890',
+    email: 'contato@vetnova.com.br',
+    contactName: 'Dr. André Matos',
   });
   expect(isSheetOpen(renderer)).toBe(false);
   expect(textsOf(renderer)).toContain('1 clínica');
@@ -194,7 +270,7 @@ test('shows the API failure and keeps what was typed', async () => {
   );
   const renderer = await render();
   await press(renderer, 'Adicionar clínica');
-  await typeName(renderer, 'Clínica VetNova');
+  await fillClinic(renderer);
 
   await press(renderer, 'Confirmar');
 
@@ -256,7 +332,7 @@ function inputLabels(renderer: ReactTestRenderer.ReactTestRenderer) {
 async function renderWithCreatedClinic() {
   const renderer = await render();
   await press(renderer, 'Adicionar clínica');
-  await typeName(renderer, 'Clínica VetNova');
+  await fillClinic(renderer);
   await press(renderer, 'Confirmar');
 
   return renderer;
@@ -277,13 +353,12 @@ async function openDetails(renderer: ReactTestRenderer.ReactTestRenderer) {
   });
 }
 
-test('opens the details of a clinic with the same fields as the new clinic form', async () => {
+test('shows the details without the name field, since the name is the title', async () => {
   const renderer = await renderWithCreatedClinic();
   await openDetails(renderer);
 
   expect(new Set(inputLabels(renderer))).toEqual(
     new Set([
-      'Nome da clínica',
       'CNPJ',
       'Endereço',
       'Cidade',
@@ -293,13 +368,15 @@ test('opens the details of a clinic with the same fields as the new clinic form'
       'Responsável',
     ]),
   );
-  expect(
-    renderer.root.find(
-      node =>
-        node.props.accessibilityLabel === 'Nome da clínica' &&
-        typeof node.props.onChangeText === 'function',
-    ).props.editable,
-  ).toBe(false);
+});
+
+test('brings the name field back when editing the details', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+
+  await press(renderer, 'Editar clínica');
+
+  expect(inputLabels(renderer)).toContain('Nome da clínica');
 });
 
 test('validates the details when editing and keeps the clinic unchanged', async () => {
@@ -308,11 +385,11 @@ test('validates the details when editing and keeps the clinic unchanged', async 
   await press(renderer, 'Editar clínica');
 
   await typeInto(renderer, 'CNPJ', '123');
-  await typeInto(renderer, 'Cidade', 'São Paulo');
+  await typeInto(renderer, 'E-mail', '');
   await press(renderer, 'Confirmar');
 
-  expect(textsOf(renderer)).toContain('O CNPJ precisa ter 14 dígitos.');
-  expect(textsOf(renderer)).toContain('Informe a UF junto com a cidade.');
+  expect(textsOf(renderer)).toContain('O CNPJ informado não é válido.');
+  expect(textsOf(renderer)).toContain('Informe o e-mail.');
   expect(textsOf(renderer)).toContain('Editar');
 });
 
@@ -323,9 +400,13 @@ test('saves the edited clinic and shows it in the list', async () => {
 
   await typeInto(renderer, 'Nome da clínica', 'Vet Nova Sul');
   await typeInto(renderer, 'Cidade', 'São Paulo');
-  await typeInto(renderer, 'UF', 'sp');
   await press(renderer, 'Confirmar');
 
+  expect(updateClientMock).toHaveBeenCalledWith(
+    'id-token',
+    'client-1',
+    expect.objectContaining({ name: 'Vet Nova Sul', city: 'São Paulo' }),
+  );
   expect(textsOf(renderer)).toContain('Vet Nova Sul');
   expect(textsOf(renderer)).toContain('São Paulo, SP');
   expect(textsOf(renderer)).toContain('Editar clínica');
@@ -338,5 +419,34 @@ test('deletes the clinic from the details', async () => {
 
   await press(renderer, 'Excluir');
 
+  expect(deleteClientMock).toHaveBeenCalledWith('id-token', 'client-1');
   expect(textsOf(renderer)).toContain('Nenhuma clínica cadastrada.');
+});
+
+test('keeps the clinic and explains when the backend refuses the edit', async () => {
+  updateClientMock.mockRejectedValue(
+    new ApiError('Duplicated', 'DUPLICATED_CLIENT_TAX_ID', 409),
+  );
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+  await press(renderer, 'Editar clínica');
+
+  await press(renderer, 'Confirmar');
+
+  expect(textsOf(renderer)).toContain('Já existe uma clínica com esse CNPJ.');
+  expect(textsOf(renderer)).toContain('Confirmar');
+});
+
+test('keeps the clinic listed when the delete fails', async () => {
+  deleteClientMock.mockRejectedValue(new ApiError('boom', null, 500));
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+  await press(renderer, 'Editar clínica');
+
+  await press(renderer, 'Excluir');
+
+  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada.');
+  expect(textsOf(renderer)).toContain(
+    'Não foi possível salvar a clínica. Tente novamente.',
+  );
 });

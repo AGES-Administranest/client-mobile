@@ -244,33 +244,39 @@
           "tooShort": "The name must have at least 2 characters."
         },
         "cnpj": {
-          "invalid": "The CNPJ must have 14 digits."
+          "required": "Enter the CNPJ.",
+          "invalid": "The CNPJ is not valid."
         },
         "state": {
-          "invalid": "Enter a valid state code, like SP.",
-          "required": "Enter the state along with the city."
+          "required": "Enter the state.",
+          "invalid": "Enter a valid state code, like SP."
         },
         "phone": {
+          "required": "Enter the phone number.",
           "invalid": "Enter the phone number with its area code."
         },
         "email": {
+          "required": "Enter the e-mail.",
           "invalid": "Enter a valid e-mail."
         },
         "addressLine": {
+          "required": "Enter the address.",
           "tooShort": "The address needs at least 5 characters."
         },
         "city": {
-          "required": "Enter the city along with the state.",
+          "required": "Enter the city.",
           "tooShort": "The city needs at least 2 letters.",
           "invalid": "The city can only contain letters."
         },
         "contactName": {
+          "required": "Enter the contact person's name.",
           "tooShort": "The name needs at least 2 characters.",
           "invalid": "The name can only contain letters."
         }
       },
       "failures": {
         "duplicatedName": "A clinic with this name already exists.",
+        "duplicatedTaxId": "A clinic with this CNPJ already exists.",
         "session": "Your session has expired. Sign out and sign in again.",
         "unknown": "Could not save the clinic. Please try again."
       }
@@ -284,7 +290,8 @@
       "editTitle": "Edit",
       "confirm": "Confirm",
       "delete": "Delete"
-    }
+    },
+    "loadFailure": "Could not load the clinics."
   },
   "tabbar": {
     "day": "Day-to-Day",

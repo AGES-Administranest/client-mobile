@@ -1,34 +1,33 @@
-import type { Client, CreateClientPayload } from '../domain/client';
+import { apiClient } from 'shared/services/apiClient';
 
-// Stand-in até existir o POST /client (subtask "Endpoints CRUD de tomadores
-// de serviço" da US16): hoje o ClientController do backend não tem rotas. A
-// assinatura já é a da chamada real, então a troca é só o corpo, como no
-// itemService:
-//   return apiClient.post<Client>('/client', payload, { token: idToken });
-// O dono vem do token: o backend recusa userId no corpo com 400.
+import type {
+  Client,
+  CreateClientPayload,
+  DeletedClient,
+} from '../domain/client';
+
+export async function fetchClinics(idToken: string): Promise<Client[]> {
+  return apiClient.get<Client[]>('/client?type=CLINIC', { token: idToken });
+}
+
 export async function createClient(
   idToken: string,
   payload: CreateClientPayload,
 ): Promise<Client> {
-  const now = new Date().toISOString();
+  return apiClient.post<Client>('/client', payload, { token: idToken });
+}
 
-  return Promise.resolve({
-    id: `local-${Date.now()}`,
-    type: payload.type,
-    name: payload.name,
-    taxId: payload.taxId ?? null,
-    taxIdType: payload.taxIdType ?? null,
-    contactName: payload.contactName ?? null,
-    email: payload.email ?? null,
-    phone: payload.phone ?? null,
-    addressLine: payload.addressLine ?? null,
-    city: payload.city ?? null,
-    state: payload.state ?? null,
-    serviceDays: [],
-    paymentTermsDays: null,
-    preferredPaymentMethod: null,
-    active: true,
-    createdAt: now,
-    updatedAt: now,
-  });
+export async function updateClient(
+  idToken: string,
+  id: string,
+  payload: Partial<CreateClientPayload>,
+): Promise<Client> {
+  return apiClient.patch<Client>(`/client/${id}`, payload, { token: idToken });
+}
+
+export async function deleteClient(
+  idToken: string,
+  id: string,
+): Promise<DeletedClient> {
+  return apiClient.delete<DeletedClient>(`/client/${id}`, { token: idToken });
 }

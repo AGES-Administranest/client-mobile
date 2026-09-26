@@ -16,7 +16,6 @@ import { createClient } from '../services/clientService';
 jest.mock('../services/clientService', () => ({
   createClient: jest.fn(),
 }));
-// A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
@@ -80,8 +79,23 @@ async function mount(session: AuthSession | null = SESSION) {
   });
 }
 
+const VALID_FIELDS = {
+  cnpj: '11.222.333/0001-81',
+  addressLine: 'Rua das Hortênsias, 340',
+  city: 'São Paulo',
+  state: 'SP',
+  phone: '(11) 3456-7890',
+  email: 'contato@vetnova.com.br',
+  contactName: 'Dr. André Matos',
+} as const;
+
 async function fillName(name = 'Clínica VetNova') {
-  await act(async () => current.setField('name', name));
+  await act(async () => {
+    current.setField('name', name);
+    for (const [field, value] of Object.entries(VALID_FIELDS)) {
+      current.setField(field as keyof typeof VALID_FIELDS, value);
+    }
+  });
 }
 
 beforeEach(() => {
@@ -111,7 +125,7 @@ test('masks the CNPJ, the phone and the state as they are typed', async () => {
   expect(current.draft.state).toBe('SP');
 });
 
-test('refuses to save without a name and never calls the API', async () => {
+test('refuses to save an empty form and never calls the API', async () => {
   await mount();
 
   let created: Client | null | undefined;
@@ -120,7 +134,16 @@ test('refuses to save without a name and never calls the API', async () => {
   });
 
   expect(created).toBeNull();
-  expect(current.errors).toEqual({ name: 'required' });
+  expect(current.errors).toEqual({
+    name: 'required',
+    cnpj: 'required',
+    addressLine: 'required',
+    city: 'required',
+    state: 'required',
+    phone: 'required',
+    email: 'required',
+    contactName: 'required',
+  });
   expect(createClientMock).not.toHaveBeenCalled();
 });
 
@@ -131,20 +154,17 @@ test('clears the error of a field as soon as it is edited', async () => {
     await current.submit();
   });
 
-  expect(current.errors).toEqual({ name: 'required', email: 'invalid' });
+  expect(current.errors).toMatchObject({ name: 'required', email: 'invalid' });
 
-  await fillName();
+  await act(async () => current.setField('name', 'Clínica VetNova'));
 
-  expect(current.errors).toEqual({ email: 'invalid' });
+  expect(current.errors).not.toHaveProperty('name');
+  expect(current.errors).toHaveProperty('email', 'invalid');
 });
 
 test('creates the clinic with the id token and the backend payload', async () => {
   await mount();
   await fillName();
-  await act(async () => {
-    current.setField('cnpj', '11.222.333/0001-81');
-    current.setField('phone', '(11) 3456-7890');
-  });
 
   let created: Client | null | undefined;
   await act(async () => {
@@ -156,7 +176,12 @@ test('creates the clinic with the id token and the backend payload', async () =>
     name: 'Clínica VetNova',
     taxId: '11222333000181',
     taxIdType: 'CNPJ',
+    addressLine: 'Rua das Hortênsias, 340',
+    city: 'São Paulo',
+    state: 'SP',
     phone: '1134567890',
+    email: 'contato@vetnova.com.br',
+    contactName: 'Dr. André Matos',
   });
   expect(created).toEqual(CREATED);
   expect(current.isSaving).toBe(false);

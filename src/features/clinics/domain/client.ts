@@ -6,7 +6,6 @@ export type Weekday = 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN';
 
 export type PaymentMethod = 'CARD' | 'BANK_SLIP' | 'PIX' | 'OTHER';
 
-// Espelho do ClientEntity do backend (módulo client), que é a fonte da verdade.
 export type Client = {
   id: string;
   type: ClientType;
@@ -38,4 +37,9 @@ export type CreateClientPayload = {
   addressLine?: string;
   city?: string;
   state?: string;
+};
+
+export type DeletedClient = {
+  id: string;
+  name: string;
 };

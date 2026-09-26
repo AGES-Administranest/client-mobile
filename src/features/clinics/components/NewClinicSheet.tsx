@@ -58,7 +58,7 @@ function NewClinicSheet({
 
           <Button
             shape="pill"
-            className="h-[49px] w-full"
+            className="h-[49px] w-full bg-button-primary"
             onPress={onSubmit}
             disabled={isSaving}
           >

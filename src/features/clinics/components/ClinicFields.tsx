@@ -78,16 +78,16 @@ type ClinicFieldsProps = {
   fieldErrors: Partial<Record<ClinicField, string>>;
   fieldTexts: Record<ClinicField, ClinicFieldTexts>;
   editable?: boolean;
+  showName?: boolean;
   onChangeField: (field: ClinicField, value: string) => void;
 };
 
-// Os mesmos campos, na mesma ordem e com o mesmo layout, no sheet de nova
-// clínica e no de detalhes.
 function ClinicFields({
   draft,
   fieldErrors,
   fieldTexts,
   editable = true,
+  showName = true,
   onChangeField,
 }: ClinicFieldsProps) {
   const renderField = (field: ClinicField, className?: string) => (
@@ -105,7 +105,7 @@ function ClinicFields({
 
   return (
     <>
-      {renderField('name')}
+      {showName ? renderField('name') : null}
       {renderField('cnpj')}
       {renderField('addressLine')}
       <View className="flex-row gap-3">

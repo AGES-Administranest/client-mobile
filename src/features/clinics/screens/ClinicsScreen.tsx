@@ -12,7 +12,6 @@ import { useTranslation, type TranslationKey } from 'shared/i18n';
 import { ClinicDetailSheet } from '../components/ClinicDetailSheet';
 import type { ClinicFieldTexts } from '../components/ClinicFields';
 import { NewClinicSheet } from '../components/NewClinicSheet';
-import type { Client } from '../domain/client';
 import {
   CLINIC_FIELDS,
   digitsOnly,
@@ -21,13 +20,14 @@ import {
 } from '../domain/clinicForm';
 import { formatClinicLocation } from '../domain/clinicLocation';
 import { useClinicDetail } from '../hooks/useClinicDetail';
+import { useClinics } from '../hooks/useClinics';
 import { useNewClinicForm } from '../hooks/useNewClinicForm';
 
 export function ClinicsScreen() {
   const { t } = useTranslation();
   const newClinic = useNewClinicForm();
   const [isNewClinicOpen, setIsNewClinicOpen] = useState(false);
-  const [clinics, setClinics] = useState<Client[]>([]);
+  const { clinics, isLoading, loadFailure, setClinics } = useClinics();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = clinics.find(clinic => clinic.id === selectedId) ?? null;
   const detail = useClinicDetail(selected);
@@ -64,10 +64,8 @@ export function ClinicsScreen() {
     }
   };
 
-  // ponytail: a lista vive só nesta tela até existir o endpoint de clientes;
-  // trocar por updateClient/deleteClient no service quando o backend tiver.
-  const saveDetail = () => {
-    const updated = detail.submit();
+  const saveDetail = async () => {
+    const updated = await detail.submit();
 
     if (updated) {
       setClinics(current =>
@@ -76,9 +74,11 @@ export function ClinicsScreen() {
     }
   };
 
-  const deleteSelected = () => {
-    setClinics(current => current.filter(clinic => clinic.id !== selectedId));
-    setSelectedId(null);
+  const deleteSelected = async () => {
+    if (await detail.remove()) {
+      setClinics(current => current.filter(clinic => clinic.id !== selectedId));
+      setSelectedId(null);
+    }
   };
 
   const callSelected = () => {
@@ -90,7 +90,12 @@ export function ClinicsScreen() {
     <View className="flex-1 gap-4">
       {clinics.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <EmptyState icon={Hospital} message={t('clinics.empty')} />
+          {isLoading ? null : (
+            <EmptyState
+              icon={Hospital}
+              message={t(loadFailure ?? 'clinics.empty')}
+            />
+          )}
         </View>
       ) : (
         <ScrollView
@@ -147,6 +152,8 @@ export function ClinicsScreen() {
         editing={detail.isEditing}
         draft={detail.draft}
         fieldErrors={toFieldErrors(detail.errors)}
+        failureMessage={detail.failure && t(detail.failure)}
+        isSaving={detail.isSaving}
         fieldTexts={fieldTexts}
         labels={{
           call: t('clinics.detail.call'),

@@ -6,6 +6,9 @@ import { I18nProvider } from 'shared/i18n';
 
 import { PartnersScreen } from './PartnersScreen';
 
+jest.mock('features/clinics/services/clientService', () => ({
+  fetchClinics: jest.fn().mockResolvedValue([]),
+}));
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
