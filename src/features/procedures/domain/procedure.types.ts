@@ -35,7 +35,6 @@ export type FieldErrorCode =
   | 'REQUIRED'
   | 'INVALID_NUMBER'
   | 'MUST_BE_POSITIVE'
-  | 'MUST_BE_NON_NEGATIVE'
   | 'MUST_BE_INTEGER'
   | 'AGE_OUT_OF_RANGE'
   | 'END_BEFORE_START'
