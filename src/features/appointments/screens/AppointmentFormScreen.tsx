@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ConfirmDialog } from 'app/components/ui/confirm-dialog';
 import { useTranslation } from 'shared/i18n';
@@ -55,10 +55,15 @@ export function AppointmentFormScreen({
     }
   }, [form.conflict]);
 
+  const wasVisible = useRef(false);
+
   // A folha fica montada entre aberturas, então sem isto a segunda abertura
-  // traria o rascunho e os erros da primeira.
+  // traria o rascunho e os erros da primeira. O reset acontece só na abertura:
+  // se quem abre recriar o objeto `appointment` a cada render (mapeando a
+  // resposta da API no render, por exemplo), resetar a cada mudança de
+  // referência apagaria o que a pessoa está digitando.
   useEffect(() => {
-    if (visible) {
+    if (visible && !wasVisible.current) {
       reset(
         appointment
           ? appointmentToDraft(appointment)
@@ -66,6 +71,8 @@ export function AppointmentFormScreen({
       );
       setIsDiscardOpen(false);
     }
+
+    wasVisible.current = visible;
   }, [visible, appointment, selectedDate, reset]);
 
   // Toda saída — botão Cancelar, toque fora, voltar do Android — passa por

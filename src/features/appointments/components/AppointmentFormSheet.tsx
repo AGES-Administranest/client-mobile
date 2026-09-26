@@ -3,7 +3,9 @@ import { useState, type ReactNode } from 'react';
 import {
   Animated,
   Dimensions,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -341,184 +343,193 @@ function AppointmentFormSheet({
         />
 
         <Animated.View style={{ transform: [{ translateY }] }}>
-          <View
-            style={styles.sheet}
-            className="gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
+          {/* Sem isto, no iOS o teclado cobre os campos do fim do formulário
+              (valor, observações) e o Confirmar — mesmo arranjo do
+              StockReviewScreen. */}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
+            <View
+              style={styles.sheet}
+              className="gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
+            >
+              <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
 
-            <View className="flex-row items-center justify-between gap-3">
-              <Text className="flex-1 text-xl font-bold text-label-primary">
-                {labels.title}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={labels.cancel}
-                onPress={onCancel}
-                hitSlop={8}
+              <View className="flex-row items-center justify-between gap-3">
+                <Text className="flex-1 text-xl font-bold text-label-primary">
+                  {labels.title}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={labels.cancel}
+                  onPress={onCancel}
+                  hitSlop={8}
+                >
+                  <Text className="text-sm font-semibold text-label-quartenery">
+                    {labels.cancel}
+                  </Text>
+                </Pressable>
+              </View>
+
+              <View className="h-px bg-details-primary" />
+
+              <ScrollView
+                style={styles.scroll}
+                contentContainerClassName="gap-4 pb-2"
+                keyboardShouldPersistTaps="handled"
               >
-                <Text className="text-sm font-semibold text-label-quartenery">
-                  {labels.cancel}
+                <Field
+                  required
+                  label={labels.patient}
+                  value={draft.patientName}
+                  placeholder={labels.patientPlaceholder}
+                  onChangeText={onPatientNameChange}
+                  errorMessage={messageFor(errors.patientName)}
+                />
+
+                <Field
+                  required
+                  label={labels.procedure}
+                  value={draft.procedureName}
+                  placeholder={labels.procedurePlaceholder}
+                  onChangeText={onProcedureNameChange}
+                  errorMessage={messageFor(errors.procedureName)}
+                />
+
+                <SelectField
+                  label={labels.clinic}
+                  placeholder={labels.clinicPlaceholder}
+                  options={serviceTakers}
+                  value={draft.clientId}
+                  onChange={onClientChange}
+                  errorMessage={messageFor(errors.clientId)}
+                />
+
+                <View className="flex-row gap-3">
+                  <Field
+                    className="flex-1"
+                    label={labels.age}
+                    value={draft.ageYears}
+                    placeholder={labels.agePlaceholder}
+                    onChangeText={onAgeYearsChange}
+                    keyboardType="number-pad"
+                  />
+                  <Field
+                    className="flex-1"
+                    label={labels.weight}
+                    value={draft.weightKg}
+                    placeholder={labels.weightPlaceholder}
+                    onChangeText={onWeightKgChange}
+                    errorMessage={messageFor(errors.weightKg)}
+                  />
+                </View>
+
+                <View className="flex-row gap-3">
+                  <Field
+                    className="flex-1"
+                    required
+                    label={labels.startTime}
+                    value={draft.startTime}
+                    placeholder={labels.timePlaceholder}
+                    onChangeText={onStartTimeChange}
+                    errorMessage={messageFor(errors.startTime)}
+                    keyboardType="number-pad"
+                    maxLength={5}
+                  />
+                  <Field
+                    className="flex-1"
+                    required
+                    label={labels.endTime}
+                    value={draft.endTime}
+                    placeholder={labels.timePlaceholder}
+                    onChangeText={onEndTimeChange}
+                    errorMessage={messageFor(errors.endTime)}
+                    keyboardType="number-pad"
+                    maxLength={5}
+                  />
+                </View>
+
+                <Field
+                  required
+                  label={labels.date}
+                  value={draft.date}
+                  placeholder={labels.datePlaceholder}
+                  onChangeText={onDateChange}
+                  errorMessage={messageFor(errors.date)}
+                  keyboardType="number-pad"
+                  maxLength={10}
+                />
+
+                <Field
+                  required
+                  label={labels.amount}
+                  value={draft.amount}
+                  placeholder={labels.amountPlaceholder}
+                  onChangeText={onAmountChange}
+                  errorMessage={messageFor(errors.amount)}
+                  keyboardType="number-pad"
+                />
+
+                <View className="gap-2">
+                  <FieldLabel label={labels.species} required />
+                  <View className="flex-row gap-3">
+                    {SPECIES_OPTIONS.map(species => (
+                      <Choice
+                        key={species}
+                        label={speciesLabels[species]}
+                        selected={draft.species === species}
+                        onPress={() => onSpeciesChange(species)}
+                      />
+                    ))}
+                  </View>
+                  <FieldError message={messageFor(errors.species)} />
+                </View>
+
+                <View className="gap-2">
+                  <FieldLabel label={labels.asa} required={false} />
+                  <View className="flex-row gap-3">
+                    {ASA_CLASSES.map(asaClass => (
+                      <Choice
+                        key={asaClass}
+                        label={asaClass}
+                        selected={draft.asaClass === asaClass}
+                        onPress={() => onAsaClassChange(asaClass)}
+                      />
+                    ))}
+                  </View>
+                </View>
+
+                <Field
+                  label={labels.notes}
+                  value={draft.notes}
+                  placeholder={labels.notesPlaceholder}
+                  onChangeText={onNotesChange}
+                  multiline
+                />
+              </ScrollView>
+
+              {failureMessage ? (
+                <View className="rounded-xl border border-alert-primary bg-white p-3">
+                  <Text className="text-sm text-alert-primary">
+                    {failureMessage}
+                  </Text>
+                </View>
+              ) : null}
+
+              <Button
+                shape="pill"
+                icon={Check}
+                onPress={onSubmit}
+                disabled={isSaving}
+                accessibilityLabel={labels.confirm}
+                className="h-[49px]"
+              >
+                <Text className="text-base font-semibold">
+                  {labels.confirm}
                 </Text>
-              </Pressable>
+              </Button>
             </View>
-
-            <View className="h-px bg-details-primary" />
-
-            <ScrollView
-              style={styles.scroll}
-              contentContainerClassName="gap-4 pb-2"
-              keyboardShouldPersistTaps="handled"
-            >
-              <Field
-                required
-                label={labels.patient}
-                value={draft.patientName}
-                placeholder={labels.patientPlaceholder}
-                onChangeText={onPatientNameChange}
-                errorMessage={messageFor(errors.patientName)}
-              />
-
-              <Field
-                required
-                label={labels.procedure}
-                value={draft.procedureName}
-                placeholder={labels.procedurePlaceholder}
-                onChangeText={onProcedureNameChange}
-                errorMessage={messageFor(errors.procedureName)}
-              />
-
-              <SelectField
-                label={labels.clinic}
-                placeholder={labels.clinicPlaceholder}
-                options={serviceTakers}
-                value={draft.clientId}
-                onChange={onClientChange}
-                errorMessage={messageFor(errors.clientId)}
-              />
-
-              <View className="flex-row gap-3">
-                <Field
-                  className="flex-1"
-                  label={labels.age}
-                  value={draft.ageYears}
-                  placeholder={labels.agePlaceholder}
-                  onChangeText={onAgeYearsChange}
-                  keyboardType="number-pad"
-                />
-                <Field
-                  className="flex-1"
-                  label={labels.weight}
-                  value={draft.weightKg}
-                  placeholder={labels.weightPlaceholder}
-                  onChangeText={onWeightKgChange}
-                  errorMessage={messageFor(errors.weightKg)}
-                />
-              </View>
-
-              <View className="flex-row gap-3">
-                <Field
-                  className="flex-1"
-                  required
-                  label={labels.startTime}
-                  value={draft.startTime}
-                  placeholder={labels.timePlaceholder}
-                  onChangeText={onStartTimeChange}
-                  errorMessage={messageFor(errors.startTime)}
-                  keyboardType="number-pad"
-                  maxLength={5}
-                />
-                <Field
-                  className="flex-1"
-                  required
-                  label={labels.endTime}
-                  value={draft.endTime}
-                  placeholder={labels.timePlaceholder}
-                  onChangeText={onEndTimeChange}
-                  errorMessage={messageFor(errors.endTime)}
-                  keyboardType="number-pad"
-                  maxLength={5}
-                />
-              </View>
-
-              <Field
-                required
-                label={labels.date}
-                value={draft.date}
-                placeholder={labels.datePlaceholder}
-                onChangeText={onDateChange}
-                errorMessage={messageFor(errors.date)}
-                keyboardType="number-pad"
-                maxLength={10}
-              />
-
-              <Field
-                required
-                label={labels.amount}
-                value={draft.amount}
-                placeholder={labels.amountPlaceholder}
-                onChangeText={onAmountChange}
-                errorMessage={messageFor(errors.amount)}
-                keyboardType="number-pad"
-              />
-
-              <View className="gap-2">
-                <FieldLabel label={labels.species} required />
-                <View className="flex-row gap-3">
-                  {SPECIES_OPTIONS.map(species => (
-                    <Choice
-                      key={species}
-                      label={speciesLabels[species]}
-                      selected={draft.species === species}
-                      onPress={() => onSpeciesChange(species)}
-                    />
-                  ))}
-                </View>
-                <FieldError message={messageFor(errors.species)} />
-              </View>
-
-              <View className="gap-2">
-                <FieldLabel label={labels.asa} required={false} />
-                <View className="flex-row gap-3">
-                  {ASA_CLASSES.map(asaClass => (
-                    <Choice
-                      key={asaClass}
-                      label={asaClass}
-                      selected={draft.asaClass === asaClass}
-                      onPress={() => onAsaClassChange(asaClass)}
-                    />
-                  ))}
-                </View>
-              </View>
-
-              <Field
-                label={labels.notes}
-                value={draft.notes}
-                placeholder={labels.notesPlaceholder}
-                onChangeText={onNotesChange}
-                multiline
-              />
-            </ScrollView>
-
-            {failureMessage ? (
-              <View className="rounded-xl border border-alert-primary bg-white p-3">
-                <Text className="text-sm text-alert-primary">
-                  {failureMessage}
-                </Text>
-              </View>
-            ) : null}
-
-            <Button
-              shape="pill"
-              icon={Check}
-              onPress={onSubmit}
-              disabled={isSaving}
-              accessibilityLabel={labels.confirm}
-              className="h-[49px]"
-            >
-              <Text className="text-base font-semibold">{labels.confirm}</Text>
-            </Button>
-          </View>
+          </KeyboardAvoidingView>
         </Animated.View>
 
         {children}

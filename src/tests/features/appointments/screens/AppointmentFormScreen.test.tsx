@@ -211,3 +211,48 @@ test('horário sobreposto abre o alerta de conflito; ajustar volta, confirmar sa
     expect.objectContaining({ procedureName: 'Orquiectomia' }),
   );
 });
+
+test('não apaga o que foi digitado se quem abriu recriar o agendamento a cada render', async () => {
+  const editing = (patientName: string) => ({
+    id: 'appointment-9',
+    clientId: '6f1c2a9e-1b7d-4c3e-9a51-0d2f8e7b6c41',
+    patientName,
+    procedureName: 'Castração',
+    startsAt: new Date(2026, 10, 3, 9, 0).toISOString(),
+    endsAt: new Date(2026, 10, 3, 10, 0).toISOString(),
+    amount: '100.00',
+    species: 'CANINE' as const,
+    patientAgeYears: null,
+    weightKg: null,
+    asaClass: null,
+    notes: null,
+  });
+  const screen = () => (
+    <I18nProvider>
+      <AuthProvider>
+        <AppointmentFormScreen
+          visible
+          appointment={editing('Mel')}
+          onClose={jest.fn()}
+        />
+      </AuthProvider>
+    </I18nProvider>
+  );
+
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(screen());
+  });
+  mounted.push(renderer);
+
+  expect(field(renderer, 'Paciente').props.value).toBe('Mel');
+
+  await act(async () => {
+    field(renderer, 'Paciente').props.onChangeText('Mel e Thor');
+  });
+  await act(async () => {
+    renderer.update(screen());
+  });
+
+  expect(field(renderer, 'Paciente').props.value).toBe('Mel e Thor');
+});
