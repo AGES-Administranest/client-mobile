@@ -7,7 +7,6 @@ import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
-import { LabelTertiary } from '../../../theme/colors';
 import {
   ADJUSTMENT_REASONS,
   type AdjustmentReason,
@@ -15,6 +14,7 @@ import {
   type OutputAdjustmentErrors,
 } from '../../../features/stock/domain/outputAdjustment';
 import type { AdjustableItem } from '../../../features/stock/services/stockAdjustmentService';
+import { LabelTertiary } from '../../../theme/colors';
 
 type OutputAdjustmentModalProps = {
   visible: boolean;

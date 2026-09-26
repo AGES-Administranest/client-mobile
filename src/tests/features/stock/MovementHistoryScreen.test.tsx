@@ -2,18 +2,22 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { I18nProvider } from 'shared/i18n';
 
-import { MovementHistoryScreen } from '../../../features/stock/screens/MovementHistoryScreen';
 import type { StockMovement } from '../../../features/stock/domain/stockMovement';
-import { createOutputAdjustment } from '../../../features/stock/services/stockAdjustmentService';
-import { StockAdjustmentError } from '../../../features/stock/services/stockAdjustmentService';
+import { MovementHistoryScreen } from '../../../features/stock/screens/MovementHistoryScreen';
+import {
+  createOutputAdjustment,
+  StockAdjustmentError,
+} from '../../../features/stock/services/stockAdjustmentService';
 import { fetchStockMovements } from '../../../features/stock/services/stockMovementService';
 
-jest.mock('../services/stockMovementService', () => ({
+jest.mock('../../../features/stock/services/stockMovementService', () => ({
   fetchStockMovements: jest.fn(),
 }));
 
-jest.mock('../services/stockAdjustmentService', () => {
-  const actual = jest.requireActual('../services/stockAdjustmentService');
+jest.mock('../../../features/stock/services/stockAdjustmentService', () => {
+  const actual = jest.requireActual(
+    '../../../features/stock/services/stockAdjustmentService',
+  );
 
   return {
     ...actual,

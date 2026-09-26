@@ -1,6 +1,9 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { MovementList, type MovementListItem } from '../../../../app/components/ui/MovementList';
+import {
+  MovementList,
+  type MovementListItem,
+} from '../../../../app/components/ui/MovementList';
 
 const ITEMS: MovementListItem[] = [
   {
