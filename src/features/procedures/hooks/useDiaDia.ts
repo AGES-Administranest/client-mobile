@@ -54,9 +54,6 @@ export function useDiaDia(): DiaDiaState {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  // Uma resposta só vale para a carga que a pediu: trocar o período (ou
-  // desmontar) enquanto uma página está a caminho não pode misturá-la na
-  // lista nova.
   const generation = useRef(0);
   const loadingMoreInFlight = useRef(false);
 
@@ -116,8 +113,6 @@ export function useDiaDia(): DiaDiaState {
           setClientNames(buildClientNames(clients));
         }
       })
-      // Sem os nomes a lista continua útil: cada atendimento cai no `location`
-      // antigo ou no texto "não informado".
       .catch(() => undefined);
 
     return () => {
@@ -162,8 +157,6 @@ export function useDiaDia(): DiaDiaState {
       });
   }, [idToken, page, period]);
 
-  // Depois de uma falha, `hasError` segura o onEndReached: sem isso a lista
-  // repetiria a requisição em laço enquanto o rodapé continua à vista.
   const loadMore = useCallback(() => {
     if (!hasMore || isLoading || hasError) {
       return;

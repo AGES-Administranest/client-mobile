@@ -15,8 +15,6 @@ export async function createAppointment(
   });
 }
 
-// O apiClient não monta query string, e o backend recusa parâmetro que não
-// conhece (forbidNonWhitelisted): só entram os que têm valor.
 function toQueryString(query: AppointmentsQuery): string {
   const params: Record<string, string> = {};
   for (const [key, value] of Object.entries(query)) {
@@ -28,8 +26,6 @@ function toQueryString(query: AppointmentsQuery): string {
   return new URLSearchParams(params).toString();
 }
 
-// Devolve um array puro, sem total nem indicação de próxima página, na ordem
-// que o backend definir (hoje startsAt crescente).
 export async function fetchAppointments(
   idToken: string,
   query: AppointmentsQuery,

@@ -59,8 +59,6 @@ function toAppointmentFields(
   return payload;
 }
 
-// Sem `status` o backend grava SCHEDULED, e a listagem do Dia a Dia só traz
-// COMPLETED: o formulário registra um procedimento que já aconteceu.
 export function toCreateAppointmentPayload(
   values: ProcedureFormValues,
 ): CreateAppointmentPayload {

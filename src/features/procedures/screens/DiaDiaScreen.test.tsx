@@ -73,7 +73,6 @@ async function renderScreen() {
       </SafeAreaProvider>,
     );
   });
-  // O VirtualizedList renderiza o resto da lista em lotes, por timer.
   await settleListBatches();
 
   return renderer;

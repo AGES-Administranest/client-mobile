@@ -38,8 +38,6 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
   const [selectedClient, setSelectedClient] = useState<ClientOption | null>(
     null,
   );
-  // Fica preenchido depois de salvar: o sheet ainda está fechando, e limpar
-  // aqui trocaria o título para "Novo atendimento" no meio da animação.
   const [editing, setEditing] = useState<ProcedureHistoryItem | null>(null);
   const clientSearch = useClientSearch({
     active: visible,
@@ -92,8 +90,6 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     setTimeConflict(false);
   }
 
-  // Prepara o formulário para abrir. Sem `target` é um cadastro novo: o
-  // rascunho continua onde estava, a não ser que venha de uma edição.
   function begin(target: ProcedureHistoryItem | null): void {
     if (target === null) {
       if (editing !== null) {
@@ -104,8 +100,6 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     }
 
     const { appointment, clientName } = target;
-    // Sem o nome o campo ficaria vazio apontando para um clientId: quem edita
-    // um registro antigo (só com `location`) escolhe o tomador de novo.
     const knownClient =
       appointment.clientId !== null && clientName !== null
         ? { id: appointment.clientId, name: clientName }

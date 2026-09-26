@@ -6,11 +6,6 @@ import {
   updateAppointment,
 } from './procedureService';
 
-// Contrato real do AppointmentsController (backend, módulo appointments):
-//   - GET /appointments aceita status, page, pageSize, from e to; devolve um
-//     array puro, sem total nem próxima página
-//   - o ValidationPipe usa forbidNonWhitelisted: parâmetro desconhecido é 400
-//   - PATCH /appointments/:id recebe um Partial do CreateAppointmentDto
 const ID_TOKEN = 'id-token';
 
 const fetchMock = jest.fn();

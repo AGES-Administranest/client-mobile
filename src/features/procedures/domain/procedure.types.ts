@@ -61,8 +61,6 @@ export interface CreateAppointmentPayload {
   notes?: string;
 }
 
-// Espelho do AppointmentEntity do backend. Campo opcional lá vem como
-// `| null`, nunca ausente; `location` é o texto livre de antes do clientId.
 export type AppointmentResult = {
   id: string;
   clientId: string | null;

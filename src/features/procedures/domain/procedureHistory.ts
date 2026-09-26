@@ -11,7 +11,6 @@ export function buildClientNames(
   return new Map(clients.map(client => [client.id, client.name]));
 }
 
-// Registros anteriores ao clientId só têm o `location` em texto livre.
 export function resolveClientName(
   appointment: AppointmentResult,
   clientNames: ClientNames,

@@ -19,8 +19,6 @@ function toMaskedTime(date: Date): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-// O backend devolve decimais como string com zeros de escala ("12.500"); o
-// campo mostra o que a pessoa digitaria ("12,5").
 function toDecimalField(value: string | null): string {
   if (value === null) {
     return '';
@@ -29,13 +27,10 @@ function toDecimalField(value: string | null): string {
   return Number.isFinite(parsed) ? `${parsed}`.replace('.', ',') : '';
 }
 
-// O backend guarda `asa` como texto livre (até 20 caracteres); só os quatro
-// valores que o formulário oferece podem voltar como seleção.
 function toAsaClassification(asa: string | null): AsaClassification | null {
   return ASA_CLASSIFICATIONS.find(option => option === asa) ?? null;
 }
 
-// O formulário tem uma só data: o fim reaproveita o dia do início.
 export function toProcedureFormValues(
   appointment: AppointmentResult,
 ): ProcedureFormValues {
