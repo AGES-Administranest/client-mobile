@@ -243,6 +243,13 @@
       "mustBePositive": "Informe um valor maior que zero",
       "APPOINTMENT_TIME_CONFLICT": "Este horário conflita com outro agendamento.",
       "UNKNOWN": "Não foi possível salvar o atendimento."
+    },
+    "conflict": {
+      "title": "Conflito de horário",
+      "message": "Este horário conflita com {{procedure}} às {{time}}. Deseja confirmar mesmo assim?",
+      "unnamedProcedure": "outro atendimento",
+      "confirm": "Confirmar",
+      "adjust": "Ajustar horário"
     }
   },
   "tabbar": {

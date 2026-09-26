@@ -243,6 +243,13 @@
       "mustBePositive": "Enter a value greater than zero",
       "APPOINTMENT_TIME_CONFLICT": "This time conflicts with another appointment.",
       "UNKNOWN": "The appointment could not be saved."
+    },
+    "conflict": {
+      "title": "Schedule conflict",
+      "message": "This time conflicts with {{procedure}} at {{time}}. Do you want to confirm anyway?",
+      "unnamedProcedure": "another appointment",
+      "confirm": "Confirm",
+      "adjust": "Adjust time"
     }
   },
   "tabbar": {
