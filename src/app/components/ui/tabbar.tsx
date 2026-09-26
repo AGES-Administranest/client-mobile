@@ -16,7 +16,7 @@ const TABS = [
   { value: 'day', labelKey: 'tabbar.day', icon: CalendarDays },
   { value: 'finance', labelKey: 'tabbar.finance', icon: DollarSign },
   { value: 'materials', labelKey: 'tabbar.materials', icon: Package },
-  { value: 'clinics', labelKey: 'tabbar.clinics', icon: Hospital },
+  { value: 'partners', labelKey: 'tabbar.partners', icon: Hospital },
   { value: 'reports', labelKey: 'tabbar.reports', icon: FileText },
 ] as const;
 

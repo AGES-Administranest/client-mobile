@@ -54,7 +54,9 @@ export function ClinicsScreen() {
   return (
     <View className="flex-1">
       <View className="flex-1 items-center justify-center">
-        <Text className="text-2xl font-semibold">{t('tabbar.clinics')}</Text>
+        <Text className="text-2xl font-semibold">
+          {t('partners.segments.clinics')}
+        </Text>
       </View>
 
       <View className="px-4 pb-4">

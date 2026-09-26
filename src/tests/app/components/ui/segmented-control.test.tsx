@@ -1,7 +1,6 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { SegmentedControl } from 'app/components/ui/segmented-control';
-import { I18nProvider } from 'shared/i18n';
 
 test('marks the active segment as selected and calls onValueChange when another segment is pressed', async () => {
   const onValueChange = jest.fn();
@@ -9,9 +8,14 @@ test('marks the active segment as selected and calls onValueChange when another 
 
   await act(() => {
     renderer = ReactTestRenderer.create(
-      <I18nProvider>
-        <SegmentedControl value="supplies" onValueChange={onValueChange} />
-      </I18nProvider>,
+      <SegmentedControl
+        options={[
+          { value: 'supplies', label: 'Insumos' },
+          { value: 'equipment', label: 'Equipamentos' },
+        ]}
+        value="supplies"
+        onValueChange={onValueChange}
+      />,
     );
   });
 

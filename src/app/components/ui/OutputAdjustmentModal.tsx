@@ -13,8 +13,8 @@ import {
   type AdjustmentReason,
   type OutputAdjustmentDraft,
   type OutputAdjustmentErrors,
-} from '../domain/outputAdjustment';
-import type { AdjustableItem } from '../services/stockAdjustmentService';
+} from '../../../features/stock/domain/outputAdjustment';
+import type { AdjustableItem } from '../../../features/stock/services/stockAdjustmentService';
 
 type OutputAdjustmentModalProps = {
   visible: boolean;
