@@ -44,7 +44,7 @@ const CREATED: Client = {
   id: 'client-1',
   type: 'CLINIC',
   name: 'Clínica VetNova',
-  taxId: '12345678000190',
+  taxId: '11222333000181',
   taxIdType: 'CNPJ',
   contactName: null,
   email: null,
@@ -101,12 +101,12 @@ test('masks the CNPJ, the phone and the state as they are typed', async () => {
   await mount();
 
   await act(async () => {
-    current.setField('cnpj', '12345678000190');
+    current.setField('cnpj', '11222333000181');
     current.setField('phone', '11934567890');
     current.setField('state', 'sp');
   });
 
-  expect(current.draft.cnpj).toBe('12.345.678/0001-90');
+  expect(current.draft.cnpj).toBe('11.222.333/0001-81');
   expect(current.draft.phone).toBe('(11) 93456-7890');
   expect(current.draft.state).toBe('SP');
 });
@@ -142,7 +142,7 @@ test('creates the clinic with the id token and the backend payload', async () =>
   await mount();
   await fillName();
   await act(async () => {
-    current.setField('cnpj', '12.345.678/0001-90');
+    current.setField('cnpj', '11.222.333/0001-81');
     current.setField('phone', '(11) 3456-7890');
   });
 
@@ -154,7 +154,7 @@ test('creates the clinic with the id token and the backend payload', async () =>
   expect(createClientMock).toHaveBeenCalledWith('id-token', {
     type: 'CLINIC',
     name: 'Clínica VetNova',
-    taxId: '12345678000190',
+    taxId: '11222333000181',
     taxIdType: 'CNPJ',
     phone: '1134567890',
   });

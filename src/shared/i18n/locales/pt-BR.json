@@ -247,13 +247,26 @@
           "invalid": "O CNPJ precisa ter 14 dígitos."
         },
         "state": {
-          "invalid": "Informe uma UF válida, como SP."
+          "invalid": "Informe uma UF válida, como SP.",
+          "required": "Informe a UF junto com a cidade."
         },
         "phone": {
           "invalid": "Informe o telefone com DDD."
         },
         "email": {
           "invalid": "Informe um e-mail válido."
+        },
+        "addressLine": {
+          "tooShort": "O endereço precisa ter pelo menos 5 caracteres."
+        },
+        "city": {
+          "required": "Informe a cidade junto com a UF.",
+          "tooShort": "A cidade precisa ter pelo menos 2 letras.",
+          "invalid": "A cidade só pode ter letras."
+        },
+        "contactName": {
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+          "invalid": "O nome só pode ter letras."
         }
       },
       "failures": {
@@ -264,7 +277,14 @@
     },
     "countOne": "{{count}} clínica",
     "countOther": "{{count}} clínicas",
-    "empty": "Nenhuma clínica cadastrada."
+    "empty": "Nenhuma clínica cadastrada.",
+    "detail": {
+      "call": "Entrar em contato",
+      "edit": "Editar clínica",
+      "editTitle": "Editar",
+      "confirm": "Confirmar",
+      "delete": "Excluir"
+    }
   },
   "tabbar": {
     "day": "Dia-Dia",

@@ -123,13 +123,13 @@ test('shows the title and one labelled input per field', async () => {
 
 test('shows what is in the draft', async () => {
   const { renderer } = await render({
-    draft: { name: 'Clínica VetNova', cnpj: '12.345.678/0001-90' },
+    draft: { name: 'Clínica VetNova', cnpj: '11.222.333/0001-81' },
   });
 
   expect(inputOf(renderer, 'Nome da clínica').props.value).toBe(
     'Clínica VetNova',
   );
-  expect(inputOf(renderer, 'CNPJ').props.value).toBe('12.345.678/0001-90');
+  expect(inputOf(renderer, 'CNPJ').props.value).toBe('11.222.333/0001-81');
 });
 
 test('reports each keystroke together with the field it belongs to', async () => {

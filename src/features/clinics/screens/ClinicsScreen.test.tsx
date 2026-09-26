@@ -226,3 +226,117 @@ test('opens a clean form every time', async () => {
     ).props.value,
   ).toBe('');
 });
+
+async function typeInto(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  label: string,
+  value: string,
+) {
+  await act(async () => {
+    renderer.root
+      .find(
+        node =>
+          node.props.accessibilityLabel === label &&
+          typeof node.props.onChangeText === 'function',
+      )
+      .props.onChangeText(value);
+  });
+}
+
+function inputLabels(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root
+    .findAll(
+      node =>
+        typeof node.props.onChangeText === 'function' &&
+        node.props.accessibilityLabel !== undefined,
+    )
+    .map(node => node.props.accessibilityLabel);
+}
+
+async function renderWithCreatedClinic() {
+  const renderer = await render();
+  await press(renderer, 'Adicionar clínica');
+  await typeName(renderer, 'Clínica VetNova');
+  await press(renderer, 'Confirmar');
+
+  return renderer;
+}
+
+async function openDetails(renderer: ReactTestRenderer.ReactTestRenderer) {
+  await act(async () => {
+    renderer.root
+      .find(
+        node =>
+          node.props.accessibilityRole === 'button' &&
+          typeof node.props.onPress === 'function' &&
+          node
+            .findAllByType('Text' as never)
+            .some(label => label.props.children === 'Clínica VetNova'),
+      )
+      .props.onPress();
+  });
+}
+
+test('opens the details of a clinic with the same fields as the new clinic form', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+
+  expect(new Set(inputLabels(renderer))).toEqual(
+    new Set([
+      'Nome da clínica',
+      'CNPJ',
+      'Endereço',
+      'Cidade',
+      'UF',
+      'Contato',
+      'E-mail',
+      'Responsável',
+    ]),
+  );
+  expect(
+    renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === 'Nome da clínica' &&
+        typeof node.props.onChangeText === 'function',
+    ).props.editable,
+  ).toBe(false);
+});
+
+test('validates the details when editing and keeps the clinic unchanged', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+  await press(renderer, 'Editar clínica');
+
+  await typeInto(renderer, 'CNPJ', '123');
+  await typeInto(renderer, 'Cidade', 'São Paulo');
+  await press(renderer, 'Confirmar');
+
+  expect(textsOf(renderer)).toContain('O CNPJ precisa ter 14 dígitos.');
+  expect(textsOf(renderer)).toContain('Informe a UF junto com a cidade.');
+  expect(textsOf(renderer)).toContain('Editar');
+});
+
+test('saves the edited clinic and shows it in the list', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+  await press(renderer, 'Editar clínica');
+
+  await typeInto(renderer, 'Nome da clínica', 'Vet Nova Sul');
+  await typeInto(renderer, 'Cidade', 'São Paulo');
+  await typeInto(renderer, 'UF', 'sp');
+  await press(renderer, 'Confirmar');
+
+  expect(textsOf(renderer)).toContain('Vet Nova Sul');
+  expect(textsOf(renderer)).toContain('São Paulo, SP');
+  expect(textsOf(renderer)).toContain('Editar clínica');
+});
+
+test('deletes the clinic from the details', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+  await press(renderer, 'Editar clínica');
+
+  await press(renderer, 'Excluir');
+
+  expect(textsOf(renderer)).toContain('Nenhuma clínica cadastrada.');
+});

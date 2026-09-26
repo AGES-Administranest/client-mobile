@@ -1,4 +1,7 @@
+import type { Client } from './client';
 import {
+  applyClinicDraft,
+  clientToClinicDraft,
   digitsOnly,
   EMPTY_CLINIC_DRAFT,
   formatCnpj,
@@ -17,7 +20,7 @@ function draft(overrides: Partial<ClinicDraft> = {}): ClinicDraft {
 
 const FULL_DRAFT: ClinicDraft = {
   name: 'Clínica VetNova',
-  cnpj: '12.345.678/0001-90',
+  cnpj: '11.222.333/0001-81',
   addressLine: 'Rua das Hortênsias, 340 — Jardim Europa',
   city: 'São Paulo',
   state: 'SP',
@@ -142,8 +145,8 @@ describe('validateClinicDraft', () => {
 
   it.each([
     ['', undefined],
-    ['12.345.678/0001-9', 'invalid'],
-    ['12.345.678/0001-90', undefined],
+    ['11.222.333/0001-8', 'invalid'],
+    ['11.222.333/0001-81', undefined],
   ])('checks the CNPJ %p', (cnpj, error) => {
     expect(validateClinicDraft(draft({ cnpj })).cnpj).toBe(error);
   });
@@ -177,6 +180,69 @@ describe('validateClinicDraft', () => {
     ['contato.vetnova.com', 'invalid'],
   ])('checks the e-mail %p', (email, error) => {
     expect(validateClinicDraft(draft({ email })).email).toBe(error);
+  });
+
+  it.each([
+    ['11.222.333/0001-80', 'invalid'],
+    ['11.111.111/1111-11', 'invalid'],
+    ['00.000.000/0000-00', 'invalid'],
+    ['11.222.333/0001-81', undefined],
+  ])('checks the CNPJ check digits of %p', (cnpj, error) => {
+    expect(validateClinicDraft(draft({ cnpj })).cnpj).toBe(error);
+  });
+
+  it.each([
+    ['(00) 3456-7890', 'invalid'],
+    ['(10) 3456-7890', 'invalid'],
+    ['(11) 1456-7890', 'invalid'],
+    ['(11) 6456-7890', 'invalid'],
+    ['(11) 83456-7890', 'invalid'],
+    ['(11) 93456-7890', undefined],
+    ['(99) 2456-7890', undefined],
+  ])('checks the area code and first digit of %p', (phone, error) => {
+    expect(validateClinicDraft(draft({ phone })).phone).toBe(error);
+  });
+
+  it.each([
+    ['', undefined],
+    ['Rua A', undefined],
+    ['Rua', 'tooShort'],
+    ['  R1  ', 'tooShort'],
+  ])('checks the address %p', (addressLine, error) => {
+    expect(validateClinicDraft(draft({ addressLine })).addressLine).toBe(error);
+  });
+
+  it.each([
+    ['São Paulo', 'SP', undefined],
+    ["D'Ávila-Sul", 'SP', undefined],
+    ['S', 'SP', 'tooShort'],
+    ['Sao Paulo 2', 'SP', 'invalid'],
+    ['São Paulo', '', undefined],
+    ['', 'SP', 'required'],
+  ])('checks the city %p with state %p', (city, state, error) => {
+    expect(validateClinicDraft(draft({ city, state })).city).toBe(error);
+  });
+
+  it('asks for the state when only the city was filled', () => {
+    expect(validateClinicDraft(draft({ city: 'São Paulo' })).state).toBe(
+      'required',
+    );
+  });
+
+  it.each([
+    ['', undefined],
+    ['Dr. André Matos', undefined],
+    ['A', 'tooShort'],
+    ['Dr. 123', 'invalid'],
+    ['Dra. Ana <b>', 'invalid'],
+  ])('checks the contact name %p', (contactName, error) => {
+    expect(validateClinicDraft(draft({ contactName })).contactName).toBe(error);
+  });
+
+  it('rejects an e-mail longer than the backend accepts', () => {
+    const email = `${'a'.repeat(250)}@x.com`;
+
+    expect(validateClinicDraft(draft({ email })).email).toBe('invalid');
   });
 
   it('reports every field that failed at once', () => {
@@ -217,7 +283,7 @@ describe('toCreateClientPayload', () => {
     expect(toCreateClientPayload(FULL_DRAFT)).toStrictEqual({
       type: 'CLINIC',
       name: 'Clínica VetNova',
-      taxId: '12345678000190',
+      taxId: '11222333000181',
       taxIdType: 'CNPJ',
       addressLine: 'Rua das Hortênsias, 340 — Jardim Europa',
       city: 'São Paulo',
@@ -231,8 +297,8 @@ describe('toCreateClientPayload', () => {
   it('only sends the CNPJ type together with a CNPJ', () => {
     expect(toCreateClientPayload(draft())).not.toHaveProperty('taxIdType');
     expect(
-      toCreateClientPayload(draft({ cnpj: '12.345.678/0001-90' })),
-    ).toMatchObject({ taxId: '12345678000190', taxIdType: 'CNPJ' });
+      toCreateClientPayload(draft({ cnpj: '11.222.333/0001-81' })),
+    ).toMatchObject({ taxId: '11222333000181', taxIdType: 'CNPJ' });
   });
 
   it('leaves out fields that hold only spaces', () => {
@@ -241,5 +307,81 @@ describe('toCreateClientPayload', () => {
         draft({ email: '   ', city: ' ', addressLine: '  ', contactName: ' ' }),
       ),
     ).toStrictEqual({ type: 'CLINIC', name: 'Clínica VetNova' });
+  });
+});
+
+const CLIENT: Client = {
+  id: 'client-1',
+  type: 'CLINIC',
+  name: 'Clínica VetNova',
+  taxId: '11222333000181',
+  taxIdType: 'CNPJ',
+  contactName: 'Dr. André Matos',
+  email: 'contato@vetnova.com.br',
+  phone: '1134567890',
+  addressLine: 'Rua das Hortênsias, 340',
+  city: 'São Paulo',
+  state: 'SP',
+  serviceDays: [],
+  paymentTermsDays: null,
+  preferredPaymentMethod: null,
+  active: true,
+  createdAt: '2026-09-23T12:00:00.000Z',
+  updatedAt: '2026-09-23T12:00:00.000Z',
+};
+
+describe('clientToClinicDraft', () => {
+  it('masks the stored digits the way the form shows them', () => {
+    expect(clientToClinicDraft(CLIENT)).toStrictEqual({
+      name: 'Clínica VetNova',
+      cnpj: '11.222.333/0001-81',
+      addressLine: 'Rua das Hortênsias, 340',
+      city: 'São Paulo',
+      state: 'SP',
+      phone: '(11) 3456-7890',
+      email: 'contato@vetnova.com.br',
+      contactName: 'Dr. André Matos',
+    });
+  });
+
+  it('turns fields that were never filled into empty text', () => {
+    expect(
+      clientToClinicDraft({
+        ...CLIENT,
+        taxId: null,
+        taxIdType: null,
+        phone: null,
+        email: null,
+        contactName: null,
+        addressLine: null,
+        city: null,
+        state: null,
+      }),
+    ).toStrictEqual({ ...EMPTY_CLINIC_DRAFT, name: 'Clínica VetNova' });
+  });
+});
+
+describe('applyClinicDraft', () => {
+  it('round-trips a client through its draft', () => {
+    expect(applyClinicDraft(CLIENT, clientToClinicDraft(CLIENT))).toStrictEqual(
+      CLIENT,
+    );
+  });
+
+  it('turns emptied fields back into null and keeps the rest of the client', () => {
+    expect(
+      applyClinicDraft(CLIENT, draft({ name: ' Nova Vet ' })),
+    ).toStrictEqual({
+      ...CLIENT,
+      name: 'Nova Vet',
+      taxId: null,
+      taxIdType: null,
+      addressLine: null,
+      city: null,
+      state: null,
+      phone: null,
+      email: null,
+      contactName: null,
+    });
   });
 });

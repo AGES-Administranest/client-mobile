@@ -247,13 +247,26 @@
           "invalid": "The CNPJ must have 14 digits."
         },
         "state": {
-          "invalid": "Enter a valid state code, like SP."
+          "invalid": "Enter a valid state code, like SP.",
+          "required": "Enter the state along with the city."
         },
         "phone": {
           "invalid": "Enter the phone number with its area code."
         },
         "email": {
           "invalid": "Enter a valid e-mail."
+        },
+        "addressLine": {
+          "tooShort": "The address needs at least 5 characters."
+        },
+        "city": {
+          "required": "Enter the city along with the state.",
+          "tooShort": "The city needs at least 2 letters.",
+          "invalid": "The city can only contain letters."
+        },
+        "contactName": {
+          "tooShort": "The name needs at least 2 characters.",
+          "invalid": "The name can only contain letters."
         }
       },
       "failures": {
@@ -264,7 +277,14 @@
     },
     "countOne": "{{count}} clinic",
     "countOther": "{{count}} clinics",
-    "empty": "No clinics yet."
+    "empty": "No clinics yet.",
+    "detail": {
+      "call": "Contact",
+      "edit": "Edit clinic",
+      "editTitle": "Edit",
+      "confirm": "Confirm",
+      "delete": "Delete"
+    }
   },
   "tabbar": {
     "day": "Day-to-Day",
