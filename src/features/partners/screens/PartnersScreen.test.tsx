@@ -1,12 +1,49 @@
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { AuthProvider, TERMS_VERSION } from 'features/auth';
 import { I18nProvider } from 'shared/i18n';
 
 import { PartnersScreen } from './PartnersScreen';
 
-jest.mock('features/auth', () => ({
-  useAuth: () => ({ session: { idToken: 'token' } }),
-}));
+jest.mock('features/auth/services/authService', () => ({}));
+jest.mock('features/auth/services/socialAuthService', () => ({}));
+jest.mock('features/auth/services/accountApi', () => ({}));
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
+
+async function renderScreen() {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider
+            initialSession={{
+              idToken: 'id-token',
+              accessToken: 'access',
+              refreshToken: 'refresh',
+              expiresAt: 1,
+            }}
+            initialAccount={{
+              id: 'user-1',
+              name: 'Bruna Senha',
+              email: 'bruna@example.com',
+              termsAcceptedAt: '2026-09-13T12:00:00.000Z',
+              termsVersion: TERMS_VERSION,
+            }}
+          >
+            <PartnersScreen />
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
+    );
+  });
+  return renderer!;
+}
 
 function textsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
   return JSON.stringify(
@@ -16,28 +53,14 @@ function textsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
   );
 }
 
-async function renderScreen() {
-  let renderer: ReactTestRenderer.ReactTestRenderer;
-  await act(async () => {
-    renderer = ReactTestRenderer.create(
-      <I18nProvider>
-        <PartnersScreen />
-      </I18nProvider>,
-    );
-  });
-  return renderer!;
-}
+test('starts on the clinics segment with the add button', async () => {
+  const texts = textsOf(await renderScreen());
 
-test('lists the clinics with their count and location', async () => {
-  const renderer = await renderScreen();
-  const texts = textsOf(renderer);
-
-  expect(texts).toContain('4 clínicas');
-  expect(texts).toContain('Clínica VetNova');
-  expect(texts).toContain('São Paulo, SP');
+  expect(texts).toContain('Nenhuma clínica cadastrada.');
+  expect(texts).toContain('Adicionar clínica');
 });
 
-test('switching to suppliers hides the clinic list', async () => {
+test('switching to suppliers hides the clinics content', async () => {
   const renderer = await renderScreen();
   const [suppliersTab] = renderer.root.findAll(
     node =>
@@ -52,5 +75,5 @@ test('switching to suppliers hides the clinic list', async () => {
     suppliersTab.props.onPress();
   });
 
-  expect(textsOf(renderer)).not.toContain('Clínica VetNova');
+  expect(textsOf(renderer)).not.toContain('Adicionar clínica');
 });

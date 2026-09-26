@@ -143,6 +143,12 @@ async function typeName(
   });
 }
 
+test('starts with no clinics listed', async () => {
+  const renderer = await render();
+
+  expect(textsOf(renderer)).toContain('Nenhuma clínica cadastrada.');
+});
+
 test('opens the new clinic sheet from the "Adicionar clínica" button', async () => {
   const renderer = await render();
 
@@ -177,6 +183,9 @@ test('saves the clinic and closes the sheet', async () => {
     name: 'Clínica VetNova',
   });
   expect(isSheetOpen(renderer)).toBe(false);
+  expect(textsOf(renderer)).toContain('1 clínica');
+  expect(textsOf(renderer)).toContain('Clínica VetNova');
+  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada.');
 });
 
 test('shows the API failure and keeps what was typed', async () => {

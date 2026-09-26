@@ -8,7 +8,7 @@ import { cn } from 'app/lib/utils';
 
 type PartnerCardProps = {
   name: string;
-  location: string;
+  location?: string;
   onPress?: () => void;
   className?: string;
 };
@@ -26,12 +26,14 @@ function PartnerCard({ name, location, onPress, className }: PartnerCardProps) {
           </Text>
           <Icon as={ChevronRight} size={16} />
         </View>
-        <View className="flex-row items-center gap-1 pt-2">
-          <Icon as={MapPin} size={11} />
-          <Text className="flex-1 text-xs leading-[18px]" numberOfLines={1}>
-            {location}
-          </Text>
-        </View>
+        {location ? (
+          <View className="flex-row items-center gap-1 pt-2">
+            <Icon as={MapPin} size={11} />
+            <Text className="flex-1 text-xs leading-[18px]" numberOfLines={1}>
+              {location}
+            </Text>
+          </View>
+        ) : null}
       </Card>
     </Pressable>
   );

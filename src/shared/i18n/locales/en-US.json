@@ -261,7 +261,10 @@
         "session": "Your session has expired. Sign out and sign in again.",
         "unknown": "Could not save the clinic. Please try again."
       }
-    }
+    },
+    "countOne": "{{count}} clinic",
+    "countOther": "{{count}} clinics",
+    "empty": "No clinics yet."
   },
   "tabbar": {
     "day": "Day-to-Day",
@@ -376,10 +379,6 @@
       "clinics": "Clinics",
       "suppliers": "Suppliers"
     },
-    "clinicsCountOne": "{{count}} clinic",
-    "clinicsCountOther": "{{count}} clinics",
-    "addClinic": "Add clinic",
-    "suppliersEmpty": "Suppliers are not available here yet.",
-    "errorLoad": "Could not load partners."
+    "suppliersEmpty": "Suppliers are not available here yet."
   }
 }

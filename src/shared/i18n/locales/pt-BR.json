@@ -261,7 +261,10 @@
         "session": "Sua sessão expirou. Saia da conta e entre novamente.",
         "unknown": "Não foi possível salvar a clínica. Tente novamente."
       }
-    }
+    },
+    "countOne": "{{count}} clínica",
+    "countOther": "{{count}} clínicas",
+    "empty": "Nenhuma clínica cadastrada."
   },
   "tabbar": {
     "day": "Dia-Dia",
@@ -376,10 +379,6 @@
       "clinics": "Clínicas",
       "suppliers": "Fornecedores"
     },
-    "clinicsCountOne": "{{count}} clínica",
-    "clinicsCountOther": "{{count}} clínicas",
-    "addClinic": "Adicionar clínica",
-    "suppliersEmpty": "Fornecedores ainda não estão disponíveis aqui.",
-    "errorLoad": "Não foi possível carregar os parceiros."
+    "suppliersEmpty": "Fornecedores ainda não estão disponíveis aqui."
   }
 }
