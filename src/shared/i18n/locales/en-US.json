@@ -197,6 +197,15 @@
       }
     }
   },
+  "procedures": {
+    "supplies": {
+      "empty": "No supplies added",
+      "lineDetail": "{{quantity}} u. × {{unitCost}}",
+      "remove": "Remove {{name}}",
+      "totalCost": "Supplies total",
+      "grossMargin": "Gross margin"
+    }
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",

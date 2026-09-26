@@ -197,6 +197,15 @@
       }
     }
   },
+  "procedures": {
+    "supplies": {
+      "empty": "Nenhum material adicionado",
+      "lineDetail": "{{quantity}} un. × {{unitCost}}",
+      "remove": "Remover {{name}}",
+      "totalCost": "Total insumos",
+      "grossMargin": "Margem bruta"
+    }
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",
