@@ -4,22 +4,19 @@ import { useRef, useState } from 'react';
 import { Pressable, StatusBar, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ActionButton } from 'app/components/ui';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
-import { ActionButton } from 'shared/components';
 import { useTranslation } from 'shared/i18n';
 
 import { ScanFrame } from '../components/ScanFrame';
 
 type ScanScreenProps = {
-  /** Called with the uri of the captured photo. */
   onCapture: (imageUri: string) => void;
   onPickFromLibrary: () => void;
   onCancel: () => void;
 };
 
-// Full-screen capture (Figma node 31:1015): live camera behind the yellow
-// instruction banner and the brown corner frame.
 export function ScanScreen({
   onCapture,
   onPickFromLibrary,
@@ -37,7 +34,6 @@ export function ScanScreen({
     }
     setIsCapturing(true);
     try {
-      // Full quality: the invoice's small print is what the server has to read.
       const photo = await camera.current?.takePictureAsync({ quality: 1 });
       if (photo?.uri) {
         onCapture(photo.uri);
