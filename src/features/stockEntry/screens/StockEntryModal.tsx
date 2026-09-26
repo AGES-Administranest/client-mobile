@@ -4,10 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
 import { ActionButton } from 'shared/components';
+import { useSheetAnimation } from 'shared/hooks';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
-
-import { useSheetAnimation } from '../hooks/useSheetAnimation';
 
 // Shared label width for the three menu buttons: keeps their icon+label groups
 // equally wide so the icons line up in a column, as they do in Figma.

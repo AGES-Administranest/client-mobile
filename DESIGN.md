@@ -73,6 +73,34 @@ Cross-referenced against what already exists in [`src/app/components/ui`](./src/
 | **EmptyState (inline)** | Dashed/soft box, centered muted text ("Nenhum deslocamento registrado") | **Not present yet** |
 | **BottomSheet / Modal** | Drag handle, title, divider, scrollable list, pinned CTA — used for 3 of the 5 screen variants seen | Check if `@rn-primitives` already ships a sheet primitive before building one from scratch |
 | **Text** | Central place for the typography scale above (title/eyebrow/body/price variants) | Exists (`text.tsx`) — extend its variants to cover "eyebrow" and "price" if not already there |
+| **ConfirmDialog** | Cartão centralizado (`rounded-2xl`, `bg-background-modal`) sobre o véu escuro, título + mensagem + "Confirmar" (pill primário) e "Cancelar" (pill outline) empilhados | Existe — `app/components/ui/confirm-dialog.tsx`. Usar para confirmar algo **com uma folha já aberta** (ex.: descartar o formulário de agendamento): folha sobre folha deixa ambíguo qual está em foco. Sem folha aberta, `ConfirmSheet` continua sendo o padrão; as props são as mesmas |
+| **Choice (seletor exclusivo)** | Retângulos lado a lado (`rounded-xl`), o escolhido preenchido com `bg-button-primary` e texto branco — "Canino/Felino", "ASA I–IV" na folha de agendamento | Existe como composição local em `features/appointments/components/AppointmentFormSheet.tsx`; promover a `app/components/ui` quando uma segunda feature precisar. Não confundir com `CategoryFilter` (chip arredondado de filtro) nem com `SegmentedControl` (abas sobre fundo branco) |
+
+### 5.1 Folha de formulário (agendamento)
+
+A tela "Novo atendimento" (`features/appointments`) é a primeira folha que é um
+formulário inteiro, e não uma lista com seleção. O padrão que ela fixa, para as
+próximas: eyebrow em `text-xs font-semibold uppercase text-label-primary` acima
+de cada campo (preto, e não `label-tertiary` como nos cabeçalhos de seção da
+tela de detalhe: aqui o rótulo nomeia um campo a preencher, não legenda um
+valor já existente); input `rounded-xl` com `border-border-primary` (e
+`border-alert-primary` quando o campo tem erro), fundo branco; campos curtos que
+se relacionam (idade/peso, hora de início/fim) em duas colunas `flex-1` com
+`gap-3`; mensagem de erro em `text-xs text-alert-primary` logo abaixo do campo;
+"Cancelar" como link de texto (`text-label-quartenery`) à direita do título, seguindo o §8, e passando por `confirm-dialog` (nunca uma segunda folha) quando há algo preenchido — assim como o toque fora e o voltar do Android; campo obrigatório marcado com ` *` no fim do rótulo, na mesma cor dele (o
+vermelho continua reservado a valor monetário negativo, §2); e o "Confirmar"
+como pill de altura 49 com ícone de check à esquerda, fixo no rodapé da folha —
+fora do `ScrollView`, para não sumir enquanto se preenche o formulário.
+
+Toda folha nova anima por `shared/hooks/useSheetAnimation`, o mesmo hook das
+folhas de entrada de estoque: véu escuro (`BackgroundShade`) esmaecendo em
+`StyleSheet.absoluteFill` enquanto a folha sobe por `translateY`, com o `Modal`
+em `animationType="none"` e `statusBarTranslucent`. Dois motivos para não usar o
+`animationType="slide"` do próprio `Modal`: ele translada o conteúdo inteiro, e
+o véu — que é o fundo da tela toda — sobe junto com a folha como se fizesse
+parte dela; e o `visible` do `Modal` desmonta na hora, então a folha some em vez
+de descer. O hook resolve o segundo com `isRendered`, que só desmonta depois que
+a saída termina.
 
 When implementing, follow this repo's existing pattern: base primitives live in `src/app/components/ui` (shared, shadcn-style, using `cva` + `cn()`); feature-specific compositions (like a `finance`-specific `StatCard` row) live in `src/features/<feature>/components`.
 

@@ -197,6 +197,60 @@
       }
     }
   },
+  "appointments": {
+    "form": {
+      "titleCreate": "Novo atendimento",
+      "titleEdit": "Editar atendimento",
+      "cancel": "Cancelar",
+      "patientLabel": "Paciente",
+      "patientPlaceholder": "Nome do animal",
+      "procedureLabel": "Procedimento",
+      "procedurePlaceholder": "Ex: Orquiectomia",
+      "clinicLabel": "Clínica",
+      "clinicPlaceholder": "Selecione a clínica",
+      "ageLabel": "Idade",
+      "agePlaceholder": "0",
+      "weightLabel": "Peso (kg)",
+      "weightPlaceholder": "0",
+      "startTimeLabel": "Hora de início",
+      "endTimeLabel": "Hora do fim",
+      "timePlaceholder": "00:00",
+      "dateLabel": "Data",
+      "datePlaceholder": "Selecione a data",
+      "amountLabel": "Valor do atendimento",
+      "amountPlaceholder": "0",
+      "speciesLabel": "Espécie",
+      "asaLabel": "Classificação ASA",
+      "notesLabel": "Observações",
+      "notesPlaceholder": "Ex: trazer exames anteriores",
+      "confirm": "Confirmar",
+      "discard": {
+        "title": "Descartar alterações?",
+        "message": "O que você preencheu neste atendimento será perdido.",
+        "confirm": "Descartar",
+        "cancel": "Continuar editando"
+      }
+    },
+    "species": {
+      "canine": "Canino",
+      "feline": "Felino"
+    },
+    "errors": {
+      "required": "Campo obrigatório",
+      "invalidDate": "Informe uma data válida",
+      "invalidTime": "Informe um horário válido",
+      "endBeforeStart": "A hora do fim deve ser depois da hora de início",
+      "mustBePositive": "Informe um valor maior que zero",
+      "UNKNOWN": "Não foi possível salvar o atendimento."
+    },
+    "conflict": {
+      "title": "Conflito de horário",
+      "message": "Este horário conflita com {{procedure}} às {{time}}. Deseja confirmar mesmo assim?",
+      "unnamedProcedure": "outro atendimento",
+      "confirm": "Confirmar",
+      "adjust": "Ajustar horário"
+    }
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",

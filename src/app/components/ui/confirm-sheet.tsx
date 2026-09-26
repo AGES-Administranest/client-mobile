@@ -1,17 +1,9 @@
-import { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  Pressable,
-  View,
-} from 'react-native';
+import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+import { useSheetAnimation } from 'shared/hooks';
+import { BackgroundShade } from 'theme/colors';
 
 type ConfirmSheetProps = {
   visible: boolean;
@@ -30,6 +22,10 @@ type ConfirmSheetProps = {
  * na web o diálogo nunca aparecia e o callback de confirmação nunca rodava, então
  * a ação simplesmente não acontecia. Este bottom sheet funciona nas três
  * plataformas e segue o padrão de sheet do DESIGN.md.
+ *
+ * O layout vem só de `style` nos `Animated.View`: o NativeWind não aplica
+ * `className` em componentes animados, e um `className="flex-1"` ali deixava o
+ * véu sem altura — a folha subia para o topo da tela e o fundo não escurecia.
  */
 function ConfirmSheet({
   visible,
@@ -40,69 +36,54 @@ function ConfirmSheet({
   onConfirm,
   onCancel,
 }: ConfirmSheetProps) {
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-
-  useEffect(() => {
-    Animated.timing(overlayOpacity, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(sheetTranslateY, {
-      toValue: visible ? 0 : SCREEN_HEIGHT,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible, overlayOpacity, sheetTranslateY]);
+  const { isRendered, progress, translateY } = useSheetAnimation(visible);
 
   return (
     <Modal
-      visible={visible}
+      visible={isRendered}
       transparent
       animationType="none"
+      statusBarTranslucent
       onRequestClose={onCancel}
     >
-      <Animated.View className="flex-1" style={{ opacity: overlayOpacity }}>
-        <Pressable
-          className="flex-1 justify-end bg-background-shade"
-          onPress={onCancel}
-        >
-          <Animated.View
-            style={{ transform: [{ translateY: sheetTranslateY }] }}
-          >
-            <Pressable
-              className="gap-4 rounded-t-3xl bg-background-modal px-5 pb-10 pt-4"
-              onPress={e => e.stopPropagation()}
+      <View className="flex-1">
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: BackgroundShade, opacity: progress },
+          ]}
+        />
+
+        <Pressable className="flex-1" onPress={onCancel} />
+
+        <Animated.View style={{ transform: [{ translateY }] }}>
+          <View className="gap-4 rounded-t-3xl bg-background-modal px-5 pb-10 pt-4">
+            <View className="mb-2 h-1 w-10 self-center rounded-full bg-details-primary" />
+
+            <Text className="text-xl font-bold text-label-primary">
+              {title}
+            </Text>
+            <Text className="text-[15px] text-label-primary">{message}</Text>
+
+            <Button
+              shape="pill"
+              className="h-[49px] w-full"
+              onPress={onConfirm}
             >
-              <View className="mb-2 h-1 w-10 self-center rounded-full bg-details-primary" />
-
-              <Text className="text-xl font-bold text-label-primary">
-                {title}
-              </Text>
-              <Text className="text-[15px] text-label-primary">{message}</Text>
-
-              <Button
-                shape="pill"
-                className="h-[49px] w-full"
-                onPress={onConfirm}
-              >
-                <Text className="font-semibold">{confirmLabel}</Text>
-              </Button>
-              <Button
-                variant="outline"
-                shape="pill"
-                className="h-[49px] w-full"
-                onPress={onCancel}
-              >
-                <Text className="font-semibold">{cancelLabel}</Text>
-              </Button>
-            </Pressable>
-          </Animated.View>
-        </Pressable>
-      </Animated.View>
+              <Text className="font-semibold">{confirmLabel}</Text>
+            </Button>
+            <Button
+              variant="outline"
+              shape="pill"
+              className="h-[49px] w-full"
+              onPress={onCancel}
+            >
+              <Text className="font-semibold">{cancelLabel}</Text>
+            </Button>
+          </View>
+        </Animated.View>
+      </View>
     </Modal>
   );
 }

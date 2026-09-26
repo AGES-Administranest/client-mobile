@@ -2,6 +2,16 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+
+// A folha anima por timers (useSheetAnimation); desmontar a para antes de o
+// Jest derrubar o ambiente.
+afterEach(async () => {
+  await act(async () => {
+    mounted.splice(0).forEach(renderer => renderer.unmount());
+  });
+});
+
 async function renderSheet(onConfirm = () => {}, onCancel = () => {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
@@ -17,6 +27,7 @@ async function renderSheet(onConfirm = () => {}, onCancel = () => {}) {
       />,
     );
   });
+  mounted.push(renderer!);
   return renderer!;
 }
 
