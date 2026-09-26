@@ -146,7 +146,7 @@ async function fill(
   }
 }
 
-test('horário sobreposto abre o alerta; ajustar volta ao formulário para corrigir', async () => {
+test('horário sobreposto abre o alerta de conflito; ajustar volta, confirmar salva', async () => {
   const onClose = jest.fn();
   const onSaved = jest.fn();
   const screen = (visible: boolean) => (
@@ -201,11 +201,10 @@ test('horário sobreposto abre o alerta; ajustar volta ao formulário para corri
   expect(onSaved).toHaveBeenCalledTimes(1);
 
   await act(async () => {
-    field(renderer, 'Hora de início').props.onChangeText('1100');
-    field(renderer, 'Hora do fim').props.onChangeText('1300');
+    button(renderer, 'Confirmar').props.onPress();
   });
   await act(async () => {
-    button(renderer, 'Confirmar').props.onPress();
+    alert().props.onConfirm();
   });
   expect(onSaved).toHaveBeenCalledTimes(2);
   expect(onSaved).toHaveBeenLastCalledWith(

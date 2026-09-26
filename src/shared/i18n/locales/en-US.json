@@ -245,8 +245,9 @@
     },
     "conflict": {
       "title": "Schedule conflict",
-      "message": "This time conflicts with {{procedure}} at {{time}}. Adjust the time to continue.",
+      "message": "This time conflicts with {{procedure}} at {{time}}. Do you want to confirm anyway?",
       "unnamedProcedure": "another appointment",
+      "confirm": "Confirm",
       "adjust": "Adjust time"
     }
   },

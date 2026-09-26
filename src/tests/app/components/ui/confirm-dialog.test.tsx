@@ -98,35 +98,3 @@ test('confirmar, cancelar e tocar fora chamam o handler certo', async () => {
   });
   expect(onCancel).toHaveBeenCalledTimes(2);
 });
-
-test('sem cancelLabel vira um aviso de uma ação só', async () => {
-  const onConfirm = jest.fn();
-  const onCancel = jest.fn();
-  let renderer!: ReactTestRenderer.ReactTestRenderer;
-  await act(async () => {
-    renderer = ReactTestRenderer.create(
-      <ConfirmDialog
-        visible
-        title="Conflito de horário"
-        message="Este horário conflita com outro agendamento."
-        confirmLabel="Ajustar horário"
-        onConfirm={onConfirm}
-        onCancel={onCancel}
-      />,
-    );
-  });
-  mounted.push(renderer);
-
-  const buttons = renderer.root.findAll(
-    node =>
-      node.props?.role === 'button' &&
-      typeof node.props?.onPress === 'function',
-  );
-  expect(buttons).toHaveLength(1);
-
-  await act(async () => {
-    buttons[0].props.onPress();
-  });
-  expect(onConfirm).toHaveBeenCalledTimes(1);
-  expect(onCancel).not.toHaveBeenCalled();
-});

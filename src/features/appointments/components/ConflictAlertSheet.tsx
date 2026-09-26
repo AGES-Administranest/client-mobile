@@ -11,17 +11,16 @@ type ConflictingAppointment = {
 type ConflictAlertSheetProps = {
   visible: boolean;
   conflictingAppointment: ConflictingAppointment;
+  onConfirm: () => void;
   onAdjust: () => void;
 };
 
 // Abre por cima da folha do formulário, então é um ConfirmDialog e não um
 // ConfirmSheet: folha sobre folha deixa ambíguo qual está em foco (DESIGN.md).
-//
-// Só há "Ajustar horário": salvar mesmo com conflito ("Confirmar") depende de
-// o backend aceitar forçar a gravação, o que ele ainda não faz.
 function ConflictAlertSheet({
   visible,
   conflictingAppointment,
+  onConfirm,
   onAdjust,
 }: ConflictAlertSheetProps) {
   const { t } = useTranslation();
@@ -36,8 +35,9 @@ function ConflictAlertSheet({
           t('appointments.conflict.unnamedProcedure'),
         time: conflictingAppointment.time,
       })}
-      confirmLabel={t('appointments.conflict.adjust')}
-      onConfirm={onAdjust}
+      confirmLabel={t('appointments.conflict.confirm')}
+      cancelLabel={t('appointments.conflict.adjust')}
+      onConfirm={onConfirm}
       onCancel={onAdjust}
     />
   );

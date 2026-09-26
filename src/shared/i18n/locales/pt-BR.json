@@ -245,8 +245,9 @@
     },
     "conflict": {
       "title": "Conflito de horário",
-      "message": "Este horário conflita com {{procedure}} às {{time}}. Ajuste o horário para continuar.",
+      "message": "Este horário conflita com {{procedure}} às {{time}}. Deseja confirmar mesmo assim?",
       "unnamedProcedure": "outro atendimento",
+      "confirm": "Confirmar",
       "adjust": "Ajustar horário"
     }
   },

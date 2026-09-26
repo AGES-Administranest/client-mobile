@@ -160,6 +160,7 @@ test('cria no modo de criação, com o token da sessão', async () => {
   expect(createMock).toHaveBeenCalledWith(
     'id-token',
     expect.objectContaining({ clientId: 'client-1', amount: 620 }),
+    {},
   );
 });
 
@@ -177,27 +178,38 @@ test('atualiza no modo de edição', async () => {
     'id-token',
     'appointment-1',
     expect.objectContaining({ patientName: 'Mel' }),
+    {},
   );
 });
 
-test('um 409 vira conflito, não falha genérica', async () => {
+test('um 409 vira conflito, e confirmar reenvia forçando', async () => {
   createMock.mockRejectedValueOnce(
     new ApiError('conflict', 'APPOINTMENT_TIME_CONFLICT', 409, {
       conflict: true,
       conflictingAppointment: CONFLICTING,
     }),
   );
+  createMock.mockResolvedValueOnce(SAVED);
   const hook = await mountHook();
   await fillValidDraft(hook);
 
-  let result: Appointment | null = SAVED;
   await act(async () => {
-    result = await hook.form.submit();
+    await hook.form.submit();
   });
 
-  expect(result).toBeNull();
   expect(hook.form.conflict).toEqual(CONFLICTING);
   expect(hook.form.failure).toBeNull();
+
+  let result: Appointment | null = null;
+  await act(async () => {
+    result = await hook.form.confirmDespiteConflict();
+  });
+
+  expect(result).toBe(SAVED);
+  expect(createMock).toHaveBeenLastCalledWith('id-token', expect.anything(), {
+    force: true,
+  });
+  expect(hook.form.conflict).toBeNull();
 });
 
 test('ajustar o horário só fecha o conflito', async () => {
