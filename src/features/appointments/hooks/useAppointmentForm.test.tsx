@@ -245,3 +245,23 @@ test('outro erro da API vira falha genérica, não conflito', async () => {
   expect(hook.form.conflict).toBeNull();
   expect(hook.form.failure).toEqual({ code: 'UNKNOWN' });
 });
+
+test('preencher um campo apaga só o erro dele', async () => {
+  const hook = await mountHook();
+
+  await act(() => {
+    hook.form.reset(createDraft('2026-09-21'));
+  });
+  await act(async () => {
+    await hook.form.submit();
+  });
+  expect(hook.form.errors.patientName).toBe('required');
+  expect(hook.form.errors.procedureName).toBe('required');
+
+  await act(() => {
+    hook.form.setPatientName('Mel');
+  });
+
+  expect(hook.form.errors.patientName).toBeUndefined();
+  expect(hook.form.errors.procedureName).toBe('required');
+});

@@ -16,6 +16,7 @@ import {
   type Appointment,
   type AppointmentDraft,
   type AppointmentErrors,
+  type AppointmentField,
   type AsaClass,
   type ConflictingAppointment,
   type Species,
@@ -104,9 +105,24 @@ export function useAppointmentForm(
     };
   }, [idToken]);
 
+  // Mexer num campo apaga o erro dele: sem isso o "Campo obrigatório" ficava
+  // embaixo de um campo já preenchido até o próximo Confirmar.
   const update = useCallback(
-    <K extends keyof AppointmentDraft>(field: K, value: AppointmentDraft[K]) =>
-      setDraft(current => ({ ...current, [field]: value })),
+    <K extends keyof AppointmentDraft>(
+      field: K,
+      value: AppointmentDraft[K],
+    ) => {
+      setDraft(current => ({ ...current, [field]: value }));
+      setErrors(current => {
+        if (!(field in current)) {
+          return current;
+        }
+
+        const next = { ...current };
+        delete next[field as AppointmentField];
+        return next;
+      });
+    },
     [],
   );
 
