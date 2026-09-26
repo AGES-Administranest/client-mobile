@@ -326,7 +326,37 @@
     "confirm": "Confirm",
     "edit": "Edit",
     "delete": "Delete",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "errors": {
+      "name": {
+        "required": "Enter the item name.",
+        "tooShort": "The name needs at least 2 characters.",
+        "pickOrAdd": "Pick an item from the list or add a new one."
+      },
+      "unitCost": {
+        "required": "Enter the unit cost.",
+        "tooLarge": "The unit cost is too high."
+      },
+      "unit": {
+        "required": "Select the unit."
+      },
+      "quantity": {
+        "required": "Enter the quantity.",
+        "zero": "The quantity must be greater than zero.",
+        "tooLarge": "The quantity is too high."
+      },
+      "minQuantity": {
+        "tooLarge": "The minimum quantity is too high."
+      },
+      "expiration": {
+        "incomplete": "Enter the full date (dd/mm/yyyy).",
+        "invalid": "Enter a valid date.",
+        "past": "The expiration date cannot be in the past"
+      },
+      "supplierName": {
+        "tooShort": "The supplier name needs at least 2 characters."
+      }
+    }
   },
   "auth": {
     "back": "Back",

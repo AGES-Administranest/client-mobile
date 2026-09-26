@@ -326,7 +326,37 @@
     "confirm": "Confirmar",
     "edit": "Editar",
     "delete": "Excluir",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "errors": {
+      "name": {
+        "required": "Informe o nome do item.",
+        "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+        "pickOrAdd": "Selecione um item da lista ou adicione um novo."
+      },
+      "unitCost": {
+        "required": "Informe o custo unitário.",
+        "tooLarge": "O custo unitário é alto demais."
+      },
+      "unit": {
+        "required": "Selecione a unidade."
+      },
+      "quantity": {
+        "required": "Informe a quantidade.",
+        "zero": "A quantidade precisa ser maior que zero.",
+        "tooLarge": "A quantidade é alta demais."
+      },
+      "minQuantity": {
+        "tooLarge": "A quantidade mínima é alta demais."
+      },
+      "expiration": {
+        "incomplete": "Informe a data completa (dd/mm/aaaa).",
+        "invalid": "Informe uma data válida.",
+        "past": "A validade não pode ser uma data passada"
+      },
+      "supplierName": {
+        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres."
+      }
+    }
   },
   "auth": {
     "back": "Voltar",

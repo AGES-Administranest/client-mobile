@@ -1,5 +1,3 @@
-// src/app/components/ui/item-modal/item-modal.tsx
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
@@ -14,8 +12,13 @@ import {
 import { Button } from 'app/components/ui/button';
 import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { Text } from 'app/components/ui/text';
-import { useTranslation } from 'shared/i18n';
+import { useTranslation, type TranslationKey } from 'shared/i18n';
 
+import {
+  validateItemForm,
+  type ItemFormErrors,
+  type ItemFormField,
+} from './domain/itemForm';
 import {
   digitsOnly,
   filterStockItems,
@@ -50,12 +53,8 @@ type ItemModalProps = {
 export type ItemDraft = {
   category: string;
   name: string;
-  // Campo livre por enquanto: ainda não há cadastro de fornecedor, então o
-  // valor não é persistido. Ver o comentário em useMaterialsScreen.
   supplierName: string | null;
-  // Item cujos próprios atributos estão sendo alterados (PATCH).
   editingItemId: string | null;
-  // Item existente escolhido no dropdown para receber um lote novo.
   selectedItemId: string | null;
   unitCost: string;
   unit: string;
@@ -106,6 +105,7 @@ function ItemModal({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [unitDropdownOpen, setUnitDropdownOpen] = useState(false);
   const [supplierName, setSupplierName] = useState('');
+  const [errors, setErrors] = useState<ItemFormErrors>({});
 
   const [showLotFields, setShowLotFields] = useState(isDetail || item !== null);
 
@@ -132,16 +132,38 @@ function ItemModal({
     isEditing ||
     (showLotFields && shouldShowMinQuantity(selectedItem));
 
-  // Dar entrada num item que já existe abre um lote novo: o que se informa é
-  // quanto entrou, não a validade — que ficaria herdada do lote anterior.
   const isAddingToExisting = !isDetail && !isEditing && selectedItem !== null;
   const showExpiration = (isDetail || showLotFields) && !isAddingToExisting;
-  // Fornecedor é atributo do item, não do lote: aparece ao cadastrar um item
-  // novo, não ao dar entrada de estoque num que já existe.
   const showSupplier =
     !isDetail && !isEditing && showLotFields && !isAddingToExisting;
 
   const expirationInPast = !isDetail && isPastDate(expiration);
+
+  function clearError(field: ItemFormField) {
+    setErrors(current => {
+      if (current[field] === undefined) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function errorText(field: ItemFormField) {
+    const code = errors[field];
+    return code
+      ? t(`itemModal.errors.${field}.${code}` as TranslationKey)
+      : null;
+  }
+
+  const inputBorder = (field: ItemFormField) =>
+    errors[field] ? 'border-destructive' : 'border-details-primary';
+
+  function renderError(field: ItemFormField) {
+    const message = errorText(field);
+    return message ? (
+      <Text className="text-xs text-destructive">{message}</Text>
+    ) : null;
+  }
 
   const selectedCategoryLabel =
     categoryOptions.find(c => c.value === category)?.label ?? '';
@@ -164,17 +186,14 @@ function ItemModal({
     setQuantity('');
     setMinQuantity('');
     setExpiration('');
-    // Só chamada em fluxos de criação (isDetail é sempre false aqui).
+    setErrors({});
     setShowLotFields(false);
     setIsAddingNew(false);
   }
 
-  // Os useState acima só valem na montagem. O modal fica montado entre
-  // aberturas, então trocar `item` (abrir em modo edição) não reinicializa
-  // nada — sem este efeito a edição abria com os campos vazios e o submit
-  // caía no fluxo de criação, duplicando o item.
   useEffect(() => {
     if (!visible) return;
+    setErrors({});
 
     if (item) {
       setCategory(item.category);
@@ -199,6 +218,7 @@ function ItemModal({
 
   function handleSelectExisting(existing: StockItem) {
     setSelectedItem(existing);
+    clearError('name');
     setQuery(existing.name);
     setUnitCost(String(existing.unitCost));
     setUnit(existing.unit);
@@ -210,6 +230,7 @@ function ItemModal({
   }
 
   function handleAddNew() {
+    clearError('name');
     setSelectedItem(null);
     setDropdownOpen(false);
     setShowLotFields(true);
@@ -218,9 +239,10 @@ function ItemModal({
 
   function handleChangeName(text: string) {
     setQuery(text);
+    clearError('name');
     if (isEditing) return;
 
-    setSelectedItem(null); // digitar de novo desfaz a seleção anterior
+    setSelectedItem(null);
 
     if (!isAddingNew) {
       setDropdownOpen(true);
@@ -228,7 +250,28 @@ function ItemModal({
   }
 
   function handleConfirm() {
-    if (showExpiration && expirationInPast) return;
+    const found = validateItemForm(
+      {
+        name: query,
+        unitCost,
+        unit,
+        quantity,
+        minQuantity,
+        expiration,
+        supplierName,
+      },
+      {
+        isEditing,
+        hasChosenItem: showLotFields,
+        isAddingToExisting,
+        showMinQuantity,
+        showExpiration,
+        showSupplier,
+      },
+    );
+    setErrors(found);
+    if (Object.keys(found).length > 0) return;
+
     onConfirm?.({
       category,
       name: query,
@@ -274,14 +317,12 @@ function ItemModal({
               <View className="h-px bg-details-primary" />
 
               <View className="gap-4">
-                {/* CATEGORIA */}
                 <View className="gap-2">
                   <Text className="text-xs font-semibold text-label-primary">
                     {t('itemModal.categoryLabel')}
                   </Text>
                   <CategoryFilter
                     bordered={false}
-                    // No modo detalhe só mostramos a categoria do item.
                     options={
                       isDetail
                         ? categoryOptions.filter(c => c.value === category)
@@ -291,18 +332,12 @@ function ItemModal({
                     onValueChange={value => {
                       if (isDetail) return;
                       setCategory(value);
-                      // Trocar a categoria invalida um item escolhido no
-                      // dropdown (ele era de outra categoria), mas não pode
-                      // apagar o que já foi digitado: como "Medicamento" é a
-                      // categoria inicial, limpar tudo aqui inviabilizava
-                      // cadastrar anestésico e descartável.
                       setSelectedItem(null);
                       setDropdownOpen(false);
                     }}
                   />
                 </View>
 
-                {/* NOME (dropdown pesquisável no create, texto simples no detail) */}
                 <View className="gap-2">
                   <Text className="text-xs font-semibold text-label-primary">
                     {t('itemModal.nameLabel')}
@@ -317,8 +352,12 @@ function ItemModal({
                     placeholder={namePlaceholder}
                     placeholderTextColor={LabelTertiary}
                     selectionColor={LabelPrimary}
-                    className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                    maxLength={120}
+                    className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${inputBorder(
+                      'name',
+                    )}`}
                   />
+                  {renderError('name')}
 
                   {!isDetail &&
                     dropdownOpen &&
@@ -367,16 +406,22 @@ function ItemModal({
                     </Text>
                     <TextInput
                       value={supplierName}
-                      onChangeText={setSupplierName}
+                      onChangeText={text => {
+                        setSupplierName(text);
+                        clearError('supplierName');
+                      }}
                       placeholder={t('itemModal.supplierPlaceholder')}
                       placeholderTextColor={LabelTertiary}
                       selectionColor={LabelPrimary}
-                      className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                      maxLength={120}
+                      className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${inputBorder(
+                        'supplierName',
+                      )}`}
                     />
+                    {renderError('supplierName')}
                   </View>
                 )}
 
-                {/* CUSTO UNITÁRIO + UNIDADE */}
                 <View className="z-10 flex-row gap-3">
                   <View className="flex-1 gap-2">
                     <Text className="text-xs font-semibold text-label-primary">
@@ -385,13 +430,19 @@ function ItemModal({
                     <TextInput
                       value={unitCost}
                       editable={!isDetail}
-                      onChangeText={text => setUnitCost(formatCurrency(text))}
+                      onChangeText={text => {
+                        setUnitCost(formatCurrency(text));
+                        clearError('unitCost');
+                      }}
                       keyboardType="numeric"
                       placeholder={t('itemModal.unitCostPlaceholder')}
                       placeholderTextColor={LabelTertiary}
                       selectionColor={LabelPrimary}
-                      className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                      className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${inputBorder(
+                        'unitCost',
+                      )}`}
                     />
+                    {renderError('unitCost')}
                   </View>
                   <View className="z-10 flex-1 gap-2">
                     <Pressable
@@ -401,7 +452,11 @@ function ItemModal({
                       <Text className="text-xs font-semibold text-label-primary">
                         {t('itemModal.unitLabel')}
                       </Text>
-                      <View className="justify-center rounded-xl border border-details-primary bg-white px-4 py-3">
+                      <View
+                        className={`justify-center rounded-xl border bg-white px-4 py-3 ${inputBorder(
+                          'unit',
+                        )}`}
+                      >
                         <Text
                           className={
                             unit
@@ -413,6 +468,7 @@ function ItemModal({
                         </Text>
                       </View>
                     </Pressable>
+                    {renderError('unit')}
 
                     {!isDetail &&
                       unitDropdownOpen &&
@@ -423,6 +479,7 @@ function ItemModal({
                               key={option}
                               onPress={() => {
                                 setUnit(option);
+                                clearError('unit');
                                 setUnitDropdownOpen(false);
                               }}
                             >
@@ -443,13 +500,19 @@ function ItemModal({
                   <TextInput
                     value={quantity}
                     editable={!isDetail && !isEditing}
-                    onChangeText={text => setQuantity(digitsOnly(text))}
+                    onChangeText={text => {
+                      setQuantity(digitsOnly(text));
+                      clearError('quantity');
+                    }}
                     keyboardType="numeric"
                     placeholder="0"
                     placeholderTextColor={LabelTertiary}
                     selectionColor={LabelPrimary}
-                    className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                    className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${inputBorder(
+                      'quantity',
+                    )}`}
                   />
+                  {renderError('quantity')}
                 </View>
 
                 {showMinQuantity && (
@@ -460,13 +523,19 @@ function ItemModal({
                     <TextInput
                       value={minQuantity}
                       editable={!isDetail}
-                      onChangeText={text => setMinQuantity(digitsOnly(text))}
+                      onChangeText={text => {
+                        setMinQuantity(digitsOnly(text));
+                        clearError('minQuantity');
+                      }}
                       keyboardType="numeric"
                       placeholder="0"
                       placeholderTextColor={LabelTertiary}
                       selectionColor={LabelPrimary}
-                      className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
+                      className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${inputBorder(
+                        'minQuantity',
+                      )}`}
                     />
+                    {renderError('minQuantity')}
                   </View>
                 )}
 
@@ -478,9 +547,10 @@ function ItemModal({
                     <TextInput
                       value={expiration}
                       editable={!isDetail}
-                      onChangeText={text =>
-                        setExpiration(formatDateInput(text))
-                      }
+                      onChangeText={text => {
+                        setExpiration(formatDateInput(text));
+                        clearError('expiration');
+                      }}
                       keyboardType="numeric"
                       maxLength={10}
                       placeholder={t('itemModal.expirationPlaceholder')}
@@ -489,13 +559,15 @@ function ItemModal({
                       className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${
                         expirationInPast
                           ? 'border-destructive'
-                          : 'border-details-primary'
+                          : inputBorder('expiration')
                       }`}
                     />
-                    {expirationInPast && (
+                    {expirationInPast ? (
                       <Text className="text-xs text-destructive">
                         {t('itemModal.expirationPastError')}
                       </Text>
+                    ) : (
+                      renderError('expiration')
                     )}
                   </View>
                 )}

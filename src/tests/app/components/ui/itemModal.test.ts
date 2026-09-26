@@ -8,7 +8,7 @@ import {
   shouldShowAddOption,
   shouldShowMinQuantity,
   type StockItem,
-} from './itemModal';
+} from '../../../../app/components/ui/item-modal/domain/itemModal';
 
 const items: StockItem[] = [
   {
@@ -58,7 +58,6 @@ describe('filterStockItems', () => {
   });
 
   it('ignores accents when matching', () => {
-    // "cateter" digitado com acento ainda acha "Cateter"
     expect(filterStockItems('cáteter', items).map(i => i.id)).toEqual(['3']);
   });
 
@@ -123,7 +122,7 @@ describe('formatDateInput', () => {
 });
 
 describe('isPastDate', () => {
-  const today = new Date(2030, 5, 15); // 15/06/2030
+  const today = new Date(2030, 5, 15);
 
   it('is false while the date is incomplete', () => {
     expect(isPastDate('', today)).toBe(false);
@@ -179,8 +178,6 @@ describe('toDateInput', () => {
 });
 
 describe('isPastDate on malformed input', () => {
-  // Um ISO cru caindo no campo era lido como dia 20 / mês 27 / ano 0331 e
-  // passava por "data passada", travando o formulário.
   it('does not treat an impossible date as a past one', () => {
     expect(isPastDate('2027-03-31')).toBe(false);
     expect(isPastDate('31/02/2027')).toBe(false);
