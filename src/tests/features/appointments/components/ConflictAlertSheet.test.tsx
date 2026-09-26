@@ -14,7 +14,6 @@ afterEach(async () => {
 });
 
 async function renderSheet(
-  onConfirm = () => {},
   onAdjust = () => {},
   procedureName: string | null = 'Orquiectomia',
 ) {
@@ -25,7 +24,6 @@ async function renderSheet(
         <ConflictAlertSheet
           visible
           conflictingAppointment={{ procedureName, time: '14:00' }}
-          onConfirm={onConfirm}
           onAdjust={onAdjust}
         />
       </I18nProvider>,
@@ -52,41 +50,33 @@ test('shows the conflict title and the interpolated message', async () => {
 });
 
 test('falls back to a generic label when the conflicting appointment has no procedure name', async () => {
-  const renderer = await renderSheet(
-    () => {},
-    () => {},
-    null,
-  );
+  const renderer = await renderSheet(() => {}, null);
 
   const contents = textContents(renderer).join(' ');
 
   expect(contents).toContain('outro atendimento');
 });
 
-test('confirming and adjusting call the right handler', async () => {
-  const onConfirm = jest.fn();
+test('only offers adjusting the time, not saving anyway', async () => {
   const onAdjust = jest.fn();
-  const renderer = await renderSheet(onConfirm, onAdjust);
+  const renderer = await renderSheet(onAdjust);
 
-  const pressables = renderer.root.findAll(
-    node => typeof node.props?.onPress === 'function',
+  const buttons = renderer.root.findAll(
+    node =>
+      node.props?.role === 'button' &&
+      typeof node.props?.onPress === 'function',
   );
-  const byLabel = (label: string) =>
-    pressables
-      .filter(node =>
-        JSON.stringify(
-          node.findAllByType('Text' as never).map(t => t.props.children),
-        ).includes(label),
-      )
-      .pop()!;
+  const labels = buttons.map(node =>
+    JSON.stringify(
+      node.findAllByType('Text' as never).map(t => t.props.children),
+    ),
+  );
+
+  expect(labels).toHaveLength(1);
+  expect(labels[0]).toContain('Ajustar horário');
 
   await act(async () => {
-    byLabel('Confirmar').props.onPress();
-  });
-  expect(onConfirm).toHaveBeenCalledTimes(1);
-
-  await act(async () => {
-    byLabel('Ajustar horário').props.onPress();
+    buttons[0].props.onPress();
   });
   expect(onAdjust).toHaveBeenCalledTimes(1);
 });

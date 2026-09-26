@@ -6,11 +6,6 @@ import type {
   ConflictingAppointment,
 } from '../domain/appointment';
 
-export type SaveAppointmentOptions = {
-  /** Salvar mesmo com conflito de horário ("Confirmar" no alerta). */
-  force?: boolean;
-};
-
 const TIME_CONFLICT = 'APPOINTMENT_TIME_CONFLICT';
 const NOT_FOUND = 'APPOINTMENT_NOT_FOUND';
 
@@ -42,10 +37,8 @@ export function readTimeConflict(
 // vem do token e o payload nunca carrega userId — então ligar na API é trocar
 // o corpo de cada função por:
 //
-//   create: apiClient.post<Appointment>('/appointments', body, { token: idToken })
-//   update: apiClient.patch<Appointment>(`/appointments/${id}`, body, { token: idToken })
-//
-// com `body = options.force ? { ...payload, forceCreate: true } : payload`.
+//   create: apiClient.post<Appointment>('/appointments', payload, { token: idToken })
+//   update: apiClient.patch<Appointment>(`/appointments/${id}`, payload, { token: idToken })
 //
 // Até lá os agendamentos ficam em memória e o conflito é detectado com a mesma
 // regra do backend (intervalos que se sobrepõem, bordas encostadas não contam),
@@ -65,13 +58,8 @@ function overlaps(payload: AppointmentPayload, other: Appointment): boolean {
 
 function assertNoConflict(
   payload: AppointmentPayload,
-  options: SaveAppointmentOptions,
   excludeId: string | null,
 ) {
-  if (options.force) {
-    return;
-  }
-
   const conflicting = APPOINTMENTS.find(
     other => other.id !== excludeId && overlaps(payload, other),
   );
@@ -106,9 +94,8 @@ function toAppointment(id: string, payload: AppointmentPayload): Appointment {
 export async function createAppointment(
   idToken: string,
   payload: AppointmentPayload,
-  options: SaveAppointmentOptions = {},
 ): Promise<Appointment> {
-  assertNoConflict(payload, options, null);
+  assertNoConflict(payload, null);
 
   const created = toAppointment(`appointment-${Date.now()}`, payload);
   APPOINTMENTS.push(created);
@@ -120,7 +107,6 @@ export async function updateAppointment(
   idToken: string,
   id: string,
   payload: AppointmentPayload,
-  options: SaveAppointmentOptions = {},
 ): Promise<Appointment> {
   const index = APPOINTMENTS.findIndex(appointment => appointment.id === id);
 
@@ -128,7 +114,7 @@ export async function updateAppointment(
     throw new ApiError('Appointment not found', NOT_FOUND, 404);
   }
 
-  assertNoConflict(payload, options, id);
+  assertNoConflict(payload, id);
 
   const updated = toAppointment(id, payload);
   APPOINTMENTS[index] = updated;

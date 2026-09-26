@@ -17,8 +17,10 @@ type ConfirmDialogProps = {
   title: string;
   message: string;
   confirmLabel: string;
-  cancelLabel: string;
+  /** Sem ele, o diálogo só tem a ação principal (um aviso). */
+  cancelLabel?: string;
   onConfirm: () => void;
+  /** Tocar fora e o voltar do Android — e o botão secundário, se houver. */
   onCancel: () => void;
 };
 
@@ -69,7 +71,7 @@ function ConfirmDialog({
 
         <Pressable
           style={StyleSheet.absoluteFill}
-          accessibilityLabel={cancelLabel}
+          accessibilityLabel={cancelLabel ?? confirmLabel}
           onPress={onCancel}
         />
 
@@ -91,14 +93,16 @@ function ConfirmDialog({
               >
                 <Text className="font-semibold">{confirmLabel}</Text>
               </Button>
-              <Button
-                variant="outline"
-                shape="pill"
-                className="h-[49px] w-full"
-                onPress={onCancel}
-              >
-                <Text className="font-semibold">{cancelLabel}</Text>
-              </Button>
+              {cancelLabel ? (
+                <Button
+                  variant="outline"
+                  shape="pill"
+                  className="h-[49px] w-full"
+                  onPress={onCancel}
+                >
+                  <Text className="font-semibold">{cancelLabel}</Text>
+                </Button>
+              ) : null}
             </View>
           </View>
         </Animated.View>

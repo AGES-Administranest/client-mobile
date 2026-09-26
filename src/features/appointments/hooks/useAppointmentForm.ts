@@ -24,7 +24,6 @@ import {
   createAppointment,
   readTimeConflict,
   updateAppointment,
-  type SaveAppointmentOptions,
 } from '../services/appointmentService';
 import {
   fetchServiceTakers,
@@ -57,7 +56,6 @@ export type AppointmentFormState = {
   setNotes: (value: string) => void;
   reset: (initial: AppointmentDraft) => void;
   submit: () => Promise<Appointment | null>;
-  confirmDespiteConflict: () => Promise<Appointment | null>;
   dismissConflict: () => void;
 };
 
@@ -175,53 +173,43 @@ export function useAppointmentForm(
     setIsSaving(false);
   }, []);
 
-  const save = useCallback(
-    async (options: SaveAppointmentOptions) => {
-      const validationErrors = validateAppointmentDraft(draft);
-      setErrors(validationErrors);
-      setFailure(null);
-      setConflict(null);
+  const submit = useCallback(async () => {
+    const validationErrors = validateAppointmentDraft(draft);
+    setErrors(validationErrors);
+    setFailure(null);
+    setConflict(null);
 
-      const payload = isAppointmentValid(validationErrors)
-        ? toAppointmentPayload(draft)
-        : null;
+    const payload = isAppointmentValid(validationErrors)
+      ? toAppointmentPayload(draft)
+      : null;
 
-      if (payload === null) {
-        return null;
+    if (payload === null) {
+      return null;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const saved = appointmentId
+        ? await updateAppointment(idToken, appointmentId, payload)
+        : await createAppointment(idToken, payload);
+
+      setIsSaving(false);
+      return saved;
+    } catch (error) {
+      setIsSaving(false);
+
+      const conflicting = readTimeConflict(error);
+
+      if (conflicting) {
+        setConflict(conflicting);
+      } else {
+        setFailure({ code: 'UNKNOWN' });
       }
 
-      setIsSaving(true);
-
-      try {
-        const saved = appointmentId
-          ? await updateAppointment(idToken, appointmentId, payload, options)
-          : await createAppointment(idToken, payload, options);
-
-        setIsSaving(false);
-        return saved;
-      } catch (error) {
-        setIsSaving(false);
-
-        const conflicting = readTimeConflict(error);
-
-        if (conflicting) {
-          setConflict(conflicting);
-        } else {
-          setFailure({ code: 'UNKNOWN' });
-        }
-
-        return null;
-      }
-    },
-    [appointmentId, draft, idToken],
-  );
-
-  const submit = useCallback(() => save({}), [save]);
-
-  const confirmDespiteConflict = useCallback(
-    () => save({ force: true }),
-    [save],
-  );
+      return null;
+    }
+  }, [appointmentId, draft, idToken]);
 
   const dismissConflict = useCallback(() => setConflict(null), []);
 
@@ -247,7 +235,6 @@ export function useAppointmentForm(
     setNotes,
     reset,
     submit,
-    confirmDespiteConflict,
     dismissConflict,
   };
 }

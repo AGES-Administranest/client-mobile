@@ -88,9 +88,6 @@ export function AppointmentFormScreen({
 
   const submit = async () => finish(await form.submit());
 
-  const confirmDespiteConflict = async () =>
-    finish(await form.confirmDespiteConflict());
-
   const speciesLabels = Object.fromEntries(
     SPECIES_OPTIONS.map(species => [
       species,
@@ -180,7 +177,6 @@ export function AppointmentFormScreen({
             procedureName: shownConflict.procedureName,
             time: toTimeInput(shownConflict.startsAt),
           }}
-          onConfirm={confirmDespiteConflict}
           onAdjust={form.dismissConflict}
         />
       ) : null}
