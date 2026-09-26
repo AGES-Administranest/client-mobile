@@ -197,6 +197,54 @@
       }
     }
   },
+  "appointments": {
+    "form": {
+      "titleCreate": "New appointment",
+      "titleEdit": "Edit appointment",
+      "cancel": "Cancel",
+      "patientLabel": "Patient",
+      "patientPlaceholder": "Animal name",
+      "procedureLabel": "Procedure",
+      "procedurePlaceholder": "E.g. Orchiectomy",
+      "clinicLabel": "Clinic",
+      "clinicPlaceholder": "Select the clinic",
+      "ageLabel": "Age",
+      "agePlaceholder": "0",
+      "weightLabel": "Weight (kg)",
+      "weightPlaceholder": "0",
+      "startTimeLabel": "Start time",
+      "endTimeLabel": "End time",
+      "timePlaceholder": "00:00",
+      "dateLabel": "Date",
+      "datePlaceholder": "Select the date",
+      "amountLabel": "Appointment amount",
+      "amountPlaceholder": "0",
+      "speciesLabel": "Species",
+      "asaLabel": "ASA classification",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "E.g. bring previous exams",
+      "confirm": "Confirm",
+      "discard": {
+        "title": "Discard changes?",
+        "message": "What you filled in for this appointment will be lost.",
+        "confirm": "Discard",
+        "cancel": "Keep editing"
+      }
+    },
+    "species": {
+      "canine": "Canine",
+      "feline": "Feline"
+    },
+    "errors": {
+      "required": "Required field",
+      "invalidDate": "Enter a valid date",
+      "invalidTime": "Enter a valid time",
+      "endBeforeStart": "The end time must be after the start time",
+      "mustBePositive": "Enter a value greater than zero",
+      "APPOINTMENT_TIME_CONFLICT": "This time conflicts with another appointment.",
+      "UNKNOWN": "The appointment could not be saved."
+    }
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
