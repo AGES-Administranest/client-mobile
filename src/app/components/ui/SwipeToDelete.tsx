@@ -13,16 +13,11 @@ import {
 import { Icon } from 'app/components/ui/icon';
 import { ACTION_WIDTH, resolveSwipeRelease } from 'shared/utils/swipeGesture';
 
-// Horizontal movement needed before the swipe takes over the touch. Below it,
-// taps still reach the card's inputs and the list keeps scrolling vertically.
 const CLAIM_SLOP = 8;
-// How much more horizontal than vertical the drag has to be to count as a swipe.
 const HORIZONTAL_BIAS = 1.5;
 const SETTLE_MS = 180;
 const EXIT_MS = 200;
 
-// Dragging across the card would otherwise start a text selection on web, which
-// steals the gesture halfway through. Native platforms have no such notion.
 const SWIPE_STYLE = Platform.select({
   web: { userSelect: 'none' } as never,
   default: undefined,
@@ -30,31 +25,17 @@ const SWIPE_STYLE = Platform.select({
 
 type SwipeToDeleteProps = {
   onDelete: () => void;
-  /** Accessible name for the delete action. */
   deleteLabel: string;
   children: ReactNode;
 };
 
-/**
- * Reveals a delete action when its child is swiped to the left. A long drag or
- * a quick flick removes the row outright; a short one parks it open so the bin
- * can be tapped instead.
- *
- * Built on `PanResponder` rather than a gesture library so it adds no
- * dependency and behaves the same on web, where the flow is reviewed.
- */
 export function SwipeToDelete({
   onDelete,
   deleteLabel,
   children,
 }: SwipeToDeleteProps) {
   const translateX = useRef(new Animated.Value(0)).current;
-  // Where the card rests between gestures, so a second drag continues from the
-  // open position instead of jumping back to zero.
   const restingOffset = useRef(0);
-  // Held in a ref so the responder below can stay stable across renders:
-  // rebuilding it mid-drag (the parent re-renders on every keystroke) would
-  // drop the gesture halfway.
   const onDeleteRef = useRef(onDelete);
   useEffect(() => {
     onDeleteRef.current = onDelete;
@@ -83,8 +64,6 @@ export function SwipeToDelete({
       });
     };
 
-    // Capture phase: the name and quantity fields are responders themselves, so
-    // a swipe starting on one of them has to be claimed before it reaches them.
     const shouldCapture = (
       _event: unknown,
       gesture: { dx: number; dy: number },
@@ -96,7 +75,6 @@ export function SwipeToDelete({
       onMoveShouldSetPanResponderCapture: shouldCapture,
       onMoveShouldSetPanResponder: shouldCapture,
       onPanResponderMove: (_event, gesture) => {
-        // Clamped at 0: there is nothing to reveal on the right.
         translateX.setValue(Math.min(0, restingOffset.current + gesture.dx));
       },
       onPanResponderRelease: (_event, gesture) => {
@@ -142,8 +120,6 @@ export function SwipeToDelete({
 }
 
 const styles = StyleSheet.create({
-  // Sits behind the card, flush with its right edge; the card covers it while
-  // the row is closed.
   action: {
     position: 'absolute',
     top: 0,

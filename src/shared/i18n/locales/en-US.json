@@ -197,11 +197,107 @@
       }
     }
   },
+  "clinics": {
+    "addClinic": "Add clinic",
+    "newClinic": {
+      "title": "New clinic",
+      "close": "Close",
+      "confirm": "Confirm",
+      "saving": "Saving...",
+      "fields": {
+        "name": {
+          "label": "Clinic name",
+          "placeholder": "Enter the clinic name"
+        },
+        "cnpj": {
+          "label": "CNPJ",
+          "placeholder": "00.000.000/0000-00"
+        },
+        "addressLine": {
+          "label": "Address",
+          "placeholder": "Enter street, number and neighborhood"
+        },
+        "city": {
+          "label": "City",
+          "placeholder": "e.g. São Paulo"
+        },
+        "state": {
+          "label": "State",
+          "placeholder": "SP"
+        },
+        "phone": {
+          "label": "Phone",
+          "placeholder": "(00) 00000-0000"
+        },
+        "email": {
+          "label": "E-mail",
+          "placeholder": "contact@clinic.com"
+        },
+        "contactName": {
+          "label": "Person in charge",
+          "placeholder": "Name of the veterinarian in charge"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Enter the clinic name.",
+          "tooShort": "The name must have at least 2 characters."
+        },
+        "cnpj": {
+          "required": "Enter the CNPJ.",
+          "invalid": "The CNPJ is not valid."
+        },
+        "state": {
+          "required": "Enter the state.",
+          "invalid": "Enter a valid state code, like SP."
+        },
+        "phone": {
+          "required": "Enter the phone number.",
+          "invalid": "Enter the phone number with its area code."
+        },
+        "email": {
+          "required": "Enter the e-mail.",
+          "invalid": "Enter a valid e-mail."
+        },
+        "addressLine": {
+          "required": "Enter the address.",
+          "tooShort": "The address needs at least 5 characters."
+        },
+        "city": {
+          "required": "Enter the city.",
+          "tooShort": "The city needs at least 2 letters.",
+          "invalid": "The city can only contain letters."
+        },
+        "contactName": {
+          "required": "Enter the contact person's name.",
+          "tooShort": "The name needs at least 2 characters.",
+          "invalid": "The name can only contain letters."
+        }
+      },
+      "failures": {
+        "duplicatedName": "A clinic with this name already exists.",
+        "duplicatedTaxId": "A clinic with this CNPJ already exists.",
+        "session": "Your session has expired. Sign out and sign in again.",
+        "unknown": "Could not save the clinic. Please try again."
+      }
+    },
+    "countOne": "{{count}} clinic",
+    "countOther": "{{count}} clinics",
+    "empty": "No clinics yet.",
+    "detail": {
+      "call": "Contact",
+      "edit": "Edit clinic",
+      "editTitle": "Edit",
+      "confirm": "Confirm",
+      "delete": "Delete"
+    },
+    "loadFailure": "Could not load the clinics."
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
     "materials": "Materials",
-    "clinics": "Clinics",
+    "partners": "Partners",
     "reports": "Reports"
   },
   "optionsModal": {
@@ -230,7 +326,37 @@
     "confirm": "Confirm",
     "edit": "Edit",
     "delete": "Delete",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "errors": {
+      "name": {
+        "required": "Enter the item name.",
+        "tooShort": "The name needs at least 2 characters.",
+        "pickOrAdd": "Pick an item from the list or add a new one."
+      },
+      "unitCost": {
+        "required": "Enter the unit cost.",
+        "tooLarge": "The unit cost is too high."
+      },
+      "unit": {
+        "required": "Select the unit."
+      },
+      "quantity": {
+        "required": "Enter the quantity.",
+        "zero": "The quantity must be greater than zero.",
+        "tooLarge": "The quantity is too high."
+      },
+      "minQuantity": {
+        "tooLarge": "The minimum quantity is too high."
+      },
+      "expiration": {
+        "incomplete": "Enter the full date (dd/mm/yyyy).",
+        "invalid": "Enter a valid date.",
+        "past": "The expiration date cannot be in the past"
+      },
+      "supplierName": {
+        "tooShort": "The supplier name needs at least 2 characters."
+      }
+    }
   },
   "auth": {
     "back": "Back",
@@ -304,5 +430,12 @@
       "menu": "Account",
       "signOut": "Sign out"
     }
+  },
+  "partners": {
+    "segments": {
+      "clinics": "Clinics",
+      "suppliers": "Suppliers"
+    },
+    "suppliersEmpty": "Suppliers are not available here yet."
   }
 }

@@ -2,15 +2,13 @@ import { Plus, ScanText } from 'lucide-react-native';
 import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ActionButton } from 'app/components/ui';
 import { Icon } from 'app/components/ui/icon';
-import { ActionButton } from 'shared/components';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
 
 import { useSheetAnimation } from '../hooks/useSheetAnimation';
 
-// Shared label width for the three menu buttons: keeps their icon+label groups
-// equally wide so the icons line up in a column, as they do in Figma.
 const MENU_LABEL_MIN_WIDTH = 100;
 
 type StockEntryModalProps = {
@@ -21,7 +19,6 @@ type StockEntryModalProps = {
   onTypeItem: () => void;
 };
 
-// Bottom-sheet with the 3 stock-entry options (Figma node 31:1232).
 export function StockEntryModal({
   visible,
   onClose,

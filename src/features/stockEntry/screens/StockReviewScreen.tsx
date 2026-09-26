@@ -11,13 +11,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from 'app/components/ui/icon';
-import { Text } from 'app/components/ui/text';
 import {
   ActionButton,
   EditableInventoryItemCard,
   SwipeToDelete,
-} from 'shared/components';
+} from 'app/components/ui';
+import { Icon } from 'app/components/ui/icon';
+import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
 
@@ -34,9 +34,6 @@ type StockReviewScreenProps = {
   onClose: () => void;
 };
 
-// Bottom-sheet listing the extracted items (Figma node 31:1146). Name and
-// quantity are editable, since extraction is best-effort and the user is the
-// one who confirms what actually arrived.
 export function StockReviewScreen({
   visible,
   items,

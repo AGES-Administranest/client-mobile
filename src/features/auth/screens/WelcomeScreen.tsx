@@ -13,6 +13,8 @@ import { OrDivider } from '../components/OrDivider';
 import { SocialSignInButtons } from '../components/SocialSignInButtons';
 import { useSocialSignIn } from '../hooks/useSocialSignIn';
 
+const LOGO_TOP = 168;
+
 type WelcomeScreenProps = {
   onCreateAccount: () => void;
   onLogin: () => void;
@@ -41,7 +43,10 @@ export function WelcomeScreen({
           paddingBottom: insets.bottom + 40,
         }}
       >
-        <View className="items-center pb-4 pt-6">
+        <View
+          className="items-center pb-4"
+          style={{ paddingTop: Math.max(LOGO_TOP - insets.top, 24) }}
+        >
           <BrandHeader
             name={t('common.appName')}
             tagline={t('auth.brand.tagline')}

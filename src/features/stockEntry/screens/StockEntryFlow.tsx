@@ -1,8 +1,8 @@
 import { Plus } from 'lucide-react-native';
 import { Modal, View } from 'react-native';
 
+import { ActionButton } from 'app/components/ui';
 import { Icon } from 'app/components/ui/icon';
-import { ActionButton } from 'shared/components';
 import { useTranslation } from 'shared/i18n';
 
 import { ScanScreen } from './ScanScreen';
@@ -12,8 +12,6 @@ import { LoadingOverlay } from '../components/LoadingOverlay';
 import { MessageOverlay } from '../components/MessageOverlay';
 import { useStockEntryFlow } from '../hooks/useStockEntryFlow';
 
-// Entry point for the stock-entry feature. Wires the screens together with
-// local state (menu → capture/attach → upload → review).
 export function StockEntryFlow() {
   const { t } = useTranslation();
   const flow = useStockEntryFlow();
@@ -31,12 +29,9 @@ export function StockEntryFlow() {
         onClose={flow.closeMenu}
         onScanNote={flow.startScan}
         onAttachPdf={flow.attachPdf}
-        // "Digitar insumo" has no designed screen yet.
         onTypeItem={flow.closeMenu}
       />
 
-      {/* A Modal, not an early return: returning here would leave the tab it
-          belongs to mounted behind the camera, each at half height. */}
       <Modal
         visible={flow.step === 'scanning'}
         animationType="slide"

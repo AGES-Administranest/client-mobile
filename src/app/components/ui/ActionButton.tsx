@@ -5,9 +5,6 @@ import { Pressable, View } from 'react-native';
 import { Text, TextClassContext } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
-// Pill-shaped primary action button from the Figma design system (node 31:1237).
-// Shared because the same button repeats across the stock-entry flow and other
-// screens (scan capture, review confirm, menu actions, etc.).
 const actionButtonVariants = cva(
   'h-[49px] w-full flex-row items-center justify-center gap-2 rounded-full px-6',
   {
@@ -26,17 +23,8 @@ const actionButtonVariants = cva(
 type ActionButtonProps = React.ComponentProps<typeof Pressable> &
   VariantProps<typeof actionButtonVariants> & {
     label: string;
-    /** Optional leading icon, rendered to the left of the label. */
     icon?: ReactNode;
-    /**
-     * Minimum width (in points) reserved for the label.
-     *
-     * The icon and label are centered together as one group, so a shorter label
-     * would otherwise push its icon further right than its neighbours'. Giving
-     * every button in a stack the same value makes the groups equally wide, so
-     * the icons line up in a column while each label stays centered — matching
-     * the Figma menu, where the icons share a single x position.
-     */
+
     labelMinWidth?: number;
   };
 

@@ -197,11 +197,107 @@
       }
     }
   },
+  "clinics": {
+    "addClinic": "Adicionar clínica",
+    "newClinic": {
+      "title": "Nova clínica",
+      "close": "Fechar",
+      "confirm": "Confirmar",
+      "saving": "Salvando...",
+      "fields": {
+        "name": {
+          "label": "Nome da clínica",
+          "placeholder": "Digite o nome da clínica"
+        },
+        "cnpj": {
+          "label": "CNPJ",
+          "placeholder": "00.000.000/0000-00"
+        },
+        "addressLine": {
+          "label": "Endereço",
+          "placeholder": "Digite a rua, número e bairro"
+        },
+        "city": {
+          "label": "Cidade",
+          "placeholder": "Ex: São Paulo"
+        },
+        "state": {
+          "label": "UF",
+          "placeholder": "SP"
+        },
+        "phone": {
+          "label": "Contato",
+          "placeholder": "(00) 00000-0000"
+        },
+        "email": {
+          "label": "E-mail",
+          "placeholder": "contato@clinica.com.br"
+        },
+        "contactName": {
+          "label": "Responsável",
+          "placeholder": "Nome do médico responsável"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Informe o nome da clínica.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres."
+        },
+        "cnpj": {
+          "required": "Informe o CNPJ.",
+          "invalid": "O CNPJ informado não é válido."
+        },
+        "state": {
+          "required": "Informe a UF.",
+          "invalid": "Informe uma UF válida, como SP."
+        },
+        "phone": {
+          "required": "Informe o telefone.",
+          "invalid": "Informe o telefone com DDD."
+        },
+        "email": {
+          "required": "Informe o e-mail.",
+          "invalid": "Informe um e-mail válido."
+        },
+        "addressLine": {
+          "required": "Informe o endereço.",
+          "tooShort": "O endereço precisa ter pelo menos 5 caracteres."
+        },
+        "city": {
+          "required": "Informe a cidade.",
+          "tooShort": "A cidade precisa ter pelo menos 2 letras.",
+          "invalid": "A cidade só pode ter letras."
+        },
+        "contactName": {
+          "required": "Informe o nome do responsável.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+          "invalid": "O nome só pode ter letras."
+        }
+      },
+      "failures": {
+        "duplicatedName": "Já existe uma clínica com esse nome.",
+        "duplicatedTaxId": "Já existe uma clínica com esse CNPJ.",
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "unknown": "Não foi possível salvar a clínica. Tente novamente."
+      }
+    },
+    "countOne": "{{count}} clínica",
+    "countOther": "{{count}} clínicas",
+    "empty": "Nenhuma clínica cadastrada.",
+    "detail": {
+      "call": "Entrar em contato",
+      "edit": "Editar clínica",
+      "editTitle": "Editar",
+      "confirm": "Confirmar",
+      "delete": "Excluir"
+    },
+    "loadFailure": "Não foi possível carregar as clínicas."
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",
     "materials": "Materiais",
-    "clinics": "Clínicas",
+    "partners": "Parceiros",
     "reports": "Relatórios"
   },
   "optionsModal": {
@@ -230,7 +326,37 @@
     "confirm": "Confirmar",
     "edit": "Editar",
     "delete": "Excluir",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "errors": {
+      "name": {
+        "required": "Informe o nome do item.",
+        "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+        "pickOrAdd": "Selecione um item da lista ou adicione um novo."
+      },
+      "unitCost": {
+        "required": "Informe o custo unitário.",
+        "tooLarge": "O custo unitário é alto demais."
+      },
+      "unit": {
+        "required": "Selecione a unidade."
+      },
+      "quantity": {
+        "required": "Informe a quantidade.",
+        "zero": "A quantidade precisa ser maior que zero.",
+        "tooLarge": "A quantidade é alta demais."
+      },
+      "minQuantity": {
+        "tooLarge": "A quantidade mínima é alta demais."
+      },
+      "expiration": {
+        "incomplete": "Informe a data completa (dd/mm/aaaa).",
+        "invalid": "Informe uma data válida.",
+        "past": "A validade não pode ser uma data passada"
+      },
+      "supplierName": {
+        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres."
+      }
+    }
   },
   "auth": {
     "back": "Voltar",
@@ -304,5 +430,12 @@
       "menu": "Conta",
       "signOut": "Sair da conta"
     }
+  },
+  "partners": {
+    "segments": {
+      "clinics": "Clínicas",
+      "suppliers": "Fornecedores"
+    },
+    "suppliersEmpty": "Fornecedores ainda não estão disponíveis aqui."
   }
 }
