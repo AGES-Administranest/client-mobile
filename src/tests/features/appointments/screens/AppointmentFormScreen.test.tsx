@@ -2,7 +2,10 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { ConfirmDialog } from 'app/components/ui/confirm-dialog';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
-import { AppointmentFormScreen } from 'features/appointments';
+import {
+  AppointmentFormScreen,
+  ConflictAlertSheet,
+} from 'features/appointments';
 import { AuthProvider } from 'features/auth';
 import { I18nProvider } from 'shared/i18n';
 
@@ -98,4 +101,113 @@ test('com algo preenchido, cancelar pede confirmação num diálogo, não noutra
     discardDialog(renderer).props.onConfirm();
   });
   expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+function field(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
+  return renderer.root.find(
+    node =>
+      node.props.accessibilityLabel === label &&
+      typeof node.props.onChangeText === 'function',
+  );
+}
+
+function button(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
+  return renderer.root.find(
+    node =>
+      node.props.accessibilityLabel === label &&
+      (node.props.accessibilityRole === 'button' ||
+        node.props.role === 'button') &&
+      typeof node.props.onPress === 'function',
+  );
+}
+
+async function fill(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  procedure: string,
+  start: string,
+  end: string,
+) {
+  await act(async () => {
+    button(renderer, 'Clínica').props.onPress();
+  });
+  await act(async () => {
+    button(renderer, 'Clínica Vida Animal').props.onPress();
+  });
+  for (const [label, value] of [
+    ['Paciente', 'Mel'],
+    ['Procedimento', procedure],
+    ['Hora de início', start],
+    ['Hora do fim', end],
+    ['Valor do atendimento', '10000'],
+  ]) {
+    await act(async () => {
+      field(renderer, label).props.onChangeText(value);
+    });
+  }
+}
+
+test('horário sobreposto abre o alerta de conflito; ajustar volta, confirmar salva', async () => {
+  const onClose = jest.fn();
+  const onSaved = jest.fn();
+  const screen = (visible: boolean) => (
+    <I18nProvider>
+      <AuthProvider>
+        <AppointmentFormScreen
+          visible={visible}
+          selectedDate="2026-10-05"
+          onClose={onClose}
+          onSaved={onSaved}
+        />
+      </AuthProvider>
+    </I18nProvider>
+  );
+
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(screen(true));
+  });
+  mounted.push(renderer);
+
+  await fill(renderer, 'Castração', '0900', '1100');
+  await act(async () => {
+    button(renderer, 'Confirmar').props.onPress();
+  });
+  expect(onSaved).toHaveBeenCalledTimes(1);
+
+  await act(async () => {
+    renderer.update(screen(false));
+  });
+  await act(async () => {
+    renderer.update(screen(true));
+  });
+
+  await fill(renderer, 'Orquiectomia', '1000', '1200');
+  await act(async () => {
+    button(renderer, 'Confirmar').props.onPress();
+  });
+
+  const alert = () => renderer.root.findByType(ConflictAlertSheet);
+  expect(alert().props.visible).toBe(true);
+  expect(alert().findByType(ConfirmDialog).props.message).toContain(
+    'Castração',
+  );
+  expect(alert().findByType(ConfirmDialog).props.message).toContain('09:00');
+  expect(renderer.root.findAllByType(ConfirmSheet)).toHaveLength(0);
+
+  await act(async () => {
+    alert().props.onAdjust();
+  });
+  expect(alert().props.visible).toBe(false);
+  expect(onSaved).toHaveBeenCalledTimes(1);
+
+  await act(async () => {
+    button(renderer, 'Confirmar').props.onPress();
+  });
+  await act(async () => {
+    alert().props.onConfirm();
+  });
+  expect(onSaved).toHaveBeenCalledTimes(2);
+  expect(onSaved).toHaveBeenLastCalledWith(
+    expect.objectContaining({ procedureName: 'Orquiectomia' }),
+  );
 });

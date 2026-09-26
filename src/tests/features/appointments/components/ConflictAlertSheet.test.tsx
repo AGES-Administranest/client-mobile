@@ -3,6 +3,16 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 import { ConflictAlertSheet } from 'features/appointments';
 import { I18nProvider } from 'shared/i18n';
 
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+
+// O ConfirmDialog anima por timers (useSheetAnimation); desmontar a para antes
+// de o Jest derrubar o ambiente.
+afterEach(async () => {
+  await act(async () => {
+    mounted.splice(0).forEach(renderer => renderer.unmount());
+  });
+});
+
 async function renderSheet(
   onConfirm = () => {},
   onAdjust = () => {},
@@ -21,6 +31,7 @@ async function renderSheet(
       </I18nProvider>,
     );
   });
+  mounted.push(renderer!);
   return renderer!;
 }
 

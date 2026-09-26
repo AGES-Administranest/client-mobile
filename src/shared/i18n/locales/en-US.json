@@ -241,7 +241,6 @@
       "invalidTime": "Enter a valid time",
       "endBeforeStart": "The end time must be after the start time",
       "mustBePositive": "Enter a value greater than zero",
-      "APPOINTMENT_TIME_CONFLICT": "This time conflicts with another appointment.",
       "UNKNOWN": "The appointment could not be saved."
     },
     "conflict": {

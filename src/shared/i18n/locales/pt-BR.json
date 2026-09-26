@@ -241,7 +241,6 @@
       "invalidTime": "Informe um horário válido",
       "endBeforeStart": "A hora do fim deve ser depois da hora de início",
       "mustBePositive": "Informe um valor maior que zero",
-      "APPOINTMENT_TIME_CONFLICT": "Este horário conflita com outro agendamento.",
       "UNKNOWN": "Não foi possível salvar o atendimento."
     },
     "conflict": {

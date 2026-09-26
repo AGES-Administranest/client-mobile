@@ -1,4 +1,4 @@
-import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { ConfirmDialog } from 'app/components/ui/confirm-dialog';
 import { useTranslation } from 'shared/i18n';
 
 // Matches the backend's ConflictingAppointmentEntity (appointments module):
@@ -15,6 +15,8 @@ type ConflictAlertSheetProps = {
   onAdjust: () => void;
 };
 
+// Abre por cima da folha do formulário, então é um ConfirmDialog e não um
+// ConfirmSheet: folha sobre folha deixa ambíguo qual está em foco (DESIGN.md).
 function ConflictAlertSheet({
   visible,
   conflictingAppointment,
@@ -24,7 +26,7 @@ function ConflictAlertSheet({
   const { t } = useTranslation();
 
   return (
-    <ConfirmSheet
+    <ConfirmDialog
       visible={visible}
       title={t('appointments.conflict.title')}
       message={t('appointments.conflict.message', {

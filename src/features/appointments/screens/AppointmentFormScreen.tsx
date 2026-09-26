@@ -4,11 +4,14 @@ import { ConfirmDialog } from 'app/components/ui/confirm-dialog';
 import { useTranslation } from 'shared/i18n';
 
 import { AppointmentFormSheet } from '../components/AppointmentFormSheet';
+import { ConflictAlertSheet } from '../components/ConflictAlertSheet';
 import {
   appointmentToDraft,
   createDraft,
   SPECIES_OPTIONS,
+  toTimeInput,
   type Appointment,
+  type ConflictingAppointment,
   type Species,
 } from '../domain/appointment';
 import { useAppointmentForm } from '../hooks/useAppointmentForm';
@@ -41,6 +44,16 @@ export function AppointmentFormScreen({
   const form = useAppointmentForm(appointment?.id ?? null);
   const { reset } = form;
   const [isDiscardOpen, setIsDiscardOpen] = useState(false);
+  // O último conflito continua desenhado enquanto o alerta anima a saída:
+  // `form.conflict` já volta a null no toque em "Ajustar horário".
+  const [shownConflict, setShownConflict] =
+    useState<ConflictingAppointment | null>(null);
+
+  useEffect(() => {
+    if (form.conflict) {
+      setShownConflict(form.conflict);
+    }
+  }, [form.conflict]);
 
   // A folha fica montada entre aberturas, então sem isto a segunda abertura
   // traria o rascunho e os erros da primeira.
@@ -66,14 +79,17 @@ export function AppointmentFormScreen({
     onClose();
   };
 
-  const submit = async () => {
-    const saved = await form.submit();
-
+  const finish = (saved: Appointment | null) => {
     if (saved) {
       onSaved?.(saved);
       onClose();
     }
   };
+
+  const submit = async () => finish(await form.submit());
+
+  const confirmDespiteConflict = async () =>
+    finish(await form.confirmDespiteConflict());
 
   const speciesLabels = Object.fromEntries(
     SPECIES_OPTIONS.map(species => [
@@ -82,15 +98,7 @@ export function AppointmentFormScreen({
     ]),
   ) as Record<Species, string>;
 
-  // Até o alerta de conflito (86e39ykba, ConflictAlertSheet) entrar no dev, o
-  // 409 aparece como erro na folha; quando entrar, ele vai no lugar deste
-  // aviso, como filho da folha, ligado a form.conflict,
-  // form.confirmDespiteConflict e form.dismissConflict.
-  const failureMessage = form.conflict
-    ? t('appointments.errors.APPOINTMENT_TIME_CONFLICT')
-    : form.failure
-    ? t('appointments.errors.UNKNOWN')
-    : null;
+  const failureMessage = form.failure ? t('appointments.errors.UNKNOWN') : null;
 
   return (
     <AppointmentFormSheet
@@ -165,6 +173,17 @@ export function AppointmentFormScreen({
         }}
         onCancel={() => setIsDiscardOpen(false)}
       />
+      {shownConflict ? (
+        <ConflictAlertSheet
+          visible={form.conflict !== null}
+          conflictingAppointment={{
+            procedureName: shownConflict.procedureName,
+            time: toTimeInput(shownConflict.startsAt),
+          }}
+          onConfirm={confirmDespiteConflict}
+          onAdjust={form.dismissConflict}
+        />
+      ) : null}
     </AppointmentFormSheet>
   );
 }
