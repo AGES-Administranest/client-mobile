@@ -18,11 +18,11 @@ import {
   EditableInventoryItemCard,
   SwipeToDelete,
 } from 'shared/components';
+import { useSheetAnimation } from 'shared/hooks';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
 
 import { needsAttention, ScannedItem } from '../domain/stockItem';
-import { useSheetAnimation } from '../hooks/useSheetAnimation';
 
 type StockReviewScreenProps = {
   visible: boolean;
