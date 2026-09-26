@@ -48,6 +48,17 @@ beforeEach(() => {
   fetchItemsMock.mockResolvedValue([]);
 });
 
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+
+// As folhas da tela (ItemModal, ConfirmSheet) animam por timers; sem
+// desmontar, eles disparam depois de o Jest derrubar o ambiente e o
+// `jest --ci` sai com código 1 mesmo com todos os testes passando.
+afterEach(async () => {
+  await act(async () => {
+    mounted.splice(0).forEach(renderer => renderer.unmount());
+  });
+});
+
 async function renderScreen() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
@@ -63,6 +74,7 @@ async function renderScreen() {
     );
   });
 
+  mounted.push(renderer!);
   return renderer!;
 }
 
