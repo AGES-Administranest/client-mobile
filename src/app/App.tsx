@@ -6,10 +6,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
-import { Button } from 'app/components/ui/button';
 import { TabBar, type TabValue } from 'app/components/ui/tabbar';
-import { Text } from 'app/components/ui/text';
-import { AppointmentFormScreen, type Appointment } from 'features/appointments';
 import {
   AuthFlow,
   AuthProvider,
@@ -26,18 +23,11 @@ import {
 } from 'features/inventory';
 import { MaterialsScreen } from 'features/materials';
 import { ReportsScreen } from 'features/reports';
-import { I18nProvider, useTranslation } from 'shared/i18n';
+import { I18nProvider } from 'shared/i18n';
 import { initNotifications } from 'shared/services';
-import { toCalendarDate } from 'shared/utils/calendar';
 
 import { Colors } from '../theme/colors';
 import '../../global.css';
-
-// Atalho de desenvolvimento: com EXPO_PUBLIC_PREVIEW_SCREEN=appointmentForm no
-// .env o app abre direto na folha de agendamento, sem passar pelo login,
-// porque ainda não existe fluxo que leve até ela. Sem a variável (o caso do
-// .env.example e dos testes) nada muda. Remover quando o fluxo existir.
-const PREVIEW_SCREEN = process.env.EXPO_PUBLIC_PREVIEW_SCREEN;
 
 const SCREENS: Record<TabValue, React.ComponentType> = {
   day: HomeScreen,
@@ -83,64 +73,10 @@ export function AccountInventoryAlerts() {
   return <InventoryAlertObserver snapshot={snapshot} />;
 }
 
-function AppointmentFormPreview() {
-  const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const [isOpen, setIsOpen] = React.useState(true);
-  const [editing, setEditing] = React.useState<Appointment | null>(null);
-  const [saved, setSaved] = React.useState<Appointment | null>(null);
-
-  const open = (appointment: Appointment | null) => {
-    setEditing(appointment);
-    setIsOpen(true);
-  };
-
-  return (
-    <View className="flex-1" style={{ paddingTop: insets.top }}>
-      <LinearGradient
-        colors={Colors.background.primary.colors}
-        locations={Colors.background.primary.locations}
-        style={StyleSheet.absoluteFill}
-      />
-      <View className="flex-1 items-center justify-center gap-4 px-6">
-        <Button shape="pill" className="h-12 px-6" onPress={() => open(null)}>
-          <Text>{t('appointments.form.titleCreate')}</Text>
-        </Button>
-        {saved ? (
-          <>
-            <Button
-              shape="pill"
-              variant="outline"
-              className="h-12 px-6"
-              onPress={() => open(saved)}
-            >
-              <Text>{t('appointments.form.titleEdit')}</Text>
-            </Button>
-            <Text className="text-center text-sm text-label-tertiary">
-              {saved.patientName} · {saved.startsAt}
-            </Text>
-          </>
-        ) : null}
-      </View>
-      <AppointmentFormScreen
-        visible={isOpen}
-        appointment={editing}
-        selectedDate={toCalendarDate(new Date())}
-        onClose={() => setIsOpen(false)}
-        onSaved={setSaved}
-      />
-    </View>
-  );
-}
-
 function AppContent() {
   const { session, account } = useAuth();
   const [tab, setTab] = React.useState<TabValue>('day');
   const insets = useSafeAreaInsets();
-
-  if (PREVIEW_SCREEN === 'appointmentForm') {
-    return <AppointmentFormPreview />;
-  }
 
   if (!session || !account) {
     return <AuthFlow />;
