@@ -211,6 +211,15 @@ export function ProcedureFormSheet({
                 onChangeText={v => onChangeText('amount', v)}
               />
 
+              <Field
+                label={texts.labels.notes}
+                placeholder={texts.placeholders.notes}
+                value={values.notes}
+                error={texts.errors.notes}
+                multiline
+                onChangeText={v => onChangeText('notes', v)}
+              />
+
               <Text className="mb-1 mt-1 text-xs font-semibold uppercase text-label-primary">
                 {texts.labels.species}
               </Text>
@@ -270,6 +279,7 @@ type FieldProps = {
   placeholder?: string;
   error?: string;
   keyboardType?: 'default' | 'number-pad' | 'decimal-pad';
+  multiline?: boolean;
 };
 
 function Field({
@@ -279,6 +289,7 @@ function Field({
   placeholder,
   error,
   keyboardType = 'default',
+  multiline = false,
 }: FieldProps) {
   return (
     <View className="mb-3">
@@ -286,12 +297,19 @@ function Field({
         {label}
       </Text>
       <TextInput
-        className="rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary"
+        className={
+          multiline
+            ? 'h-24 rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary'
+            : 'rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary'
+        }
         placeholder={placeholder}
         placeholderTextColor={LabelPlaceholder}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
+        multiline={multiline}
+        numberOfLines={multiline ? 4 : undefined}
+        textAlignVertical={multiline ? 'top' : undefined}
       />
       {error ? (
         <Text className="mt-1 text-xs text-alert-primary">{error}</Text>

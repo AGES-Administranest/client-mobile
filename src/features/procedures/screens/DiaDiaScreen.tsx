@@ -72,6 +72,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     speciesOptions: [
       { value: 'CANINE', label: t('procedures.species.canine') },
       { value: 'FELINE', label: t('procedures.species.feline') },
+      { value: 'OTHER', label: t('procedures.species.other') },
     ],
     asaOptions: [...ASA_CLASSIFICATIONS],
     errors: resolvedErrors,

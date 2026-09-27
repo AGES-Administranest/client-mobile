@@ -1,6 +1,6 @@
 export type Species = 'CANINE' | 'FELINE' | 'OTHER';
 
-export const ASA_CLASSIFICATIONS = ['I', 'II', 'III', 'IV'] as const;
+export const ASA_CLASSIFICATIONS = ['I', 'II', 'III', 'IV', 'V'] as const;
 
 export type AsaClassification = (typeof ASA_CLASSIFICATIONS)[number];
 
