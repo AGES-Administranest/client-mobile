@@ -61,9 +61,30 @@ async function mountHook(onSuccess: () => void = jest.fn(), visible = true) {
   return { result, onSuccess };
 }
 
+async function mountWithFilledForm(onSuccess: () => void = jest.fn()) {
+  const mounted = await mountHook(onSuccess);
+  await act(async () => {
+    (
+      Object.entries(validProcedureForm) as [
+        keyof typeof validProcedureForm,
+        string,
+      ][]
+    ).forEach(([key, value]) => mounted.result.current.setField(key, value));
+  });
+  return mounted;
+}
+
+async function submitSuccessfully(onSuccess: () => void = jest.fn()) {
+  const mounted = await mountWithFilledForm(onSuccess);
+  await act(async () => {
+    await mounted.result.current.submit();
+  });
+  return mounted;
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
-  createAppointmentMock.mockResolvedValue({} as never);
+  createAppointmentMock.mockResolvedValue({ id: 'appointment-1' } as never);
 });
 
 test('selecionar um tomador guarda o clientId e mostra o nome no campo', async () => {
@@ -122,7 +143,7 @@ test('escolher o tomador limpa o erro de obrigatório do campo', async () => {
 });
 
 test('envia o clientId escolhido para a API', async () => {
-  const { result, onSuccess } = await mountHook();
+  const { result } = await mountHook();
   for (const [key, value] of Object.entries(validProcedureForm)) {
     if (key !== 'clientId' && typeof value === 'string' && value !== '') {
       await act(async () =>
@@ -141,7 +162,6 @@ test('envia o clientId escolhido para a API', async () => {
     'id-token',
     expect.objectContaining({ clientId: 'client-7' }),
   );
-  expect(onSuccess).toHaveBeenCalled();
 });
 
 test('após salvar, o tomador e o termo voltam ao vazio', async () => {
@@ -168,4 +188,50 @@ test('um tomador recém-criado fica selecionado e preenche o campo', async () =>
   expect(result.current.values.clientId).toBe('client-new');
   expect(result.current.client.term).toBe('Clínica Nova Vida');
   expect(result.current.values.patientName).toBe('Rex');
+});
+
+test('asks about supplies with the new appointment id instead of closing right away', async () => {
+  const { result, onSuccess } = await submitSuccessfully();
+
+  expect(result.current.supplyPrompt).toEqual({
+    appointmentId: 'appointment-1',
+    step: 'confirm',
+  });
+  expect(onSuccess).not.toHaveBeenCalled();
+});
+
+test('moves to the supply selector when the user accepts, keeping the appointment id', async () => {
+  const { result, onSuccess } = await submitSuccessfully();
+
+  await act(async () => result.current.acceptSupplyPrompt());
+
+  expect(result.current.supplyPrompt).toEqual({
+    appointmentId: 'appointment-1',
+    step: 'selector',
+  });
+  expect(onSuccess).not.toHaveBeenCalled();
+});
+
+test('closes the form and clears it when the user declines, leaving the appointment saved', async () => {
+  const { result, onSuccess } = await submitSuccessfully();
+
+  await act(async () => result.current.finishSupplyPrompt());
+
+  expect(result.current.supplyPrompt).toBeNull();
+  expect(result.current.values.patientName).toBe('');
+  expect(onSuccess).toHaveBeenCalledTimes(1);
+  expect(createAppointmentMock).toHaveBeenCalledTimes(1);
+});
+
+test('does not ask about supplies when the appointment fails to save', async () => {
+  createAppointmentMock.mockRejectedValue(new Error('network'));
+  const { result, onSuccess } = await mountWithFilledForm();
+
+  await act(async () => {
+    await result.current.submit();
+  });
+
+  expect(result.current.supplyPrompt).toBeNull();
+  expect(result.current.submitFailed).toBe(true);
+  expect(onSuccess).not.toHaveBeenCalled();
 });

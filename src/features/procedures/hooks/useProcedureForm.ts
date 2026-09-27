@@ -18,6 +18,11 @@ import { toCreateAppointmentPayload } from '../domain/toCreateAppointmentPayload
 import { validateProcedureForm } from '../domain/validateProcedureForm';
 import { createAppointment } from '../services/procedureService';
 
+type SupplyPrompt = {
+  appointmentId: string;
+  step: 'confirm' | 'selector';
+};
+
 export function useProcedureForm(onSuccess: () => void, visible: boolean) {
   const { session } = useAuth();
   const [values, setValues] =
@@ -32,6 +37,7 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     active: visible,
     paused: selectedClient !== null,
   });
+  const [supplyPrompt, setSupplyPrompt] = useState<SupplyPrompt | null>(null);
 
   function setField<K extends keyof ProcedureFormValues>(
     key: K,
@@ -78,6 +84,18 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     setSubmitFailed(false);
   }
 
+  function acceptSupplyPrompt(): void {
+    setSupplyPrompt(prev => (prev ? { ...prev, step: 'selector' } : prev));
+  }
+
+  // O atendimento já está salvo aqui: recusar ou concluir os insumos só
+  // encerra o formulário, não desfaz nada.
+  function finishSupplyPrompt(): void {
+    setSupplyPrompt(null);
+    reset();
+    onSuccess();
+  }
+
   async function submit(): Promise<void> {
     const validation = validateProcedureForm(values);
     setErrors(validation);
@@ -92,12 +110,13 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     setSubmitting(true);
     setSubmitFailed(false);
     try {
-      await createAppointment(
+      const appointment = await createAppointment(
         session.idToken,
         toCreateAppointmentPayload(values),
       );
-      reset();
-      onSuccess();
+      // Os valores só são limpos ao fim da pergunta; a tela esconde o
+      // formulário enquanto ela está aberta.
+      setSupplyPrompt({ appointmentId: appointment.id, step: 'confirm' });
     } catch {
       setSubmitFailed(true);
     } finally {
@@ -118,9 +137,12 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
       onSelect: selectClient,
       onCreated: selectCreatedClient,
     },
+    supplyPrompt,
     setField,
     setTextField,
     submit,
     reset,
+    acceptSupplyPrompt,
+    finishSupplyPrompt,
   };
 }
