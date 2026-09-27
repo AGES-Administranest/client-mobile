@@ -11,6 +11,7 @@ export function toCreateAppointmentPayload(
   const startsAt = combineDateAndTime(values.date, values.startTime);
   const payload: CreateAppointmentPayload = {
     startsAt: startsAt!.toISOString(),
+    status: 'COMPLETED',
   };
 
   if (values.endTime.trim() !== '') {

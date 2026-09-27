@@ -2,7 +2,7 @@ import { toCreateAppointmentPayload } from './toCreateAppointmentPayload';
 import { validProcedureForm as valid } from './validProcedureForm.fixture';
 
 describe('toCreateAppointmentPayload', () => {
-  it('converte data e hora local para ISO e nunca envia status nem userId', () => {
+  it('converte data e hora local para ISO, envia status COMPLETED e nunca envia userId', () => {
     const payload = toCreateAppointmentPayload(valid);
     expect(payload.startsAt).toBe(
       new Date(2026, 7, 6, 9, 0, 0, 0).toISOString(),
@@ -10,7 +10,7 @@ describe('toCreateAppointmentPayload', () => {
     expect(payload.endsAt).toBe(
       new Date(2026, 7, 6, 10, 0, 0, 0).toISOString(),
     );
-    expect(payload).not.toHaveProperty('status');
+    expect(payload.status).toBe('COMPLETED');
     expect(payload).not.toHaveProperty('userId');
   });
 

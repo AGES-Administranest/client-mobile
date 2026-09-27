@@ -1,5 +1,7 @@
 export type Species = 'CANINE' | 'FELINE' | 'OTHER';
 
+export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELED';
+
 export const ASA_CLASSIFICATIONS = ['I', 'II', 'III', 'IV', 'V'] as const;
 
 export type AsaClassification = (typeof ASA_CLASSIFICATIONS)[number];
@@ -48,6 +50,7 @@ export type ProcedureErrors = Partial<
 
 export interface CreateAppointmentPayload {
   startsAt: string;
+  status: AppointmentStatus;
   endsAt?: string;
   patientName?: string;
   procedureName?: string;
