@@ -195,6 +195,19 @@
         "ITEM_NOT_FOUND": "Item not found.",
         "UNKNOWN": "Could not save the adjustment."
       }
+    },
+    "supplySelector": {
+      "title": "Add supply",
+      "materialLabel": "MATERIAL",
+      "searchPlaceholder": "Search by item name",
+      "quantityLabel": "QUANTITY",
+      "confirm": "Confirm",
+      "close": "Close",
+      "loading": "Searching...",
+      "empty": "No items found.",
+      "error": "Could not search for items.",
+      "termTooShort": "Type at least 2 characters.",
+      "overBalance": "Above the available balance ({{balance}} {{unit}}). Stock will go negative."
     }
   },
   "clinics": {
@@ -437,5 +450,98 @@
       "suppliers": "Suppliers"
     },
     "suppliersEmpty": "Suppliers are not available here yet."
+  },
+  "procedures": {
+    "newProcedure": "New appointment",
+    "form": {
+      "title": "New appointment",
+      "confirm": "Confirm",
+      "close": "Close",
+      "location": "Location",
+      "newClient": "New client",
+      "submitError": "Couldn't save. Please try again."
+    },
+    "supplyPrompt": {
+      "title": "Do you want to record the supplies used in this procedure?",
+      "confirm": "Yes",
+      "cancel": "Not now"
+    },
+    "fields": {
+      "patientName": "Patient",
+      "procedureName": "Procedure",
+      "species": "Species",
+      "asaClassification": "ASA classification",
+      "weightKg": "Weight (kg)",
+      "patientAgeYears": "Age",
+      "amount": "Appointment value",
+      "startTime": "Start",
+      "endTime": "End",
+      "date": "Date",
+      "notes": "Notes"
+    },
+    "placeholders": {
+      "patientName": "Animal's name",
+      "procedureName": "e.g. Neutering",
+      "location": "Search client by name",
+      "notes": "Notes about the procedure",
+      "number": "0",
+      "time": "HH:MM",
+      "date": "DD/MM/YYYY"
+    },
+    "species": {
+      "canine": "Canine",
+      "feline": "Feline",
+      "other": "Other"
+    },
+    "errors": {
+      "REQUIRED": "Required field",
+      "INVALID_NUMBER": "Invalid number",
+      "MUST_BE_POSITIVE": "Must be greater than zero",
+      "MUST_BE_INTEGER": "Must be a whole number",
+      "AGE_OUT_OF_RANGE": "Age must be between 0 and 100",
+      "END_BEFORE_START": "End must be after start",
+      "INVALID_DATE": "Invalid date",
+      "INVALID_TIME": "Invalid time"
+    },
+    "clientSearch": {
+      "loading": "Searching…",
+      "error": "Couldn't search. Please try again.",
+      "empty": "No clients found"
+    }
+  },
+  "clients": {
+    "newClient": {
+      "title": "New client",
+      "type": "Type",
+      "types": {
+        "clinic": "Clinic",
+        "individual": "Individual"
+      },
+      "fields": {
+        "name": {
+          "label": "Name",
+          "placeholder": "Client name"
+        },
+        "phone": {
+          "label": "Phone (optional)",
+          "placeholder": "Area code + number"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Required field",
+          "tooShort": "Enter at least 2 characters"
+        }
+      },
+      "confirm": "Register",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "close": "Close",
+      "failures": {
+        "duplicatedName": "A client with this name already exists.",
+        "session": "Your session expired. Please sign in again.",
+        "unknown": "Couldn't register. Please try again."
+      }
+    }
   }
 }
