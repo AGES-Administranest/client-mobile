@@ -1,4 +1,3 @@
-import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { useTranslation } from 'shared/i18n';
 
 import {
@@ -24,11 +23,9 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     errors,
     submitting,
     submitFailed,
-    timeConflict,
     setField,
     setTextField,
     submit,
-    dismissTimeConflict,
   } = useProcedureForm(onClose);
 
   const errorText = (code?: FieldErrorCode): string | undefined =>
@@ -62,6 +59,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
       patientName: t('procedures.placeholders.patientName'),
       procedureName: t('procedures.placeholders.procedureName'),
       location: t('procedures.placeholders.location'),
+      notes: t('procedures.placeholders.notes'),
       patientAgeYears: t('procedures.placeholders.number'),
       weightKg: t('procedures.placeholders.number'),
       startTime: t('procedures.placeholders.time'),
@@ -79,28 +77,18 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
   };
 
   return (
-    <>
-      <ProcedureFormSheet
-        visible={visible}
-        values={values}
-        submitting={submitting}
-        submitFailed={submitFailed}
-        submitErrorText={t('procedures.form.submitError')}
-        texts={texts}
-        onChangeText={setTextField}
-        onChangeSpecies={value => setField('species', value)}
-        onChangeAsa={value => setField('asaClassification', value)}
-        onSubmit={submit}
-        onClose={onClose}
-      />
-      <ConfirmSheet
-        visible={timeConflict}
-        title={t('procedures.conflict.title')}
-        message={t('procedures.conflict.message')}
-        confirmLabel={t('procedures.conflict.changeInfo')}
-        onConfirm={dismissTimeConflict}
-        onCancel={dismissTimeConflict}
-      />
-    </>
+    <ProcedureFormSheet
+      visible={visible}
+      values={values}
+      submitting={submitting}
+      submitFailed={submitFailed}
+      submitErrorText={t('procedures.form.submitError')}
+      texts={texts}
+      onChangeText={setTextField}
+      onChangeSpecies={value => setField('species', value)}
+      onChangeAsa={value => setField('asaClassification', value)}
+      onSubmit={submit}
+      onClose={onClose}
+    />
   );
 }

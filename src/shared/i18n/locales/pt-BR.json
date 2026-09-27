@@ -313,11 +313,6 @@
       "close": "Fechar",
       "submitError": "Não foi possível salvar. Tente novamente."
     },
-    "conflict": {
-      "title": "Conflito de horário",
-      "message": "Você já possui um atendimento nesse horário.",
-      "changeInfo": "Alterar informações"
-    },
     "fields": {
       "patientName": "Paciente",
       "procedureName": "Procedimento",
@@ -336,6 +331,7 @@
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
       "location": "Nome da clínica",
+      "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
       "date": "DD/MM/YYYY"
