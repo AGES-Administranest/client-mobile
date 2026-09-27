@@ -1,3 +1,16 @@
+import { useState } from 'react';
+
+import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import {
+  NewClientSheet,
+  useNewClientForm,
+  type ClientType,
+} from 'features/clients';
+import {
+  formatSupplyPrice,
+  SupplySelectorSheet,
+  useSupplySelector,
+} from 'features/stock';
 import { useTranslation } from 'shared/i18n';
 
 import {
@@ -23,10 +36,44 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     errors,
     submitting,
     submitFailed,
+    client,
+    supplyPrompt,
     setField,
     setTextField,
     submit,
-  } = useProcedureForm(onClose);
+    acceptSupplyPrompt,
+    finishSupplyPrompt,
+  } = useProcedureForm(onClose, visible);
+  const newClient = useNewClientForm();
+  const [newClientVisible, setNewClientVisible] = useState(false);
+  const supplySelector = useSupplySelector();
+
+  function closeNewClient(): void {
+    setNewClientVisible(false);
+    newClient.reset();
+  }
+
+  async function registerNewClient(): Promise<void> {
+    const created = await newClient.submit();
+    if (created) {
+      client.onCreated(created);
+      closeNewClient();
+    }
+  }
+
+  function closeSupplySelector(): void {
+    supplySelector.reset();
+    finishSupplyPrompt();
+  }
+
+  function confirmSupply(): void {
+    if (!supplySelector.submit()) {
+      return;
+    }
+    // Ainda não existe endpoint para vincular insumos a um atendimento, então
+    // a seleção confirmada não é persistida em lugar nenhum.
+    closeSupplySelector();
+  }
 
   const errorText = (code?: FieldErrorCode): string | undefined =>
     code ? t(`procedures.errors.${code}`) : undefined;
@@ -38,7 +85,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
   const labels: Record<keyof ProcedureFormValues, string> = {
     patientName: t('procedures.fields.patientName'),
     procedureName: t('procedures.fields.procedureName'),
-    location: t('procedures.fields.location'),
+    clientId: t('procedures.form.location'),
     patientAgeYears: t('procedures.fields.patientAgeYears'),
     weightKg: t('procedures.fields.weightKg'),
     startTime: t('procedures.fields.startTime'),
@@ -58,7 +105,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     placeholders: {
       patientName: t('procedures.placeholders.patientName'),
       procedureName: t('procedures.placeholders.procedureName'),
-      location: t('procedures.placeholders.location'),
+      clientId: t('procedures.placeholders.location'),
       notes: t('procedures.placeholders.notes'),
       patientAgeYears: t('procedures.placeholders.number'),
       weightKg: t('procedures.placeholders.number'),
@@ -74,21 +121,114 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     ],
     asaOptions: [...ASA_CLASSIFICATIONS],
     errors: resolvedErrors,
+    clientSearchMessages: {
+      loading: t('procedures.clientSearch.loading'),
+      error: t('procedures.clientSearch.error'),
+      empty: t('procedures.clientSearch.empty'),
+    },
+    newClient: t('procedures.form.newClient'),
+  };
+
+  const clientTypeTexts: Record<ClientType, string> = {
+    CLINIC: t('clients.newClient.types.clinic'),
+    INDIVIDUAL: t('clients.newClient.types.individual'),
   };
 
   return (
-    <ProcedureFormSheet
-      visible={visible}
-      values={values}
-      submitting={submitting}
-      submitFailed={submitFailed}
-      submitErrorText={t('procedures.form.submitError')}
-      texts={texts}
-      onChangeText={setTextField}
-      onChangeSpecies={value => setField('species', value)}
-      onChangeAsa={value => setField('asaClassification', value)}
-      onSubmit={submit}
-      onClose={onClose}
-    />
+    <>
+      <ProcedureFormSheet
+        visible={visible && supplyPrompt === null}
+        values={values}
+        submitting={submitting}
+        submitFailed={submitFailed}
+        submitErrorText={t('procedures.form.submitError')}
+        texts={texts}
+        client={client}
+        onChangeText={setTextField}
+        onChangeClientTerm={client.onTermChange}
+        onSelectClient={client.onSelect}
+        onPressNewClient={() => setNewClientVisible(true)}
+        onChangeSpecies={value => setField('species', value)}
+        onChangeAsa={value => setField('asaClassification', value)}
+        onSubmit={submit}
+        onClose={onClose}
+      />
+      <NewClientSheet
+        visible={newClientVisible}
+        draft={newClient.draft}
+        fieldErrors={{
+          name: newClient.errors.name
+            ? t(`clients.newClient.errors.name.${newClient.errors.name}`)
+            : undefined,
+        }}
+        failureMessage={newClient.failure ? t(newClient.failure) : null}
+        isSaving={newClient.isSaving}
+        title={t('clients.newClient.title')}
+        typeLabel={t('clients.newClient.type')}
+        typeTexts={clientTypeTexts}
+        fieldTexts={{
+          name: {
+            label: t('clients.newClient.fields.name.label'),
+            placeholder: t('clients.newClient.fields.name.placeholder'),
+          },
+          phone: {
+            label: t('clients.newClient.fields.phone.label'),
+            placeholder: t('clients.newClient.fields.phone.placeholder'),
+          },
+        }}
+        confirmLabel={t('clients.newClient.confirm')}
+        savingLabel={t('clients.newClient.saving')}
+        cancelLabel={t('clients.newClient.cancel')}
+        closeLabel={t('clients.newClient.close')}
+        onChangeField={newClient.setField}
+        onChangeType={newClient.setType}
+        onSubmit={registerNewClient}
+        onClose={closeNewClient}
+      />
+      <ConfirmSheet
+        visible={supplyPrompt?.step === 'confirm'}
+        title={t('procedures.supplyPrompt.title')}
+        confirmLabel={t('procedures.supplyPrompt.confirm')}
+        cancelLabel={t('procedures.supplyPrompt.cancel')}
+        onConfirm={acceptSupplyPrompt}
+        onCancel={finishSupplyPrompt}
+      />
+      <SupplySelectorSheet
+        visible={supplyPrompt?.step === 'selector'}
+        onClose={closeSupplySelector}
+        onConfirm={confirmSupply}
+        term={supplySelector.term}
+        onTermChange={supplySelector.onTermChange}
+        options={supplySelector.options}
+        isLoading={supplySelector.isLoading}
+        hasError={supplySelector.hasError}
+        isTermTooShort={supplySelector.isTermTooShort}
+        selected={supplySelector.selected}
+        onSelect={supplySelector.onSelect}
+        quantity={supplySelector.quantity}
+        onQuantityChange={supplySelector.onQuantityChange}
+        isOverBalance={supplySelector.isOverBalance}
+        canSubmit={supplySelector.canSubmit}
+        title={t('stock.supplySelector.title')}
+        materialLabel={t('stock.supplySelector.materialLabel')}
+        searchPlaceholder={t('stock.supplySelector.searchPlaceholder')}
+        quantityLabel={t('stock.supplySelector.quantityLabel')}
+        confirmLabel={t('stock.supplySelector.confirm')}
+        closeLabel={t('stock.supplySelector.close')}
+        emptyMessage={t('stock.supplySelector.empty')}
+        errorMessage={t('stock.supplySelector.error')}
+        loadingMessage={t('stock.supplySelector.loading')}
+        termTooShortMessage={t('stock.supplySelector.termTooShort')}
+        overBalanceMessage={
+          supplySelector.selected
+            ? t('stock.supplySelector.overBalance', {
+                balance: supplySelector.selected.balance,
+                unit: supplySelector.selected.unit,
+              })
+            : ''
+        }
+        formatPrice={option => formatSupplyPrice(option.price)}
+      />
+    </>
   );
 }

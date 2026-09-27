@@ -195,6 +195,19 @@
         "ITEM_NOT_FOUND": "Item não encontrado.",
         "UNKNOWN": "Não foi possível salvar o ajuste."
       }
+    },
+    "supplySelector": {
+      "title": "Adicionar insumo",
+      "materialLabel": "MATERIAL",
+      "searchPlaceholder": "Busque pelo nome do item",
+      "quantityLabel": "QUANTIDADE",
+      "confirm": "Confirmar",
+      "close": "Fechar",
+      "loading": "Buscando...",
+      "empty": "Nenhum item encontrado.",
+      "error": "Não foi possível buscar os itens.",
+      "termTooShort": "Digite ao menos 2 caracteres.",
+      "overBalance": "Acima do saldo disponível ({{balance}} {{unit}}). O estoque ficará negativo."
     }
   },
   "tabbar": {
@@ -311,12 +324,18 @@
       "title": "Novo atendimento",
       "confirm": "Confirmar",
       "close": "Fechar",
+      "location": "Local",
+      "newClient": "Novo tomador",
       "submitError": "Não foi possível salvar. Tente novamente."
+    },
+    "supplyPrompt": {
+      "title": "Deseja registrar os insumos utilizados neste procedimento?",
+      "confirm": "Sim",
+      "cancel": "Agora não"
     },
     "fields": {
       "patientName": "Paciente",
       "procedureName": "Procedimento",
-      "location": "Clínica",
       "species": "Espécie",
       "asaClassification": "Classificação ASA",
       "weightKg": "Peso (kg)",
@@ -330,7 +349,7 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Nome da clínica",
+      "location": "Buscar tomador pelo nome",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
@@ -345,12 +364,51 @@
       "REQUIRED": "Campo obrigatório",
       "INVALID_NUMBER": "Número inválido",
       "MUST_BE_POSITIVE": "Deve ser maior que zero",
-      "MUST_BE_NON_NEGATIVE": "Não pode ser negativo",
       "MUST_BE_INTEGER": "Deve ser um número inteiro",
       "AGE_OUT_OF_RANGE": "Idade deve estar entre 0 e 100",
       "END_BEFORE_START": "O fim deve ser depois do início",
       "INVALID_DATE": "Data inválida",
       "INVALID_TIME": "Hora inválida"
+    },
+    "clientSearch": {
+      "loading": "Buscando…",
+      "error": "Não foi possível buscar. Tente novamente.",
+      "empty": "Nenhum tomador encontrado"
+    }
+  },
+  "clients": {
+    "newClient": {
+      "title": "Novo tomador",
+      "type": "Tipo",
+      "types": {
+        "clinic": "Clínica",
+        "individual": "Pessoa física"
+      },
+      "fields": {
+        "name": {
+          "label": "Nome",
+          "placeholder": "Nome do tomador"
+        },
+        "phone": {
+          "label": "Telefone (opcional)",
+          "placeholder": "DDD + número"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Campo obrigatório",
+          "tooShort": "Informe ao menos 2 caracteres"
+        }
+      },
+      "confirm": "Cadastrar",
+      "saving": "Salvando…",
+      "cancel": "Cancelar",
+      "close": "Fechar",
+      "failures": {
+        "duplicatedName": "Já existe um tomador com esse nome.",
+        "session": "Sua sessão expirou. Entre novamente.",
+        "unknown": "Não foi possível cadastrar. Tente novamente."
+      }
     }
   }
 }

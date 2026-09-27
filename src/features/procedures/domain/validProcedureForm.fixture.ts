@@ -3,7 +3,7 @@ import type { ProcedureFormValues } from './procedure.types';
 export const validProcedureForm: ProcedureFormValues = {
   patientName: 'Rex',
   procedureName: 'Orquiectomia',
-  location: 'Clínica VetCenter',
+  clientId: 'client-1',
   species: 'CANINE',
   asaClassification: 'I',
   weightKg: '12,5',
