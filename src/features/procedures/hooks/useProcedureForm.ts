@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
 import { useAuth } from 'features/auth';
+import {
+  useClientSearch,
+  type Client,
+  type ClientOption,
+} from 'features/clients';
 
 import {
   EMPTY_PROCEDURE_FORM,
@@ -13,13 +18,20 @@ import { toCreateAppointmentPayload } from '../domain/toCreateAppointmentPayload
 import { validateProcedureForm } from '../domain/validateProcedureForm';
 import { createAppointment } from '../services/procedureService';
 
-export function useProcedureForm(onSuccess: () => void) {
+export function useProcedureForm(onSuccess: () => void, visible: boolean) {
   const { session } = useAuth();
   const [values, setValues] =
     useState<ProcedureFormValues>(EMPTY_PROCEDURE_FORM);
   const [errors, setErrors] = useState<ProcedureErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitFailed, setSubmitFailed] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<ClientOption | null>(
+    null,
+  );
+  const clientSearch = useClientSearch({
+    active: visible,
+    paused: selectedClient !== null,
+  });
 
   function setField<K extends keyof ProcedureFormValues>(
     key: K,
@@ -32,8 +44,36 @@ export function useProcedureForm(onSuccess: () => void) {
     setValues(prev => ({ ...prev, [key]: applyFieldMask(key, value) }));
   }
 
+  function selectClient(client: ClientOption): void {
+    setSelectedClient({ id: client.id, name: client.name });
+    setField('clientId', client.id);
+    setErrors(prev => {
+      const next = { ...prev };
+      delete next.clientId;
+      return next;
+    });
+    clientSearch.onTermChange(client.name);
+  }
+
+  function selectCreatedClient(created: Client): void {
+    clientSearch.addCreated(created);
+    selectClient(created);
+  }
+
+  // Digitar de novo desfaz a escolha: o clientId não pode continuar
+  // apontando para um tomador que o campo já não mostra.
+  function changeClientTerm(term: string): void {
+    if (selectedClient !== null) {
+      setSelectedClient(null);
+      setField('clientId', null);
+    }
+    clientSearch.onTermChange(term);
+  }
+
   function reset(): void {
     setValues(EMPTY_PROCEDURE_FORM);
+    setSelectedClient(null);
+    clientSearch.reset();
     setErrors({});
     setSubmitFailed(false);
   }
@@ -70,6 +110,14 @@ export function useProcedureForm(onSuccess: () => void) {
     errors,
     submitting,
     submitFailed,
+    client: {
+      term: clientSearch.term,
+      status: clientSearch.status,
+      options: clientSearch.options,
+      onTermChange: changeClientTerm,
+      onSelect: selectClient,
+      onCreated: selectCreatedClient,
+    },
     setField,
     setTextField,
     submit,
