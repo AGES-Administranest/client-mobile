@@ -1,7 +1,7 @@
 import { Modal, View } from 'react-native';
 
+import { ActionButton } from 'app/components/ui';
 import { Text } from 'app/components/ui/text';
-import { ActionButton } from 'shared/components';
 import { BackgroundShade } from 'theme/colors';
 
 type MessageOverlayProps = {
@@ -11,9 +11,6 @@ type MessageOverlayProps = {
   onDismiss: () => void;
 };
 
-// Shown when the entry can't go on (permission refused, a file type the
-// bucket won't take, an upload that failed) — explains what happened instead
-// of failing mute.
 export function MessageOverlay({
   visible,
   message,

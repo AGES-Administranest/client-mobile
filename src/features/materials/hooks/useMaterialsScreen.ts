@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { StockItem } from 'app/components/ui/item-modal/domain/itemModal';
 import type { ItemDraft } from 'app/components/ui/item-modal/item-modal';
-import type { SegmentValue } from 'app/components/ui/segmented-control';
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
 import { ApiError } from 'shared/services/apiClient';
@@ -18,6 +17,7 @@ import {
   type BackendItem,
   type BackendItemCategory,
   type MaterialItem,
+  type MaterialSegment,
 } from '../domain/materialsFilter';
 import { createItemLot } from '../services/itemLotService';
 import {
@@ -28,8 +28,8 @@ import {
 } from '../services/itemService';
 
 type MaterialsScreenState = {
-  segment: SegmentValue;
-  onSegmentChange: (segment: SegmentValue) => void;
+  segment: MaterialSegment;
+  onSegmentChange: (segment: MaterialSegment) => void;
   category: string;
   onCategoryChange: (category: string) => void;
   categories: string[];
@@ -98,7 +98,7 @@ export function useMaterialsScreen(): MaterialsScreenState {
   // sempre aqui; o null só existe no tipo.
   const { session } = useAuth();
   const idToken = session?.idToken ?? null;
-  const [segment, setSegment] = useState<SegmentValue>('supplies');
+  const [segment, setSegment] = useState<MaterialSegment>('supplies');
   const [category, setCategory] = useState<string>(ALL_CATEGORIES);
   const [allBackendItems, setAllBackendItems] = useState<BackendItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,7 +115,7 @@ export function useMaterialsScreen(): MaterialsScreenState {
     [allBackendItems],
   );
 
-  function onSegmentChange(nextSegment: SegmentValue) {
+  function onSegmentChange(nextSegment: MaterialSegment) {
     setSegment(nextSegment);
     setCategory(ALL_CATEGORIES);
   }

@@ -22,7 +22,7 @@ export type Appointment = {
   species?: Species | null;
   patientAgeYears?: number | null;
   weightKg?: number | string | null;
-  asaClassification?: string | null;
+  asa?: string | null;
   notes?: string | null;
   status: AppointmentStatus;
   createdAt?: string;

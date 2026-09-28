@@ -6,6 +6,7 @@ import { addMonths, toCalendarDate } from 'shared/utils/calendar';
 import {
   groupAppointmentsByDate,
   type Appointment,
+  type AppointmentStatus,
 } from '../domain/appointment';
 import { fetchAppointments } from '../services/appointmentService';
 
@@ -25,6 +26,24 @@ export type AppointmentsState = {
   onNextMonth: () => void;
   onRefresh: () => Promise<void>;
 };
+
+const STATUSES: readonly AppointmentStatus[] = [
+  'SCHEDULED',
+  'COMPLETED',
+  'CANCELED',
+];
+
+// The API filters one status at a time; completed and canceled appointments
+// stay on the agenda, so the month is the three lists together.
+async function fetchMonth(
+  idToken: string,
+  month: string,
+): Promise<Appointment[]> {
+  const pages = await Promise.all(
+    STATUSES.map(status => fetchAppointments(idToken, { month, status })),
+  );
+  return pages.flat();
+}
 
 export function useAppointments(): AppointmentsState {
   const { session } = useAuth();
@@ -59,11 +78,7 @@ export function useAppointments(): AppointmentsState {
       setError(null);
 
       try {
-        const data = await fetchAppointments(idToken ?? '', {
-          month: monthString,
-          status: 'SCHEDULED',
-        });
-        setAppointments(data);
+        setAppointments(await fetchMonth(idToken ?? '', monthString));
       } catch (err) {
         const message =
           err instanceof Error ? err.message : 'Erro ao buscar agendamentos';
@@ -83,10 +98,7 @@ export function useAppointments(): AppointmentsState {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await fetchAppointments(idToken ?? '', {
-          month: monthString,
-          status: 'SCHEDULED',
-        });
+        const data = await fetchMonth(idToken ?? '', monthString);
         if (isMounted) {
           setAppointments(data);
         }
@@ -137,8 +149,16 @@ export function useAppointments(): AppointmentsState {
     });
   }, []);
 
+  // A date outside the visible month (the day list's arrows can cross into
+  // one) brings its month into view.
   const onSelectDate = useCallback((date: string) => {
+    const [year, month] = date.split('-').map(Number);
     setSelectedDate(date);
+    setVisibleDate(current =>
+      current.year === year && current.monthIndex === month - 1
+        ? current
+        : { year, monthIndex: month - 1 },
+    );
   }, []);
 
   const onRefresh = useCallback(async () => {

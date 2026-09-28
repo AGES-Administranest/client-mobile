@@ -35,14 +35,18 @@ async function mountHook() {
 describe('useAppointments', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFetch.mockResolvedValue([
-      {
-        id: '1',
-        patientName: 'Mel',
-        startsAt: '2026-08-17T09:00:00.000Z',
-        status: 'SCHEDULED',
-      },
-    ]);
+    mockFetch.mockImplementation(async (_token, { status }) =>
+      status === 'SCHEDULED'
+        ? [
+            {
+              id: '1',
+              patientName: 'Mel',
+              startsAt: '2026-08-17T09:00:00.000Z',
+              status: 'SCHEDULED',
+            },
+          ]
+        : [],
+    );
   });
 
   it('initializes with current month and loads appointments', async () => {
@@ -58,6 +62,27 @@ describe('useAppointments', () => {
     );
   });
 
+  it('loads every status, since the API filters one at a time', async () => {
+    await mountHook();
+
+    for (const status of ['SCHEDULED', 'COMPLETED', 'CANCELED']) {
+      expect(mockFetch).toHaveBeenCalledWith(
+        'test-token',
+        expect.objectContaining({ status }),
+      );
+    }
+  });
+
+  it('brings the month of a date picked outside it into view', async () => {
+    const { result } = await mountHook();
+
+    await act(async () => {
+      result.current.onSelectDate('2030-01-15');
+    });
+
+    expect(result.current.monthString).toBe('2030-01');
+  });
+
   it('navigates to previous and next month and reloads data', async () => {
     const { result } = await mountHook();
     const initialMonth = result.current.monthString;
@@ -67,14 +92,14 @@ describe('useAppointments', () => {
     });
 
     expect(result.current.monthString).not.toBe(initialMonth);
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledTimes(6);
 
     await act(async () => {
       result.current.onPreviousMonth();
     });
 
     expect(result.current.monthString).toBe(initialMonth);
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(mockFetch).toHaveBeenCalledTimes(9);
   });
 
   it('updates selected date and filters day appointments', async () => {

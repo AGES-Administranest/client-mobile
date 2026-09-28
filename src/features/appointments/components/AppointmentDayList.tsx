@@ -1,4 +1,5 @@
 import { CalendarDays, MapPin } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -10,6 +11,7 @@ import {
   formatAppointmentDateBadge,
   formatCurrency,
   type Appointment,
+  type AppointmentStatus,
   type Species,
 } from '../domain/appointment';
 
@@ -22,6 +24,10 @@ export type AppointmentDayListProps = {
   emptySubtitle?: string;
   addLabel?: string;
   speciesLabels?: Record<Species, string>;
+  /** Shown on completed and canceled cards; scheduled ones carry no badge. */
+  statusLabels?: Partial<Record<AppointmentStatus, string>>;
+  /** Replaces the default empty card. */
+  emptyState?: ReactNode;
   onAddAppointment?: () => void;
   onSelectAppointment?: (appointment: Appointment) => void;
   className?: string;
@@ -38,6 +44,8 @@ export function AppointmentDayList({
     FELINE: 'Felino',
     OTHER: 'Outro',
   },
+  statusLabels,
+  emptyState,
   onAddAppointment,
   onSelectAppointment,
   className,
@@ -47,12 +55,16 @@ export function AppointmentDayList({
   return (
     <View className={cn('gap-2.5 mt-5', className)}>
       {/* Título da Seção */}
-      <Text className="text-xs font-bold uppercase tracking-wider text-label-primary px-1 mb-1">
-        {sectionTitle}
-      </Text>
+      {sectionTitle ? (
+        <Text className="text-xs font-bold uppercase tracking-wider text-label-primary px-1 mb-1">
+          {sectionTitle}
+        </Text>
+      ) : null}
 
       {/* Lista de agendamentos ou Estado Vazio */}
-      {count === 0 ? (
+      {count === 0 && emptyState !== undefined ? (
+        emptyState
+      ) : count === 0 ? (
         <View className="items-center justify-center rounded-2xl bg-white/70 border border-dashed border-border-primary/80 p-8 my-2">
           <View className="size-12 items-center justify-center rounded-full bg-details-primary/80 mb-3">
             <Icon as={CalendarDays} className="size-6 text-label-quartenery" />
@@ -106,20 +118,34 @@ export function AppointmentDayList({
                       </Text>
                     )}
 
-                    {item.asaClassification && (
+                    {item.asa && (
                       <View className="rounded-md bg-details-primary px-2 py-0.5">
                         <Text className="text-[10px] font-bold text-label-tertiary uppercase">
-                          {item.asaClassification}
+                          {item.asa}
                         </Text>
                       </View>
                     )}
                   </View>
 
-                  {formattedAmount ? (
-                    <Text className="text-base font-bold text-label-primary">
-                      {formattedAmount}
-                    </Text>
-                  ) : null}
+                  <View className="items-end">
+                    {formattedAmount ? (
+                      <Text
+                        className={cn(
+                          'text-base font-bold text-label-primary',
+                          item.status === 'CANCELED' &&
+                            'text-label-tertiary line-through',
+                        )}
+                      >
+                        {formattedAmount}
+                      </Text>
+                    ) : null}
+                    {item.status !== 'SCHEDULED' &&
+                    statusLabels?.[item.status] ? (
+                      <Text className="text-[10px] font-semibold uppercase text-label-tertiary">
+                        {statusLabels[item.status]}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
 
                 {/* Linha 2: Nome do Procedimento */}

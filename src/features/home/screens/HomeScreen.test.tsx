@@ -65,10 +65,10 @@ function texts(renderer: ReactTestRenderer.ReactTestRenderer) {
 
 beforeEach(() => mockSignOut.mockClear());
 
-it('shows the day-to-day tab label', async () => {
+it('greets the user by first name', async () => {
   const renderer = await renderHome();
 
-  expect(texts(renderer)).toContain('Dia-Dia');
+  expect(texts(renderer)).toContain('Olá, Dr. Bruna');
 });
 
 it('signs out from the account menu', async () => {
@@ -96,17 +96,49 @@ it('signs out from the account menu', async () => {
   expect(mockSignOut).toHaveBeenCalledWith(SESSION);
 });
 
-it('transitions to monthly calendar view when "Ver mês" button is pressed', async () => {
+function press(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
+  return act(async () => {
+    renderer.root
+      .findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node.props.accessibilityLabel === label,
+      )[0]
+      .props.onPress();
+  });
+}
+
+it('opens the month calendar from "Ver mês"', async () => {
   const renderer = await renderHome();
 
-  const viewMonthBtn = renderer.root.findAll(
-    node => node.props.accessibilityLabel === 'Ver mês',
-  )[0];
-  expect(viewMonthBtn).toBeDefined();
-
-  await act(async () => {
-    viewMonthBtn.props.onPress();
-  });
+  await press(renderer, 'Ver mês');
 
   expect(texts(renderer)).toContain('PROCEDIMENTOS DO MÊS OU DIA');
+});
+
+it('keeps the week strip and the month calendar on the same day', async () => {
+  const renderer = await renderHome();
+  const today = new Date();
+  // A day of the current month other than today.
+  const other = today.getDate() === 1 ? 2 : 1;
+
+  const [stripDay] = renderer.root.findAll(
+    node =>
+      typeof node.props.onPress === 'function' &&
+      typeof node.props.accessibilityLabel === 'string' &&
+      node.props.accessibilityLabel.endsWith(` ${other}`),
+  );
+  await act(async () => {
+    stripDay.props.onPress();
+  });
+  await press(renderer, 'Ver mês');
+
+  const selected = renderer.root
+    .findAll(
+      node =>
+        typeof node.props.onPress === 'function' &&
+        node.props.accessibilityState?.selected === true,
+    )
+    .map(node => node.props.accessibilityLabel as string);
+  expect(selected).toContainEqual(expect.stringMatching(`^${other} de `));
 });

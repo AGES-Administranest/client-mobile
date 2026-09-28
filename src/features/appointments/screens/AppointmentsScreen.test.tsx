@@ -20,7 +20,7 @@ jest.mock('../services/appointmentService', () => ({
       id: 'mock-1',
       patientName: 'Mel',
       species: 'FELINE',
-      asaClassification: 'ASA I',
+      asa: 'ASA I',
       procedureName: 'Orquiectomia',
       startsAt: '2026-08-17T09:00:00.000Z',
       amount: 620,

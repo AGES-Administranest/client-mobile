@@ -35,7 +35,7 @@ describe('AppointmentDayList', () => {
         id: 'app-1',
         patientName: 'Mel',
         species: 'FELINE',
-        asaClassification: 'ASA I',
+        asa: 'ASA I',
         procedureName: 'Orquiectomia',
         startsAt: '2026-09-17T09:00:00.000Z',
         endsAt: '2026-09-17T10:30:00.000Z',

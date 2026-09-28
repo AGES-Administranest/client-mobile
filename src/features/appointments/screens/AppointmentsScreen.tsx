@@ -13,18 +13,21 @@ import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { fromCalendarDate } from 'shared/utils/calendar';
 
-import { AppointmentCalendar } from '../components/AppointmentCalendar';
 import { AppointmentDayList } from '../components/AppointmentDayList';
-import type { Appointment, Species } from '../domain/appointment';
+import { MonthCalendar } from '../components/MonthCalendar';
+import type {
+  Appointment,
+  AppointmentStatus,
+  Species,
+} from '../domain/appointment';
 import { useAppointments } from '../hooks/useAppointments';
-
-const FIRST_SUNDAY = new Date(2024, 0, 7);
-const WEEK_LENGTH = 7;
 
 export type AppointmentsScreenProps = {
   header?: React.ReactNode;
   onBack?: () => void;
   onSelectAppointment?: (appointment: Appointment) => void;
+  onAddAppointment?: () => void;
+  statusLabels?: Partial<Record<AppointmentStatus, string>>;
   controller?: ReturnType<typeof useAppointments>;
 };
 
@@ -32,60 +35,22 @@ export function AppointmentsScreen({
   header,
   onBack,
   onSelectAppointment,
+  onAddAppointment,
+  statusLabels,
   controller,
 }: AppointmentsScreenProps) {
   const { t, locale } = useTranslation();
   const internalController = useAppointments();
 
+  const appointments = controller ?? internalController;
   const {
-    year,
-    monthIndex,
     selectedDate,
-    appointmentsByDate,
     selectedDayAppointments,
     isLoading,
     isRefreshing,
     error,
-    onSelectDate,
-    onPreviousMonth,
-    onNextMonth,
     onRefresh,
-  } = controller ?? internalController;
-
-  // Formato do label do mês: "Agosto 2026" (conforme mockup)
-  const monthLabel = useMemo(() => {
-    try {
-      const monthName = new Intl.DateTimeFormat(locale, {
-        month: 'long',
-      }).format(new Date(year, monthIndex, 1));
-      const capitalized =
-        monthName.charAt(0).toUpperCase() + monthName.slice(1);
-      return `${capitalized} ${year}`;
-    } catch {
-      return `${year}-${monthIndex + 1}`;
-    }
-  }, [locale, year, monthIndex]);
-
-  // Dias da semana: "Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"
-  const weekdays = useMemo(() => {
-    return Array.from({ length: WEEK_LENGTH }, (_, index) => {
-      try {
-        const raw = new Intl.DateTimeFormat(locale, {
-          weekday: 'short',
-        }).format(
-          new Date(
-            FIRST_SUNDAY.getFullYear(),
-            FIRST_SUNDAY.getMonth(),
-            FIRST_SUNDAY.getDate() + index,
-          ),
-        );
-        const clean = raw.replace('.', '');
-        return clean.charAt(0).toUpperCase() + clean.slice(1);
-      } catch {
-        return ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'][index];
-      }
-    });
-  }, [locale]);
+  } = appointments;
 
   const formattedSelectedDate = useMemo(() => {
     try {
@@ -131,7 +96,7 @@ export function AppointmentsScreen({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('appointments.newAppointment')}
-        onPress={() => {}}
+        onPress={onAddAppointment}
         hitSlop={8}
         className="size-11 items-center justify-center rounded-full bg-button-primary active:opacity-80"
       >
@@ -152,20 +117,7 @@ export function AppointmentsScreen({
         }
       >
         {/* Calendário Mensal */}
-        <AppointmentCalendar
-          year={year}
-          monthIndex={monthIndex}
-          selectedDate={selectedDate}
-          appointmentsByDate={appointmentsByDate}
-          monthLabel={monthLabel}
-          weekdays={weekdays}
-          previousMonthLabel={t('appointments.calendar.prevMonth')}
-          nextMonthLabel={t('appointments.calendar.nextMonth')}
-          onSelectDate={onSelectDate}
-          onPreviousMonth={onPreviousMonth}
-          onNextMonth={onNextMonth}
-          className="mt-2"
-        />
+        <MonthCalendar controller={appointments} className="mt-2" />
 
         {/* Indicador de carregamento ou erro */}
         {isLoading && !isRefreshing && (
@@ -192,7 +144,8 @@ export function AppointmentsScreen({
           emptySubtitle={t('appointments.emptyDaySub')}
           addLabel={t('appointments.newAppointment')}
           speciesLabels={speciesLabels}
-          onAddAppointment={() => {}}
+          statusLabels={statusLabels}
+          onAddAppointment={onAddAppointment}
           onSelectAppointment={handleSelectAppointment}
         />
       </ScrollView>

@@ -1,8 +1,12 @@
-import { Image, useWindowDimensions, View } from 'react-native';
+import { Image, View } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
 
 import logo from '../assets/logo.png';
+
+const LOGO_WIDTH = 220;
+const COMPACT_LOGO_WIDTH = 140;
+const LOGO_ASPECT_RATIO = 220 / 180;
 
 type BrandHeaderProps = {
   name: string;
@@ -10,35 +14,32 @@ type BrandHeaderProps = {
   compact?: boolean;
 };
 
-const LOGO_ASPECT_RATIO = 284 / 141;
-
 export function BrandHeader({
   name,
   tagline,
   compact = false,
 }: BrandHeaderProps) {
-  const { width } = useWindowDimensions();
-  const scale = compact ? 0.35 : 0.6;
-  const logoWidth = Math.min(Math.max(width * scale, 120), 320);
-
   return (
     <View className="items-center">
       <Image
         source={logo}
         accessibilityIgnoresInvertColors
-        style={{ width: logoWidth, aspectRatio: LOGO_ASPECT_RATIO }}
+        style={{
+          width: compact ? COMPACT_LOGO_WIDTH : LOGO_WIDTH,
+          aspectRatio: LOGO_ASPECT_RATIO,
+        }}
         resizeMode="contain"
       />
       <Text
         className={
           compact
-            ? '-mt-6 text-xl font-extrabold uppercase tracking-[2px] text-label-quartenery'
-            : '-mt-16 text-[26px] font-extrabold uppercase tracking-[2.5px] text-label-quartenery'
+            ? 'text-xl font-bold uppercase text-label-quartenery'
+            : 'mt-[15px] text-[28px] font-bold uppercase text-label-quartenery'
         }
       >
         {name}
       </Text>
-      <Text className="mt-1.5 text-[15px] tracking-[0.4px] text-label-quartenery">
+      <Text className="text-sm font-medium text-label-quartenery">
         {tagline}
       </Text>
     </View>
