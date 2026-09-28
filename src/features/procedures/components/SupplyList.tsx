@@ -18,7 +18,8 @@ type SupplyListRow = {
 type SupplyListProps = {
   rows: readonly SupplyListRow[];
   emptyMessage: string;
-  onRemove: (id: string) => void;
+  /** Sem ele a lista é só leitura: um atendimento cancelado não aceita mudar insumos. */
+  onRemove?: (id: string) => void;
   className?: string;
 };
 
@@ -67,15 +68,17 @@ function SupplyList({
             {row.cost}
           </Text>
 
-          <Pressable
-            role="button"
-            accessibilityLabel={row.removeLabel}
-            hitSlop={12}
-            onPress={() => onRemove(row.id)}
-            className="p-1"
-          >
-            <Icon as={X} size={16} className="text-label-primary" />
-          </Pressable>
+          {onRemove ? (
+            <Pressable
+              role="button"
+              accessibilityLabel={row.removeLabel}
+              hitSlop={12}
+              onPress={() => onRemove(row.id)}
+              className="p-1"
+            >
+              <Icon as={X} size={16} className="text-label-primary" />
+            </Pressable>
+          ) : null}
         </View>
       ))}
     </View>

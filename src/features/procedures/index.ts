@@ -1,4 +1,6 @@
 export { DiaDiaScreen } from './screens/DiaDiaScreen';
+export { DayAppointments } from './screens/DayAppointments';
+export { AppointmentDetailScreen } from './screens/AppointmentDetailScreen';
 export {
   AppointmentActions,
   type AppointmentActionsCancellation,

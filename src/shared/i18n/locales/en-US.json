@@ -536,6 +536,43 @@
       "remove": "Remove {{name}}",
       "totalCost": "Supplies total",
       "grossMargin": "Gross margin"
+    },
+    "status": {
+      "SCHEDULED": "Scheduled",
+      "COMPLETED": "Done",
+      "CANCELED": "Canceled"
+    },
+    "detail": {
+      "title": "Appointment",
+      "back": "Back",
+      "loadError": "Could not load the appointment.",
+      "retry": "Try again",
+      "patient": "Patient",
+      "procedure": "Procedure",
+      "time": "Time",
+      "amount": "Amount",
+      "noAmount": "No amount",
+      "editAmount": "Edit amount",
+      "suppliesTitle": "Supplies used",
+      "addSupply": "Add supply",
+      "suppliesFailed": "Could not save the supplies. Try again.",
+      "amountSheet": {
+        "title": "Appointment amount",
+        "placeholder": "0.00",
+        "confirm": "Save",
+        "errors": {
+          "REQUIRED": "Enter the amount.",
+          "INVALID_NUMBER": "Enter a valid amount, like 350.00.",
+          "FAILED": "Could not save the amount. Try again."
+        }
+      }
+    },
+    "day": {
+      "previous": "Previous day",
+      "next": "Next day",
+      "empty": "No appointments on this day.",
+      "error": "Could not load the appointments.",
+      "untitled": "Untitled"
     }
   },
   "clients": {

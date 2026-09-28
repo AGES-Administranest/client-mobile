@@ -96,3 +96,41 @@ export async function cancelAppointment(
     { token: idToken },
   );
 }
+
+// O backend filtra por um status por vez e pelo `startsAt` dentro de
+// [from, to]; 100 é o teto do pageSize, folgado para um dia.
+export async function fetchAppointments(
+  idToken: string,
+  query: { status: AppointmentResult['status']; from: string; to: string },
+): Promise<AppointmentResult[]> {
+  const params = new URLSearchParams({
+    status: query.status,
+    from: query.from,
+    to: query.to,
+    pageSize: '100',
+  });
+  return apiClient.get<AppointmentResult[]>(`/appointments?${params}`, {
+    token: idToken,
+  });
+}
+
+export async function fetchAppointment(
+  idToken: string,
+  appointmentId: string,
+): Promise<AppointmentResult> {
+  return apiClient.get<AppointmentResult>(`/appointments/${appointmentId}`, {
+    token: idToken,
+  });
+}
+
+export async function updateAppointmentAmount(
+  idToken: string,
+  appointmentId: string,
+  amount: number,
+): Promise<AppointmentResult> {
+  return apiClient.patch<AppointmentResult>(
+    `/appointments/${appointmentId}`,
+    { amount },
+    { token: idToken },
+  );
+}
