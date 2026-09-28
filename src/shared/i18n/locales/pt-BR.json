@@ -374,6 +374,14 @@
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
       "empty": "Nenhum tomador encontrado"
+    },
+    "completion": {
+      "action": "Finalizar procedimento",
+      "notices": {
+        "CANCELED": "Este agendamento foi cancelado e não pode mais ser finalizado.",
+        "AMOUNT_REQUIRED": "Preencha o valor do atendimento antes de finalizar.",
+        "FAILED": "Não foi possível finalizar o procedimento. Tente novamente."
+      }
     }
   },
   "clients": {

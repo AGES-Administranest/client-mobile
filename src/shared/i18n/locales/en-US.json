@@ -374,6 +374,14 @@
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
       "empty": "No clients found"
+    },
+    "completion": {
+      "action": "Complete procedure",
+      "notices": {
+        "CANCELED": "This appointment was canceled and can no longer be completed.",
+        "AMOUNT_REQUIRED": "Fill in the appointment amount before completing it.",
+        "FAILED": "Could not complete the procedure. Please try again."
+      }
     }
   },
   "clients": {
