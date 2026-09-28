@@ -8,7 +8,6 @@ const PROPOFOL: SupplyItem = {
   name: 'Propofol 10mg/ml 20ml',
   quantity: 1,
   unitCost: 19.9,
-  source: 'stock',
 };
 
 const SERINGA: SupplyItem = {
@@ -16,7 +15,6 @@ const SERINGA: SupplyItem = {
   name: 'Seringa 60ml',
   quantity: 2,
   unitCost: 5.6,
-  source: 'standalone',
 };
 
 let current: ReturnType<typeof useSupplyList>;

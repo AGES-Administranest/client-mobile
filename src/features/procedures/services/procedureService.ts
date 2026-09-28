@@ -1,7 +1,6 @@
 import { apiClient } from 'shared/services/apiClient';
 
 import type { CreateAppointmentPayload } from '../domain/procedure.types';
-import type { CompleteAppointmentPayload } from '../domain/toCompleteAppointmentPayload';
 
 export type AppointmentResult = {
   id: string;
@@ -50,6 +49,10 @@ export type FinancialEntryResult = {
   updatedAt: string;
   deletedAt: string | null;
 };
+
+// O agendamento já foi editado antes, pelo lápis; o valor só vai aqui quando
+// a tela quiser completar e ajustar o valor no mesmo passo.
+export type CompleteAppointmentPayload = { amount?: number };
 
 export type CompletedAppointmentResult = AppointmentResult & {
   financialEntry: FinancialEntryResult;

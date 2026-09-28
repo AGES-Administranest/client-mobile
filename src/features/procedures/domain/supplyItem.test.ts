@@ -13,7 +13,6 @@ function supply(overrides: Partial<SupplyItem> = {}): SupplyItem {
     name: 'Propofol 10mg/ml 20ml',
     quantity: 1,
     unitCost: 19.9,
-    source: 'stock',
     ...overrides,
   };
 }
@@ -31,7 +30,6 @@ const FIGMA_ITEMS: SupplyItem[] = [
     name: 'Seringa 60ml',
     quantity: 2,
     unitCost: 5.6,
-    source: 'standalone',
   }),
 ];
 

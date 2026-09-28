@@ -1,11 +1,8 @@
-export type SupplySource = 'stock' | 'standalone';
-
 export type SupplyItem = {
   id: string;
   name: string;
   quantity: number;
   unitCost: number;
-  source: SupplySource;
 };
 
 export function getSupplyLineCost(item: SupplyItem): number {

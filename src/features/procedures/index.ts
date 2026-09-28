@@ -25,9 +25,5 @@ export {
   formatSupplyQuantity,
   formatSupplyTotalCost,
 } from './domain/formatSupply';
-export {
-  getSupplyLineCost,
-  type SupplyItem,
-  type SupplySource,
-} from './domain/supplyItem';
+export { getSupplyLineCost, type SupplyItem } from './domain/supplyItem';
 export { useSupplyList, type SupplyListState } from './hooks/useSupplyList';
