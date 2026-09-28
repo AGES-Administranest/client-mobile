@@ -311,7 +311,8 @@
     "finance": "Finança",
     "materials": "Materiais",
     "partners": "Parceiros",
-    "reports": "Relatórios"
+    "reports": "Relatórios",
+    "clinics": "Clínicas"
   },
   "optionsModal": {
     "scanNote": "Escanear nota",
@@ -528,6 +529,50 @@
         "TOO_LONG": "O motivo pode ter no máximo 2000 caracteres.",
         "FAILED": "Não foi possível cancelar o agendamento. Tente novamente."
       }
+    },
+    "supplies": {
+      "empty": "Nenhum material adicionado",
+      "lineDetail": "{{quantity}} un. × {{unitCost}}",
+      "remove": "Remover {{name}}",
+      "totalCost": "Total insumos",
+      "grossMargin": "Margem bruta"
+    },
+    "status": {
+      "SCHEDULED": "Agendado",
+      "COMPLETED": "Realizado",
+      "CANCELED": "Cancelado"
+    },
+    "detail": {
+      "title": "Atendimento",
+      "back": "Voltar",
+      "loadError": "Não foi possível carregar o atendimento.",
+      "retry": "Tentar de novo",
+      "patient": "Paciente",
+      "procedure": "Procedimento",
+      "time": "Horário",
+      "amount": "Valor",
+      "noAmount": "Sem valor",
+      "editAmount": "Editar valor",
+      "suppliesTitle": "Materiais usados",
+      "addSupply": "Adicionar insumo",
+      "suppliesFailed": "Não foi possível salvar os insumos. Tente novamente.",
+      "amountSheet": {
+        "title": "Valor do atendimento",
+        "placeholder": "0,00",
+        "confirm": "Salvar",
+        "errors": {
+          "REQUIRED": "Informe o valor.",
+          "INVALID_NUMBER": "Informe um valor válido, como 350,00.",
+          "FAILED": "Não foi possível salvar o valor. Tente novamente."
+        }
+      }
+    },
+    "day": {
+      "previous": "Dia anterior",
+      "next": "Próximo dia",
+      "empty": "Nenhum atendimento neste dia.",
+      "error": "Não foi possível carregar os atendimentos.",
+      "untitled": "Sem nome"
     }
   },
   "clients": {

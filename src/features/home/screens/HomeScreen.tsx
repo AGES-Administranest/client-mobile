@@ -19,7 +19,7 @@ import {
   type MonitoredItem,
 } from 'features/inventory';
 import { fetchItems } from 'features/materials';
-import { DiaDiaScreen } from 'features/procedures';
+import { DayAppointments, DiaDiaScreen } from 'features/procedures';
 import { useTranslation } from 'shared/i18n';
 
 export function HomeScreen() {
@@ -29,6 +29,7 @@ export function HomeScreen() {
   const [accountVisible, setAccountVisible] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
   const [newProcedureVisible, setNewProcedureVisible] = useState(false);
+  const [appointmentsRefreshKey, setAppointmentsRefreshKey] = useState(0);
   const [monitoredItems, setMonitoredItems] = useState<MonitoredItem[]>([]);
   const [expiringLots, setExpiringLots] = useState<ExpiringLot[]>([]);
 
@@ -64,7 +65,7 @@ export function HomeScreen() {
   }, [session]);
 
   return (
-    <View className="flex-1 items-center justify-center">
+    <View className="flex-1">
       <Pressable
         onPress={openNotifications}
         accessibilityRole="button"
@@ -83,7 +84,12 @@ export function HomeScreen() {
       >
         <Icon as={UserRound} className="size-5 text-label-quartenery" />
       </Pressable>
-      <Text className="text-2xl font-semibold">{t('tabbar.day')}</Text>
+      <Text className="mt-5 self-center text-2xl font-semibold">
+        {t('tabbar.day')}
+      </Text>
+      <View className="mt-4 flex-1">
+        <DayAppointments refreshKey={appointmentsRefreshKey} />
+      </View>
       <Pressable
         onPress={() => setNewProcedureVisible(true)}
         accessibilityRole="button"
@@ -135,7 +141,10 @@ export function HomeScreen() {
       />
       <DiaDiaScreen
         visible={newProcedureVisible}
-        onClose={() => setNewProcedureVisible(false)}
+        onClose={() => {
+          setNewProcedureVisible(false);
+          setAppointmentsRefreshKey(key => key + 1);
+        }}
       />
     </View>
   );

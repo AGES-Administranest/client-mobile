@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { useAuth } from 'features/auth';
 import {
   NewClientSheet,
   useNewClientForm,
@@ -23,6 +24,7 @@ import {
   type ProcedureFormValues,
 } from '../domain/procedure.types';
 import { useProcedureForm } from '../hooks/useProcedureForm';
+import { registerAppointmentSupplies } from '../services/appointmentSupplyService';
 
 type DiaDiaScreenProps = {
   visible: boolean;
@@ -31,6 +33,7 @@ type DiaDiaScreenProps = {
 
 export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
   const { t } = useTranslation();
+  const { session } = useAuth();
   const {
     values,
     errors,
@@ -66,13 +69,28 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     finishSupplyPrompt();
   }
 
-  function confirmSupply(): void {
-    if (!supplySelector.submit()) {
+  const [savingSupply, setSavingSupply] = useState(false);
+
+  // Uma falha mantém o seletor aberto com a escolha feita, para tentar de
+  // novo; os insumos também podem ser lançados depois, no detalhe.
+  async function confirmSupply(): Promise<void> {
+    const selection = supplySelector.submit();
+    if (!selection || !session || !supplyPrompt) {
       return;
     }
-    // Ainda não existe endpoint para vincular insumos a um atendimento, então
-    // a seleção confirmada não é persistida em lugar nenhum.
-    closeSupplySelector();
+    setSavingSupply(true);
+    try {
+      await registerAppointmentSupplies(
+        session.idToken,
+        supplyPrompt.appointmentId,
+        [{ itemId: selection.itemId, quantity: selection.quantity }],
+      );
+      closeSupplySelector();
+    } catch {
+      // segue aberto
+    } finally {
+      setSavingSupply(false);
+    }
   }
 
   const errorText = (code?: FieldErrorCode): string | undefined =>
@@ -208,7 +226,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         quantity={supplySelector.quantity}
         onQuantityChange={supplySelector.onQuantityChange}
         isOverBalance={supplySelector.isOverBalance}
-        canSubmit={supplySelector.canSubmit}
+        canSubmit={supplySelector.canSubmit && !savingSupply}
         title={t('stock.supplySelector.title')}
         materialLabel={t('stock.supplySelector.materialLabel')}
         searchPlaceholder={t('stock.supplySelector.searchPlaceholder')}

@@ -1,4 +1,6 @@
 export { DiaDiaScreen } from './screens/DiaDiaScreen';
+export { DayAppointments } from './screens/DayAppointments';
+export { AppointmentDetailScreen } from './screens/AppointmentDetailScreen';
 export {
   AppointmentActions,
   type AppointmentActionsCancellation,
@@ -12,3 +14,18 @@ export {
   type AppointmentActionsState,
   type CancellationState,
 } from './hooks/useAppointmentActions';
+export {
+  SupplyCostSummary,
+  type SupplyCostSummaryProps,
+} from './components/SupplyCostSummary';
+export {
+  SupplyList,
+  type SupplyListProps,
+  type SupplyListRow,
+} from './components/SupplyList';
+export {
+  formatSupplyQuantity,
+  formatSupplyTotalCost,
+} from './domain/formatSupply';
+export { getSupplyLineCost, type SupplyItem } from './domain/supplyItem';
+export { useSupplyList, type SupplyListState } from './hooks/useSupplyList';
