@@ -219,14 +219,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         errorMessage={t('stock.supplySelector.error')}
         loadingMessage={t('stock.supplySelector.loading')}
         termTooShortMessage={t('stock.supplySelector.termTooShort')}
-        overBalanceMessage={
-          supplySelector.selected
-            ? t('stock.supplySelector.overBalance', {
-                balance: supplySelector.selected.balance,
-                unit: supplySelector.selected.unit,
-              })
-            : ''
-        }
+        insufficientStockMessage={t('stock.supplySelector.insufficientStock')}
         formatPrice={option => formatSupplyPrice(option.price)}
       />
     </>
