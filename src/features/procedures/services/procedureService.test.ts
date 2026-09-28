@@ -1,6 +1,6 @@
 import { ApiError } from 'shared/services/apiClient';
 
-import { completeAppointment } from './procedureService';
+import { cancelAppointment, completeAppointment } from './procedureService';
 
 // Contrato real do PATCH /appointments/:id/complete (backend, módulo
 // appointments):
@@ -88,6 +88,41 @@ describe('completeAppointment', () => {
       status: 409,
       code: 'APPOINTMENT_NOT_SCHEDULED',
       details: { status: 'CANCELED' },
+    } satisfies Partial<ApiError>);
+  });
+});
+
+describe('cancelAppointment', () => {
+  test('cancela em PATCH /appointments/:id/cancel, só com o motivo no corpo', async () => {
+    await cancelAppointment(
+      ID_TOKEN,
+      'appointment-1',
+      'Paciente não compareceu',
+    );
+
+    const { url, init, headers, body } = lastRequest();
+    expect(init.method).toBe('PATCH');
+    expect(url.pathname).toBe('/appointments/appointment-1/cancel');
+    expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
+    expect(body).toEqual({ reason: 'Paciente não compareceu' });
+  });
+
+  test('um 409 chega com o status atual em details', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({
+        statusCode: 409,
+        code: 'APPOINTMENT_NOT_SCHEDULED',
+        details: { status: 'COMPLETED' },
+      }),
+    });
+
+    await expect(
+      cancelAppointment(ID_TOKEN, 'appointment-1', 'motivo'),
+    ).rejects.toMatchObject({
+      status: 409,
+      details: { status: 'COMPLETED' },
     } satisfies Partial<ApiError>);
   });
 });

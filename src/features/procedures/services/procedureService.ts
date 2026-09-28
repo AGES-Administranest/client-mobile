@@ -78,3 +78,18 @@ export async function completeAppointment(
     { token: idToken },
   );
 }
+
+// Marca um agendamento SCHEDULED como não realizado, sem lançar receita. O
+// backend grava o motivo em `notes`. Mesmo destino do completeAppointment
+// quando o appointmentService da US07 existir.
+export async function cancelAppointment(
+  idToken: string,
+  appointmentId: string,
+  reason: string,
+): Promise<AppointmentResult> {
+  return apiClient.patch<AppointmentResult>(
+    `/appointments/${appointmentId}/cancel`,
+    { reason },
+    { token: idToken },
+  );
+}
