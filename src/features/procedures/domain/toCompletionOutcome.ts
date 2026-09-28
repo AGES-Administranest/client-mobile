@@ -5,7 +5,14 @@ export type CompletionOutcome =
   | 'NOT_FOUND'
   | 'FAILED';
 
-export type AppointmentActionNotice = 'CANCELED' | 'AMOUNT_REQUIRED' | 'FAILED';
+// CANCELED e COMPLETED dizem que o agendamento já saiu de SCHEDULED por outro
+// caminho; os demais são falhas da ação que a usuária tentou.
+export type AppointmentActionNotice =
+  | 'CANCELED'
+  | 'COMPLETED'
+  | 'AMOUNT_REQUIRED'
+  | 'FAILED'
+  | 'CANCEL_FAILED';
 
 export type CompletionErrorInfo = {
   status: number;
