@@ -380,7 +380,20 @@
       "notices": {
         "CANCELED": "This appointment was canceled and can no longer be completed.",
         "AMOUNT_REQUIRED": "Fill in the appointment amount before completing it.",
-        "FAILED": "Could not complete the procedure. Please try again."
+        "FAILED": "Could not complete the procedure. Please try again.",
+        "COMPLETED": "This appointment was already completed and can no longer be canceled.",
+        "CANCEL_FAILED": "Could not cancel the appointment. Please try again."
+      }
+    },
+    "cancellation": {
+      "action": "Cancel",
+      "title": "Cancellation reason",
+      "reasonPlaceholder": "Briefly describe why the appointment was canceled",
+      "confirm": "Confirm",
+      "errors": {
+        "REQUIRED": "Enter the cancellation reason.",
+        "TOO_LONG": "The reason can have at most 2000 characters.",
+        "FAILED": "Could not cancel the appointment. Please try again."
       }
     }
   },
