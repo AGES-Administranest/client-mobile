@@ -311,7 +311,8 @@
     "finance": "Finance",
     "materials": "Materials",
     "partners": "Partners",
-    "reports": "Reports"
+    "reports": "Reports",
+    "clinics": "Clinics"
   },
   "optionsModal": {
     "scanNote": "Scan note",
@@ -528,6 +529,13 @@
         "TOO_LONG": "The reason can have at most 2000 characters.",
         "FAILED": "Could not cancel the appointment. Please try again."
       }
+    },
+    "supplies": {
+      "empty": "No supplies added",
+      "lineDetail": "{{quantity}} u. × {{unitCost}}",
+      "remove": "Remove {{name}}",
+      "totalCost": "Supplies total",
+      "grossMargin": "Gross margin"
     }
   },
   "clients": {
