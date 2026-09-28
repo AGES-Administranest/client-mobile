@@ -22,8 +22,6 @@ const CATEGORY_OPTIONS = [
 
 const UNIT_OPTIONS = ['un', 'ampola', 'caixa'];
 
-// A tela mantem o modal montado e so troca `visible`/`item`; montar com
-// item=null e depois passar o item reproduz esse ciclo.
 async function mountThenOpen(
   props: Partial<React.ComponentProps<typeof ItemModal>>,
 ) {
@@ -112,9 +110,6 @@ test('edit modal submits the minimum stock it shows', async () => {
   });
 });
 
-// currentQuantity é um cache das stock_movement no backend (ver o comentário
-// em useMaterialsScreen): o PATCH de edição nunca manda quantity, então um
-// campo editável aqui só engana quem tenta ajustar o estoque por ele.
 test('edit modal does not let the current stock quantity be edited', async () => {
   const renderer = await mountThenOpen({ mode: 'create' });
 
@@ -197,7 +192,6 @@ test('picking an item that already exists hides the expiration, keeps quantity',
       .props.onChangeText('dipirona 500');
   });
 
-  // Seleciona o item existente no dropdown
   const match = renderer.root
     .findAll(n => typeof n.props?.onPress === 'function')
     .filter(n =>
@@ -327,4 +321,112 @@ test('a past expiration typed by hand still blocks the submit', async () => {
     confirm.props.onPress();
   });
   expect(drafts).toHaveLength(0);
+});
+
+describe('form validation', () => {
+  async function openWithConfirm(onConfirm: (draft: unknown) => void) {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <I18nProvider>
+          <ItemModal
+            visible
+            onClose={() => {}}
+            items={IN_STOCK}
+            categoryOptions={CATEGORY_OPTIONS}
+            unitOptions={UNIT_OPTIONS}
+            onConfirm={onConfirm}
+          />
+        </I18nProvider>,
+      );
+    });
+    return renderer!;
+  }
+
+  function pressWithText(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    text: string,
+  ) {
+    return renderer.root
+      .findAll(node => typeof node.props?.onPress === 'function')
+      .filter(node =>
+        JSON.stringify(
+          node.findAllByType('Text' as never).map(t => t.props.children),
+        ).includes(text),
+      )
+      .pop()!;
+  }
+
+  async function typeName(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    name: string,
+  ) {
+    await act(async () => {
+      renderer.root
+        .findAll(n => typeof n.props.onChangeText === 'function')[0]
+        .props.onChangeText(name);
+    });
+  }
+
+  async function confirm(renderer: ReactTestRenderer.ReactTestRenderer) {
+    await act(async () => {
+      pressWithText(renderer, 'Confirmar').props.onPress();
+    });
+  }
+
+  test('an empty form shows what is missing and is not submitted', async () => {
+    const drafts: unknown[] = [];
+    const renderer = await openWithConfirm(draft => drafts.push(draft));
+
+    await confirm(renderer);
+
+    const shown = texts(renderer);
+    expect(shown).toContain('Informe o nome do item.');
+    expect(shown).toContain('Informe o custo unitário.');
+    expect(shown).toContain('Selecione a unidade.');
+    expect(drafts).toHaveLength(0);
+  });
+
+  test('a typed name that was neither picked nor added asks to choose', async () => {
+    const renderer = await openWithConfirm(() => {});
+    await typeName(renderer, 'Novo item inexistente');
+
+    await confirm(renderer);
+
+    expect(texts(renderer)).toContain(
+      'Selecione um item da lista ou adicione um novo.',
+    );
+  });
+
+  test('stock entry for an existing item needs a quantity above zero', async () => {
+    const drafts: unknown[] = [];
+    const renderer = await openWithConfirm(draft => drafts.push(draft));
+    await typeName(renderer, 'dipirona 500');
+    await act(async () => {
+      pressWithText(renderer, 'Dipirona 500mg').props.onPress();
+    });
+
+    await confirm(renderer);
+    expect(texts(renderer)).toContain('Informe a quantidade.');
+
+    const quantity = renderer.root
+      .findAll(n => typeof n.props.onChangeText === 'function')
+      .find(n => n.props.placeholder === '0')!;
+    await act(async () => {
+      quantity.props.onChangeText('0');
+    });
+    expect(texts(renderer)).not.toContain('Informe a quantidade.');
+
+    await confirm(renderer);
+    expect(texts(renderer)).toContain(
+      'A quantidade precisa ser maior que zero.',
+    );
+    expect(drafts).toHaveLength(0);
+
+    await act(async () => {
+      quantity.props.onChangeText('5');
+    });
+    await confirm(renderer);
+    expect(drafts).toHaveLength(1);
+  });
 });
