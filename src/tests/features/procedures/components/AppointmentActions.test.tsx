@@ -3,8 +3,8 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 import {
   AppointmentActions,
   type AppointmentActionsCancellation,
-} from './AppointmentActions';
-import type { AppointmentActionNotice } from '../domain/toCompletionOutcome';
+} from 'features/procedures/components/AppointmentActions';
+import type { AppointmentActionNotice } from 'features/procedures/domain/toCompletionOutcome';
 
 const TEXTS = {
   complete: 'Finalizar procedimento',

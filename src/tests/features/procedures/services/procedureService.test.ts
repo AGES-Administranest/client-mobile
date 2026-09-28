@@ -1,6 +1,8 @@
+import {
+  cancelAppointment,
+  completeAppointment,
+} from 'features/procedures/services/procedureService';
 import { ApiError } from 'shared/services/apiClient';
-
-import { cancelAppointment, completeAppointment } from './procedureService';
 
 // Contrato real do PATCH /appointments/:id/complete (backend, módulo
 // appointments):

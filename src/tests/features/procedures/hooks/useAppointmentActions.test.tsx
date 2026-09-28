@@ -1,18 +1,17 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
-import { ApiError } from 'shared/services/apiClient';
-
 import {
   useAppointmentActions,
   type ActionableAppointment,
-} from './useAppointmentActions';
+} from 'features/procedures/hooks/useAppointmentActions';
 import {
   cancelAppointment,
   completeAppointment,
-} from '../services/procedureService';
+} from 'features/procedures/services/procedureService';
+import { ApiError } from 'shared/services/apiClient';
 
-jest.mock('../services/procedureService', () => ({
+jest.mock('features/procedures/services/procedureService', () => ({
   completeAppointment: jest.fn(),
   cancelAppointment: jest.fn(),
 }));

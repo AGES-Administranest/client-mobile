@@ -1,5 +1,5 @@
-import { toCompleteAppointmentPayload } from './toCompleteAppointmentPayload';
-import { validProcedureForm as valid } from './validProcedureForm.fixture';
+import { toCompleteAppointmentPayload } from 'features/procedures/domain/toCompleteAppointmentPayload';
+import { validProcedureForm as valid } from 'features/procedures/domain/validProcedureForm.fixture';
 
 describe('toCompleteAppointmentPayload', () => {
   it('envia os dados do procedimento, com números já convertidos', () => {

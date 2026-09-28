@@ -2,7 +2,7 @@ import {
   toCompletionOutcome,
   type CompletionErrorInfo,
   type CompletionOutcome,
-} from './toCompletionOutcome';
+} from 'features/procedures/domain/toCompletionOutcome';
 
 function error(
   status: number,

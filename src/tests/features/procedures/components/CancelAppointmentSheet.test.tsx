@@ -1,7 +1,7 @@
 import { TextInput } from 'react-native';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { CancelAppointmentSheet } from './CancelAppointmentSheet';
+import { CancelAppointmentSheet } from 'features/procedures/components/CancelAppointmentSheet';
 
 const TEXTS = {
   title: 'Motivo do cancelamento',

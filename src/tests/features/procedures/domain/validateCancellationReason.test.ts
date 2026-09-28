@@ -2,7 +2,7 @@ import {
   CANCELLATION_REASON_MAX_LENGTH,
   validateCancellationReason,
   type CancellationReasonError,
-} from './validateCancellationReason';
+} from 'features/procedures/domain/validateCancellationReason';
 
 describe('validateCancellationReason', () => {
   it.each<[string, string, CancellationReasonError | null]>([

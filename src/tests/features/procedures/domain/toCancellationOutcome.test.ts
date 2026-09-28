@@ -1,8 +1,8 @@
 import {
   toCancellationOutcome,
   type CancellationOutcome,
-} from './toCancellationOutcome';
-import type { CompletionErrorInfo } from './toCompletionOutcome';
+} from 'features/procedures/domain/toCancellationOutcome';
+import type { CompletionErrorInfo } from 'features/procedures/domain/toCompletionOutcome';
 
 function error(
   status: number,

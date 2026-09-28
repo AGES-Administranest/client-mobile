@@ -1,4 +1,4 @@
-import { ApiError, apiClient } from './apiClient';
+import { ApiError, apiClient } from 'shared/services/apiClient';
 
 const fetchMock = jest.fn();
 
