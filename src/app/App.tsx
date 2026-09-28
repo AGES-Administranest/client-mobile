@@ -14,7 +14,6 @@ import {
   TermsScreen,
   useAuth,
 } from 'features/auth';
-import { ClinicsScreen } from 'features/clinics';
 import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
 import {
@@ -22,6 +21,7 @@ import {
   type InventoryAlertSnapshot,
 } from 'features/inventory';
 import { MaterialsScreen } from 'features/materials';
+import { PartnersScreen } from 'features/partners';
 import { ReportsScreen } from 'features/reports';
 import { I18nProvider } from 'shared/i18n';
 import { initNotifications } from 'shared/services';
@@ -33,7 +33,7 @@ const SCREENS: Record<TabValue, React.ComponentType> = {
   day: HomeScreen,
   finance: FinanceScreen,
   materials: MaterialsScreen,
-  clinics: ClinicsScreen,
+  partners: PartnersScreen,
   reports: ReportsScreen,
 };
 
