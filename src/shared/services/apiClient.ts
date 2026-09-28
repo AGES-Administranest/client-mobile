@@ -12,6 +12,10 @@ export class ApiError extends Error {
     message: string,
     readonly code: string | null,
     readonly status: number,
+    // O `details` do envelope (ADR-07): dados que a tela precisa para reagir
+    // ao erro, como o agendamento que conflita num 409. Opcional para que os
+    // `new ApiError(...)` existentes continuem valendo.
+    readonly details: Record<string, unknown> | null = null,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -47,11 +51,13 @@ async function request<T>(
     const payload = (await response.json().catch(() => ({}))) as {
       message?: string;
       code?: string;
+      details?: Record<string, unknown>;
     };
     throw new ApiError(
       payload.message ?? `HTTP ${response.status}`,
       payload.code ?? null,
       response.status,
+      payload.details ?? null,
     );
   }
 

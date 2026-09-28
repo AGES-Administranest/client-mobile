@@ -507,6 +507,27 @@
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
       "empty": "Nenhum tomador encontrado"
+    },
+    "completion": {
+      "action": "Finalizar procedimento",
+      "notices": {
+        "CANCELED": "Este agendamento foi cancelado e não pode mais ser finalizado.",
+        "AMOUNT_REQUIRED": "Preencha o valor do atendimento antes de finalizar.",
+        "FAILED": "Não foi possível finalizar o procedimento. Tente novamente.",
+        "COMPLETED": "Este agendamento já foi finalizado e não pode mais ser cancelado.",
+        "CANCEL_FAILED": "Não foi possível cancelar o agendamento. Tente novamente."
+      }
+    },
+    "cancellation": {
+      "action": "Cancelar",
+      "title": "Motivo do cancelamento",
+      "reasonPlaceholder": "Escreva brevemente o motivo do cancelamento",
+      "confirm": "Confirmar",
+      "errors": {
+        "REQUIRED": "Informe o motivo do cancelamento.",
+        "TOO_LONG": "O motivo pode ter no máximo 2000 caracteres.",
+        "FAILED": "Não foi possível cancelar o agendamento. Tente novamente."
+      }
     }
   },
   "clients": {
