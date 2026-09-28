@@ -77,7 +77,7 @@ function texts(sheet: ReactTestRenderer.ReactTestRenderer) {
   );
 }
 
-/** The quantity field is the numeric input, told apart by its "0" placeholder. */
+/** O campo de quantidade é o input numérico, reconhecido pelo placeholder "0". */
 function quantityField(sheet: ReactTestRenderer.ReactTestRenderer) {
   return sheet.root.find(
     node =>
@@ -114,7 +114,7 @@ it('paints the quantity field with the error colour, not the money-negative one'
 
   const className = quantityField(sheet).props.className;
   expect(className).toContain('border-destructive');
-  // `alert-primary` is reserved for negative monetary values (DESIGN.md).
+  // `alert-primary` é reservado para valores monetários negativos (DESIGN.md).
   expect(className).not.toContain('alert-primary');
 });
 
