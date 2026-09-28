@@ -158,7 +158,7 @@ export function MaterialsScreen() {
           />
         ))}
       </ScrollView>
-      <StockEntryFlow />
+      <StockEntryFlow onTypeItem={openCreate} />
       <Button
         shape="pill"
         icon={Plus}

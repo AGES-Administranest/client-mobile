@@ -85,13 +85,15 @@ async function settle() {
   });
 }
 
-async function renderFlow() {
+async function renderFlow(
+  props: React.ComponentProps<typeof StockEntryFlow> = {},
+) {
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-            <StockEntryFlow />
+            <StockEntryFlow {...props} />
           </AuthProvider>
         </I18nProvider>
       </SafeAreaProvider>,
@@ -186,6 +188,30 @@ it('lets the user correct an extracted name', async () => {
   });
 
   expect(nameInputs(flow)[1].props.value).toBe('CETAMINA 10% 10ML');
+});
+
+it('hands "Digitar insumo" to the item form and closes its own menu', async () => {
+  const onTypeItem = jest.fn();
+  const flow = await renderFlow({ onTypeItem });
+
+  await press(flow, 'Registrar entrada');
+  expect(texts(flow)).toContain('Digitar insumo');
+
+  await press(flow, 'Digitar insumo');
+
+  expect(onTypeItem).toHaveBeenCalledTimes(1);
+  // The menu is gone, so the form is not left behind a second sheet.
+  expect(texts(flow)).not.toContain('Escanear nota');
+});
+
+it('just dismisses "Digitar insumo" when no form is wired in', async () => {
+  const flow = await renderFlow();
+
+  await press(flow, 'Registrar entrada');
+  await press(flow, 'Digitar insumo');
+
+  expect(texts(flow)).not.toContain('Escanear nota');
+  expect(uploadMock).not.toHaveBeenCalled();
 });
 
 it('goes quietly back when the picker is cancelled', async () => {
