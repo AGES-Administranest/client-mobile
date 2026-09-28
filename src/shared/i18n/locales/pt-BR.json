@@ -520,9 +520,9 @@
       }
     },
     "cancellation": {
-      "action": "Cancelar",
+      "action": "Não realizado",
       "title": "Motivo do cancelamento",
-      "reasonPlaceholder": "Escreva brevemente o motivo do cancelamento",
+      "reasonPlaceholder": "Descreva o motivo",
       "confirm": "Confirmar",
       "errors": {
         "REQUIRED": "Informe o motivo do cancelamento.",
@@ -608,6 +608,21 @@
         "session": "Sua sessão expirou. Entre novamente.",
         "unknown": "Não foi possível cadastrar. Tente novamente."
       }
+    }
+  },
+  "appointments": {
+    "notDone": {
+      "action": "Não realizado",
+      "title": "Não realizado",
+      "reason": "Por que o procedimento não foi realizado?",
+      "reasons": {
+        "noShow": "Paciente não compareceu",
+        "clientCanceled": "Cancelamento do cliente",
+        "emergency": "Emergência",
+        "other": "Outro"
+      },
+      "dismiss": "Voltar",
+      "toast": "Agendamento marcado como não realizado"
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Check, Trash2 } from 'lucide-react-native';
+import { Check, CircleX } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -9,43 +9,47 @@ import {
   CancelAppointmentSheet,
   type CancelAppointmentSheetTexts,
 } from './CancelAppointmentSheet';
+import type {
+  CancellationReasonLabels,
+  CancellationReasonPreset,
+} from '../domain/cancellationReasonPresets';
 import type { AppointmentActionNotice } from '../domain/toCompletionOutcome';
 import type { CancellationReasonError } from '../domain/validateCancellationReason';
 
 export type AppointmentActionsTexts = {
   complete: string;
   cancel: string;
+  toast: string;
   notices: Record<AppointmentActionNotice, string>;
   cancellation: CancelAppointmentSheetTexts & {
     errors: Record<CancellationReasonError | 'FAILED', string>;
   };
 };
 
-// Mesmo formato do `cancellation` do useAppointmentActions, para a tela
-// repassar o estado do hook sem remontar nada.
 export type AppointmentActionsCancellation = {
   sheetVisible: boolean;
+  preset: CancellationReasonPreset | null;
   reason: string;
   reasonError: CancellationReasonError | null;
   failed: boolean;
   open: () => void;
   close: () => void;
+  setPreset: (preset: CancellationReasonPreset) => void;
   setReason: (reason: string) => void;
-  confirm: () => void;
+  confirm: (labels: CancellationReasonLabels) => void;
 };
 
 type AppointmentActionsProps = {
   visible: boolean;
   submitting: boolean;
   notice: AppointmentActionNotice | null;
+  justCanceled: boolean;
   texts: AppointmentActionsTexts;
   onComplete: () => void;
   cancellation: AppointmentActionsCancellation;
   className?: string;
 };
 
-// Avisos de que o agendamento já saiu de SCHEDULED: ocupam o lugar dos
-// botões, que não têm mais o que fazer.
 const TERMINAL_NOTICES: readonly AppointmentActionNotice[] = [
   'CANCELED',
   'COMPLETED',
@@ -55,13 +59,24 @@ export function AppointmentActions({
   visible,
   submitting,
   notice,
+  justCanceled,
   texts,
   onComplete,
   cancellation,
   className,
 }: AppointmentActionsProps) {
-  if (!visible) {
+  if (!visible && !justCanceled) {
     return null;
+  }
+
+  if (justCanceled) {
+    return (
+      <View className={cn('gap-3', className)}>
+        <View className="rounded-2xl bg-details-primary p-4">
+          <Text className="text-sm text-label-primary">{texts.toast}</Text>
+        </View>
+      </View>
+    );
   }
 
   if (notice && TERMINAL_NOTICES.includes(notice)) {
@@ -74,11 +89,21 @@ export function AppointmentActions({
     );
   }
 
+  if (!visible) {
+    return null;
+  }
+
   const sheetError = cancellation.reasonError
     ? texts.cancellation.errors[cancellation.reasonError]
     : cancellation.failed
     ? texts.cancellation.errors.FAILED
     : null;
+
+  const reasonLabels: CancellationReasonLabels = {
+    noShow: texts.cancellation.reasons.noShow,
+    clientCanceled: texts.cancellation.reasons.clientCanceled,
+    emergency: texts.cancellation.reasons.emergency,
+  };
 
   return (
     <View className={cn('gap-3', className)}>
@@ -97,7 +122,7 @@ export function AppointmentActions({
       <Button
         shape="pill"
         variant="secondary"
-        icon={Trash2}
+        icon={CircleX}
         className="h-[49px] w-full"
         disabled={submitting}
         accessibilityRole="button"
@@ -115,12 +140,14 @@ export function AppointmentActions({
 
       <CancelAppointmentSheet
         visible={cancellation.sheetVisible}
+        preset={cancellation.preset}
         reason={cancellation.reason}
         errorText={sheetError}
         submitting={submitting}
         texts={texts.cancellation}
+        onSelectPreset={cancellation.setPreset}
         onChangeReason={cancellation.setReason}
-        onConfirm={cancellation.confirm}
+        onConfirm={() => cancellation.confirm(reasonLabels)}
         onClose={cancellation.close}
       />
     </View>

@@ -8,7 +8,8 @@ import type { AppointmentActionNotice } from 'features/procedures/domain/toCompl
 
 const TEXTS = {
   complete: 'Finalizar procedimento',
-  cancel: 'Cancelar',
+  cancel: 'Não realizado',
+  toast: 'Agendamento marcado como não realizado',
   notices: {
     CANCELED: 'Este agendamento foi cancelado.',
     COMPLETED: 'Este agendamento já foi finalizado.',
@@ -17,9 +18,17 @@ const TEXTS = {
     CANCEL_FAILED: 'Não foi possível cancelar o agendamento.',
   },
   cancellation: {
-    title: 'Motivo do cancelamento',
-    reasonPlaceholder: 'Escreva brevemente o motivo do cancelamento',
+    title: 'Não realizado',
+    reason: 'Por que o procedimento não foi realizado?',
+    reasons: {
+      noShow: 'Paciente não compareceu',
+      clientCanceled: 'Cancelamento do cliente',
+      emergency: 'Emergência',
+      other: 'Outro',
+    },
+    reasonPlaceholder: 'Descreva o motivo',
     confirm: 'Confirmar',
+    dismiss: 'Voltar',
     errors: {
       REQUIRED: 'Informe o motivo do cancelamento.',
       TOO_LONG: 'O motivo pode ter no máximo 2000 caracteres.',
@@ -33,11 +42,13 @@ function cancellation(
 ): AppointmentActionsCancellation {
   return {
     sheetVisible: false,
+    preset: null,
     reason: '',
     reasonError: null,
     failed: false,
     open: jest.fn(),
     close: jest.fn(),
+    setPreset: jest.fn(),
     setReason: jest.fn(),
     confirm: jest.fn(),
     ...overrides,
@@ -48,12 +59,14 @@ async function render({
   visible = true,
   submitting = false,
   notice = null,
+  justCanceled = false,
   onComplete = jest.fn(),
   cancel = cancellation(),
 }: {
   visible?: boolean;
   submitting?: boolean;
   notice?: AppointmentActionNotice | null;
+  justCanceled?: boolean;
   onComplete?: () => void;
   cancel?: AppointmentActionsCancellation;
 } = {}) {
@@ -64,6 +77,7 @@ async function render({
         visible={visible}
         submitting={submitting}
         notice={notice}
+        justCanceled={justCanceled}
         texts={TEXTS}
         onComplete={onComplete}
         cancellation={cancel}
@@ -104,6 +118,13 @@ function hasButton(
   );
 }
 
+test('depois de marcar como não realizado, mostra o aviso no lugar dos botões', async () => {
+  const renderer = await render({ visible: false, justCanceled: true });
+
+  expect(texts(renderer)).toEqual([TEXTS.toast]);
+  expect(hasButton(renderer, TEXTS.complete)).toBe(false);
+});
+
 test('não renderiza nada quando não está visível', async () => {
   const renderer = await render({ visible: false });
 
@@ -120,7 +141,7 @@ test('Finalizar: pílula larga, marrom da paleta', async () => {
   expect(className).toContain('w-full');
 });
 
-test('Cancelar: pílula larga, vermelha da paleta', async () => {
+test('Não realizado: pílula larga, vermelha da paleta', async () => {
   const renderer = await render();
 
   const className = button(renderer, TEXTS.cancel).props.className as string;
@@ -131,7 +152,7 @@ test('Cancelar: pílula larga, vermelha da paleta', async () => {
   expect(className).toContain('w-full');
 });
 
-test('tocar em Finalizar chama onComplete e em Cancelar abre a folha', async () => {
+test('tocar em Finalizar chama onComplete e em Não realizado abre a folha', async () => {
   const onComplete = jest.fn();
   const cancel = cancellation();
   const renderer = await render({ onComplete, cancel });

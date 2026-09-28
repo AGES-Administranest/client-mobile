@@ -370,6 +370,7 @@ function ActionsSection({
       visible={actions.visible}
       submitting={actions.submitting}
       notice={actions.notice}
+      justCanceled={actions.justCanceled}
       onComplete={actions.complete}
       cancellation={actions.cancellation}
       texts={actionTexts(t)}
@@ -382,7 +383,8 @@ function actionTexts(
 ): AppointmentActionsTexts {
   return {
     complete: t('procedures.completion.action'),
-    cancel: t('procedures.cancellation.action'),
+    cancel: t('appointments.notDone.action'),
+    toast: t('appointments.notDone.toast'),
     notices: {
       CANCELED: t('procedures.completion.notices.CANCELED'),
       COMPLETED: t('procedures.completion.notices.COMPLETED'),
@@ -391,9 +393,17 @@ function actionTexts(
       CANCEL_FAILED: t('procedures.completion.notices.CANCEL_FAILED'),
     },
     cancellation: {
-      title: t('procedures.cancellation.title'),
+      title: t('appointments.notDone.title'),
+      reason: t('appointments.notDone.reason'),
+      reasons: {
+        noShow: t('appointments.notDone.reasons.noShow'),
+        clientCanceled: t('appointments.notDone.reasons.clientCanceled'),
+        emergency: t('appointments.notDone.reasons.emergency'),
+        other: t('appointments.notDone.reasons.other'),
+      },
       reasonPlaceholder: t('procedures.cancellation.reasonPlaceholder'),
       confirm: t('procedures.cancellation.confirm'),
+      dismiss: t('appointments.notDone.dismiss'),
       errors: {
         REQUIRED: t('procedures.cancellation.errors.REQUIRED'),
         TOO_LONG: t('procedures.cancellation.errors.TOO_LONG'),

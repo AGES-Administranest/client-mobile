@@ -520,9 +520,9 @@
       }
     },
     "cancellation": {
-      "action": "Cancel",
+      "action": "Not done",
       "title": "Cancellation reason",
-      "reasonPlaceholder": "Briefly describe why the appointment was canceled",
+      "reasonPlaceholder": "Describe the reason",
       "confirm": "Confirm",
       "errors": {
         "REQUIRED": "Enter the cancellation reason.",
@@ -608,6 +608,21 @@
         "session": "Your session expired. Please sign in again.",
         "unknown": "Couldn't register. Please try again."
       }
+    }
+  },
+  "appointments": {
+    "notDone": {
+      "action": "Not done",
+      "title": "Not done",
+      "reason": "Why wasn't the procedure carried out?",
+      "reasons": {
+        "noShow": "Patient did not attend",
+        "clientCanceled": "Client cancellation",
+        "emergency": "Emergency",
+        "other": "Other"
+      },
+      "dismiss": "Back",
+      "toast": "Appointment marked as not done"
     }
   }
 }
