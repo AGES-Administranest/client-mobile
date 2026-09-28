@@ -53,12 +53,8 @@ export function DayAppointments({ refreshKey }: DayAppointmentsProps) {
         >
           <Icon as={ChevronLeft} className="size-6 text-label-primary" />
         </Pressable>
-        <Text className="text-base font-semibold capitalize text-label-primary">
-          {day.day.toLocaleDateString(locale, {
-            weekday: 'long',
-            day: '2-digit',
-            month: 'short',
-          })}
+        <Text className="text-base font-semibold text-label-primary">
+          {dayLabel(day.day, locale)}
         </Text>
         <Pressable
           onPress={day.nextDay}
@@ -134,4 +130,15 @@ export function DayAppointments({ refreshKey }: DayAppointmentsProps) {
       />
     </View>
   );
+}
+
+// "seg., 28 de set." → "Seg., 28 de set.": só a primeira letra, já que o
+// capitalize do CSS subiria também o "de".
+function dayLabel(day: Date, locale: string): string {
+  const label = day.toLocaleDateString(locale, {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+  });
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }

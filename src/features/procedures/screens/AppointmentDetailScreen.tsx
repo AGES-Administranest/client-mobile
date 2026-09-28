@@ -44,10 +44,6 @@ type AppointmentDetailScreenProps = {
   onChanged: () => void;
 };
 
-// O hook de ações não pode ser condicional; enquanto o atendimento carrega,
-// um CANCELED sem id esconde os botões.
-const NOTHING_TO_ACT_ON: ActionableAppointment = { id: '', status: 'CANCELED' };
-
 const STATUS_BADGE: Record<AppointmentStatus, string> = {
   SCHEDULED: 'bg-details-primary text-label-primary',
   COMPLETED: 'bg-button-primary text-white',
@@ -63,13 +59,6 @@ export function AppointmentDetailScreen({
   const insets = useSafeAreaInsets();
   const detail = useAppointmentDetail(appointmentId);
   const { appointment } = detail;
-  const actions = useAppointmentActions(
-    appointment ?? NOTHING_TO_ACT_ON,
-    () => {
-      detail.refetch();
-      onChanged();
-    },
-  );
   const selector = useSupplySelector();
   const [selectorVisible, setSelectorVisible] = useState(false);
   const [amountSheetVisible, setAmountSheetVisible] = useState(false);
@@ -297,13 +286,15 @@ export function AppointmentDetailScreen({
               />
             </View>
 
-            <AppointmentActions
-              visible={actions.visible}
-              submitting={actions.submitting}
-              notice={actions.notice}
-              onComplete={actions.complete}
-              cancellation={actions.cancellation}
-              texts={actionTexts(t)}
+            {/* A key no valor remonta as ações quando ele é preenchido: o aviso
+                de "preencha o valor" não pode continuar na tela. */}
+            <ActionsSection
+              key={appointment.amount ?? 'no-amount'}
+              appointment={appointment}
+              onChanged={() => {
+                detail.refetch();
+                onChanged();
+              }}
             />
           </ScrollView>
         )}
@@ -361,6 +352,28 @@ export function AppointmentDetailScreen({
         formatPrice={option => formatCurrency(option.price, locale)}
       />
     </Modal>
+  );
+}
+
+function ActionsSection({
+  appointment,
+  onChanged,
+}: {
+  appointment: ActionableAppointment;
+  onChanged: () => void;
+}) {
+  const { t } = useTranslation();
+  const actions = useAppointmentActions(appointment, onChanged);
+
+  return (
+    <AppointmentActions
+      visible={actions.visible}
+      submitting={actions.submitting}
+      notice={actions.notice}
+      onComplete={actions.complete}
+      cancellation={actions.cancellation}
+      texts={actionTexts(t)}
+    />
   );
 }
 
