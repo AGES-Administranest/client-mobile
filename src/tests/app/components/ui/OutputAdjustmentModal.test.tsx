@@ -1,13 +1,13 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { OutputAdjustmentModal } from './OutputAdjustmentModal';
+import { OutputAdjustmentModal } from '../../../../app/components/ui/OutputAdjustmentModal';
 import {
   EMPTY_OUTPUT_ADJUSTMENT,
   type AdjustmentReason,
   type OutputAdjustmentDraft,
   type OutputAdjustmentErrors,
-} from '../domain/outputAdjustment';
-import type { AdjustableItem } from '../services/stockAdjustmentService';
+} from '../../../../features/stock/domain/outputAdjustment';
+import type { AdjustableItem } from '../../../../features/stock/services/stockAdjustmentService';
 
 const ITEMS: AdjustableItem[] = [
   {

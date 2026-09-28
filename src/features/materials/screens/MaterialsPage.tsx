@@ -51,6 +51,11 @@ export function MaterialsScreen() {
     getStockItem,
   } = useMaterialsScreen();
 
+  const segmentOptions = [
+    { value: 'supplies', label: t('segmentedControl.supplies') },
+    { value: 'equipment', label: t('segmentedControl.equipment') },
+  ] as const;
+
   const categoryOptions = [
     { value: ALL_CATEGORIES, label: t('materials.categoryAll') },
     ...categories.map(item => ({ value: item, label: item })),
@@ -109,7 +114,11 @@ export function MaterialsScreen() {
 
   return (
     <View className="flex-1 gap-4 px-4 pt-4">
-      <SegmentedControl value={segment} onValueChange={onSegmentChange} />
+      <SegmentedControl
+        options={segmentOptions}
+        value={segment}
+        onValueChange={onSegmentChange}
+      />
       <CategoryFilter
         bordered={false}
         options={categoryOptions}
