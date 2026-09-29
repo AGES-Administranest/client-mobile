@@ -1,6 +1,5 @@
 import type { Client } from './client';
 import {
-  addClient,
   filterClients,
   getClientSearchStatus,
   normalizeForSearch,
@@ -76,9 +75,16 @@ describe('filterClients', () => {
     expect(filterClients(list, 'desativada')).toEqual([]);
   });
 
-  it.each(['', '   '])('termo vazio (%j) não devolve a lista inteira', term => {
-    expect(filterClients(list, term)).toEqual([]);
-  });
+  it.each(['', '   '])(
+    'termo vazio (%j) devolve a lista inteira: é o que abre o dropdown sem digitar nada',
+    term => {
+      expect(filterClients(list, term).map(c => c.name)).toEqual([
+        'Clínica VetCenter',
+        'Hospital Veterinário Pet Care',
+        'Clínica Vida Animal',
+      ]);
+    },
+  );
 
   it('mantém a ordem da lista original', () => {
     expect(filterClients(list, 'c').map(c => c.name)).toEqual([
@@ -89,34 +95,8 @@ describe('filterClients', () => {
   });
 });
 
-describe('addClient', () => {
-  it('encaixa o novo tomador em ordem alfabética', () => {
-    const list = [client('Alfa'), client('Zeta')];
-    expect(addClient(list, client('Meio')).map(c => c.name)).toEqual([
-      'Alfa',
-      'Meio',
-      'Zeta',
-    ]);
-  });
-
-  it('não duplica quando o id já está na lista', () => {
-    const list = [client('Alfa')];
-    const result = addClient(list, client('Alfa'));
-    expect(result).toHaveLength(1);
-  });
-
-  it('ordena com a regra do português (acento não joga para o fim)', () => {
-    const list = [client('Zeta')];
-    expect(addClient(list, client('Águia')).map(c => c.name)).toEqual([
-      'Águia',
-      'Zeta',
-    ]);
-  });
-});
-
 describe('getClientSearchStatus', () => {
   const base: ClientSearchSnapshot = {
-    term: 'vet',
     paused: false,
     isLoading: false,
     hasError: false,
@@ -124,8 +104,6 @@ describe('getClientSearchStatus', () => {
   };
 
   it.each<[string, Partial<ClientSearchSnapshot>, string]>([
-    ['campo vazio não mostra nada', { term: '' }, 'idle'],
-    ['só espaços não mostra nada', { term: '   ' }, 'idle'],
     [
       'pausada (tomador já escolhido) não mostra nada',
       { paused: true },
@@ -134,7 +112,7 @@ describe('getClientSearchStatus', () => {
     ['carregando a lista', { isLoading: true }, 'loading'],
     ['erro ao carregar a lista', { hasError: true }, 'error'],
     ['sem resultados', { resultCount: 0 }, 'empty'],
-    ['com resultados', {}, 'results'],
+    ['com resultados, mesmo sem nada digitado (é o dropdown)', {}, 'results'],
   ])('%s', (_label, overrides, expected) => {
     expect(getClientSearchStatus({ ...base, ...overrides })).toBe(expected);
   });

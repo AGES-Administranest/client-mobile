@@ -1,3 +1,4 @@
+import { RotateCw } from 'lucide-react-native';
 import { ActivityIndicator, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -50,7 +51,7 @@ function MovementList({
         <Text variant="muted" className="text-center">
           {error.message}
         </Text>
-        <Button shape="pill" onPress={error.onRetry}>
+        <Button icon={RotateCw} shape="pill" onPress={error.onRetry}>
           <Text>{error.retryLabel}</Text>
         </Button>
       </View>

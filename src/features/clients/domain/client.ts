@@ -30,12 +30,3 @@ export type Client = {
 
 // O que um campo de seleção precisa de um tomador: qualquer Client serve.
 export type ClientOption = Pick<Client, 'id' | 'name'>;
-
-// O CreateClientDto aceita mais campos (taxId, email, endereço, dias de
-// atendimento…). O cadastro rápido manda só o mínimo de propósito: a edição
-// completa do tomador fica para a tela de Clínicas.
-export type CreateClientPayload = {
-  type: ClientType;
-  name: string;
-  phone?: string;
-};

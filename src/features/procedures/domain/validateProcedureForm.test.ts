@@ -24,6 +24,34 @@ describe('validateProcedureForm', () => {
     expect(errors.startTime).toBe('REQUIRED');
   });
 
+  // Os limites abaixo são os do CreateAppointmentDto do backend: passar daqui
+  // o front deixava ir e o POST voltava 400.
+  it('exige procedimento com pelo menos 2 caracteres', () => {
+    expect(
+      validateProcedureForm({ ...valid, procedureName: ' a ' }).procedureName,
+    ).toBe('TOO_SHORT');
+    expect(
+      validateProcedureForm({ ...valid, procedureName: 'OS' }).procedureName,
+    ).toBeUndefined();
+  });
+
+  it.each([
+    ['620,555', 'MAX_2_DECIMALS'],
+    ['620.555', 'MAX_2_DECIMALS'],
+    ['620,55', undefined],
+  ])('valor %s -> %s', (amount, expected) => {
+    expect(validateProcedureForm({ ...valid, amount }).amount).toBe(expected);
+  });
+
+  it.each([
+    ['4,2555', 'MAX_3_DECIMALS'],
+    ['4,255', undefined],
+  ])('peso %s -> %s', (weightKg, expected) => {
+    expect(validateProcedureForm({ ...valid, weightKg }).weightKg).toBe(
+      expected,
+    );
+  });
+
   it('aceita campos opcionais vazios', () => {
     expect(
       validateProcedureForm({

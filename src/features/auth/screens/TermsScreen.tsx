@@ -1,3 +1,5 @@
+import { Check, LogOut } from 'lucide-react-native';
+
 import { useTranslation } from 'shared/i18n';
 
 import { AuthButton } from '../components/AuthButton';
@@ -43,6 +45,7 @@ export function TermsScreen() {
 
       <AuthButton
         label={t('auth.terms.submit')}
+        icon={Check}
         onPress={submit}
         isLoading={isSubmitting}
         className="mt-2"
@@ -50,6 +53,7 @@ export function TermsScreen() {
       <AuthButton
         variant="link"
         label={t('auth.terms.signOut')}
+        icon={LogOut}
         onPress={signOut}
         disabled={isSubmitting}
         className="mt-2"

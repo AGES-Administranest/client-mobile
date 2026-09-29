@@ -1,8 +1,6 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import {
   Animated,
-  Dimensions,
-  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -15,8 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from 'app/components/ui/text';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
 // Faixa do fundo escurecido que continua aparecendo acima do sheet mais alto,
 // para ainda dar para fechar tocando fora.
@@ -41,29 +38,12 @@ function ClinicSheet({
 }: ClinicSheetProps) {
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(backdropOpacity, {
-        toValue: visible ? 1 : 0,
-        duration: 300,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      Animated.timing(sheetTranslateY, {
-        toValue: visible ? 0 : SCREEN_HEIGHT,
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [visible, backdropOpacity, sheetTranslateY]);
+  const sheet = useSheetAnimation(visible, onClose);
 
   return (
     <Modal
-      visible={visible}
+      visible={sheet.isRendered}
       transparent
       animationType="none"
       onRequestClose={onClose}
@@ -73,7 +53,7 @@ function ClinicSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <Animated.View
-          style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}
+          style={[StyleSheet.absoluteFill, { opacity: sheet.progress }]}
         >
           <Pressable
             accessibilityRole="button"
@@ -90,9 +70,10 @@ function ClinicSheet({
             até logo abaixo da barra de status. A ScrollView só entra em tela
             pequena ou com o teclado aberto. */}
         <Animated.View
+          {...sheet.panHandlers}
           style={{
             maxHeight: windowHeight - insets.top - SHEET_TOP_GAP,
-            transform: [{ translateY: sheetTranslateY }],
+            ...sheet.sheetStyle,
           }}
         >
           <View className="shrink gap-4 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">

@@ -19,7 +19,7 @@ export function AsaBadge({ asa, className }: AsaBadgeProps) {
       accessibilityLabel={label}
       className={cn('rounded-md bg-details-primary px-2 py-0.5', className)}
     >
-      <Text className="text-[11px] font-bold text-label-tertiary">{label}</Text>
+      <Text className="text-[10px] font-bold text-label-tertiary">{label}</Text>
     </View>
   );
 }

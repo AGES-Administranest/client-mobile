@@ -1,6 +1,6 @@
-import { CalendarDays, MapPin } from 'lucide-react-native';
+import { CalendarDays, MapPin, Plus } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
@@ -78,6 +78,7 @@ export function AppointmentDayList({
           </Text>
           {onAddAppointment && (
             <Button
+              icon={Plus}
               onPress={onAddAppointment}
               className="mt-4 rounded-full px-5 py-2.5"
             >
@@ -104,12 +105,13 @@ export function AppointmentDayList({
                   item.procedureName ?? 'Procedimento'
                 }`}
                 onPress={() => onSelectAppointment?.(item)}
-                className="rounded-2xl bg-white p-4 shadow-sm border border-border-primary/25 active:opacity-85"
+                className="rounded-2xl bg-white p-4 active:opacity-85"
+                style={styles.card}
               >
                 {/* Linha 1: Nome do Paciente, Espécie, ASA Badge e Valor */}
                 <View className="flex-row items-center justify-between mb-1">
                   <View className="flex-row items-center gap-2 flex-1 mr-2">
-                    <Text className="text-base font-bold text-label-primary">
+                    <Text className="text-[15px] font-bold text-label-primary">
                       {item.patientName ?? 'Sem nome'}
                     </Text>
 
@@ -126,7 +128,7 @@ export function AppointmentDayList({
                     {formattedAmount ? (
                       <Text
                         className={cn(
-                          'text-base font-bold text-label-primary',
+                          'text-[15px] font-bold text-label-primary',
                           item.status === 'CANCELED' &&
                             'text-label-tertiary line-through',
                         )}
@@ -145,7 +147,7 @@ export function AppointmentDayList({
 
                 {/* Linha 2: Nome do Procedimento */}
                 {item.procedureName && (
-                  <Text className="text-sm font-medium text-label-primary mb-2.5">
+                  <Text className="text-[13px] font-normal text-label-primary mb-2.5">
                     {item.procedureName}
                   </Text>
                 )}
@@ -156,11 +158,11 @@ export function AppointmentDayList({
                     <View className="flex-row items-center gap-1.5 flex-1 mr-2">
                       <Icon
                         as={MapPin}
-                        className="size-3.5 text-label-tertiary"
+                        className="size-[11px] text-label-tertiary"
                       />
                       <Text
                         numberOfLines={1}
-                        className="text-xs text-label-tertiary font-medium"
+                        className="text-xs text-label-tertiary font-normal"
                       >
                         {item.location}
                       </Text>
@@ -169,7 +171,7 @@ export function AppointmentDayList({
                     <View className="flex-1" />
                   )}
 
-                  <Text className="text-xs font-medium text-label-tertiary">
+                  <Text className="text-xs font-normal text-label-tertiary">
                     {dateBadge}
                   </Text>
                 </View>
@@ -181,3 +183,13 @@ export function AppointmentDayList({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+});

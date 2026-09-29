@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react-native';
 import { Modal, Pressable, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -43,7 +44,12 @@ function FeedbackSheet({
           <Text className="text-xl font-bold text-label-primary">{title}</Text>
           <Text className="text-[15px] text-label-primary">{message}</Text>
 
-          <Button shape="pill" className="h-[49px] w-full" onPress={onDismiss}>
+          <Button
+            icon={Check}
+            shape="pill"
+            className="h-[49px] w-full"
+            onPress={onDismiss}
+          >
             <Text className="font-semibold">{dismissLabel}</Text>
           </Button>
         </Pressable>
