@@ -78,7 +78,7 @@ export function TravelSection({ editable, texts }: TravelSectionProps) {
           </Button>
         </View>
       ) : (
-        <View className="mt-2 rounded-2xl border border-dashed border-border-primary bg-white px-3.5 py-3">
+        <View className="mt-2 rounded-2xl bg-white px-3.5 py-3">
           <Text className="text-[13px]" style={{ color: LabelPlaceholder }}>
             {texts.emptyMessage}
           </Text>
