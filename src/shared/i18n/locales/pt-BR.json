@@ -504,6 +504,9 @@
       "INVALID_NUMBER": "Número inválido",
       "MUST_BE_POSITIVE": "Deve ser maior que zero",
       "MUST_BE_INTEGER": "Deve ser um número inteiro",
+      "TOO_SHORT": "Mínimo de 2 caracteres",
+      "MAX_2_DECIMALS": "Máximo de 2 casas decimais",
+      "MAX_3_DECIMALS": "Máximo de 3 casas decimais",
       "AGE_OUT_OF_RANGE": "Idade deve estar entre 0 e 100",
       "END_BEFORE_START": "O fim deve ser depois do início",
       "INVALID_DATE": "Data inválida",
@@ -527,7 +530,7 @@
     "cancellation": {
       "action": "Não realizado",
       "title": "Motivo do cancelamento",
-      "reasonPlaceholder": "Escreva brevemente o motivo do cancelamento",
+      "reasonPlaceholder": "Escreva brevemente o motivo",
       "confirm": "Confirmar",
       "errors": {
         "REQUIRED": "Informe o motivo do cancelamento.",
@@ -599,7 +602,8 @@
         "distanceLabel": "Distância (km)",
         "distancePlaceholder": "Ex: 34",
         "confirm": "Confirmar"
-      }
+      },
+      "cancellationReason": "Motivo do cancelamento"
     },
     "day": {
       "previous": "Dia anterior",
@@ -620,7 +624,7 @@
         "emergency": "Emergência",
         "other": "Outro"
       },
-      "dismiss": "Voltar",
+      "dismiss": "Cancelar",
       "toast": "Agendamento marcado como não realizado"
     },
     "title": "Agendamentos",
@@ -680,7 +684,14 @@
     "exportPermissionDenied": "Não conseguimos acessar sua agenda. Habilite a permissão de calendário nas configurações do dispositivo para adicionar este agendamento.",
     "exportErrorTitle": "Não foi possível adicionar",
     "exportError": "Algo deu errado ao adicionar o agendamento à sua agenda. Tente novamente.",
-    "dismiss": "Entendi"
+    "dismiss": "Entendi",
+    "statusActions": {
+      "open": "Atualizar status",
+      "notDone": "Não realizado",
+      "cancel": "Cancelar atendimento",
+      "cancelReason": "Por que o atendimento foi cancelado?",
+      "cancelToast": "Atendimento cancelado"
+    }
   },
   "home": {
     "greeting": "Olá, Dr. {{name}}"

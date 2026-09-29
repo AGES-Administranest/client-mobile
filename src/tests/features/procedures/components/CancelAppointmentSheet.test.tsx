@@ -70,15 +70,27 @@ test('mostra título, pergunta, chips e os dois botões da folha', async () => {
     TEXTS.confirm,
     TEXTS.dismiss,
   ]);
-  expect(renderer.root.findAllByType(TextInput)).toHaveLength(0);
+  expect(renderer.root.findAllByType(TextInput)).toHaveLength(1);
 });
 
-test('Outro abre o campo livre; os outros chips não', async () => {
-  const withOther = await render({ preset: 'other' });
-  expect(withOther.renderer.root.findAllByType(TextInput)).toHaveLength(1);
+test('o campo de texto fica à vista com qualquer chip ou sem chip', async () => {
+  for (const preset of [null, 'noShow', 'other'] as const) {
+    const { renderer } = await render({ preset });
+    expect(renderer.root.findAllByType(TextInput)).toHaveLength(1);
+  }
+});
 
-  const withChip = await render({ preset: 'noShow' });
-  expect(withChip.renderer.root.findAllByType(TextInput)).toHaveLength(0);
+test('Confirmar é marrom e Cancelar é vermelho', async () => {
+  const { renderer } = await render();
+  const byLabel = (label: string) =>
+    renderer.root.find(
+      node =>
+        node.props?.role === 'button' &&
+        node.props?.accessibilityLabel === label,
+    ).props.className as string;
+
+  expect(byLabel(TEXTS.confirm)).toContain('bg-primary');
+  expect(byLabel(TEXTS.dismiss)).toContain('bg-secondary');
 });
 
 test('o campo livre é de várias linhas e para no limite do backend', async () => {

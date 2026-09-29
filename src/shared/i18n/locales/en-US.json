@@ -504,6 +504,9 @@
       "INVALID_NUMBER": "Invalid number",
       "MUST_BE_POSITIVE": "Must be greater than zero",
       "MUST_BE_INTEGER": "Must be a whole number",
+      "TOO_SHORT": "At least 2 characters",
+      "MAX_2_DECIMALS": "At most 2 decimal places",
+      "MAX_3_DECIMALS": "At most 3 decimal places",
       "AGE_OUT_OF_RANGE": "Age must be between 0 and 100",
       "END_BEFORE_START": "End must be after start",
       "INVALID_DATE": "Invalid date",
@@ -527,7 +530,7 @@
     "cancellation": {
       "action": "Not done",
       "title": "Cancellation reason",
-      "reasonPlaceholder": "Briefly describe the reason for the cancellation",
+      "reasonPlaceholder": "Briefly describe the reason",
       "confirm": "Confirm",
       "errors": {
         "REQUIRED": "Enter the cancellation reason.",
@@ -599,7 +602,8 @@
         "distanceLabel": "Distance (km)",
         "distancePlaceholder": "E.g. 34",
         "confirm": "Confirm"
-      }
+      },
+      "cancellationReason": "Cancellation reason"
     },
     "day": {
       "previous": "Previous day",
@@ -620,7 +624,7 @@
         "emergency": "Emergency",
         "other": "Other"
       },
-      "dismiss": "Back",
+      "dismiss": "Cancel",
       "toast": "Appointment marked as not done"
     },
     "title": "Appointments",
@@ -680,7 +684,14 @@
     "exportPermissionDenied": "We could not access your calendar. Enable calendar permission in your device settings to add this appointment.",
     "exportErrorTitle": "Could not add appointment",
     "exportError": "Something went wrong while adding the appointment to your calendar. Please try again.",
-    "dismiss": "Got it"
+    "dismiss": "Got it",
+    "statusActions": {
+      "open": "Update status",
+      "notDone": "Not done",
+      "cancel": "Cancel appointment",
+      "cancelReason": "Why was the appointment canceled?",
+      "cancelToast": "Appointment canceled"
+    }
   },
   "home": {
     "greeting": "Hello, Dr. {{name}}"

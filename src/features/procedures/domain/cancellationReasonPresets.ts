@@ -18,16 +18,16 @@ export type CancellationReasonLabels = Record<
   string
 >;
 
+// O texto fica sempre à vista: sozinho é o motivo; junto de um chip, detalha
+// o chip ("Paciente não compareceu: avisou tarde").
 export function resolveCancellationReason(
   preset: CancellationReasonPreset | null,
-  otherText: string,
+  text: string,
   labels: CancellationReasonLabels,
 ): string {
-  if (preset === null) {
-    return '';
+  const detail = text.trim();
+  if (preset === null || preset === 'other') {
+    return detail;
   }
-  if (preset === 'other') {
-    return otherText;
-  }
-  return labels[preset];
+  return detail === '' ? labels[preset] : `${labels[preset]}: ${detail}`;
 }

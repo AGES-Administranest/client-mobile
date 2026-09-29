@@ -48,10 +48,7 @@ function SummaryCard({
   children: string;
 }) {
   return (
-    <View
-      className="flex-1 gap-1 rounded-2xl bg-white p-4"
-      style={styles.card}
-    >
+    <View className="flex-1 gap-1 rounded-2xl bg-white p-4" style={styles.card}>
       <Text
         className="text-[11px] font-bold uppercase text-label-primary"
         numberOfLines={1}

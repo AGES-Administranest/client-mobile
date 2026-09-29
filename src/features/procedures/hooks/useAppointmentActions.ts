@@ -29,17 +29,27 @@ export type ActionableAppointment = {
   status: AppointmentStatus;
 };
 
+// As duas saídas sem receita. Até o backend ter um status próprio para o não
+// realizado, as duas gravam CANCELED; o não realizado leva um prefixo no
+// motivo para continuar distinguível no registro.
+export type CancellationMode = 'cancel' | 'notDone';
+
 export type CancellationState = {
   sheetVisible: boolean;
+  mode: CancellationMode;
   preset: CancellationReasonPreset | null;
   reason: string;
   reasonError: CancellationReasonError | null;
   failed: boolean;
-  open: () => void;
+  open: (mode: CancellationMode) => void;
   close: () => void;
   setPreset: (preset: CancellationReasonPreset) => void;
   setReason: (reason: string) => void;
-  confirm: (labels: CancellationReasonLabels) => Promise<void>;
+  /** `notDonePrefix` entra na frente do motivo quando o modo é notDone. */
+  confirm: (
+    labels: CancellationReasonLabels,
+    notDonePrefix: string,
+  ) => Promise<void>;
 };
 
 export type AppointmentActionsState = {
@@ -66,6 +76,7 @@ export function useAppointmentActions(
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState<AppointmentActionNotice | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [mode, setMode] = useState<CancellationMode>('cancel');
   const [preset, setPresetValue] = useState<CancellationReasonPreset | null>(
     null,
   );
@@ -157,10 +168,11 @@ export function useAppointmentActions(
     setCancelFailed(false);
   }
 
-  function openCancel(): void {
+  function openCancel(nextMode: CancellationMode): void {
     if (inFlight.current) {
       return;
     }
+    setMode(nextMode);
     setNotice(null);
     setSheetVisible(true);
   }
@@ -174,10 +186,8 @@ export function useAppointmentActions(
   }
 
   function setPreset(value: CancellationReasonPreset): void {
+    // O texto fica: com o campo sempre à vista, ele detalha o chip escolhido.
     setPresetValue(value);
-    if (value !== 'other') {
-      setReasonValue('');
-    }
     setReasonError(null);
     setCancelFailed(false);
   }
@@ -190,12 +200,17 @@ export function useAppointmentActions(
 
   async function confirmCancel(
     labels: CancellationReasonLabels,
+    notDonePrefix: string,
   ): Promise<void> {
     if (inFlight.current) {
       return;
     }
-    const resolved = resolveCancellationReason(preset, reason, labels);
-    const validation = validateCancellationReason(resolved);
+    const chosen = resolveCancellationReason(preset, reason, labels);
+    const validation = validateCancellationReason(chosen);
+    const resolved =
+      mode === 'notDone' && validation === null
+        ? `${notDonePrefix}: ${chosen}`
+        : chosen;
     setReasonError(validation);
     if (validation !== null) {
       return;
@@ -250,6 +265,7 @@ export function useAppointmentActions(
     complete,
     cancellation: {
       sheetVisible,
+      mode,
       preset,
       reason,
       reasonError,

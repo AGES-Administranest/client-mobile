@@ -1,3 +1,4 @@
+import { Check, X } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -87,7 +88,9 @@ export function CancelAppointmentSheet({
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View className="flex-1" style={{ opacity: overlayOpacity }}>
+        {/* style, não className: na web o NativeWind não aplica className em
+            Animated.View, e sem flex: 1 a folha subia para o topo. */}
+        <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
           <Pressable
             className="flex-1 justify-end bg-background-shade"
             onPress={onClose}
@@ -139,35 +142,32 @@ export function CancelAppointmentSheet({
                   })}
                 </View>
 
-                {preset === 'other' ? (
-                  <View>
-                    <TextInput
-                      className="h-24 rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary"
-                      placeholder={texts.reasonPlaceholder}
-                      placeholderTextColor={LabelPlaceholder}
-                      accessibilityLabel={texts.reason}
-                      value={reason}
-                      onChangeText={onChangeReason}
-                      editable={!submitting}
-                      multiline
-                      numberOfLines={4}
-                      maxLength={CANCELLATION_REASON_MAX_LENGTH}
-                      textAlignVertical="top"
-                    />
-                    {errorText ? (
-                      <Text className="mt-1 text-xs text-alert-primary">
-                        {errorText}
-                      </Text>
-                    ) : null}
-                  </View>
-                ) : errorText ? (
-                  <Text className="text-xs text-alert-primary">
-                    {errorText}
-                  </Text>
-                ) : null}
+                {/* Sempre à vista: sozinho é o motivo, com um chip vira o
+                    detalhe dele. */}
+                <View>
+                  <TextInput
+                    className="h-24 rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary"
+                    placeholder={texts.reasonPlaceholder}
+                    placeholderTextColor={LabelPlaceholder}
+                    accessibilityLabel={texts.reason}
+                    value={reason}
+                    onChangeText={onChangeReason}
+                    editable={!submitting}
+                    multiline
+                    numberOfLines={4}
+                    maxLength={CANCELLATION_REASON_MAX_LENGTH}
+                    textAlignVertical="top"
+                  />
+                  {errorText ? (
+                    <Text className="mt-1 text-xs text-alert-primary">
+                      {errorText}
+                    </Text>
+                  ) : null}
+                </View>
 
                 <Button
                   shape="pill"
+                  icon={Check}
                   className="h-[49px] w-full"
                   disabled={submitting}
                   accessibilityRole="button"
@@ -182,6 +182,8 @@ export function CancelAppointmentSheet({
                 </Button>
                 <Button
                   shape="pill"
+                  variant="secondary"
+                  icon={X}
                   className="h-[49px] w-full"
                   disabled={submitting}
                   accessibilityRole="button"

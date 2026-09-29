@@ -14,10 +14,10 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 import { Button, type ButtonProps } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
-import { useTranslation, type TranslationKey } from 'shared/i18n';
 
 type OptionModalItem = {
-  labelKey: TranslationKey;
+  /** Já traduzido por quem chama. */
+  label: string;
   icon: LucideIcon;
   variant?: ButtonProps['variant'];
   onPress: () => void;
@@ -36,7 +36,6 @@ function OptionsModal({
   options,
   className,
 }: OptionsModalProps) {
-  const { t } = useTranslation();
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -80,14 +79,14 @@ function OptionsModal({
               <View className="mb-6 h-1 w-10 self-center rounded-full bg-border-primary" />
               {options.map(option => (
                 <Button
-                  key={option.labelKey}
+                  key={option.label}
                   onPress={option.onPress}
                   icon={option.icon}
                   variant={option.variant}
                   shape="pill"
                   className="h-[49px] w-full"
                 >
-                  <Text className="font-medium">{t(option.labelKey)}</Text>
+                  <Text className="font-medium">{option.label}</Text>
                 </Button>
               ))}
             </Pressable>

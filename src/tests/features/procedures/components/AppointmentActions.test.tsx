@@ -7,9 +7,15 @@ import {
 import type { AppointmentActionNotice } from 'features/procedures/domain/toCompletionOutcome';
 
 const TEXTS = {
+  open: 'Atualizar status',
   complete: 'Finalizar procedimento',
-  cancel: 'Não realizado',
-  toast: 'Agendamento marcado como não realizado',
+  notDone: 'Não realizado',
+  cancel: 'Cancelar atendimento',
+  notDonePrefix: 'Não realizado',
+  toast: {
+    cancel: 'Atendimento cancelado',
+    notDone: 'Agendamento marcado como não realizado',
+  },
   notices: {
     CANCELED: 'Este agendamento foi cancelado.',
     COMPLETED: 'Este agendamento já foi finalizado.',
@@ -18,8 +24,16 @@ const TEXTS = {
     CANCEL_FAILED: 'Não foi possível cancelar o agendamento.',
   },
   cancellation: {
-    title: 'Não realizado',
-    reason: 'Por que o procedimento não foi realizado?',
+    byMode: {
+      cancel: {
+        title: 'Motivo do cancelamento',
+        reason: 'Por que o atendimento foi cancelado?',
+      },
+      notDone: {
+        title: 'Não realizado',
+        reason: 'Por que o procedimento não foi realizado?',
+      },
+    },
     reasons: {
       noShow: 'Paciente não compareceu',
       clientCanceled: 'Cancelamento do cliente',
@@ -28,7 +42,7 @@ const TEXTS = {
     },
     reasonPlaceholder: 'Descreva o motivo',
     confirm: 'Confirmar',
-    dismiss: 'Voltar',
+    dismiss: 'Cancelar',
     errors: {
       REQUIRED: 'Informe o motivo do cancelamento.',
       TOO_LONG: 'O motivo pode ter no máximo 2000 caracteres.',
@@ -42,6 +56,7 @@ function cancellation(
 ): AppointmentActionsCancellation {
   return {
     sheetVisible: false,
+    mode: 'cancel',
     preset: null,
     reason: '',
     reasonError: null,
@@ -118,12 +133,35 @@ function hasButton(
   );
 }
 
-test('depois de marcar como não realizado, mostra o aviso no lugar dos botões', async () => {
-  const renderer = await render({ visible: false, justCanceled: true });
+// As opções da folha são Buttons sem accessibilityLabel: acha pelo texto.
+function option(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
+  return renderer.root.find(
+    node =>
+      node.props?.role === 'button' &&
+      typeof node.props?.onPress === 'function' &&
+      node.findAll(
+        child =>
+          typeof child.type === 'string' && child.props?.children === label,
+      ).length > 0,
+  );
+}
 
-  expect(texts(renderer)).toEqual([TEXTS.toast]);
-  expect(hasButton(renderer, TEXTS.complete)).toBe(false);
-});
+test.each([
+  ['cancel', 'Atendimento cancelado'],
+  ['notDone', 'Agendamento marcado como não realizado'],
+] as const)(
+  'depois de %s, mostra o aviso daquele modo no lugar do botão',
+  async (mode, toast) => {
+    const renderer = await render({
+      visible: false,
+      justCanceled: true,
+      cancel: cancellation({ mode }),
+    });
+
+    expect(texts(renderer)).toEqual([toast]);
+    expect(hasButton(renderer, TEXTS.open)).toBe(false);
+  },
+);
 
 test('não renderiza nada quando não está visível', async () => {
   const renderer = await render({ visible: false });
@@ -131,44 +169,66 @@ test('não renderiza nada quando não está visível', async () => {
   expect(renderer.toJSON()).toBeNull();
 });
 
-test('Finalizar: pílula larga, marrom da paleta', async () => {
+test('um botão só, marrom, abre a folha com as três ações', async () => {
   const renderer = await render();
 
-  const className = button(renderer, TEXTS.complete).props.className as string;
-  // `bg-primary` resolve para --primary, o palette-button-primary (marrom).
+  const className = button(renderer, TEXTS.open).props.className as string;
   expect(className).toContain('bg-primary');
   expect(className).toContain('rounded-full');
-  expect(className).toContain('w-full');
+
+  await act(async () => button(renderer, TEXTS.open).props.onPress());
+
+  expect(texts(renderer)).toEqual(
+    expect.arrayContaining([
+      'Finalizar procedimento',
+      'Não realizado',
+      'Cancelar atendimento',
+    ]),
+  );
+  // Cancelar é a única vermelha.
+  expect(option(renderer, 'Cancelar atendimento').props.className).toContain(
+    'bg-secondary',
+  );
 });
 
-test('Não realizado: pílula larga, vermelha da paleta', async () => {
-  const renderer = await render();
-
-  const className = button(renderer, TEXTS.cancel).props.className as string;
-  // `bg-secondary` resolve para --secondary, o palette-button-secondary
-  // (#A33423), com texto branco.
-  expect(className).toContain('bg-secondary');
-  expect(className).toContain('rounded-full');
-  expect(className).toContain('w-full');
-});
-
-test('tocar em Finalizar chama onComplete e em Não realizado abre a folha', async () => {
+test.each([
+  ['Finalizar procedimento', null],
+  ['Não realizado', 'notDone'],
+  ['Cancelar atendimento', 'cancel'],
+] as const)('a opção %s dispara a ação certa', async (label, mode) => {
   const onComplete = jest.fn();
   const cancel = cancellation();
   const renderer = await render({ onComplete, cancel });
 
-  await act(async () => button(renderer, TEXTS.complete).props.onPress());
-  await act(async () => button(renderer, TEXTS.cancel).props.onPress());
+  await act(async () => button(renderer, TEXTS.open).props.onPress());
+  await act(async () => option(renderer, label).props.onPress());
 
-  expect(onComplete).toHaveBeenCalledTimes(1);
-  expect(cancel.open).toHaveBeenCalledTimes(1);
+  if (mode === null) {
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(cancel.open).not.toHaveBeenCalled();
+  } else {
+    expect(cancel.open).toHaveBeenCalledWith(mode);
+    expect(onComplete).not.toHaveBeenCalled();
+  }
 });
 
-test('os dois botões ficam desabilitados enquanto uma ação está em andamento', async () => {
+test('o botão fica desabilitado enquanto uma ação está em andamento', async () => {
   const renderer = await render({ submitting: true });
 
-  expect(button(renderer, TEXTS.complete).props.disabled).toBe(true);
-  expect(button(renderer, TEXTS.cancel).props.disabled).toBe(true);
+  expect(button(renderer, TEXTS.open).props.disabled).toBe(true);
+});
+
+test('a folha de motivo usa o título e a pergunta do modo', async () => {
+  const renderer = await render({
+    cancel: cancellation({ sheetVisible: true, mode: 'notDone' }),
+  });
+
+  expect(texts(renderer)).toEqual(
+    expect.arrayContaining([
+      'Não realizado',
+      'Por que o procedimento não foi realizado?',
+    ]),
+  );
 });
 
 test.each(['AMOUNT_REQUIRED', 'FAILED', 'CANCEL_FAILED'] as const)(
@@ -177,7 +237,7 @@ test.each(['AMOUNT_REQUIRED', 'FAILED', 'CANCEL_FAILED'] as const)(
     const renderer = await render({ notice });
 
     expect(texts(renderer)).toContain(TEXTS.notices[notice]);
-    expect(button(renderer, TEXTS.complete).props.disabled).toBe(false);
+    expect(button(renderer, TEXTS.open).props.disabled).toBe(false);
   },
 );
 
@@ -187,8 +247,7 @@ test.each(['CANCELED', 'COMPLETED'] as const)(
     const renderer = await render({ notice });
 
     expect(texts(renderer)).toEqual([TEXTS.notices[notice]]);
-    expect(hasButton(renderer, TEXTS.complete)).toBe(false);
-    expect(hasButton(renderer, TEXTS.cancel)).toBe(false);
+    expect(hasButton(renderer, TEXTS.open)).toBe(false);
   },
 );
 

@@ -5,6 +5,7 @@ import {
   MapPin,
   Pencil,
   Plus,
+  RotateCw,
   Trash2,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -262,7 +263,7 @@ export function AppointmentDetailScreen({
               <Text className="text-center text-sm text-label-tertiary">
                 {t('procedures.detail.loadError')}
               </Text>
-              <Button shape="pill" onPress={detail.refetch}>
+              <Button shape="pill" icon={RotateCw} onPress={detail.refetch}>
                 <Text className="font-semibold">
                   {t('procedures.detail.retry')}
                 </Text>
@@ -290,7 +291,7 @@ export function AppointmentDetailScreen({
                         'rounded-md px-2 py-0.5',
                         appointment.status === 'COMPLETED'
                           ? 'bg-details-finish'
-                          : 'bg-background-shade',
+                          : 'bg-alert-primary/40',
                       )}
                     >
                       <Text className="text-[11px] font-bold text-label-primary">
@@ -322,6 +323,21 @@ export function AppointmentDetailScreen({
                   </Text>
                 </View>
               </View>
+
+              {/* Figma: cancelado mostra o motivo (o backend grava em notes)
+                  logo abaixo do cabeçalho. */}
+              {appointment.status === 'CANCELED' && appointment.notes ? (
+                <View className="gap-2">
+                  <Text className="text-xs font-bold uppercase text-label-primary">
+                    {t('procedures.detail.cancellationReason')}
+                  </Text>
+                  <View className="rounded-2xl bg-white px-3.5 py-3">
+                    <Text className="text-[15px] text-label-primary">
+                      {appointment.notes}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
 
               <View className="flex-row gap-2">
                 <DetailStatCard
@@ -420,7 +436,7 @@ export function AppointmentDetailScreen({
 
               <View className="gap-3">
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-base font-bold text-label-primary">
+                  <Text className="text-xs font-bold uppercase text-label-primary">
                     {t('procedures.detail.suppliesTitle')}
                   </Text>
                   {editable ? (
@@ -430,7 +446,7 @@ export function AppointmentDetailScreen({
                       accessibilityLabel={t('procedures.detail.addSupply')}
                       disabled={detail.savingSupply}
                       hitSlop={8}
-                      className="flex-row items-center gap-1 rounded-full bg-details-primary px-3 py-2"
+                      className="flex-row items-center gap-1 py-2 active:opacity-70"
                     >
                       <Icon
                         as={Plus}
@@ -539,6 +555,7 @@ export function AppointmentDetailScreen({
       />
 
       <ConfirmSheet
+        confirmIcon={Trash2}
         visible={deleteVisible}
         title={t('procedures.detail.deleteConfirm')}
         message={deleteFailed ? t('procedures.detail.deleteFailed') : undefined}
@@ -680,9 +697,15 @@ function actionTexts(
   t: ReturnType<typeof useTranslation>['t'],
 ): AppointmentActionsTexts {
   return {
+    open: t('appointments.statusActions.open'),
     complete: t('procedures.completion.action'),
-    cancel: t('appointments.notDone.action'),
-    toast: t('appointments.notDone.toast'),
+    notDone: t('appointments.statusActions.notDone'),
+    cancel: t('appointments.statusActions.cancel'),
+    notDonePrefix: t('appointments.statusActions.notDone'),
+    toast: {
+      cancel: t('appointments.statusActions.cancelToast'),
+      notDone: t('appointments.notDone.toast'),
+    },
     notices: {
       CANCELED: t('procedures.completion.notices.CANCELED'),
       COMPLETED: t('procedures.completion.notices.COMPLETED'),
@@ -691,8 +714,16 @@ function actionTexts(
       CANCEL_FAILED: t('procedures.completion.notices.CANCEL_FAILED'),
     },
     cancellation: {
-      title: t('procedures.cancellation.title'),
-      reason: t('appointments.notDone.reason'),
+      byMode: {
+        cancel: {
+          title: t('procedures.cancellation.title'),
+          reason: t('appointments.statusActions.cancelReason'),
+        },
+        notDone: {
+          title: t('appointments.notDone.title'),
+          reason: t('appointments.notDone.reason'),
+        },
+      },
       reasons: {
         noShow: t('appointments.notDone.reasons.noShow'),
         clientCanceled: t('appointments.notDone.reasons.clientCanceled'),

@@ -277,7 +277,9 @@ export function HomeScreen() {
               controller={calendar}
               selectedDate={monthDayPicked ? selectedDate : null}
               onSelectDate={pickMonthDay}
-              className="px-4"
+              // O AnimatedSwap recorta o que passa da sua altura; o pb dá
+              // espaço para a sombra do card não sair cortada embaixo.
+              className="px-4 pb-4"
             />
           ) : (
             <WeekStrip
@@ -397,7 +399,7 @@ export function HomeScreen() {
         onClose={() => setAccountVisible(false)}
         options={[
           {
-            labelKey: 'auth.account.signOut',
+            label: t('auth.account.signOut'),
             icon: LogOut,
             variant: 'outline',
             onPress: () => {
