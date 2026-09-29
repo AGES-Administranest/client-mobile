@@ -1,9 +1,6 @@
 import { Check, X } from 'lucide-react-native';
-import { useEffect, useRef } from 'react';
 import {
   Animated,
-  Dimensions,
-  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -15,6 +12,7 @@ import {
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPlaceholder } from 'theme/colors';
 
 import {
@@ -22,8 +20,6 @@ import {
   type CancellationReasonPreset,
 } from '../domain/cancellationReasonPresets';
 import { CANCELLATION_REASON_MAX_LENGTH } from '../domain/validateCancellationReason';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export type CancelAppointmentSheetTexts = {
   title: string;
@@ -59,27 +55,11 @@ export function CancelAppointmentSheet({
   onConfirm,
   onClose,
 }: CancelAppointmentSheetProps) {
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-
-  useEffect(() => {
-    Animated.timing(overlayOpacity, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(sheetTranslateY, {
-      toValue: visible ? 0 : SCREEN_HEIGHT,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible, overlayOpacity, sheetTranslateY]);
+  const sheet = useSheetAnimation(visible, onClose);
 
   return (
     <Modal
-      visible={visible}
+      visible={sheet.isRendered}
       transparent
       animationType="none"
       onRequestClose={onClose}
@@ -90,14 +70,12 @@ export function CancelAppointmentSheet({
       >
         {/* style, não className: na web o NativeWind não aplica className em
             Animated.View, e sem flex: 1 a folha subia para o topo. */}
-        <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
+        <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
           <Pressable
             className="flex-1 justify-end bg-background-shade"
             onPress={onClose}
           >
-            <Animated.View
-              style={{ transform: [{ translateY: sheetTranslateY }] }}
-            >
+            <Animated.View style={sheet.sheetStyle} {...sheet.panHandlers}>
               <Pressable
                 className="gap-4 rounded-t-3xl bg-background-modal px-5 pb-10 pt-4"
                 onPress={e => e.stopPropagation()}

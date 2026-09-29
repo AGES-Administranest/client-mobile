@@ -1,9 +1,8 @@
 import { Check, ChevronDown } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   Animated,
   Dimensions,
-  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -23,6 +22,7 @@ import {
   type ClientOption,
   type ClientSearchStatus,
 } from 'features/clients';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type {
@@ -85,33 +85,16 @@ export function ProcedureFormSheet({
   onSubmit,
   onClose,
 }: ProcedureFormSheetProps) {
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const [speciesOpen, setSpeciesOpen] = useState(false);
   const selectedSpecies = texts.speciesOptions.find(
     option => option.value === values.species,
   );
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(backdropOpacity, {
-        toValue: visible ? 1 : 0,
-        duration: 300,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      Animated.timing(sheetTranslateY, {
-        toValue: visible ? 0 : SCREEN_HEIGHT,
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [visible, backdropOpacity, sheetTranslateY]);
+  const sheet = useSheetAnimation(visible, onClose);
 
   return (
     <Modal
-      visible={visible}
+      visible={sheet.isRendered}
       transparent
       animationType="none"
       onRequestClose={onClose}
@@ -121,7 +104,7 @@ export function ProcedureFormSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <Animated.View
-          style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}
+          style={[StyleSheet.absoluteFill, { opacity: sheet.progress }]}
         >
           <Pressable
             accessibilityRole="button"
@@ -132,9 +115,10 @@ export function ProcedureFormSheet({
         </Animated.View>
 
         <Animated.View
+          {...sheet.panHandlers}
           style={{
             maxHeight: SCREEN_HEIGHT * 0.99,
-            transform: [{ translateY: sheetTranslateY }],
+            ...sheet.sheetStyle,
           }}
         >
           <View className="shrink gap-3 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">

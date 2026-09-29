@@ -1,9 +1,7 @@
 import { Check, ChevronDown, X } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   Animated,
-  Dimensions,
-  Easing,
   Modal,
   Pressable,
   ScrollView,
@@ -15,6 +13,7 @@ import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
 import {
   ADJUSTMENT_REASONS,
@@ -24,8 +23,6 @@ import {
 } from '../../../features/stock/domain/outputAdjustment';
 import type { AdjustableItem } from '../../../features/stock/services/stockAdjustmentService';
 import { LabelTertiary } from '../../../theme/colors';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 type OutputAdjustmentModalProps = {
   visible: boolean;
@@ -93,41 +90,27 @@ function OutputAdjustmentModal({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const selectedItem = items.find(item => item.id === draft.itemId) ?? null;
   // Como as outras modais: o fundo aparece com fade, só a folha sobe.
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
-  useEffect(() => {
-    Animated.timing(overlayOpacity, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(sheetTranslateY, {
-      toValue: visible ? 0 : SCREEN_HEIGHT,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible, overlayOpacity, sheetTranslateY]);
+  const sheet = useSheetAnimation(visible, onClose);
 
   return (
     <Modal
-      visible={visible}
+      visible={sheet.isRendered}
       transparent
       animationType="none"
       onRequestClose={onClose}
     >
       {/* style, não className: na web o NativeWind não aplica className em
             Animated.View, e sem flex: 1 a folha subia para o topo. */}
-      <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
+      <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
         <View className="flex-1 justify-end bg-background-shade">
           {/* O limite de 85% sobe para o wrapper animado, que é o filho
               direto da tela; a folha encolhe dentro dele e o ScrollView rola. */}
           <Animated.View
+            {...sheet.panHandlers}
             style={{
               maxHeight: '85%',
-              transform: [{ translateY: sheetTranslateY }],
+              ...sheet.sheetStyle,
             }}
           >
             <View className="shrink rounded-t-3xl bg-background-modal p-5">
