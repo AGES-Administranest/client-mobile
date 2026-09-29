@@ -292,18 +292,19 @@ export function HomeScreen() {
         </AnimatedSwap>
 
         <View className="gap-4 px-4">
-          <DaySummary
-            count={summary.count}
-            revenue={summary.revenue}
-            labels={{
-              attendances: t('appointments.attendances'),
-              day: showsMonth
-                ? monthName(calendar.year, calendar.monthIndex, locale)
-                : t('appointments.dayOf', { day: selected.getDate() }),
-              revenue: t('appointments.revenue'),
-              estimated: t('appointments.estimated'),
-            }}
-          />
+          {/* Figma: a visão de mês não mostra os cards de resumo. */}
+          {monthExpanded ? null : (
+            <DaySummary
+              count={summary.count}
+              revenue={summary.revenue}
+              labels={{
+                attendances: t('appointments.attendances'),
+                day: t('appointments.dayOf', { day: selected.getDate() }),
+                revenue: t('appointments.revenue'),
+                estimated: t('appointments.estimated'),
+              }}
+            />
+          )}
 
           <View className="flex-row items-center justify-between">
             <Text className="text-xs font-bold uppercase text-label-primary">

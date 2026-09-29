@@ -1,6 +1,6 @@
 import { CalendarDays, MapPin } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
@@ -104,7 +104,8 @@ export function AppointmentDayList({
                   item.procedureName ?? 'Procedimento'
                 }`}
                 onPress={() => onSelectAppointment?.(item)}
-                className="rounded-2xl bg-white p-4 shadow-sm border border-border-primary/25 active:opacity-85"
+                className="rounded-2xl bg-white p-4 active:opacity-85"
+                style={styles.card}
               >
                 {/* Linha 1: Nome do Paciente, Espécie, ASA Badge e Valor */}
                 <View className="flex-row items-center justify-between mb-1">
@@ -181,3 +182,13 @@ export function AppointmentDayList({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+});

@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -90,7 +90,7 @@ export function AppointmentCalendar({
       </View>
 
       {/* Grade Mensal de Dias em Card Branco */}
-      <View className="rounded-3xl bg-white p-3 shadow-sm border border-border-primary/20">
+      <View className="rounded-3xl bg-white p-3" style={styles.card}>
         {visibleWeeks.map((week, weekIndex) => (
           <View key={`week-${weekIndex}`} className="flex-row my-0.5">
             {week.map(day => {
@@ -98,7 +98,7 @@ export function AppointmentCalendar({
                 return (
                   <View
                     key={day.date}
-                    className="h-11 flex-1 m-0.5"
+                    className="aspect-square flex-1 m-0.5"
                     accessibilityElementsHidden
                     importantForAccessibility="no"
                   />
@@ -120,7 +120,7 @@ export function AppointmentCalendar({
                   accessibilityState={{ selected: isSelected }}
                   onPress={() => onSelectDate(day.date)}
                   className={cn(
-                    'h-11 flex-1 items-center justify-center rounded-2xl m-0.5 relative',
+                    'aspect-square flex-1 items-center justify-center rounded-xl m-0.5 relative',
                     isSelected && 'bg-details-tertiary',
                     !isSelected &&
                       hasAppointments &&
@@ -133,7 +133,9 @@ export function AppointmentCalendar({
                   <Text
                     className={cn(
                       'text-sm text-label-primary',
-                      isSelected ? 'font-bold' : 'font-semibold',
+                      isSelected || hasAppointments
+                        ? 'font-bold'
+                        : 'font-normal',
                     )}
                   >
                     {day.dayOfMonth}
@@ -162,3 +164,13 @@ export function AppointmentCalendar({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+});
