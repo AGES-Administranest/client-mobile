@@ -71,6 +71,10 @@ import {
 } from '../hooks/useAppointmentDetail';
 import { useProcedureForm } from '../hooks/useProcedureForm';
 import { useProcedureFormTexts } from '../hooks/useProcedureFormTexts';
+import {
+  useRescheduleAppointment,
+  type ReschedulableAppointment,
+} from '../hooks/useRescheduleAppointment';
 
 type AppointmentDetailScreenProps = {
   appointmentId: string | null;
@@ -674,11 +678,12 @@ function ActionsSection({
   appointment,
   onChanged,
 }: {
-  appointment: ActionableAppointment;
+  appointment: ActionableAppointment & ReschedulableAppointment;
   onChanged: () => void;
 }) {
   const { t } = useTranslation();
   const actions = useAppointmentActions(appointment, onChanged);
+  const reschedule = useRescheduleAppointment(appointment, onChanged);
 
   return (
     <AppointmentActions
@@ -688,6 +693,7 @@ function ActionsSection({
       justCanceled={actions.justCanceled}
       onComplete={actions.complete}
       cancellation={actions.cancellation}
+      reschedule={reschedule}
       texts={actionTexts(t)}
     />
   );
@@ -701,11 +707,7 @@ function actionTexts(
     complete: t('procedures.completion.action'),
     notDone: t('appointments.statusActions.notDone'),
     cancel: t('appointments.statusActions.cancel'),
-    notDonePrefix: t('appointments.statusActions.notDone'),
-    toast: {
-      cancel: t('appointments.statusActions.cancelToast'),
-      notDone: t('appointments.notDone.toast'),
-    },
+    toast: t('appointments.statusActions.cancelToast'),
     notices: {
       CANCELED: t('procedures.completion.notices.CANCELED'),
       COMPLETED: t('procedures.completion.notices.COMPLETED'),
@@ -714,16 +716,8 @@ function actionTexts(
       CANCEL_FAILED: t('procedures.completion.notices.CANCEL_FAILED'),
     },
     cancellation: {
-      byMode: {
-        cancel: {
-          title: t('procedures.cancellation.title'),
-          reason: t('appointments.statusActions.cancelReason'),
-        },
-        notDone: {
-          title: t('appointments.notDone.title'),
-          reason: t('appointments.notDone.reason'),
-        },
-      },
+      title: t('procedures.cancellation.title'),
+      reason: t('appointments.statusActions.cancelReason'),
       reasons: {
         noShow: t('appointments.notDone.reasons.noShow'),
         clientCanceled: t('appointments.notDone.reasons.clientCanceled'),
@@ -737,6 +731,27 @@ function actionTexts(
         REQUIRED: t('procedures.cancellation.errors.REQUIRED'),
         TOO_LONG: t('procedures.cancellation.errors.TOO_LONG'),
         FAILED: t('procedures.cancellation.errors.FAILED'),
+      },
+    },
+    reschedule: {
+      title: t('appointments.reschedule.title'),
+      message: t('appointments.reschedule.message'),
+      date: t('appointments.reschedule.date'),
+      startTime: t('appointments.reschedule.startTime'),
+      endTime: t('appointments.reschedule.endTime'),
+      confirm: t('appointments.reschedule.confirm'),
+      dismiss: t('appointments.reschedule.dismiss'),
+      done: t('appointments.reschedule.done'),
+      errors: {
+        CONFLICT: t('appointments.reschedule.errors.CONFLICT'),
+        FAILED: t('appointments.reschedule.errors.FAILED'),
+      },
+      fieldErrors: {
+        REQUIRED: t('procedures.errors.REQUIRED'),
+        INVALID_DATE: t('procedures.errors.INVALID_DATE'),
+        INVALID_TIME: t('procedures.errors.INVALID_TIME'),
+        END_BEFORE_START: t('procedures.errors.END_BEFORE_START'),
+        IN_THE_PAST: t('procedures.errors.IN_THE_PAST'),
       },
     },
   };

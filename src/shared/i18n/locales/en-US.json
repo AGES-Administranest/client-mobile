@@ -510,7 +510,8 @@
       "AGE_OUT_OF_RANGE": "Age must be between 0 and 100",
       "END_BEFORE_START": "End must be after start",
       "INVALID_DATE": "Invalid date",
-      "INVALID_TIME": "Invalid time"
+      "INVALID_TIME": "Invalid time",
+      "IN_THE_PAST": "Pick a future date and time"
     },
     "clientSearch": {
       "loading": "Searching…",
@@ -615,17 +616,13 @@
   },
   "appointments": {
     "notDone": {
-      "action": "Cancel",
-      "title": "Not done",
-      "reason": "Why wasn't the procedure carried out?",
       "reasons": {
         "noShow": "Patient did not attend",
         "clientCanceled": "Client cancellation",
         "emergency": "Emergency",
         "other": "Other"
       },
-      "dismiss": "Cancel",
-      "toast": "Appointment marked as not done"
+      "dismiss": "Cancel"
     },
     "title": "Appointments",
     "calendar": {
@@ -691,6 +688,20 @@
       "cancel": "Cancel appointment",
       "cancelReason": "Why was the appointment canceled?",
       "cancelToast": "Appointment canceled"
+    },
+    "reschedule": {
+      "title": "Reschedule appointment",
+      "message": "The procedure was not done. Pick the new date and time.",
+      "date": "Date",
+      "startTime": "Start",
+      "endTime": "End",
+      "confirm": "Reschedule",
+      "dismiss": "Cancel",
+      "done": "Appointment rescheduled.",
+      "errors": {
+        "CONFLICT": "You already have an appointment at this time.",
+        "FAILED": "Could not reschedule. Try again."
+      }
     }
   },
   "home": {

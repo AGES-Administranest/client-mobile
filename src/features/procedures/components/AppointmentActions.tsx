@@ -11,29 +11,49 @@ import {
   CancelAppointmentSheet,
   type CancelAppointmentSheetTexts,
 } from './CancelAppointmentSheet';
+import {
+  RescheduleAppointmentSheet,
+  type RescheduleAppointmentSheetTexts,
+} from './RescheduleAppointmentSheet';
 import type {
   CancellationReasonLabels,
   CancellationReasonPreset,
 } from '../domain/cancellationReasonPresets';
+import type { FieldErrorCode } from '../domain/procedure.types';
 import type { AppointmentActionNotice } from '../domain/toCompletionOutcome';
 import type { CancellationReasonError } from '../domain/validateCancellationReason';
-import type { CancellationMode } from '../hooks/useAppointmentActions';
+import type { RescheduleState } from '../hooks/useRescheduleAppointment';
 
 export type AppointmentActionsTexts = {
   open: string;
   complete: string;
   notDone: string;
   cancel: string;
-  /** Vai na frente do motivo gravado de um não realizado. */
-  notDonePrefix: string;
-  toast: Record<CancellationMode, string>;
+  toast: string;
   notices: Record<AppointmentActionNotice, string>;
-  cancellation: Omit<CancelAppointmentSheetTexts, 'title' | 'reason'> & {
-    /** Título e pergunta mudam entre cancelar e não realizado. */
-    byMode: Record<CancellationMode, { title: string; reason: string }>;
+  cancellation: CancelAppointmentSheetTexts & {
     errors: Record<CancellationReasonError | 'FAILED', string>;
   };
+  reschedule: RescheduleAppointmentSheetTexts & {
+    done: string;
+    errors: Record<'CONFLICT' | 'FAILED', string>;
+    fieldErrors: Partial<Record<FieldErrorCode, string>>;
+  };
 };
+
+export type AppointmentActionsReschedule = Pick<
+  RescheduleState,
+  | 'visible'
+  | 'values'
+  | 'errors'
+  | 'failure'
+  | 'submitting'
+  | 'done'
+  | 'open'
+  | 'close'
+  | 'setField'
+  | 'confirm'
+>;
 
 export type AppointmentActionsCancellation = {
   sheetVisible: boolean;
@@ -41,12 +61,11 @@ export type AppointmentActionsCancellation = {
   reason: string;
   reasonError: CancellationReasonError | null;
   failed: boolean;
-  mode: CancellationMode;
-  open: (mode: CancellationMode) => void;
+  open: () => void;
   close: () => void;
   setPreset: (preset: CancellationReasonPreset) => void;
   setReason: (reason: string) => void;
-  confirm: (labels: CancellationReasonLabels, notDonePrefix: string) => void;
+  confirm: (labels: CancellationReasonLabels) => void;
 };
 
 type AppointmentActionsProps = {
@@ -57,6 +76,8 @@ type AppointmentActionsProps = {
   texts: AppointmentActionsTexts;
   onComplete: () => void;
   cancellation: AppointmentActionsCancellation;
+  /** Não realizado: remarca o mesmo agendamento para outra data. */
+  reschedule: AppointmentActionsReschedule;
   className?: string;
 };
 
@@ -73,6 +94,7 @@ export function AppointmentActions({
   texts,
   onComplete,
   cancellation,
+  reschedule,
   className,
 }: AppointmentActionsProps) {
   const [optionsVisible, setOptionsVisible] = useState(false);
@@ -85,9 +107,7 @@ export function AppointmentActions({
     return (
       <View className={cn('gap-3', className)}>
         <View className="rounded-2xl bg-details-primary p-4">
-          <Text className="text-sm text-label-primary">
-            {texts.toast[cancellation.mode]}
-          </Text>
+          <Text className="text-sm text-label-primary">{texts.toast}</Text>
         </View>
       </View>
     );
@@ -121,6 +141,14 @@ export function AppointmentActions({
 
   // As três saídas de um agendamento ficam numa folha só (Finalizar, Não
   // realizado, Cancelar); fechar a folha antes de agir evita duas por cima.
+  const busy = submitting || reschedule.submitting;
+  const fieldErrors = Object.fromEntries(
+    Object.entries(reschedule.errors).map(([field, code]) => [
+      field,
+      code ? texts.reschedule.fieldErrors[code] : undefined,
+    ]),
+  );
+
   const choose = (action: () => void) => {
     setOptionsVisible(false);
     action();
@@ -132,14 +160,19 @@ export function AppointmentActions({
         shape="pill"
         icon={RefreshCw}
         className="h-[49px] w-full"
-        disabled={submitting}
+        disabled={busy}
         accessibilityRole="button"
         accessibilityLabel={texts.open}
-        accessibilityState={{ disabled: submitting, busy: submitting }}
+        accessibilityState={{ disabled: busy, busy }}
         onPress={() => setOptionsVisible(true)}
       >
         <Text className="font-semibold">{texts.open}</Text>
       </Button>
+      {reschedule.done && !notice ? (
+        <Text className="text-sm text-label-primary">
+          {texts.reschedule.done}
+        </Text>
+      ) : null}
       {notice ? (
         <Text className="text-sm text-alert-primary">
           {texts.notices[notice]}
@@ -152,16 +185,27 @@ export function AppointmentActions({
         reason={cancellation.reason}
         errorText={sheetError}
         submitting={submitting}
-        texts={{
-          ...texts.cancellation,
-          ...texts.cancellation.byMode[cancellation.mode],
-        }}
+        texts={texts.cancellation}
         onSelectPreset={cancellation.setPreset}
         onChangeReason={cancellation.setReason}
-        onConfirm={() =>
-          cancellation.confirm(reasonLabels, texts.notDonePrefix)
-        }
+        onConfirm={() => cancellation.confirm(reasonLabels)}
         onClose={cancellation.close}
+      />
+
+      <RescheduleAppointmentSheet
+        visible={reschedule.visible}
+        values={reschedule.values}
+        fieldErrors={fieldErrors}
+        errorText={
+          reschedule.failure
+            ? texts.reschedule.errors[reschedule.failure]
+            : null
+        }
+        submitting={reschedule.submitting}
+        texts={texts.reschedule}
+        onChangeField={reschedule.setField}
+        onConfirm={reschedule.confirm}
+        onClose={reschedule.close}
       />
 
       <OptionsModal
@@ -176,13 +220,13 @@ export function AppointmentActions({
           {
             label: texts.notDone,
             icon: CalendarX2,
-            onPress: () => choose(() => cancellation.open('notDone')),
+            onPress: () => choose(reschedule.open),
           },
           {
             label: texts.cancel,
             icon: X,
             variant: 'secondary',
-            onPress: () => choose(() => cancellation.open('cancel')),
+            onPress: () => choose(cancellation.open),
           },
         ]}
       />

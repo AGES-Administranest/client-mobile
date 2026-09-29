@@ -49,6 +49,7 @@ export type FieldErrorCode =
   | 'MAX_3_DECIMALS'
   | 'AGE_OUT_OF_RANGE'
   | 'END_BEFORE_START'
+  | 'IN_THE_PAST'
   | 'INVALID_DATE'
   | 'INVALID_TIME';
 

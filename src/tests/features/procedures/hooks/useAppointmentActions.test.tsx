@@ -261,7 +261,7 @@ describe('cancelar', () => {
     appointment: ActionableAppointment = SCHEDULED,
   ) {
     const mounted = await mountHook(appointment, onChanged);
-    await act(async () => mounted.result.current.cancellation.open('cancel'));
+    await act(async () => mounted.result.current.cancellation.open());
     await act(async () =>
       mounted.result.current.cancellation.setPreset('other'),
     );
@@ -274,7 +274,7 @@ describe('cancelar', () => {
   test('abrir mostra a folha vazia', async () => {
     const { result } = await mountHook();
 
-    await act(async () => result.current.cancellation.open('cancel'));
+    await act(async () => result.current.cancellation.open());
 
     expect(result.current.cancellation.sheetVisible).toBe(true);
     expect(result.current.cancellation.preset).toBeNull();
@@ -284,9 +284,9 @@ describe('cancelar', () => {
   test('chip sugerido manda o rótulo, fecha a folha, busca de novo e marca o aviso', async () => {
     const onChanged = jest.fn();
     const { result } = await mountHook(SCHEDULED, onChanged);
-    await act(async () => result.current.cancellation.open('cancel'));
+    await act(async () => result.current.cancellation.open());
     await act(async () => result.current.cancellation.setPreset('noShow'));
-    await act(async () => result.current.cancellation.confirm(LABELS, 'Não realizado'));
+    await act(async () => result.current.cancellation.confirm(LABELS));
 
     expect(cancelMock).toHaveBeenCalledWith(
       'id-token',
@@ -302,7 +302,7 @@ describe('cancelar', () => {
     const onChanged = jest.fn();
     const { result } = await openWithOther('  Paciente faltou  ', onChanged);
 
-    await act(async () => result.current.cancellation.confirm(LABELS, 'Não realizado'));
+    await act(async () => result.current.cancellation.confirm(LABELS));
 
     expect(cancelMock).toHaveBeenCalledWith(
       'id-token',
@@ -321,12 +321,12 @@ describe('cancelar', () => {
     'motivo %s não chama a API e mostra o erro no campo',
     async (_label, preset, reason, expected) => {
       const { result } = await mountHook();
-      await act(async () => result.current.cancellation.open('cancel'));
+      await act(async () => result.current.cancellation.open());
       if (preset) {
         await act(async () => result.current.cancellation.setPreset(preset));
       }
       await act(async () => result.current.cancellation.setReason(reason));
-      await act(async () => result.current.cancellation.confirm(LABELS, 'Não realizado'));
+      await act(async () => result.current.cancellation.confirm(LABELS));
 
       expect(cancelMock).not.toHaveBeenCalled();
       expect(result.current.cancellation.reasonError).toBe(expected);
@@ -336,7 +336,7 @@ describe('cancelar', () => {
 
   test('digitar de novo limpa o erro do campo', async () => {
     const { result } = await openWithOther('');
-    await act(async () => result.current.cancellation.confirm(LABELS, 'Não realizado'));
+    await act(async () => result.current.cancellation.confirm(LABELS));
 
     await act(async () => result.current.cancellation.setReason('Chuva'));
 
@@ -350,7 +350,7 @@ describe('cancelar', () => {
     const onChanged = jest.fn();
     const { result } = await openWithOther('Chuva', onChanged);
 
-    await act(async () => result.current.cancellation.confirm(LABELS, 'Não realizado'));
+    await act(async () => result.current.cancellation.confirm(LABELS));
 
     expect(result.current.cancellation.sheetVisible).toBe(false);
     expect(result.current.notice).toBeNull();
@@ -365,7 +365,7 @@ describe('cancelar', () => {
     const onChanged = jest.fn();
     const { result, rerender } = await openWithOther('Chuva', onChanged);
 
-    await act(async () => result.current.cancellation.confirm(LABELS, 'Não realizado'));
+    await act(async () => result.current.cancellation.confirm(LABELS));
     expect(result.current.cancellation.sheetVisible).toBe(false);
     expect(result.current.notice).toBe('COMPLETED');
     expect(onChanged).toHaveBeenCalledTimes(1);
@@ -379,7 +379,7 @@ describe('cancelar', () => {
     const onChanged = jest.fn();
     const { result } = await openWithOther('Chuva', onChanged);
 
-    await act(async () => result.current.cancellation.confirm(LABELS, 'Não realizado'));
+    await act(async () => result.current.cancellation.confirm(LABELS));
 
     expect(result.current.cancellation.sheetVisible).toBe(false);
     expect(result.current.notice).toBe('CANCEL_FAILED');
@@ -396,7 +396,7 @@ describe('cancelar', () => {
       const onChanged = jest.fn();
       const { result } = await openWithOther('Chuva', onChanged);
 
-      await act(async () => result.current.cancellation.confirm(LABELS, 'Não realizado'));
+      await act(async () => result.current.cancellation.confirm(LABELS));
 
       expect(result.current.cancellation.sheetVisible).toBe(true);
       expect(result.current.cancellation.reason).toBe('Chuva');
@@ -418,7 +418,7 @@ describe('cancelar', () => {
     await act(async () => {
       pending = result.current.complete();
     });
-    await act(async () => result.current.cancellation.open('cancel'));
+    await act(async () => result.current.cancellation.open());
     expect(result.current.cancellation.sheetVisible).toBe(false);
 
     await act(async () => {
@@ -438,7 +438,7 @@ describe('cancelar', () => {
 
     let pending: Promise<void> = Promise.resolve();
     await act(async () => {
-      pending = result.current.cancellation.confirm(LABELS, 'Não realizado');
+      pending = result.current.cancellation.confirm(LABELS);
     });
     await act(async () => result.current.cancellation.close());
     expect(result.current.cancellation.sheetVisible).toBe(true);

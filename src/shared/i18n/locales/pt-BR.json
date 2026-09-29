@@ -510,7 +510,8 @@
       "AGE_OUT_OF_RANGE": "Idade deve estar entre 0 e 100",
       "END_BEFORE_START": "O fim deve ser depois do início",
       "INVALID_DATE": "Data inválida",
-      "INVALID_TIME": "Hora inválida"
+      "INVALID_TIME": "Hora inválida",
+      "IN_THE_PAST": "Escolha uma data e horário futuros"
     },
     "clientSearch": {
       "loading": "Buscando…",
@@ -615,17 +616,13 @@
   },
   "appointments": {
     "notDone": {
-      "action": "Cancelar",
-      "title": "Não realizado",
-      "reason": "Por que o procedimento não foi realizado?",
       "reasons": {
         "noShow": "Paciente não compareceu",
         "clientCanceled": "Cancelamento do cliente",
         "emergency": "Emergência",
         "other": "Outro"
       },
-      "dismiss": "Cancelar",
-      "toast": "Agendamento marcado como não realizado"
+      "dismiss": "Cancelar"
     },
     "title": "Agendamentos",
     "calendar": {
@@ -691,6 +688,20 @@
       "cancel": "Cancelar atendimento",
       "cancelReason": "Por que o atendimento foi cancelado?",
       "cancelToast": "Atendimento cancelado"
+    },
+    "reschedule": {
+      "title": "Remarcar atendimento",
+      "message": "O procedimento não foi realizado. Escolha a nova data e horário.",
+      "date": "Data",
+      "startTime": "Início",
+      "endTime": "Fim",
+      "confirm": "Remarcar",
+      "dismiss": "Cancelar",
+      "done": "Atendimento remarcado.",
+      "errors": {
+        "CONFLICT": "Você já possui um atendimento nesse horário.",
+        "FAILED": "Não foi possível remarcar. Tente novamente."
+      }
     }
   },
   "home": {
