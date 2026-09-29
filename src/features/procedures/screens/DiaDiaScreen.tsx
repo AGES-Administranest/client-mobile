@@ -84,7 +84,8 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onChangeSpecies={value => setField('species', value)}
         onChangeAsa={value => setField('asaClassification', value)}
         onSubmit={submit}
-        onClose={onClose}
+        // O ItemModal passa o evento do toque; fechar sem criar não leva dado.
+        onClose={() => onClose()}
       />
       <ConfirmSheet
         visible={supplyPrompt?.step === 'confirm'}
@@ -93,6 +94,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         cancelLabel={t('procedures.supplyPrompt.cancel')}
         onConfirm={acceptSupplyPrompt}
         onCancel={finishSupplyPrompt}
+        cancelAppearance="button"
       />
       <SupplySelectorSheet
         visible={supplyPrompt?.step === 'selector'}
