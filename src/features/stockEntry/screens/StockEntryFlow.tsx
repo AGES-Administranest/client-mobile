@@ -1,86 +1,122 @@
-import { Plus } from 'lucide-react-native';
-import { Modal, View } from 'react-native';
+import { Inbox } from 'lucide-react-native';
+import { useState } from 'react';
+import { View } from 'react-native';
 
 import { ActionButton } from 'app/components/ui';
 import { Icon } from 'app/components/ui/icon';
 import { useTranslation } from 'shared/i18n';
 
-import { ScanScreen } from './ScanScreen';
-import { StockEntryModal } from './StockEntryModal';
-import { StockReviewScreen } from './StockReviewScreen';
+import { EntriesScreen } from './EntriesScreen';
+import { ReviewScreen } from './ReviewScreen';
+import { UploadFlowScreens } from './UploadFlowScreens';
 import { LoadingOverlay } from '../components/LoadingOverlay';
 import { MessageOverlay } from '../components/MessageOverlay';
-import { useStockEntryFlow } from '../hooks/useStockEntryFlow';
+import { useEntries } from '../hooks/useEntries';
+import { useEntryReview } from '../hooks/useEntryReview';
+import { useUploadFlow } from '../hooks/useUploadFlow';
 
 type StockEntryFlowProps = {
   // "Digitar insumo" opens the item form, which belongs to whoever owns the
   // stock and its persistence (today `features/materials`). This flow only
-  // reports the intent and closes its own menu; without a handler the option
-  // just dismisses, as it did before the form existed.
+  // reports the intent and closes its own screens; without a handler the
+  // option just dismisses, as it did before the form existed.
   onTypeItem?: () => void;
 };
 
+/** Materiais → Entradas: the pending list, a new upload and the review. */
 export function StockEntryFlow({ onTypeItem }: StockEntryFlowProps = {}) {
   const { t } = useTranslation();
-  const flow = useStockEntryFlow();
+  const [isListOpen, setIsListOpen] = useState(false);
+  const entries = useEntries();
+  const review = useEntryReview();
+  const upload = useUploadFlow({
+    onRead: review.openRead,
+    onSettled: entries.refresh,
+  });
+  const pendingCount = entries.drafts.length;
+
+  function openList() {
+    entries.refresh();
+    setIsListOpen(true);
+  }
 
   function handleTypeItem() {
-    // Close first: the sheet animates out while the form animates in, instead
-    // of the two sitting stacked.
-    flow.closeMenu();
+    // Close first: the screens animate out while the form animates in,
+    // instead of the form opening behind them.
+    upload.closeMenu();
+    setIsListOpen(false);
     onTypeItem?.();
+  }
+
+  function openExisting(invoiceId: string) {
+    upload.dismissFailure();
+    review.openSaved(invoiceId);
+  }
+
+  function closeReview() {
+    review.close();
+    entries.refresh();
+  }
+
+  function discardOpenEntry() {
+    const invoiceId = review.entry?.invoiceId;
+    review.close();
+    if (invoiceId) entries.discard(invoiceId);
   }
 
   return (
     <View>
+      {/* Materials button that opens the entries */}
       <ActionButton
-        label={t('stockEntry.trigger')}
-        icon={<Icon as={Plus} size={16} />}
-        onPress={flow.openMenu}
+        label={
+          pendingCount > 0
+            ? t('stockEntry.triggerWithCount', { count: pendingCount })
+            : t('stockEntry.trigger')
+        }
+        icon={<Icon as={Inbox} size={16} />}
+        onPress={openList}
       />
 
-      <StockEntryModal
-        visible={flow.step === 'menu'}
-        onClose={flow.closeMenu}
-        onScanNote={flow.startScan}
-        onAttachPdf={flow.attachPdf}
-        onTypeItem={handleTypeItem}
-      />
-
-      <Modal
-        visible={flow.step === 'scanning'}
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={flow.cancelScan}
+      {/* Pending list; everything else opens over it */}
+      <EntriesScreen
+        visible={isListOpen}
+        onClose={() => setIsListOpen(false)}
+        entries={entries}
+        onOpen={review.openSaved}
+        onReplace={upload.replaceDocument}
+        onNewEntry={upload.openMenu}
       >
-        <ScanScreen
-          onCapture={flow.capture}
-          onPickFromLibrary={flow.pickFromLibrary}
-          onCancel={flow.cancelScan}
+        {/* New entry: menu, camera, file and reading */}
+        <UploadFlowScreens
+          upload={upload}
+          onTypeItem={handleTypeItem}
+          onOpenExisting={openExisting}
         />
-      </Modal>
 
-      <LoadingOverlay
-        visible={flow.step === 'uploading'}
-        label={t('stockEntry.uploading')}
-      />
+        {/* Review of the open entry */}
+        {review.entry ? (
+          <ReviewScreen
+            key={review.entry.session}
+            visible={review.isVisible}
+            entry={review.entry}
+            onClose={closeReview}
+            onDiscard={discardOpenEntry}
+          />
+        ) : null}
 
-      <StockReviewScreen
-        visible={flow.step === 'review'}
-        items={flow.items}
-        onRenameItem={flow.renameItem}
-        onChangeQuantity={flow.setItemQuantity}
-        onRemoveItem={flow.removeItem}
-        onConfirm={flow.confirm}
-        onClose={flow.cancelReview}
-      />
-
-      <MessageOverlay
-        visible={flow.failure !== null}
-        message={flow.failure ? t(`stockEntry.errors.${flow.failure}`) : ''}
-        actionLabel={t('stockEntry.errors.dismiss')}
-        onDismiss={flow.dismissFailure}
-      />
+        {/* Opening a saved entry */}
+        <LoadingOverlay
+          visible={review.isOpening}
+          label={t('stockEntry.entries.opening')}
+        />
+        {/* Entry could not be opened */}
+        <MessageOverlay
+          visible={review.openFailed}
+          message={t('stockEntry.entries.openFailed')}
+          actionLabel={t('stockEntry.errors.dismiss')}
+          onDismiss={review.dismissOpenFailure}
+        />
+      </EntriesScreen>
     </View>
   );
 }
