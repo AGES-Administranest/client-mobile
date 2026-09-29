@@ -51,6 +51,7 @@ export type FieldErrorCode =
   | 'END_BEFORE_START'
   | 'IN_THE_PAST'
   | 'REQUIRED_FOR_SCHEDULE'
+  | 'SELECT_CLIENT'
   | 'INVALID_DATE'
   | 'INVALID_TIME';
 

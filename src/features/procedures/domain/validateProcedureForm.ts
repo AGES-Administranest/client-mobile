@@ -23,8 +23,10 @@ export function validateProcedureForm(
   } else if (values.procedureName.trim().length < 2) {
     errors.procedureName = 'TOO_SHORT';
   }
+  // O campo aceita digitação só para filtrar: sem escolher uma clínica da
+  // lista não há clientId, mesmo com texto no campo.
   if (values.clientId === null) {
-    errors.clientId = 'REQUIRED';
+    errors.clientId = 'SELECT_CLIENT';
   }
 
   if (values.date.trim() === '') {

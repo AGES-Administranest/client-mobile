@@ -18,7 +18,7 @@ describe('validateProcedureForm', () => {
     });
     expect(errors.patientName).toBe('REQUIRED');
     expect(errors.procedureName).toBe('REQUIRED');
-    expect(errors.clientId).toBe('REQUIRED');
+    expect(errors.clientId).toBe('SELECT_CLIENT');
     expect(errors.amount).toBe('REQUIRED');
     expect(errors.date).toBe('REQUIRED');
     expect(errors.startTime).toBe('REQUIRED');

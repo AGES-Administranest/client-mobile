@@ -118,7 +118,7 @@ test('digitar depois de escolher desfaz o clientId', async () => {
   expect(result.current.client.term).toBe('Clínica Vet');
 });
 
-test('enviar sem tomador escolhido marca o campo como obrigatório e não chama a API', async () => {
+test('enviar sem tomador escolhido da lista pede para escolher uma clínica e não chama a API', async () => {
   const { result } = await mountHook();
   await act(async () => result.current.client.onTermChange('Clínica Vet'));
 
@@ -126,16 +126,16 @@ test('enviar sem tomador escolhido marca o campo como obrigatório e não chama 
     await result.current.submit();
   });
 
-  expect(result.current.errors.clientId).toBe('REQUIRED');
+  expect(result.current.errors.clientId).toBe('SELECT_CLIENT');
   expect(createAppointmentMock).not.toHaveBeenCalled();
 });
 
-test('escolher o tomador limpa o erro de obrigatório do campo', async () => {
+test('escolher o tomador limpa o erro do campo', async () => {
   const { result } = await mountHook();
   await act(async () => {
     await result.current.submit();
   });
-  expect(result.current.errors.clientId).toBe('REQUIRED');
+  expect(result.current.errors.clientId).toBe('SELECT_CLIENT');
 
   await act(async () => result.current.client.onSelect(VETCENTER));
 

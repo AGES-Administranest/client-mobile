@@ -483,7 +483,7 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Buscar clínica pelo nome",
+      "location": "Nome da clínica",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
@@ -512,12 +512,13 @@
       "INVALID_DATE": "Data inválida",
       "INVALID_TIME": "Hora inválida",
       "IN_THE_PAST": "Escolha uma data e horário futuros",
-      "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar"
+      "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
+      "SELECT_CLIENT": "Escolha uma clínica da lista"
     },
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhuma clínica encontrada"
+      "empty": "Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas."
     },
     "completion": {
       "action": "Finalizar procedimento",

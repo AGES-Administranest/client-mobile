@@ -483,7 +483,7 @@
     "placeholders": {
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "location": "Search clinic by name",
+      "location": "Clinic name",
       "notes": "Notes about the procedure",
       "number": "0",
       "time": "HH:MM",
@@ -512,12 +512,13 @@
       "INVALID_DATE": "Invalid date",
       "INVALID_TIME": "Invalid time",
       "IN_THE_PAST": "Pick a future date and time",
-      "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule"
+      "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
+      "SELECT_CLIENT": "Pick a clinic from the list"
     },
     "clientSearch": {
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
-      "empty": "No clinics found"
+      "empty": "No clinics found. Add one under Partners → Clinics."
     },
     "completion": {
       "action": "Complete procedure",
