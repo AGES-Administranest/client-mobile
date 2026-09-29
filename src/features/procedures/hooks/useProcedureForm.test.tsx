@@ -217,3 +217,34 @@ test('does not ask about supplies when the appointment fails to save', async () 
   expect(result.current.submitFailed).toBe(true);
   expect(onSuccess).not.toHaveBeenCalled();
 });
+
+// O fixture é de agosto de 2026, já passado; 2099 é sempre futuro.
+const FUTURE_DATE = '06/08/2099';
+
+async function submitScheduled(onSuccess: () => void = jest.fn()) {
+  const mounted = await mountWithFilledForm(onSuccess);
+  await act(async () => mounted.result.current.setField('date', FUTURE_DATE));
+  await act(async () => {
+    await mounted.result.current.submit();
+  });
+  return mounted;
+}
+
+test('com começo no futuro, salva como SCHEDULED e fecha sem perguntar de insumos', async () => {
+  createAppointmentMock.mockResolvedValue({
+    id: 'appointment-2',
+    startsAt: '2099-08-06T12:00:00.000Z',
+  } as never);
+
+  const { result, onSuccess } = await submitScheduled();
+
+  expect(createAppointmentMock).toHaveBeenCalledWith(
+    'id-token',
+    expect.objectContaining({ status: 'SCHEDULED' }),
+  );
+  expect(result.current.supplyPrompt).toBeNull();
+  expect(onSuccess).toHaveBeenCalledWith({
+    startsAt: '2099-08-06T12:00:00.000Z',
+  });
+  expect(result.current.values.patientName).toBe('');
+});

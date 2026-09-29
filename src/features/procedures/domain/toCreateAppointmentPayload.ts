@@ -1,3 +1,4 @@
+import { appointmentStatusForStart } from './appointmentStatusForStart';
 import { parseDecimal } from './parseDecimal';
 import { combineDateAndTime } from './parseProcedureDateTime';
 import type {
@@ -7,11 +8,12 @@ import type {
 
 export function toCreateAppointmentPayload(
   values: ProcedureFormValues,
+  now: Date = new Date(),
 ): CreateAppointmentPayload {
-  const startsAt = combineDateAndTime(values.date, values.startTime);
+  const startsAt = combineDateAndTime(values.date, values.startTime)!;
   const payload: CreateAppointmentPayload = {
-    startsAt: startsAt!.toISOString(),
-    status: 'COMPLETED',
+    startsAt: startsAt.toISOString(),
+    status: appointmentStatusForStart(startsAt, now),
   };
 
   if (values.endTime.trim() !== '') {

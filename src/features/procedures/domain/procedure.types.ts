@@ -50,6 +50,7 @@ export type FieldErrorCode =
   | 'AGE_OUT_OF_RANGE'
   | 'END_BEFORE_START'
   | 'IN_THE_PAST'
+  | 'REQUIRED_FOR_SCHEDULE'
   | 'INVALID_DATE'
   | 'INVALID_TIME';
 

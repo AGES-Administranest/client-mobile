@@ -1,5 +1,7 @@
+import { appointmentStatusForStart } from './appointmentStatusForStart';
 import { parseDecimal } from './parseDecimal';
 import {
+  combineDateAndTime,
   isValidCalendarDate,
   isValidTimeOfDay,
   parseMaskedDate,
@@ -9,6 +11,7 @@ import type { ProcedureErrors, ProcedureFormValues } from './procedure.types';
 
 export function validateProcedureForm(
   values: ProcedureFormValues,
+  now: Date = new Date(),
 ): ProcedureErrors {
   const errors: ProcedureErrors = {};
 
@@ -63,6 +66,18 @@ export function validateProcedureForm(
       if (endMinutes <= startMinutes) {
         errors.endTime = 'END_BEFORE_START';
       }
+    }
+  }
+
+  if (!errors.date && !errors.startTime && values.endTime.trim() === '') {
+    const startsAt = combineDateAndTime(values.date, values.startTime);
+    // Sem o fim o backend não tem intervalo para checar conflito com os
+    // outros agendamentos, e a duração estimada faz parte do agendamento.
+    if (
+      startsAt !== null &&
+      appointmentStatusForStart(startsAt, now) === 'SCHEDULED'
+    ) {
+      errors.endTime = 'REQUIRED_FOR_SCHEDULE';
     }
   }
 

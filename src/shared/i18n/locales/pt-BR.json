@@ -511,7 +511,8 @@
       "END_BEFORE_START": "O fim deve ser depois do início",
       "INVALID_DATE": "Data inválida",
       "INVALID_TIME": "Hora inválida",
-      "IN_THE_PAST": "Escolha uma data e horário futuros"
+      "IN_THE_PAST": "Escolha uma data e horário futuros",
+      "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar"
     },
     "clientSearch": {
       "loading": "Buscando…",

@@ -511,7 +511,8 @@
       "END_BEFORE_START": "End must be after start",
       "INVALID_DATE": "Invalid date",
       "INVALID_TIME": "Invalid time",
-      "IN_THE_PAST": "Pick a future date and time"
+      "IN_THE_PAST": "Pick a future date and time",
+      "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule"
     },
     "clientSearch": {
       "loading": "Searching…",

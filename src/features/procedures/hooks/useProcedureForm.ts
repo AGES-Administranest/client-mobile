@@ -137,10 +137,14 @@ export function useProcedureForm(
         onSuccess();
         return;
       }
-      const appointment = await createAppointment(
-        session.idToken,
-        toCreateAppointmentPayload(values),
-      );
+      const payload = toCreateAppointmentPayload(values);
+      const appointment = await createAppointment(session.idToken, payload);
+      // Insumos são lançados quando o procedimento acontece, não ao agendar.
+      if (payload.status === 'SCHEDULED') {
+        reset();
+        onSuccess({ startsAt: appointment.startsAt });
+        return;
+      }
       // Os valores só são limpos ao fim da pergunta; a tela esconde o
       // formulário enquanto ela está aberta.
       setSupplyPrompt({
