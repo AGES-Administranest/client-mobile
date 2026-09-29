@@ -656,6 +656,7 @@
     "dayOf": "dia {{day}}",
     "emptyToday": "Sem atendimentos hoje",
     "emptySelectedDay": "Sem atendimentos neste dia",
+    "emptyMonth": "Sem atendimentos neste mês",
     "exportToCalendar": "Adicionar à agenda",
     "exportSuccessTitle": "Adicionado à agenda",
     "exportSuccess": "Agendamento adicionado à sua agenda.",

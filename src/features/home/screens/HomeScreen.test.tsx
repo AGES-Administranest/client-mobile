@@ -13,8 +13,10 @@ jest.mock('features/auth/services/authService', () => ({
 }));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
+const mockFetchAppointments = jest.fn();
+
 jest.mock('features/appointments/services/appointmentService', () => ({
-  fetchAppointments: jest.fn().mockResolvedValue([]),
+  fetchAppointments: (...args: unknown[]) => mockFetchAppointments(...args),
 }));
 
 const METRICS = {
@@ -63,7 +65,11 @@ function texts(renderer: ReactTestRenderer.ReactTestRenderer) {
   );
 }
 
-beforeEach(() => mockSignOut.mockClear());
+beforeEach(() => {
+  mockSignOut.mockClear();
+  mockFetchAppointments.mockReset();
+  mockFetchAppointments.mockResolvedValue([]);
+});
 
 it('greets the user by first name', async () => {
   const renderer = await renderHome();
@@ -156,29 +162,79 @@ it('moves between months while expanded', async () => {
   ).toBeGreaterThan(0);
 });
 
-it('keeps the week strip and the month calendar on the same day', async () => {
+it('opens the month with no day picked', async () => {
   const renderer = await renderHome();
-  const today = new Date();
-  // A day of the current month other than today.
-  const other = today.getDate() === 1 ? 2 : 1;
 
-  const [stripDay] = renderer.root.findAll(
-    node =>
-      typeof node.props.onPress === 'function' &&
-      typeof node.props.accessibilityLabel === 'string' &&
-      node.props.accessibilityLabel.endsWith(` ${other}`),
-  );
-  await act(async () => {
-    stripDay.props.onPress();
-  });
   await press(renderer, 'Ver mês');
 
-  const selected = renderer.root
-    .findAll(
-      node =>
-        typeof node.props.onPress === 'function' &&
-        node.props.accessibilityState?.selected === true,
-    )
-    .map(node => node.props.accessibilityLabel as string);
-  expect(selected).toContainEqual(expect.stringMatching(`^${other} de `));
+  expect(
+    monthGridDays(renderer).filter(
+      node => node.props.accessibilityState?.selected === true,
+    ),
+  ).toHaveLength(0);
+});
+
+it('lists the whole month while expanded, and the day otherwise', async () => {
+  const today = new Date();
+  const other = new Date(today);
+  other.setDate(today.getDate() === 1 ? 2 : 1);
+  const at = (date: Date) =>
+    new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      10,
+    ).toISOString();
+  mockFetchAppointments.mockImplementation(
+    async (_token: string, { status }: { status: string }) =>
+      status === 'SCHEDULED'
+        ? [
+            {
+              id: 'today',
+              patientName: 'Mel',
+              startsAt: at(today),
+              status: 'SCHEDULED',
+            },
+            {
+              id: 'other',
+              patientName: 'Thor',
+              startsAt: at(other),
+              status: 'SCHEDULED',
+            },
+          ]
+        : [],
+  );
+  const renderer = await renderHome();
+
+  expect(texts(renderer)).toContain('Mel');
+  expect(texts(renderer)).not.toContain('Thor');
+
+  await press(renderer, 'Ver mês');
+
+  expect(texts(renderer)).toContain('Mel');
+  expect(texts(renderer)).toContain('Thor');
+
+  // Picking a day narrows the agenda to it; picking it again widens it back.
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const otherDay = `calendar-day-${other.getFullYear()}-${pad(
+    other.getMonth() + 1,
+  )}-${pad(other.getDate())}`;
+  const pick = () =>
+    act(async () => {
+      renderer.root
+        .findAll(
+          node =>
+            node.props.testID === otherDay &&
+            typeof node.props.onPress === 'function',
+        )[0]
+        .props.onPress();
+    });
+
+  await pick();
+  expect(texts(renderer)).toContain('Thor');
+  expect(texts(renderer)).not.toContain('Mel');
+
+  await pick();
+  expect(texts(renderer)).toContain('Mel');
+  expect(texts(renderer)).toContain('Thor');
 });
