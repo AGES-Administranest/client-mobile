@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
 
-import type { Appointment } from '../domain/appointment';
-import { toCalendarEventInput } from '../domain/calendarEvent';
+import {
+  toCalendarEventInput,
+  type ExportableAppointment,
+} from '../domain/calendarEvent';
 import {
   addAppointmentToCalendar,
   requestCalendarPermission,
@@ -21,7 +23,7 @@ export type ExportToCalendarState = {
 };
 
 export function useExportToCalendar(
-  appointment: Appointment,
+  appointment: ExportableAppointment,
 ): ExportToCalendarState {
   const [status, setStatus] = useState<ExportToCalendarStatus>('idle');
 

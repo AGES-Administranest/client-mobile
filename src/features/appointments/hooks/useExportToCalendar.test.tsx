@@ -1,7 +1,7 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { useExportToCalendar } from './useExportToCalendar';
-import type { Appointment } from '../domain/appointment';
+import type { ExportableAppointment } from '../domain/calendarEvent';
 import {
   addAppointmentToCalendar,
   requestCalendarPermission,
@@ -21,12 +21,12 @@ const addAppointmentToCalendarMock =
     typeof addAppointmentToCalendar
   >;
 
-const APPOINTMENT: Appointment = {
-  id: 'appointment-1',
-  procedureName: 'Ovariohisterectomia - Mel',
+const APPOINTMENT: ExportableAppointment = {
+  procedureName: 'Ovariohisterectomia',
+  patientName: 'Mel',
   startsAt: '2026-10-02T14:00:00',
   endsAt: '2026-10-02T15:30:00',
-  client: { name: 'Ana Beatriz Souza' },
+  location: 'Clínica VetNova',
   notes: 'Paciente em jejum desde as 20h do dia anterior.',
 };
 
@@ -62,8 +62,8 @@ test('creates the calendar event and reports success when permission is granted'
 
   expect(addAppointmentToCalendarMock).toHaveBeenCalledWith(
     expect.objectContaining({
-      title: APPOINTMENT.procedureName,
-      location: APPOINTMENT.client.name,
+      title: 'Ovariohisterectomia - Mel',
+      location: APPOINTMENT.location,
     }),
   );
   expect(result.current.status).toBe('success');

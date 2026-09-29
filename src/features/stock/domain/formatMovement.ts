@@ -1,9 +1,8 @@
 import { fromCalendarDate } from 'shared/utils/calendar';
+import { formatCurrency } from 'shared/utils/currency';
 import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
 import { getSignedTotal, type StockMovement } from './stockMovement';
-
-const CURRENCY = 'BRL';
 
 function signOf(movement: StockMovement): string {
   return movement.type === 'inbound' ? '+' : '-';
@@ -13,10 +12,7 @@ export function formatSignedValue(
   movement: StockMovement,
   locale: string,
 ): string {
-  const total = Math.abs(getSignedTotal(movement)).toLocaleString(locale, {
-    style: 'currency',
-    currency: CURRENCY,
-  });
+  const total = formatCurrency(Math.abs(getSignedTotal(movement)), locale);
 
   return `${signOf(movement)}${total}`;
 }
