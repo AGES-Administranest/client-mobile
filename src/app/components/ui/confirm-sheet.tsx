@@ -10,7 +10,11 @@ type ConfirmSheetProps = {
   title: string;
   message?: string;
   confirmLabel: string;
-  cancelLabel: string;
+  /**
+   * Sem ele, só o confirmar aparece: avisos com uma única saída. Tocar fora
+   * ou arrastar para baixo continua chamando `onCancel`.
+   */
+  cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
   /** Ícone do confirmar: ✓ por padrão; exclusões passam a lixeira. */
@@ -79,18 +83,20 @@ function ConfirmSheet({
               >
                 <Text className="font-semibold">{confirmLabel}</Text>
               </Button>
-              <Button
-                shape="pill"
-                variant={
-                  cancelAppearance === 'danger' ? 'secondary' : 'default'
-                }
-                icon={X}
-                className="h-[49px] w-full"
-                accessibilityLabel={cancelLabel}
-                onPress={onCancel}
-              >
-                <Text className="font-semibold">{cancelLabel}</Text>
-              </Button>
+              {cancelLabel ? (
+                <Button
+                  shape="pill"
+                  variant={
+                    cancelAppearance === 'danger' ? 'secondary' : 'default'
+                  }
+                  icon={X}
+                  className="h-[49px] w-full"
+                  accessibilityLabel={cancelLabel}
+                  onPress={onCancel}
+                >
+                  <Text className="font-semibold">{cancelLabel}</Text>
+                </Button>
+              ) : null}
             </Pressable>
           </Animated.View>
         </Pressable>

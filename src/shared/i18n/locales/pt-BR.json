@@ -703,6 +703,12 @@
         "CONFLICT": "Você já possui um atendimento nesse horário.",
         "FAILED": "Não foi possível remarcar. Tente novamente."
       }
+    },
+    "conflict": {
+      "title": "Conflito de horário",
+      "message": "Este horário conflita com {{procedure}} às {{time}}.",
+      "unnamedProcedure": "outro atendimento",
+      "adjust": "Alterar horário"
     }
   },
   "home": {

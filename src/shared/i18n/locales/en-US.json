@@ -703,6 +703,12 @@
         "CONFLICT": "You already have an appointment at this time.",
         "FAILED": "Could not reschedule. Try again."
       }
+    },
+    "conflict": {
+      "title": "Schedule conflict",
+      "message": "This time conflicts with {{procedure}} at {{time}}.",
+      "unnamedProcedure": "another appointment",
+      "adjust": "Change time"
     }
   },
   "home": {

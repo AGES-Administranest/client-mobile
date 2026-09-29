@@ -16,8 +16,10 @@ import { toProcedureFormValues } from '../domain/toProcedureFormValues';
 import { validateProcedureForm } from '../domain/validateProcedureForm';
 import {
   createAppointment,
+  readTimeConflict,
   updateAppointment,
   type AppointmentResult,
+  type ConflictingAppointment,
 } from '../services/procedureService';
 
 type SupplyPrompt = {
@@ -47,6 +49,7 @@ export function useProcedureForm(
     paused: selectedClient !== null,
   });
   const [supplyPrompt, setSupplyPrompt] = useState<SupplyPrompt | null>(null);
+  const [conflict, setConflict] = useState<ConflictingAppointment | null>(null);
 
   useEffect(() => {
     if (!visible || !editing) {
@@ -98,6 +101,12 @@ export function useProcedureForm(
     clientSearch.reset();
     setErrors({});
     setSubmitFailed(false);
+    setConflict(null);
+  }
+
+  // Volta ao formulário com o que foi digitado, para trocar o horário.
+  function dismissConflict(): void {
+    setConflict(null);
   }
 
   function acceptSupplyPrompt(): void {
@@ -128,6 +137,7 @@ export function useProcedureForm(
 
     setSubmitting(true);
     setSubmitFailed(false);
+    setConflict(null);
     try {
       if (editing) {
         const changes: Partial<CreateAppointmentPayload> =
@@ -152,8 +162,13 @@ export function useProcedureForm(
         startsAt: appointment.startsAt,
         step: 'confirm',
       });
-    } catch {
-      setSubmitFailed(true);
+    } catch (error) {
+      const conflicting = readTimeConflict(error);
+      if (conflicting) {
+        setConflict(conflicting);
+      } else {
+        setSubmitFailed(true);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -172,6 +187,8 @@ export function useProcedureForm(
       onSelect: selectClient,
     },
     supplyPrompt,
+    conflict,
+    dismissConflict,
     setField,
     setTextField,
     submit,

@@ -24,3 +24,8 @@ export {
   useExportToCalendar,
   type ExportToCalendarState,
 } from './hooks/useExportToCalendar';
+export {
+  ConflictAlertSheet,
+  type ConflictAlertSheetProps,
+  type ConflictingAppointment,
+} from './components/ConflictAlertSheet';

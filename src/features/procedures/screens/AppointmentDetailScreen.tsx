@@ -31,6 +31,7 @@ import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import {
   AsaBadge,
+  ConflictAlertSheet,
   FeedbackSheet,
   formatAppointmentDateBadge,
   useExportToCalendar,
@@ -69,6 +70,7 @@ import {
   useAppointmentDetail,
   type AmountError,
 } from '../hooks/useAppointmentDetail';
+import { useConflictAlert } from '../hooks/useConflictAlert';
 import { useProcedureForm } from '../hooks/useProcedureForm';
 import { useProcedureFormTexts } from '../hooks/useProcedureFormTexts';
 import {
@@ -115,6 +117,7 @@ export function AppointmentDetailScreen({
     form.errors,
     t('procedures.detail.editTitle'),
   );
+  const conflictAlert = useConflictAlert(form.conflict);
 
   // Modal's own `animationType="slide"` only slides vertically; this is a
   // push-style detail view, so it animates in from the right by hand.
@@ -542,7 +545,7 @@ export function AppointmentDetailScreen({
       </Animated.View>
 
       <ProcedureFormSheet
-        visible={editVisible}
+        visible={editVisible && form.conflict === null}
         values={form.values}
         submitting={form.submitting}
         submitFailed={form.submitFailed}
@@ -556,6 +559,11 @@ export function AppointmentDetailScreen({
         onChangeAsa={value => form.setField('asaClassification', value)}
         onSubmit={form.submit}
         onClose={() => setEditVisible(false)}
+      />
+      <ConflictAlertSheet
+        visible={editVisible && conflictAlert.visible}
+        conflictingAppointment={conflictAlert.conflictingAppointment}
+        onAdjust={form.dismissConflict}
       />
 
       <ConfirmSheet

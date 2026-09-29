@@ -1,4 +1,4 @@
-import { apiClient } from 'shared/services/apiClient';
+import { ApiError, apiClient } from 'shared/services/apiClient';
 
 import type { CreateAppointmentPayload } from '../domain/procedure.types';
 
@@ -65,6 +65,30 @@ export type CompleteAppointmentPayload = { amount?: number };
 export type CompletedAppointmentResult = AppointmentResult & {
   financialEntry: FinancialEntryResult;
 };
+
+// O `details` do 409 APPOINTMENT_TIME_CONFLICT: o agendamento que ocupa o
+// horário (ConflictingAppointmentEntity do backend).
+export type ConflictingAppointment = {
+  id: string;
+  startsAt: string;
+  endsAt: string;
+  procedureName: string | null;
+};
+
+export function readTimeConflict(
+  error: unknown,
+): ConflictingAppointment | null {
+  if (
+    !(error instanceof ApiError) ||
+    error.code !== 'APPOINTMENT_TIME_CONFLICT'
+  ) {
+    return null;
+  }
+  const conflicting = error.details?.conflictingAppointment;
+  return conflicting !== null && typeof conflicting === 'object'
+    ? (conflicting as ConflictingAppointment)
+    : null;
+}
 
 export async function createAppointment(
   idToken: string,

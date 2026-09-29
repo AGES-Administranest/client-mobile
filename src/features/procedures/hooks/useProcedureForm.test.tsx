@@ -1,12 +1,14 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
+import { ApiError } from 'shared/services/apiClient';
 
 import { useProcedureForm } from './useProcedureForm';
 import { validProcedureForm } from '../domain/validProcedureForm.fixture';
 import { createAppointment } from '../services/procedureService';
 
 jest.mock('../services/procedureService', () => ({
+  ...jest.requireActual('../services/procedureService'),
   createAppointment: jest.fn(),
 }));
 jest.mock('features/clients/services/clientService', () => ({
@@ -247,4 +249,57 @@ test('com começo no futuro, salva como SCHEDULED e fecha sem perguntar de insum
     startsAt: '2099-08-06T12:00:00.000Z',
   });
   expect(result.current.values.patientName).toBe('');
+});
+
+test('um 409 de conflito de horário abre o alerta com o agendamento que ocupa o horário', async () => {
+  const conflicting = {
+    id: 'appointment-9',
+    startsAt: '2099-08-06T12:30:00.000Z',
+    endsAt: '2099-08-06T13:30:00.000Z',
+    procedureName: 'Castração',
+  };
+  createAppointmentMock.mockRejectedValue(
+    new ApiError('conflict', 'APPOINTMENT_TIME_CONFLICT', 409, {
+      conflict: true,
+      conflictingAppointment: conflicting,
+    }),
+  );
+
+  const { result, onSuccess } = await submitScheduled();
+
+  expect(result.current.conflict).toEqual(conflicting);
+  expect(result.current.submitFailed).toBe(false);
+  expect(onSuccess).not.toHaveBeenCalled();
+});
+
+test('ajustar o horário fecha o alerta e mantém o que foi digitado', async () => {
+  createAppointmentMock.mockRejectedValue(
+    new ApiError('conflict', 'APPOINTMENT_TIME_CONFLICT', 409, {
+      conflict: true,
+      conflictingAppointment: {
+        id: 'appointment-9',
+        startsAt: '2099-08-06T12:30:00.000Z',
+        endsAt: '2099-08-06T13:30:00.000Z',
+        procedureName: null,
+      },
+    }),
+  );
+  const { result } = await submitScheduled();
+
+  await act(async () => result.current.dismissConflict());
+
+  expect(result.current.conflict).toBeNull();
+  expect(result.current.values.patientName).toBe('Rex');
+  expect(result.current.values.date).toBe(FUTURE_DATE);
+});
+
+test('outro erro da API continua como falha genérica, sem alerta de conflito', async () => {
+  createAppointmentMock.mockRejectedValue(
+    new ApiError('bad', 'INVALID_REQUEST', 400),
+  );
+
+  const { result } = await submitScheduled();
+
+  expect(result.current.conflict).toBeNull();
+  expect(result.current.submitFailed).toBe(true);
 });
