@@ -22,6 +22,7 @@
     "notifications": {
       "title": "Notificações",
       "empty": "Nenhum alerta no momento.",
+      "error": "Não foi possível carregar o estoque.",
       "lowStockTitle": "{{name}} com estoque baixo",
       "lowStockBody": "{{quantity}} unidades restantes (mín. {{minimum}})",
       "expiryTitle": "{{name}} irá vencer",
@@ -110,6 +111,7 @@
       "title": "Histórico de movimentações",
       "description": "Entradas, saídas e ajustes de estoque",
       "appointmentLink": "Atendimento · {{appointment}}",
+      "pending": "Pendente · {{date}}",
       "empty": "Nenhuma movimentação registrada.",
       "emptyFiltered": "Nenhuma movimentação encontrada para o filtro.",
       "filters": {
@@ -158,6 +160,10 @@
           "one": "mg",
           "other": "mg"
         },
+        "gram": {
+          "one": "grama",
+          "other": "gramas"
+        },
         "tablet": {
           "one": "comprimido",
           "other": "comprimidos"
@@ -191,9 +197,9 @@
       "errors": {
         "required": "Campo obrigatório",
         "mustBePositive": "A quantidade deve ser maior que zero",
+        "QUEUE_WRITE_FAILED": "Não foi possível salvar o ajuste neste aparelho. Tente de novo.",
         "INSUFFICIENT_STOCK": "Quantidade maior que o saldo disponível ({{available}}).",
-        "ITEM_NOT_FOUND": "Item não encontrado.",
-        "UNKNOWN": "Não foi possível salvar o ajuste."
+        "NO_ACCOUNT": "Entre novamente para registrar o ajuste."
       }
     }
   },

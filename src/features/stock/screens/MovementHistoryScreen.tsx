@@ -26,6 +26,7 @@ import {
   getMovementOriginKey,
   getUnitPluralForm,
 } from '../domain/stockMovement';
+import { useStockSyncState } from '../hooks/StockSyncContext';
 import { useMovementFilters } from '../hooks/useMovementFilters';
 import { useMovementHistory } from '../hooks/useMovementHistory';
 import { useOutputAdjustment } from '../hooks/useOutputAdjustment';
@@ -40,15 +41,17 @@ export function MovementHistoryScreen({
   savedMessageDurationMs = SAVED_MESSAGE_DURATION_MS,
 }: MovementHistoryScreenProps = {}) {
   const { t, locale } = useTranslation();
-  const { movements, isLoading, hasError, retry } = useMovementHistory();
   const {
     filters,
-    visibleMovements,
     isFiltering,
+    isNarrowing,
     setItemName,
     setRange,
     clearFilters,
-  } = useMovementFilters(movements);
+  } = useMovementFilters();
+  const { movements, pendingIds, isLoading, hasError, retry } =
+    useMovementHistory(filters);
+  const { sync } = useStockSyncState();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -79,9 +82,9 @@ export function MovementHistoryScreen({
   const failureMessage = adjustment.failure
     ? t(
         `stock.outputAdjustment.errors.${adjustment.failure.code}` as
+          | 'stock.outputAdjustment.errors.QUEUE_WRITE_FAILED'
           | 'stock.outputAdjustment.errors.INSUFFICIENT_STOCK'
-          | 'stock.outputAdjustment.errors.ITEM_NOT_FOUND'
-          | 'stock.outputAdjustment.errors.UNKNOWN',
+          | 'stock.outputAdjustment.errors.NO_ACCOUNT',
         adjustment.failure.params,
       )
     : null;
@@ -98,6 +101,8 @@ export function MovementHistoryScreen({
     if (saved) {
       setIsAdjustmentOpen(false);
       setSavedAt(current => (current ?? 0) + 1);
+      retry();
+      sync();
     }
   };
 
@@ -122,8 +127,11 @@ export function MovementHistoryScreen({
     });
   };
 
-  const items: MovementListItem[] = visibleMovements.map(movement => {
+  const pending = new Set(pendingIds);
+
+  const items: MovementListItem[] = movements.map(movement => {
     const appointment = getMovementAppointment(movement);
+    const date = formatMovementDate(movement.occurredAt, locale);
     const unit = t(
       `stock.movementHistory.units.${movement.unit}.${getUnitPluralForm(
         movement,
@@ -134,7 +142,9 @@ export function MovementHistoryScreen({
       id: movement.id,
       direction: movement.type,
       title: movement.itemName,
-      subtitle: formatMovementDate(movement.occurredAt, locale),
+      subtitle: pending.has(movement.id)
+        ? t('stock.movementHistory.pending', { date })
+        : date,
       category: t(
         `stock.movementHistory.origins.${getMovementOriginKey(movement)}`,
       ),
@@ -208,12 +218,12 @@ export function MovementHistoryScreen({
           items={items}
           isLoading={isLoading}
           emptyMessage={t(
-            isFiltering
+            isNarrowing
               ? 'stock.movementHistory.emptyFiltered'
               : 'stock.movementHistory.empty',
           )}
           error={
-            hasError
+            hasError && items.length === 0
               ? {
                   message: t('stock.movementHistory.error'),
                   retryLabel: t('common.retry'),

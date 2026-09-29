@@ -6,58 +6,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from 'app/components/ui/icon';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { useAuth } from 'features/auth';
-import {
-  InventoryNotificationsScreen,
-  isValidExpirationDate,
-  type ExpiringLot,
-  type MonitoredItem,
-} from 'features/inventory';
-import { fetchItems } from 'features/materials';
+import { InventoryNotificationsScreen, useInventory } from 'features/inventory';
 import { useTranslation } from 'shared/i18n';
 
 export function HomeScreen() {
   const { t } = useTranslation();
-  const { session, account, signOut } = useAuth();
+  const { account, signOut } = useAuth();
   const insets = useSafeAreaInsets();
+  const { status, items, lots, refresh } = useInventory();
   const [accountVisible, setAccountVisible] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
-  const [monitoredItems, setMonitoredItems] = useState<MonitoredItem[]>([]);
-  const [expiringLots, setExpiringLots] = useState<ExpiringLot[]>([]);
 
   const openNotifications = useCallback(() => {
     setNotificationsVisible(true);
-    if (!session) return;
-    fetchItems(session.idToken).then(backendItems => {
-      setMonitoredItems(
-        backendItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          unit: item.unit,
-          quantity: parseFloat(item.currentQuantity),
-          minimumStock: item.minimumStock ? parseFloat(item.minimumStock) : 0,
-        })),
-      );
-      // ponytail: the backend only exposes each item's nearest lot
-      // (`nearestExpiration`), not the full lot list — an item with more than
-      // one lot expiring soon only shows the closest one. Add when a
-      // lot-listing endpoint exists.
-      setExpiringLots(
-        backendItems
-          .filter(
-            (item): item is typeof item & { nearestExpiration: string } =>
-              item.nearestExpiration !== null &&
-              isValidExpirationDate(item.nearestExpiration),
-          )
-          .map(item => ({
-            id: item.id,
-            itemId: item.id,
-            name: item.name,
-            expirationDate:
-              item.nearestExpiration as ExpiringLot['expirationDate'],
-          })),
-      );
-    });
-  }, [session]);
+    refresh();
+  }, [refresh]);
 
   return (
     <View className="flex-1 items-center justify-center">
@@ -99,9 +62,10 @@ export function HomeScreen() {
             <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
           </Pressable>
           <InventoryNotificationsScreen
+            status={status}
             userId={account?.id ?? ''}
-            items={monitoredItems}
-            lots={expiringLots}
+            items={items}
+            lots={lots}
           />
         </View>
       </Modal>

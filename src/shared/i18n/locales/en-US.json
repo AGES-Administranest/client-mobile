@@ -22,6 +22,7 @@
     "notifications": {
       "title": "Notifications",
       "empty": "No alerts right now.",
+      "error": "Could not load the inventory.",
       "lowStockTitle": "{{name}} is low on stock",
       "lowStockBody": "{{quantity}} units remaining (min. {{minimum}})",
       "expiryTitle": "{{name}} is about to expire",
@@ -110,6 +111,7 @@
       "title": "Movement history",
       "description": "Stock inbounds, outbounds and adjustments",
       "appointmentLink": "Appointment · {{appointment}}",
+      "pending": "Pending · {{date}}",
       "empty": "No movement recorded yet.",
       "emptyFiltered": "No movement matches the filter.",
       "filters": {
@@ -158,6 +160,10 @@
           "one": "mg",
           "other": "mg"
         },
+        "gram": {
+          "one": "gram",
+          "other": "grams"
+        },
         "tablet": {
           "one": "tablet",
           "other": "tablets"
@@ -191,9 +197,9 @@
       "errors": {
         "required": "Required field",
         "mustBePositive": "Quantity must be greater than zero",
-        "INSUFFICIENT_STOCK": "Quantity is above the available balance ({{available}}).",
-        "ITEM_NOT_FOUND": "Item not found.",
-        "UNKNOWN": "Could not save the adjustment."
+        "QUEUE_WRITE_FAILED": "Could not save the adjustment on this device. Try again.",
+        "INSUFFICIENT_STOCK": "Quantity is larger than the available balance ({{available}}).",
+        "NO_ACCOUNT": "Sign in again to record the adjustment."
       }
     }
   },

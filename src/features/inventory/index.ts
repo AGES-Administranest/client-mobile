@@ -1,8 +1,8 @@
 export { useLowStockAlert } from './hooks/useLowStockAlert';
 export { useExpiryAlert } from './hooks/useExpiryAlert';
 export { useInventoryNotifications } from './hooks/useInventoryNotifications';
+export { InventoryProvider, useInventory } from './hooks/InventoryContext';
 export { InventoryNotificationsScreen } from './screens/InventoryNotificationsScreen';
-export { MockedNotificationsScreen } from './screens/MockedNotificationsScreen';
 export { InventoryNotificationCard } from './components/InventoryNotificationCard';
 export { InventoryAlertObserver } from './components/InventoryAlertObserver';
 export { InventoryOverview } from './components/InventoryOverview';

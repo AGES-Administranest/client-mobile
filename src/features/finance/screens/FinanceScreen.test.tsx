@@ -1,13 +1,64 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
+import { StockSyncProvider } from 'features/stock';
 import { I18nProvider } from 'shared/i18n';
 
 import { FinanceScreen } from './FinanceScreen';
 
+jest.mock('features/auth/services/authService', () => ({}));
+jest.mock('features/auth/services/socialAuthService', () => ({}));
+jest.mock('features/auth/services/accountApi', () => ({}));
+
+jest.mock('features/stock/services/stockMovementService', () => ({
+  fetchStockMovements: jest.fn(() => Promise.resolve([])),
+}));
+jest.mock('features/stock/services/stockSyncService', () => ({
+  ...jest.requireActual('features/stock/services/stockSyncService'),
+  pushPendingMovements: jest.fn(async () => ({
+    applied: [],
+    duplicated: [],
+    balances: [],
+    needsAdjustment: [],
+  })),
+  pullStockMovements: jest.fn(async () => ({
+    movements: [],
+    balances: [],
+    cursor: 'cursor-1',
+    hasMore: false,
+  })),
+}));
+
+jest.mock('features/stock/services/stockAdjustmentService', () => {
+  const actual = jest.requireActual(
+    'features/stock/services/stockAdjustmentService',
+  );
+
+  return {
+    ...actual,
+    fetchAdjustableItems: jest.fn(() => Promise.resolve([])),
+  };
+});
+
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
+
+const SESSION = {
+  idToken: 'id-token',
+  accessToken: 'access',
+  refreshToken: 'refresh',
+  expiresAt: 1,
+};
+
+const ACCOUNT: Account = {
+  id: 'user-1',
+  name: 'Bruna Senha',
+  email: 'bruna@example.com',
+  termsAcceptedAt: '2026-09-13T12:00:00.000Z',
+  termsVersion: TERMS_VERSION,
 };
 
 test('mounts the stock movement history', async () => {
@@ -17,7 +68,11 @@ test('mounts the stock movement history', async () => {
     renderer = ReactTestRenderer.create(
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
-          <FinanceScreen />
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <StockSyncProvider>
+              <FinanceScreen />
+            </StockSyncProvider>
+          </AuthProvider>
         </I18nProvider>
       </SafeAreaProvider>,
     );

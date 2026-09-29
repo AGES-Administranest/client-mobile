@@ -1,179 +1,97 @@
 import {
   EMPTY_MOVEMENT_FILTERS,
-  filterMovements,
   hasActiveFilters,
-  matchesItemName,
-  matchesPeriod,
+  hasNarrowingFilters,
+  matchesFilters,
+  MIN_SEARCH_LENGTH,
   normalizeSearchTerm,
+  toMovementQuery,
 } from './movementFilters';
-import type { StockMovement } from './stockMovement';
 
-function movement(overrides: Partial<StockMovement> = {}): StockMovement {
-  return {
-    id: 'movement-1',
-    itemName: 'Propofol 10mg/ml 20ml',
-    unit: 'ampoule',
-    type: 'outbound',
-    source: 'appointment',
-    quantity: 2,
-    unitCost: 19.9,
-    occurredAt: '2026-09-08T09:30:00',
-    ...overrides,
-  };
+const NO_RANGE = { from: null, to: null };
+
+function row(itemName: string, occurredAt: string) {
+  return { itemName, occurredAt };
 }
 
 describe('normalizeSearchTerm', () => {
-  it('strips accents so the search works without them', () => {
+  it('lowercases and strips accents', () => {
     expect(normalizeSearchTerm('Soro Fisiológico')).toBe('soro fisiologico');
   });
 
-  it('trims and lowercases', () => {
+  it('trims the surrounding whitespace', () => {
     expect(normalizeSearchTerm('  Gaze  ')).toBe('gaze');
   });
 });
 
-describe('matchesItemName', () => {
-  it('matches every movement when the term is empty', () => {
-    expect(matchesItemName(movement(), '')).toBe(true);
-    expect(matchesItemName(movement(), '   ')).toBe(true);
+describe('toMovementQuery', () => {
+  it('sends nothing when no filter is set', () => {
+    expect(toMovementQuery(EMPTY_MOVEMENT_FILTERS)).toEqual({});
   });
 
-  it('matches part of the name', () => {
-    expect(matchesItemName(movement(), 'propo')).toBe(true);
-  });
+  it.each([['g'], [' g '], ['']])(
+    'omits a search shorter than the minimum the backend accepts (%p)',
+    itemName => {
+      expect(
+        toMovementQuery({ itemName, range: { from: null, to: null } }),
+      ).toEqual({});
+    },
+  );
 
-  it('ignores case', () => {
-    expect(matchesItemName(movement(), 'PROPOFOL')).toBe(true);
-  });
-
-  it('ignores accents on both sides', () => {
-    const soro = movement({ itemName: 'Soro fisiológico 500ml' });
-
-    expect(matchesItemName(soro, 'fisiologico')).toBe(true);
-    expect(matchesItemName(soro, 'FISIOLÓGICO')).toBe(true);
-  });
-
-  it('rejects a name that does not contain the term', () => {
-    expect(matchesItemName(movement(), 'gaze')).toBe(false);
-  });
-});
-
-describe('matchesPeriod', () => {
-  it('accepts anything when no period is selected', () => {
-    expect(matchesPeriod(movement(), { from: null, to: null })).toBe(true);
-  });
-
-  it('matches a movement inside the period', () => {
-    const range = { from: '2026-09-01', to: '2026-09-30' };
-
-    expect(matchesPeriod(movement(), range)).toBe(true);
-  });
-
-  it('includes movements on the first and last day of the period', () => {
-    const range = { from: '2026-09-08', to: '2026-09-10' };
-
+  it('sends a search once it reaches the minimum length', () => {
     expect(
-      matchesPeriod(movement({ occurredAt: '2026-09-08T00:05:00' }), range),
-    ).toBe(true);
+      toMovementQuery({ itemName: 'ga', range: { from: null, to: null } }),
+    ).toEqual({ search: 'ga' });
+    expect('ga'.length).toBe(MIN_SEARCH_LENGTH);
+  });
+
+  it('keeps the accents the user typed, since the backend does the matching', () => {
     expect(
-      matchesPeriod(movement({ occurredAt: '2026-09-10T23:55:00' }), range),
-    ).toBe(true);
+      toMovementQuery({
+        itemName: 'fisiológico',
+        range: { from: null, to: null },
+      }),
+    ).toEqual({ search: 'fisiológico' });
   });
 
-  it('matches a single day selected as both start and end', () => {
-    const range = { from: '2026-09-08', to: '2026-09-08' };
-
+  it('trims the search term', () => {
     expect(
-      matchesPeriod(movement({ occurredAt: '2026-09-08T23:59:00' }), range),
-    ).toBe(true);
+      toMovementQuery({
+        itemName: '  gaze  ',
+        range: { from: null, to: null },
+      }),
+    ).toEqual({ search: 'gaze' });
+  });
+
+  it('sends only the start when the period is still half picked', () => {
     expect(
-      matchesPeriod(movement({ occurredAt: '2026-09-09T00:01:00' }), range),
-    ).toBe(false);
+      toMovementQuery({
+        itemName: '',
+        range: { from: '2026-09-08', to: null },
+      }),
+    ).toEqual({ periodStart: '2026-09-08' });
   });
 
-  it('excludes movements outside the period', () => {
-    const range = { from: '2026-09-01', to: '2026-09-05' };
-
-    expect(matchesPeriod(movement(), range)).toBe(false);
-  });
-});
-
-describe('filterMovements', () => {
-  const propofol = movement({
-    id: 'a',
-    itemName: 'Propofol 10mg/ml 20ml',
-    occurredAt: '2026-09-08T09:30:00',
-  });
-  const seringa = movement({
-    id: 'b',
-    itemName: 'Seringa 60ml (cx 30un)',
-    occurredAt: '2026-09-05T14:00:00',
-  });
-  const soro = movement({
-    id: 'c',
-    itemName: 'Soro fisiológico 500ml',
-    occurredAt: '2026-08-29T17:20:00',
-  });
-  const all = [propofol, seringa, soro];
-
-  it('returns everything when no filter is set', () => {
-    expect(filterMovements(all, EMPTY_MOVEMENT_FILTERS)).toEqual(all);
+  it('sends both ends of a complete period', () => {
+    expect(
+      toMovementQuery({
+        itemName: '',
+        range: { from: '2026-09-08', to: '2026-09-10' },
+      }),
+    ).toEqual({ periodStart: '2026-09-08', periodEnd: '2026-09-10' });
   });
 
-  it('filters by item name alone', () => {
-    const result = filterMovements(all, {
-      itemName: 'seringa',
-      range: { from: null, to: null },
+  it('combines the search and the period', () => {
+    expect(
+      toMovementQuery({
+        itemName: 'gaze',
+        range: { from: '2026-09-08', to: '2026-09-10' },
+      }),
+    ).toEqual({
+      search: 'gaze',
+      periodStart: '2026-09-08',
+      periodEnd: '2026-09-10',
     });
-
-    expect(result.map(item => item.id)).toEqual(['b']);
-  });
-
-  it('filters by period alone', () => {
-    const result = filterMovements(all, {
-      itemName: '',
-      range: { from: '2026-09-01', to: '2026-09-30' },
-    });
-
-    expect(result.map(item => item.id)).toEqual(['a', 'b']);
-  });
-
-  it('combines both filters', () => {
-    const result = filterMovements(all, {
-      itemName: 'propofol',
-      range: { from: '2026-09-08', to: '2026-09-08' },
-    });
-
-    expect(result.map(item => item.id)).toEqual(['a']);
-  });
-
-  it('returns nothing when the two filters do not overlap', () => {
-    const result = filterMovements(all, {
-      itemName: 'propofol',
-      range: { from: '2026-08-01', to: '2026-08-31' },
-    });
-
-    expect(result).toEqual([]);
-  });
-
-  it('keeps the order it received', () => {
-    const result = filterMovements(all, {
-      itemName: '',
-      range: { from: '2026-08-01', to: '2026-09-30' },
-    });
-
-    expect(result.map(item => item.id)).toEqual(['a', 'b', 'c']);
-  });
-
-  it('does not mutate the received list', () => {
-    const movements = [...all];
-
-    filterMovements(movements, {
-      itemName: 'gaze',
-      range: EMPTY_MOVEMENT_FILTERS.range,
-    });
-
-    expect(movements).toHaveLength(3);
   });
 });
 
@@ -199,6 +117,82 @@ describe('hasActiveFilters', () => {
       hasActiveFilters({
         itemName: '',
         range: { from: '2026-09-08', to: null },
+      }),
+    ).toBe(true);
+  });
+});
+
+describe('hasNarrowingFilters', () => {
+  it('is false when nothing was typed or picked', () => {
+    expect(hasNarrowingFilters(EMPTY_MOVEMENT_FILTERS)).toBe(false);
+  });
+
+  it('is false for a term the backend would ignore', () => {
+    expect(hasNarrowingFilters({ itemName: 'g', range: NO_RANGE })).toBe(false);
+  });
+
+  it('is true once the term is long enough to be sent', () => {
+    expect(hasNarrowingFilters({ itemName: 'ga', range: NO_RANGE })).toBe(true);
+  });
+
+  it('is true with a period picked', () => {
+    expect(
+      hasNarrowingFilters({
+        itemName: '',
+        range: { from: '2026-09-08', to: null },
+      }),
+    ).toBe(true);
+  });
+});
+
+describe('matchesFilters', () => {
+  const movement = row('Soro fisiológico 500ml', '2026-09-08T09:30:00.000Z');
+
+  it('keeps everything when no filter is set', () => {
+    expect(matchesFilters(movement, EMPTY_MOVEMENT_FILTERS)).toBe(true);
+  });
+
+  it('ignores accents and case, the way the list always did', () => {
+    expect(
+      matchesFilters(movement, { itemName: 'FISIOLOGICO', range: NO_RANGE }),
+    ).toBe(true);
+  });
+
+  it('drops a row whose name does not match', () => {
+    expect(matchesFilters(movement, { itemName: 'gaze', range: NO_RANGE })).toBe(
+      false,
+    );
+  });
+
+  it('keeps a row that would not even be sent as a search', () => {
+    expect(matchesFilters(movement, { itemName: 'g', range: NO_RANGE })).toBe(
+      true,
+    );
+  });
+
+  it('drops a row before the start of the period', () => {
+    expect(
+      matchesFilters(movement, {
+        itemName: '',
+        range: { from: '2026-09-09', to: null },
+      }),
+    ).toBe(false);
+  });
+
+  it('drops a row after the end of the period', () => {
+    expect(
+      matchesFilters(movement, {
+        itemName: '',
+        range: { from: null, to: '2026-09-07' },
+      }),
+    ).toBe(false);
+  });
+
+  it('keeps a row on the last day of the period', () => {
+    expect(
+      matchesFilters(movement, {
+        itemName: '',
+        range: { from: '2026-09-08', to: '2026-09-08' },
       }),
     ).toBe(true);
   });

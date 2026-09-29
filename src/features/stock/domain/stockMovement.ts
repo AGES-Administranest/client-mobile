@@ -16,6 +16,7 @@ export type MeasurementUnit =
   | 'box'
   | 'ml'
   | 'mg'
+  | 'gram'
   | 'tablet'
   | 'other';
 
@@ -26,6 +27,7 @@ export type MovementAppointment = {
 
 export type StockMovement = {
   id: string;
+  itemId: string;
   itemName: string;
   unit: MeasurementUnit;
   type: StockMovementType;

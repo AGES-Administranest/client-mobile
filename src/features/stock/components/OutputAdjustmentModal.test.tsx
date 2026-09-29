@@ -15,12 +15,14 @@ const ITEMS: AdjustableItem[] = [
     name: 'Propofol 10mg/ml 20ml',
     unit: 'ampoule',
     availableQuantity: 8,
+    unitCost: 10,
   },
   {
     id: 'item-2',
     name: 'Gaze estéril',
     unit: 'box',
     availableQuantity: 6,
+    unitCost: 10,
   },
 ];
 

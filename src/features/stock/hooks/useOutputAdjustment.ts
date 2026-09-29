@@ -1,4 +1,8 @@
+import { randomUUID } from 'expo-crypto';
 import { useCallback, useEffect, useState } from 'react';
+
+import { useAuth } from 'features/auth';
+import { ApiError } from 'shared/services/apiClient';
 
 import {
   digitsOnly,
@@ -11,10 +15,10 @@ import {
   type OutputAdjustmentDraft,
   type OutputAdjustmentErrors,
 } from '../domain/outputAdjustment';
+import type { PendingMovement } from '../domain/pendingMovement';
+import { addPendingMovement } from '../services/pendingMovementsRepository';
 import {
-  createOutputAdjustment,
   fetchAdjustableItems,
-  StockAdjustmentError,
   type AdjustableItem,
 } from '../services/stockAdjustmentService';
 
@@ -38,7 +42,17 @@ type OutputAdjustmentState = {
   submit: () => Promise<boolean>;
 };
 
+function requireToken(idToken: string | null): string {
+  if (!idToken) {
+    throw new ApiError('No active session', 'UNAUTHENTICATED', 401);
+  }
+  return idToken;
+}
+
 export function useOutputAdjustment(): OutputAdjustmentState {
+  const { session, account } = useAuth();
+  const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
   const [draft, setDraft] = useState<OutputAdjustmentDraft>(
     EMPTY_OUTPUT_ADJUSTMENT,
   );
@@ -50,7 +64,7 @@ export function useOutputAdjustment(): OutputAdjustmentState {
   useEffect(() => {
     let isMounted = true;
 
-    fetchAdjustableItems()
+    (async () => fetchAdjustableItems(requireToken(idToken)))()
       .then(result => {
         if (isMounted) {
           setItems(result);
@@ -65,7 +79,7 @@ export function useOutputAdjustment(): OutputAdjustmentState {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [idToken]);
 
   const setItemId = useCallback(
     (itemId: string) => setDraft(current => ({ ...current, itemId })),
@@ -109,30 +123,50 @@ export function useOutputAdjustment(): OutputAdjustmentState {
       return false;
     }
 
-    setIsSaving(true);
-
-    try {
-      await createOutputAdjustment({
-        itemId: draft.itemId as string,
-        quantity: parseQuantity(draft.quantity),
-        reason: draft.reason as AdjustmentReason,
-        notes: requiresWrittenReason(draft.reason)
-          ? draft.otherReason.trim()
-          : null,
-      });
-
-      setIsSaving(false);
-      return true;
-    } catch (error) {
-      setIsSaving(false);
-      setFailure(
-        error instanceof StockAdjustmentError
-          ? { code: error.code, params: error.params }
-          : { code: 'UNKNOWN', params: {} },
-      );
+    if (!userId) {
+      setFailure({ code: 'NO_ACCOUNT', params: {} });
       return false;
     }
-  }, [draft]);
+
+    const item = items.find(candidate => candidate.id === draft.itemId);
+    const quantity = parseQuantity(draft.quantity);
+
+    if (item && quantity > item.availableQuantity) {
+      setFailure({
+        code: 'INSUFFICIENT_STOCK',
+        params: { available: item.availableQuantity },
+      });
+      return false;
+    }
+
+    setIsSaving(true);
+
+    const movement: PendingMovement = {
+      id: randomUUID(),
+      itemId: draft.itemId as string,
+      itemName: item?.name ?? '',
+      unit: item?.unit ?? 'other',
+      type: 'outbound',
+      source: 'manualAdjustment',
+      adjustmentReason: draft.reason as AdjustmentReason,
+      quantity,
+      unitCost: item?.unitCost ?? 0,
+      occurredAt: new Date().toISOString(),
+      notes: requiresWrittenReason(draft.reason)
+        ? draft.otherReason.trim()
+        : null,
+    };
+
+    try {
+      await addPendingMovement(userId, movement);
+      setIsSaving(false);
+      return true;
+    } catch {
+      setIsSaving(false);
+      setFailure({ code: 'QUEUE_WRITE_FAILED', params: {} });
+      return false;
+    }
+  }, [draft, items, userId]);
 
   return {
     draft,

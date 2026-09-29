@@ -11,6 +11,7 @@ import {
 function movement(overrides: Partial<StockMovement> = {}): StockMovement {
   return {
     id: 'movement-1',
+    itemId: 'item-1',
     itemName: 'Propofol 10mg/ml 20ml',
     unit: 'ampoule',
     type: 'outbound',

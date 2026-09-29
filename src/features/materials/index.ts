@@ -7,6 +7,7 @@ export {
   deleteItem,
 } from './services/itemService';
 export { createItemLot } from './services/itemLotService';
+export { backendUnitLabel } from './domain/materialsFilter';
 export type {
   MaterialItem,
   MaterialSegment,

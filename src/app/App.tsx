@@ -19,10 +19,13 @@ import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
 import {
   InventoryAlertObserver,
+  InventoryProvider,
+  useInventory,
   type InventoryAlertSnapshot,
 } from 'features/inventory';
 import { MaterialsScreen } from 'features/materials';
 import { ReportsScreen } from 'features/reports';
+import { StockSyncProvider } from 'features/stock';
 import { I18nProvider } from 'shared/i18n';
 import { initNotifications } from 'shared/services';
 
@@ -48,9 +51,15 @@ export function App() {
     <I18nProvider>
       <SafeAreaProvider>
         <AuthProvider>
-          <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-          <AccountInventoryAlerts />
-          <AppContent />
+          <InventoryProvider>
+            <StatusBar
+              barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+            />
+            <AccountInventoryAlerts />
+            <StockSyncProvider>
+              <AppContent />
+            </StockSyncProvider>
+          </InventoryProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </I18nProvider>
@@ -62,12 +71,17 @@ export function App() {
 // stays mounted across sign out and sign in on purpose: the observer only
 // cancels the previous person's scheduled notifications when it sees the id
 // change (to null on sign out, or to another account), which an unmount would
-// skip. Inventory data is still 'loading' until US09 loads it from the API.
+// skip.
 export function AccountInventoryAlerts() {
   const { account } = useAuth();
+  const { status, items, lots } = useInventory();
+
   const snapshot = React.useMemo<InventoryAlertSnapshot>(
-    () => ({ status: 'loading', userId: account?.id ?? null }),
-    [account?.id],
+    () =>
+      status === 'ready' && account
+        ? { status: 'ready', userId: account.id, items, lots }
+        : { status: 'loading', userId: account?.id ?? null },
+    [status, account, items, lots],
   );
 
   return <InventoryAlertObserver snapshot={snapshot} />;

@@ -1,27 +1,24 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import type { CalendarRange } from 'shared/utils/calendar';
 
 import {
   EMPTY_MOVEMENT_FILTERS,
-  filterMovements,
   hasActiveFilters,
+  hasNarrowingFilters,
   type MovementFilters,
 } from '../domain/movementFilters';
-import type { StockMovement } from '../domain/stockMovement';
 
 type MovementFiltersState = {
   filters: MovementFilters;
-  visibleMovements: StockMovement[];
   isFiltering: boolean;
+  isNarrowing: boolean;
   setItemName: (itemName: string) => void;
   setRange: (range: CalendarRange) => void;
   clearFilters: () => void;
 };
 
-export function useMovementFilters(
-  movements: readonly StockMovement[],
-): MovementFiltersState {
+export function useMovementFilters(): MovementFiltersState {
   const [filters, setFilters] = useState<MovementFilters>(
     EMPTY_MOVEMENT_FILTERS,
   );
@@ -41,15 +38,10 @@ export function useMovementFilters(
     [],
   );
 
-  const visibleMovements = useMemo(
-    () => filterMovements(movements, filters),
-    [movements, filters],
-  );
-
   return {
     filters,
-    visibleMovements,
     isFiltering: hasActiveFilters(filters),
+    isNarrowing: hasNarrowingFilters(filters),
     setItemName,
     setRange,
     clearFilters,
