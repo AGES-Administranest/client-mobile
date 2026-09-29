@@ -88,7 +88,7 @@ export function useMovementHistory(
         return { merged: mergePendingMovements(confirmed, pending, applied) };
       } catch (error) {
         return {
-          merged: mergePendingMovements([], pending, applied),
+          merged: { movements: [], pendingIds: [] },
           error,
         };
       }

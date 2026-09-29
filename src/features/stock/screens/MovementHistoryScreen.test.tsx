@@ -8,12 +8,23 @@ import { toCalendarDate } from 'shared/utils/calendar';
 import { MovementHistoryScreen } from './MovementHistoryScreen';
 import type { StockMovement } from '../domain/stockMovement';
 import { StockSyncProvider } from '../hooks/StockSyncContext';
-import { loadPendingMovements } from '../services/pendingMovementsRepository';
+import {
+  addPendingMovement,
+  loadPendingMovements,
+} from '../services/pendingMovementsRepository';
 import { fetchStockMovements } from '../services/stockMovementService';
+
+const mockConnectionListeners = new Set<() => void>();
 
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
+jest.mock('shared/services', () => ({
+  onConnectionRestored: jest.fn((listener: () => void) => {
+    mockConnectionListeners.add(listener);
+    return () => mockConnectionListeners.delete(listener);
+  }),
+}));
 
 jest.mock('../services/stockMovementService', () => ({
   fetchStockMovements: jest.fn(),
@@ -256,6 +267,7 @@ async function pickSingleDay(
 
 beforeEach(async () => {
   fetchMock.mockReset();
+  mockConnectionListeners.clear();
   await AsyncStorage.clear();
 });
 
@@ -348,6 +360,47 @@ test('offers a retry when the history fails to load, and recovers on success', a
 
   expect(texts).toContain('Seringa 60ml (cx 30un)');
   expect(texts).not.toContain('Não foi possível carregar o histórico.');
+});
+
+test('does not show locally queued movements when the history is offline', async () => {
+  await addPendingMovement(USER, {
+    id: 'offline-movement',
+    itemId: 'item-offline',
+    itemName: 'Item cadastrado offline',
+    unit: 'unit',
+    type: 'inbound',
+    source: 'manualPurchase',
+    quantity: 1,
+    unitCost: 10,
+    occurredAt: '2026-09-10T08:00:00.000Z',
+    notes: null,
+  });
+  fetchMock.mockRejectedValue(new Error('network down'));
+
+  const texts = await renderScreen();
+
+  expect(texts).not.toContain('Item cadastrado offline');
+  expect(texts).toContain('Não foi possível carregar o histórico.');
+  expect(await loadPendingMovements(USER)).toHaveLength(1);
+});
+
+test('refreshes the history after the connection is restored', async () => {
+  fetchMock
+    .mockRejectedValueOnce(new Error('network down'))
+    .mockResolvedValueOnce([PURCHASE_INBOUND]);
+
+  const renderer = await mount();
+
+  await act(async () => {
+    mockConnectionListeners.forEach(listener => listener());
+  });
+  await wait(50);
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(readTexts(renderer)).toContain('Seringa 60ml (cx 30un)');
+  expect(readTexts(renderer)).not.toContain(
+    'Não foi possível carregar o histórico.',
+  );
 });
 
 describe('filters', () => {

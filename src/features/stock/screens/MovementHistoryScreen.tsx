@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
+import { onConnectionRestored } from 'shared/services';
 import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
 
 import { MovementFilters } from '../components/MovementFilters';
@@ -56,6 +57,14 @@ export function MovementHistoryScreen({
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const adjustment = useOutputAdjustment();
+
+  useEffect(
+    () =>
+      onConnectionRestored(() => {
+        sync().then(retry, retry);
+      }),
+    [retry, sync],
+  );
 
   useEffect(() => {
     if (savedAt === null) {
