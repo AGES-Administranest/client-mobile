@@ -353,10 +353,15 @@ new, and the backend cannot tell the two apart.
   be reconsidered: Apple requires it when an iOS app offers another social login
   (guideline 4.8). Adding it is one more `SocialProvider` — same flow, see ADR-13.
 
-**Not included yet, by design:** persisting the session across app launches, refreshing
-the id token before calling the API, and a navigation library (`AuthFlow` switches steps
-with local state). The session currently lives only in memory — persistence needs a
-storage dependency, which is a separate decision and a separate card.
+**Session persistence:** the tokens are saved with AsyncStorage (`localStorage` on the
+web, the app's own storage on iOS/Android) and brought back on the next launch or reload.
+On the way back the id token is refreshed if it expired and the account is reopened with
+`POST /auth/session`; a refresh token Cognito refuses clears the saved session, while
+being offline keeps it for the next try. Signing out clears it.
+
+**Not included yet, by design:** refreshing the id token while the app is open (a session
+that stays open past the token's hour still fails until the next launch) and a navigation
+library (`AuthFlow` switches steps with local state).
 
 #### A note on error messages
 
