@@ -74,9 +74,21 @@ export function AccountInventoryAlerts() {
 }
 
 function AppContent() {
-  const { session, account } = useAuth();
+  const { session, account, restoring } = useAuth();
   const [tab, setTab] = React.useState<TabValue>('day');
   const insets = useSafeAreaInsets();
+
+  // Blank background while a saved session comes back, so the welcome
+  // screen does not flash before the home.
+  if (restoring) {
+    return (
+      <LinearGradient
+        colors={Colors.background.primary.colors}
+        locations={Colors.background.primary.locations}
+        style={StyleSheet.absoluteFill}
+      />
+    );
+  }
 
   if (!session || !account) {
     return <AuthFlow />;

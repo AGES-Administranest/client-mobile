@@ -1,12 +1,13 @@
-import { ChevronLeft, Pencil, Plus } from 'lucide-react-native';
+import { CalendarPlus, ChevronLeft, Pencil, Plus } from 'lucide-react-native';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
+import { FeedbackSheet, useExportToCalendar } from 'features/appointments';
 import { SupplySelectorSheet, useSupplySelector } from 'features/stock';
 import { useTranslation, type TranslationKey } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
@@ -296,6 +297,12 @@ export function AppointmentDetailScreen({
                 onChanged();
               }}
             />
+
+            {/* Only upcoming work goes to the calendar, and the web has no
+                native calendar to write to. */}
+            {appointment.status === 'SCHEDULED' && Platform.OS !== 'web' ? (
+              <ExportSection appointment={appointment} />
+            ) : null}
           </ScrollView>
         )}
       </View>
@@ -352,6 +359,56 @@ export function AppointmentDetailScreen({
         formatPrice={option => formatCurrency(option.price, locale)}
       />
     </Modal>
+  );
+}
+
+function ExportSection({
+  appointment,
+}: {
+  appointment: Parameters<typeof useExportToCalendar>[0];
+}) {
+  const { t } = useTranslation();
+  const exportState = useExportToCalendar(appointment);
+  const feedback = {
+    success: {
+      title: t('appointments.exportSuccessTitle'),
+      message: t('appointments.exportSuccess'),
+    },
+    permissionDenied: {
+      title: t('appointments.exportPermissionDeniedTitle'),
+      message: t('appointments.exportPermissionDenied'),
+    },
+    error: {
+      title: t('appointments.exportErrorTitle'),
+      message: t('appointments.exportError'),
+    },
+  } as const;
+
+  return (
+    <>
+      <Button
+        shape="pill"
+        variant="outline"
+        icon={CalendarPlus}
+        disabled={exportState.status === 'exporting'}
+        accessibilityLabel={t('appointments.exportToCalendar')}
+        onPress={exportState.exportToCalendar}
+      >
+        <Text className="font-semibold">
+          {t('appointments.exportToCalendar')}
+        </Text>
+      </Button>
+      {(['success', 'permissionDenied', 'error'] as const).map(status => (
+        <FeedbackSheet
+          key={status}
+          visible={exportState.status === status}
+          title={feedback[status].title}
+          message={feedback[status].message}
+          dismissLabel={t('appointments.dismiss')}
+          onDismiss={exportState.reset}
+        />
+      ))}
+    </>
   );
 }
 

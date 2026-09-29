@@ -623,6 +623,63 @@
       },
       "dismiss": "Voltar",
       "toast": "Agendamento marcado como não realizado"
-    }
+    },
+    "title": "Agendamentos",
+    "calendar": {
+      "prevMonth": "Mês anterior",
+      "nextMonth": "Próximo mês"
+    },
+    "attendances": "ATENDIMENTOS",
+    "revenue": "RECEITA",
+    "estimated": "estimado",
+    "agenda": "AGENDA",
+    "addAttendance": "+ Adicionar Atendimento",
+    "sectionTitle": "PROCEDIMENTOS DO MÊS OU DIA",
+    "emptyDay": "Nenhum agendamento para este dia.",
+    "emptyDaySub": "Toque no botão abaixo para agendar um procedimento.",
+    "newAppointment": "+ Novo agendamento",
+    "status": {
+      "scheduled": "Agendado",
+      "completed": "Concluído",
+      "canceled": "Cancelado"
+    },
+    "species": {
+      "canine": "Canino",
+      "feline": "Felino",
+      "other": "Outro"
+    },
+    "form": {
+      "title": "Novo Agendamento",
+      "patientNameLabel": "NOME DO PACIENTE / ANIMAL",
+      "patientNamePlaceholder": "Ex: Mel, Thor...",
+      "speciesLabel": "ESPÉCIE",
+      "procedureLabel": "PROCEDIMENTO",
+      "procedurePlaceholder": "Ex: Orquiectomia, Tartarectomia...",
+      "dateLabel": "DATA (AAAA-MM-DD)",
+      "timeLabel": "HORÁRIO (HH:MM)",
+      "locationLabel": "LOCAL / CLÍNICA",
+      "locationPlaceholder": "Ex: Clínica VetCare",
+      "notesLabel": "OBSERVAÇÕES",
+      "notesPlaceholder": "Recomendações anestésicas, histórico...",
+      "submit": "Confirmar Agendamento",
+      "cancel": "Cancelar"
+    },
+    "viewMonth": "Ver mês",
+    "viewWeek": "Ver semana",
+    "dayOf": "dia {{day}}",
+    "emptyToday": "Sem atendimentos hoje",
+    "emptySelectedDay": "Sem atendimentos neste dia",
+    "emptyMonth": "Sem atendimentos neste mês",
+    "exportToCalendar": "Adicionar à agenda",
+    "exportSuccessTitle": "Adicionado à agenda",
+    "exportSuccess": "Agendamento adicionado à sua agenda.",
+    "exportPermissionDeniedTitle": "Permissão necessária",
+    "exportPermissionDenied": "Não conseguimos acessar sua agenda. Habilite a permissão de calendário nas configurações do dispositivo para adicionar este agendamento.",
+    "exportErrorTitle": "Não foi possível adicionar",
+    "exportError": "Algo deu errado ao adicionar o agendamento à sua agenda. Tente novamente.",
+    "dismiss": "Entendi"
+  },
+  "home": {
+    "greeting": "Olá, Dr. {{name}}"
   }
 }
