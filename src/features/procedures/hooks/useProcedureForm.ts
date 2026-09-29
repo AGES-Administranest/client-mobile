@@ -107,7 +107,9 @@ export function useProcedureForm(
   // O atendimento já está salvo aqui: recusar ou concluir os insumos só
   // encerra o formulário, não desfaz nada.
   function finishSupplyPrompt(): void {
-    const created = supplyPrompt ? { startsAt: supplyPrompt.startsAt } : undefined;
+    const created = supplyPrompt
+      ? { startsAt: supplyPrompt.startsAt }
+      : undefined;
     setSupplyPrompt(null);
     reset();
     onSuccess(created);

@@ -1,4 +1,7 @@
-import { EMPTY_PROCEDURE_FORM, type ProcedureFormValues } from './procedure.types';
+import {
+  EMPTY_PROCEDURE_FORM,
+  type ProcedureFormValues,
+} from './procedure.types';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const toDate = (d: Date) =>
@@ -31,7 +34,8 @@ export function toProcedureFormValues(
     procedureName: a.procedureName ?? '',
     clientId: a.clientId,
     species: a.species,
-    asaClassification: (a.asa as ProcedureFormValues['asaClassification']) ?? null,
+    asaClassification:
+      (a.asa as ProcedureFormValues['asaClassification']) ?? null,
     weightKg: decimal(a.weightKg),
     patientAgeYears: decimal(a.patientAgeYears),
     amount: decimal(a.amount),
