@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { ChevronDown } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -14,6 +15,7 @@ import {
 } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import {
   ClientAutocomplete,
@@ -85,6 +87,10 @@ export function ProcedureFormSheet({
 }: ProcedureFormSheetProps) {
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const [speciesOpen, setSpeciesOpen] = useState(false);
+  const selectedSpecies = texts.speciesOptions.find(
+    option => option.value === values.species,
+  );
 
   useEffect(() => {
     Animated.parallel([
@@ -243,18 +249,53 @@ export function ProcedureFormSheet({
                 onChangeText={v => onChangeText('notes', v)}
               />
 
-              <Text className="mb-1 mt-1 text-xs font-semibold uppercase text-label-primary">
-                {texts.labels.species}
-              </Text>
-              <View className="mb-3 flex-row gap-2">
-                {texts.speciesOptions.map(option => (
-                  <Segment
-                    key={option.value}
-                    label={option.label}
-                    active={values.species === option.value}
-                    onPress={() => onChangeSpecies(option.value)}
+              <View className="z-10 mb-3">
+                <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
+                  {texts.labels.species}
+                </Text>
+                <Pressable
+                  onPress={() => setSpeciesOpen(open => !open)}
+                  accessibilityRole="button"
+                  className="flex-row items-center justify-between rounded-xl border border-border-primary bg-white px-4 py-2.5"
+                >
+                  <Text
+                    className={
+                      selectedSpecies
+                        ? 'text-[15px] text-label-primary'
+                        : 'text-[15px] text-label-tertiary'
+                    }
+                  >
+                    {selectedSpecies?.label ?? texts.placeholders.species}
+                  </Text>
+                  <Icon
+                    as={ChevronDown}
+                    className="size-4 text-label-tertiary"
                   />
-                ))}
+                </Pressable>
+
+                {speciesOpen ? (
+                  <View className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
+                    {texts.speciesOptions.map((option, index) => (
+                      <Pressable
+                        key={option.value}
+                        accessibilityRole="button"
+                        onPress={() => {
+                          onChangeSpecies(option.value);
+                          setSpeciesOpen(false);
+                        }}
+                        className={
+                          index === 0
+                            ? 'px-4 py-3'
+                            : 'border-t border-border-primary px-4 py-3'
+                        }
+                      >
+                        <Text className="text-[15px] text-label-primary">
+                          {option.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
               </View>
 
               <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">

@@ -95,13 +95,17 @@ function ConfirmSheet({
               >
                 <Text className="font-semibold">{confirmLabel}</Text>
               </Button>
-              <Button
-                shape="pill"
-                className="h-[49px] w-full"
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={cancelLabel}
+                hitSlop={8}
+                className="h-11 items-center justify-center active:opacity-70"
                 onPress={onCancel}
               >
-                <Text className="font-semibold">{cancelLabel}</Text>
-              </Button>
+                <Text className="font-semibold text-label-quartenery">
+                  {cancelLabel}
+                </Text>
+              </Pressable>
             </Pressable>
           </Animated.View>
         </Pressable>

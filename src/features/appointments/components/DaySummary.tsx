@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
+import { cn } from 'app/lib/utils';
 
 type DaySummaryProps = {
   count: number;
@@ -16,10 +17,19 @@ type DaySummaryProps = {
 export function DaySummary({ count, revenue, labels }: DaySummaryProps) {
   return (
     <View className="flex-row gap-3">
-      <SummaryCard title={labels.attendances} value={String(count)}>
+      {/* Figma: contagem em 28px, valor da receita em 22px. */}
+      <SummaryCard
+        title={labels.attendances}
+        value={String(count)}
+        valueClassName="text-[28px]"
+      >
         {labels.day}
       </SummaryCard>
-      <SummaryCard title={labels.revenue} value={revenue}>
+      <SummaryCard
+        title={labels.revenue}
+        value={revenue}
+        valueClassName="text-[22px]"
+      >
         {labels.estimated}
       </SummaryCard>
     </View>
@@ -29,10 +39,12 @@ export function DaySummary({ count, revenue, labels }: DaySummaryProps) {
 function SummaryCard({
   title,
   value,
+  valueClassName,
   children,
 }: {
   title: string;
   value: string;
+  valueClassName: string;
   children: string;
 }) {
   return (
@@ -43,7 +55,9 @@ function SummaryCard({
       >
         {title}
       </Text>
-      <Text className="text-2xl font-bold text-label-primary">{value}</Text>
+      <Text className={cn('font-bold text-label-primary', valueClassName)}>
+        {value}
+      </Text>
       <Text className="text-xs text-label-tertiary">{children}</Text>
     </View>
   );

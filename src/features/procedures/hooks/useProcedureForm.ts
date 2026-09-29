@@ -1,25 +1,38 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import { useClientSearch, type ClientOption } from 'features/clients';
 
 import {
   EMPTY_PROCEDURE_FORM,
+  type CreateAppointmentPayload,
   type ProcedureErrors,
   type ProcedureFormValues,
   type ProcedureTextField,
 } from '../domain/procedure.types';
 import { applyFieldMask } from '../domain/procedureMasks';
 import { toCreateAppointmentPayload } from '../domain/toCreateAppointmentPayload';
+import { toProcedureFormValues } from '../domain/toProcedureFormValues';
 import { validateProcedureForm } from '../domain/validateProcedureForm';
-import { createAppointment } from '../services/procedureService';
+import {
+  createAppointment,
+  updateAppointment,
+  type AppointmentResult,
+} from '../services/procedureService';
 
 type SupplyPrompt = {
   appointmentId: string;
+  startsAt: string;
   step: 'confirm' | 'selector';
 };
 
-export function useProcedureForm(onSuccess: () => void, visible: boolean) {
+// Com `editing`, o formulário abre preenchido e o envio faz PATCH em vez de POST.
+export function useProcedureForm(
+  // `created` só vem na criação: a tela usa para levar a agenda ao dia novo.
+  onSuccess: (created?: { startsAt: string }) => void,
+  visible: boolean,
+  editing: AppointmentResult | null = null,
+) {
   const { session } = useAuth();
   const [values, setValues] =
     useState<ProcedureFormValues>(EMPTY_PROCEDURE_FORM);
@@ -34,6 +47,18 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     paused: selectedClient !== null,
   });
   const [supplyPrompt, setSupplyPrompt] = useState<SupplyPrompt | null>(null);
+
+  useEffect(() => {
+    if (!visible || !editing) {
+      return;
+    }
+    setValues(toProcedureFormValues(editing));
+    if (editing.clientId && editing.ownerName) {
+      setSelectedClient({ id: editing.clientId, name: editing.ownerName });
+      clientSearch.onTermChange(editing.ownerName);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, editing?.id]);
 
   function setField<K extends keyof ProcedureFormValues>(
     key: K,
@@ -82,9 +107,10 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
   // O atendimento já está salvo aqui: recusar ou concluir os insumos só
   // encerra o formulário, não desfaz nada.
   function finishSupplyPrompt(): void {
+    const created = supplyPrompt ? { startsAt: supplyPrompt.startsAt } : undefined;
     setSupplyPrompt(null);
     reset();
-    onSuccess();
+    onSuccess(created);
   }
 
   async function submit(): Promise<void> {
@@ -101,13 +127,25 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
     setSubmitting(true);
     setSubmitFailed(false);
     try {
+      if (editing) {
+        const changes: Partial<CreateAppointmentPayload> =
+          toCreateAppointmentPayload(values);
+        delete changes.status;
+        await updateAppointment(session.idToken, editing.id, changes);
+        onSuccess();
+        return;
+      }
       const appointment = await createAppointment(
         session.idToken,
         toCreateAppointmentPayload(values),
       );
       // Os valores só são limpos ao fim da pergunta; a tela esconde o
       // formulário enquanto ela está aberta.
-      setSupplyPrompt({ appointmentId: appointment.id, step: 'confirm' });
+      setSupplyPrompt({
+        appointmentId: appointment.id,
+        startsAt: appointment.startsAt,
+        step: 'confirm',
+      });
     } catch {
       setSubmitFailed(true);
     } finally {

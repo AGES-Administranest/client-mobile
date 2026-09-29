@@ -258,7 +258,8 @@
         },
         "cnpj": {
           "required": "Informe o CNPJ.",
-          "invalid": "O CNPJ informado não é válido."
+          "invalid": "O CNPJ informado não é válido.",
+          "duplicated": "Já existe uma clínica com esse CNPJ."
         },
         "state": {
           "required": "Informe a UF.",
@@ -486,11 +487,16 @@
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
-      "date": "DD/MM/YYYY"
+      "date": "DD/MM/YYYY",
+      "species": "Selecione a espécie"
     },
     "species": {
       "canine": "Canino",
       "feline": "Felino",
+      "equine": "Equino",
+      "bovine": "Bovino",
+      "avian": "Ave",
+      "exotic": "Exótico/Silvestre",
       "other": "Outro"
     },
     "errors": {
@@ -521,7 +527,7 @@
     "cancellation": {
       "action": "Não realizado",
       "title": "Motivo do cancelamento",
-      "reasonPlaceholder": "Descreva o motivo",
+      "reasonPlaceholder": "Escreva brevemente o motivo do cancelamento",
       "confirm": "Confirmar",
       "errors": {
         "REQUIRED": "Informe o motivo do cancelamento.",
@@ -542,6 +548,12 @@
       "CANCELED": "Cancelado"
     },
     "detail": {
+      "edit": "Editar atendimento",
+      "editTitle": "Editar atendimento",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir este atendimento?",
+      "deleteCancel": "Cancelar",
+      "deleteFailed": "Não foi possível excluir. Tente novamente.",
       "title": "Atendimento",
       "back": "Voltar",
       "loadError": "Não foi possível carregar o atendimento.",
@@ -552,8 +564,14 @@
       "amount": "Valor",
       "noAmount": "Sem valor",
       "editAmount": "Editar valor",
+      "weightLabel": "Peso",
+      "notInformed": "Não informado",
+      "ageValue": "{{years}} anos",
+      "weightValue": "{{kg}} kg",
+      "completedBadge": "Concluído",
       "suppliesTitle": "Materiais usados",
       "addSupply": "Adicionar insumo",
+      "addSupplyShort": "Adicionar",
       "suppliesFailed": "Não foi possível salvar os insumos. Tente novamente.",
       "amountSheet": {
         "title": "Valor do atendimento",
@@ -564,6 +582,23 @@
           "INVALID_NUMBER": "Informe um valor válido, como 350,00.",
           "FAILED": "Não foi possível salvar o valor. Tente novamente."
         }
+      },
+      "hoursWorked": {
+        "title": "Horas trabalhadas",
+        "edit": "Editar",
+        "minutesLabel": "{{count}} minutos",
+        "valuePerHour": "Valor/hora"
+      },
+      "travel": {
+        "title": "Deslocamento",
+        "empty": "Nenhum deslocamento registrado",
+        "register": "+ Registrar",
+        "collapse": "Cancelar",
+        "vehicleLabel": "Carro",
+        "vehiclePlaceholder": "Selecione um carro",
+        "distanceLabel": "Distância (km)",
+        "distancePlaceholder": "Ex: 34",
+        "confirm": "Confirmar"
       }
     },
     "day": {
@@ -576,7 +611,7 @@
   },
   "appointments": {
     "notDone": {
-      "action": "Não realizado",
+      "action": "Cancelar",
       "title": "Não realizado",
       "reason": "Por que o procedimento não foi realizado?",
       "reasons": {
@@ -610,6 +645,10 @@
     "species": {
       "canine": "Canino",
       "feline": "Felino",
+      "equine": "Equino",
+      "bovine": "Bovino",
+      "avian": "Ave",
+      "exotic": "Exótico/Silvestre",
       "other": "Outro"
     },
     "form": {

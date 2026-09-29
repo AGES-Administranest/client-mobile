@@ -31,12 +31,7 @@ function SupplyList({
 }: SupplyListProps) {
   if (rows.length === 0) {
     return (
-      <View
-        className={cn(
-          'rounded-2xl border border-dashed border-border-primary px-4 py-4',
-          className,
-        )}
-      >
+      <View className={cn('rounded-2xl bg-white px-4 py-4', className)}>
         <Text className="text-sm text-label-tertiary">{emptyMessage}</Text>
       </View>
     );

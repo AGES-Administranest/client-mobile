@@ -1,7 +1,6 @@
 import {
   Bell,
   CalendarX2,
-  ChevronLeft,
   LogOut,
   Maximize2,
   Minimize2,
@@ -16,6 +15,7 @@ import {
 } from 'react';
 import {
   Animated,
+  Dimensions,
   Easing,
   Modal,
   Pressable,
@@ -23,7 +23,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
 import { OptionsModal } from 'app/components/ui/options-modal';
@@ -38,6 +37,7 @@ import {
   type Species,
 } from 'features/appointments';
 import { useAuth } from 'features/auth';
+import { useClientNames } from 'features/clients';
 import {
   InventoryNotificationsScreen,
   isValidExpirationDate,
@@ -49,12 +49,16 @@ import { AppointmentDetailScreen, DiaDiaScreen } from 'features/procedures';
 import { useTranslation } from 'shared/i18n';
 import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
 export function HomeScreen() {
   const { t, locale } = useTranslation();
   const { session, account, signOut } = useAuth();
-  const insets = useSafeAreaInsets();
   const [accountVisible, setAccountVisible] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const notificationsTranslateX = useRef(
+    new Animated.Value(SCREEN_WIDTH),
+  ).current;
   const [newProcedureVisible, setNewProcedureVisible] = useState(false);
   const [monthExpanded, setMonthExpanded] = useState(false);
   // Expanded, the grid starts with no day picked and the agenda shows the
@@ -69,11 +73,24 @@ export function HomeScreen() {
   // Drives both the week strip and the expanded month grid, so switching
   // between them keeps the selected date.
   const calendar = useAppointments();
+  const clientNames = useClientNames();
   const { selectedDate, selectedDayAppointments, onRefresh, monthString } =
     calendar;
 
   // Another month starts unpicked again.
   useEffect(() => setMonthDayPicked(false), [monthString]);
+
+  // Modal's own `animationType="slide"` only slides vertically; the
+  // notifications screen is a push-style view, so it animates in from the
+  // right by hand instead.
+  useEffect(() => {
+    Animated.timing(notificationsTranslateX, {
+      toValue: notificationsVisible ? 0 : SCREEN_WIDTH,
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [notificationsVisible, notificationsTranslateX]);
 
   const pickMonthDay = (date: string) => {
     if (monthDayPicked && date === selectedDate) {
@@ -87,12 +104,18 @@ export function HomeScreen() {
   // Expanded, the agenda and its totals cover the whole visible month.
   const agenda = useMemo(
     () =>
-      showsMonth
+      (showsMonth
         ? [...calendar.appointments].sort((a, b) =>
             a.startsAt.localeCompare(b.startsAt),
           )
-        : selectedDayAppointments,
-    [showsMonth, calendar.appointments, selectedDayAppointments],
+        : selectedDayAppointments
+      ).map(appointment => ({
+        ...appointment,
+        location:
+          appointment.location ??
+          (appointment.clientId ? clientNames[appointment.clientId] : null),
+      })),
+    [showsMonth, calendar.appointments, selectedDayAppointments, clientNames],
   );
 
   const openNotifications = useCallback(() => {
@@ -130,6 +153,10 @@ export function HomeScreen() {
     () => ({
       CANINE: t('appointments.species.canine'),
       FELINE: t('appointments.species.feline'),
+      EQUINE: t('appointments.species.equine'),
+      BOVINE: t('appointments.species.bovine'),
+      AVIAN: t('appointments.species.avian'),
+      EXOTIC: t('appointments.species.exotic'),
       OTHER: t('appointments.species.other'),
     }),
     [t],
@@ -317,11 +344,13 @@ export function HomeScreen() {
               emptyState={
                 calendar.isLoading ? null : (
                   <View className="items-center gap-3 py-16">
+                    {/* Figma: ícone e texto do estado vazio saem em marrom
+                        (label-quartenery), não em preto. */}
                     <Icon
                       as={CalendarX2}
-                      className="size-16 text-label-primary"
+                      className="size-16 text-label-quartenery"
                     />
-                    <Text className="text-base font-semibold text-label-primary">
+                    <Text className="text-base font-semibold text-label-quartenery">
                       {showsMonth
                         ? t('appointments.emptyMonth')
                         : isToday
@@ -344,28 +373,23 @@ export function HomeScreen() {
 
       <Modal
         visible={notificationsVisible}
-        animationType="slide"
+        transparent
+        animationType="none"
         onRequestClose={() => setNotificationsVisible(false)}
       >
-        <View
-          className="flex-1 bg-background-modal"
-          style={{ paddingTop: insets.top }}
+        <Animated.View
+          style={{
+            flex: 1,
+            transform: [{ translateX: notificationsTranslateX }],
+          }}
         >
-          <Pressable
-            onPress={() => setNotificationsVisible(false)}
-            accessibilityRole="button"
-            accessibilityLabel={t('auth.back')}
-            hitSlop={8}
-            className="ml-3 h-11 w-11 items-center justify-center"
-          >
-            <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
-          </Pressable>
           <InventoryNotificationsScreen
             userId={account?.id ?? ''}
             items={monitoredItems}
             lots={expiringLots}
+            onBack={() => setNotificationsVisible(false)}
           />
-        </View>
+        </Animated.View>
       </Modal>
       <OptionsModal
         visible={accountVisible}
@@ -384,8 +408,18 @@ export function HomeScreen() {
       />
       <DiaDiaScreen
         visible={newProcedureVisible}
-        onClose={() => {
+        onClose={created => {
           setNewProcedureVisible(false);
+          const createdDate = created ? toCalendarDate(created.startsAt) : null;
+          // Outro mês já dispara a própria busca ao ser exibido.
+          if (createdDate && !createdDate.startsWith(monthString)) {
+            calendar.onSelectDate(createdDate);
+            return;
+          }
+          if (createdDate) {
+            calendar.onSelectDate(createdDate);
+            setMonthDayPicked(monthExpanded);
+          }
           onRefresh();
         }}
       />

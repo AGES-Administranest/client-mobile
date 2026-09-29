@@ -11,6 +11,7 @@ import {
   removeAppointmentSupply,
 } from '../services/appointmentSupplyService';
 import {
+  deleteAppointment,
   fetchAppointment,
   updateAppointmentAmount,
   type AppointmentResult,
@@ -28,6 +29,7 @@ export type AppointmentDetailState = {
   addSupply: (itemId: string, quantity: number) => Promise<boolean>;
   removeSupply: (movementId: string) => Promise<void>;
   saveAmount: (text: string) => Promise<AmountError | null>;
+  remove: () => Promise<boolean>;
 };
 
 export function useAppointmentDetail(
@@ -136,6 +138,18 @@ export function useAppointmentDetail(
     }
   }
 
+  async function remove(): Promise<boolean> {
+    if (!idToken || !appointmentId) {
+      return false;
+    }
+    try {
+      await deleteAppointment(idToken, appointmentId);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   return {
     appointment,
     supplies,
@@ -146,5 +160,6 @@ export function useAppointmentDetail(
     addSupply,
     removeSupply,
     saveAmount,
+    remove,
   };
 }

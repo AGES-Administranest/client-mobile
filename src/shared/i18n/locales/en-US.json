@@ -258,7 +258,8 @@
         },
         "cnpj": {
           "required": "Enter the CNPJ.",
-          "invalid": "The CNPJ is not valid."
+          "invalid": "The CNPJ is not valid.",
+          "duplicated": "A clinic with this CNPJ already exists."
         },
         "state": {
           "required": "Enter the state.",
@@ -486,11 +487,16 @@
       "notes": "Notes about the procedure",
       "number": "0",
       "time": "HH:MM",
-      "date": "DD/MM/YYYY"
+      "date": "DD/MM/YYYY",
+      "species": "Select the species"
     },
     "species": {
       "canine": "Canine",
       "feline": "Feline",
+      "equine": "Equine",
+      "bovine": "Bovine",
+      "avian": "Avian",
+      "exotic": "Exotic/Wildlife",
       "other": "Other"
     },
     "errors": {
@@ -521,7 +527,7 @@
     "cancellation": {
       "action": "Not done",
       "title": "Cancellation reason",
-      "reasonPlaceholder": "Describe the reason",
+      "reasonPlaceholder": "Briefly describe the reason for the cancellation",
       "confirm": "Confirm",
       "errors": {
         "REQUIRED": "Enter the cancellation reason.",
@@ -542,6 +548,12 @@
       "CANCELED": "Canceled"
     },
     "detail": {
+      "edit": "Edit appointment",
+      "editTitle": "Edit appointment",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this appointment?",
+      "deleteCancel": "Cancel",
+      "deleteFailed": "Couldn't delete. Please try again.",
       "title": "Appointment",
       "back": "Back",
       "loadError": "Could not load the appointment.",
@@ -552,8 +564,14 @@
       "amount": "Amount",
       "noAmount": "No amount",
       "editAmount": "Edit amount",
+      "weightLabel": "Weight",
+      "notInformed": "Not informed",
+      "ageValue": "{{years}} years",
+      "weightValue": "{{kg}} kg",
+      "completedBadge": "Completed",
       "suppliesTitle": "Supplies used",
       "addSupply": "Add supply",
+      "addSupplyShort": "Add",
       "suppliesFailed": "Could not save the supplies. Try again.",
       "amountSheet": {
         "title": "Appointment amount",
@@ -564,6 +582,23 @@
           "INVALID_NUMBER": "Enter a valid amount, like 350.00.",
           "FAILED": "Could not save the amount. Try again."
         }
+      },
+      "hoursWorked": {
+        "title": "Hours worked",
+        "edit": "Edit",
+        "minutesLabel": "{{count}} minutes",
+        "valuePerHour": "Value/hour"
+      },
+      "travel": {
+        "title": "Travel",
+        "empty": "No travel registered",
+        "register": "+ Register",
+        "collapse": "Cancel",
+        "vehicleLabel": "Vehicle",
+        "vehiclePlaceholder": "Select a vehicle",
+        "distanceLabel": "Distance (km)",
+        "distancePlaceholder": "E.g. 34",
+        "confirm": "Confirm"
       }
     },
     "day": {
@@ -576,7 +611,7 @@
   },
   "appointments": {
     "notDone": {
-      "action": "Not done",
+      "action": "Cancel",
       "title": "Not done",
       "reason": "Why wasn't the procedure carried out?",
       "reasons": {
@@ -610,6 +645,10 @@
     "species": {
       "canine": "Canine",
       "feline": "Feline",
+      "equine": "Equine",
+      "bovine": "Bovine",
+      "avian": "Avian",
+      "exotic": "Exotic/Wildlife",
       "other": "Other"
     },
     "form": {

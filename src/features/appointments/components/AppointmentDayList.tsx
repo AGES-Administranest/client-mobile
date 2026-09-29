@@ -109,7 +109,7 @@ export function AppointmentDayList({
                 {/* Linha 1: Nome do Paciente, Espécie, ASA Badge e Valor */}
                 <View className="flex-row items-center justify-between mb-1">
                   <View className="flex-row items-center gap-2 flex-1 mr-2">
-                    <Text className="text-base font-bold text-label-primary">
+                    <Text className="text-[15px] font-bold text-label-primary">
                       {item.patientName ?? 'Sem nome'}
                     </Text>
 
@@ -126,7 +126,7 @@ export function AppointmentDayList({
                     {formattedAmount ? (
                       <Text
                         className={cn(
-                          'text-base font-bold text-label-primary',
+                          'text-[15px] font-bold text-label-primary',
                           item.status === 'CANCELED' &&
                             'text-label-tertiary line-through',
                         )}
@@ -145,7 +145,7 @@ export function AppointmentDayList({
 
                 {/* Linha 2: Nome do Procedimento */}
                 {item.procedureName && (
-                  <Text className="text-sm font-medium text-label-primary mb-2.5">
+                  <Text className="text-[13px] font-normal text-label-primary mb-2.5">
                     {item.procedureName}
                   </Text>
                 )}
@@ -156,11 +156,11 @@ export function AppointmentDayList({
                     <View className="flex-row items-center gap-1.5 flex-1 mr-2">
                       <Icon
                         as={MapPin}
-                        className="size-3.5 text-label-tertiary"
+                        className="size-[11px] text-label-tertiary"
                       />
                       <Text
                         numberOfLines={1}
-                        className="text-xs text-label-tertiary font-medium"
+                        className="text-xs text-label-tertiary font-normal"
                       >
                         {item.location}
                       </Text>
@@ -169,7 +169,7 @@ export function AppointmentDayList({
                     <View className="flex-1" />
                   )}
 
-                  <Text className="text-xs font-medium text-label-tertiary">
+                  <Text className="text-xs font-normal text-label-tertiary">
                     {dateBadge}
                   </Text>
                 </View>

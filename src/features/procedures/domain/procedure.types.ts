@@ -1,4 +1,11 @@
-export type Species = 'CANINE' | 'FELINE' | 'OTHER';
+export type Species =
+  | 'CANINE'
+  | 'FELINE'
+  | 'EQUINE'
+  | 'BOVINE'
+  | 'AVIAN'
+  | 'EXOTIC'
+  | 'OTHER';
 
 export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELED';
 

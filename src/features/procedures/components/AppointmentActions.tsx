@@ -1,4 +1,4 @@
-import { Check, CircleX } from 'lucide-react-native';
+import { Check, Trash2 } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -122,7 +122,7 @@ export function AppointmentActions({
       <Button
         shape="pill"
         variant="secondary"
-        icon={CircleX}
+        icon={Trash2}
         className="h-[49px] w-full"
         disabled={submitting}
         accessibilityRole="button"
