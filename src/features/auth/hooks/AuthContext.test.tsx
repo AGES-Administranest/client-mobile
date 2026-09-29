@@ -5,11 +5,15 @@ import { Account, TERMS_VERSION } from '../domain/account';
 import { AuthError } from '../domain/authErrors';
 import * as accountApi from '../services/accountApi';
 import * as authService from '../services/authService';
+import * as sessionStorage from '../services/sessionStorage';
 import * as socialAuthService from '../services/socialAuthService';
 
 jest.mock('../services/authService');
 jest.mock('../services/accountApi');
+jest.mock('../services/sessionStorage');
 jest.mock('../services/socialAuthService');
+
+const storage = jest.mocked(sessionStorage);
 
 const service = jest.mocked(authService);
 const api = jest.mocked(accountApi);
@@ -197,4 +201,81 @@ it('clears session and account locally even if revoking the token fails', async 
   expect(service.signOut).toHaveBeenCalledWith(SESSION);
   expect(auth.current!.session).toBeNull();
   expect(auth.current!.account).toBeNull();
+});
+
+describe('keeping the sign in across launches', () => {
+  const FRESH = { ...SESSION, expiresAt: Date.now() + 60 * 60 * 1000 };
+  const REFRESHED = { ...SESSION, idToken: 'id-2', expiresAt: Date.now() };
+
+  it('saves the session once the account opens', async () => {
+    service.signIn.mockResolvedValue(SESSION);
+    api.createSession.mockResolvedValue(ACCEPTED);
+    const auth = await renderProvider();
+
+    await act(async () => {
+      await auth.current!.signIn('bruna@example.com', 'secret');
+    });
+
+    expect(storage.saveSession).toHaveBeenCalledWith(SESSION);
+  });
+
+  it('forgets the saved session on sign out', async () => {
+    service.signOut.mockResolvedValue(undefined);
+    const auth = await renderProvider(SESSION, ACCEPTED);
+
+    await act(async () => {
+      await auth.current!.signOut();
+    });
+
+    expect(storage.clearSession).toHaveBeenCalled();
+  });
+
+  it('brings back a saved session that is still valid', async () => {
+    storage.loadSession.mockResolvedValue(FRESH);
+    api.createSession.mockResolvedValue(ACCEPTED);
+    const auth = await renderProvider();
+
+    expect(service.refreshSession).not.toHaveBeenCalled();
+    expect(api.createSession).toHaveBeenCalledWith(FRESH.idToken);
+    expect(auth.current!.session).toEqual(FRESH);
+    expect(auth.current!.account).toEqual(ACCEPTED);
+    expect(auth.current!.restoring).toBe(false);
+  });
+
+  it('refreshes an expired saved session before opening the account', async () => {
+    storage.loadSession.mockResolvedValue(SESSION);
+    service.refreshSession.mockResolvedValue(REFRESHED);
+    api.createSession.mockResolvedValue(ACCEPTED);
+    const auth = await renderProvider();
+
+    expect(service.refreshSession).toHaveBeenCalledWith(SESSION);
+    expect(api.createSession).toHaveBeenCalledWith('id-2');
+    expect(auth.current!.session).toEqual(REFRESHED);
+    expect(storage.saveSession).toHaveBeenCalledWith(REFRESHED);
+  });
+
+  it('drops a saved session the refresh token no longer opens', async () => {
+    storage.loadSession.mockResolvedValue(SESSION);
+    service.refreshSession.mockRejectedValue(new AuthError('SESSION_EXPIRED'));
+    const auth = await renderProvider();
+
+    expect(auth.current!.session).toBeNull();
+    expect(storage.clearSession).toHaveBeenCalled();
+    expect(auth.current!.restoring).toBe(false);
+  });
+
+  it('keeps the saved session when the device is offline', async () => {
+    storage.loadSession.mockResolvedValue(FRESH);
+    api.createSession.mockRejectedValue(new AuthError('NETWORK_UNAVAILABLE'));
+    const auth = await renderProvider();
+
+    expect(auth.current!.session).toBeNull();
+    expect(storage.clearSession).not.toHaveBeenCalled();
+  });
+
+  it('does not look for a saved session when one is handed in', async () => {
+    await renderProvider(SESSION, ACCEPTED);
+
+    expect(storage.loadSession).not.toHaveBeenCalled();
+  });
 });

@@ -9,12 +9,12 @@ import { useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services';
 import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
 
-import { MovementFilters } from '../components/MovementFilters';
+import { MovementFilters } from '../../../app/components/ui/MovementFilters';
 import {
   MovementList,
   type MovementListItem,
-} from '../components/MovementList';
-import { OutputAdjustmentModal } from '../components/OutputAdjustmentModal';
+} from '../../../app/components/ui/MovementList';
+import { OutputAdjustmentModal } from '../../../app/components/ui/OutputAdjustmentModal';
 import {
   formatCalendarDate,
   formatMovementDate,

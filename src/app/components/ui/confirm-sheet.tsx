@@ -16,7 +16,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 type ConfirmSheetProps = {
   visible: boolean;
   title: string;
-  message: string;
+  message?: string;
   confirmLabel: string;
   cancelLabel: string;
   onConfirm: () => void;
@@ -65,7 +65,7 @@ function ConfirmSheet({
       animationType="none"
       onRequestClose={onCancel}
     >
-      <Animated.View className="flex-1" style={{ opacity: overlayOpacity }}>
+      <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
         <Pressable
           className="flex-1 justify-end bg-background-shade"
           onPress={onCancel}
@@ -82,7 +82,11 @@ function ConfirmSheet({
               <Text className="text-xl font-bold text-label-primary">
                 {title}
               </Text>
-              <Text className="text-[15px] text-label-primary">{message}</Text>
+              {message ? (
+                <Text className="text-[15px] text-label-primary">
+                  {message}
+                </Text>
+              ) : null}
 
               <Button
                 shape="pill"
@@ -92,7 +96,6 @@ function ConfirmSheet({
                 <Text className="font-semibold">{confirmLabel}</Text>
               </Button>
               <Button
-                variant="outline"
                 shape="pill"
                 className="h-[49px] w-full"
                 onPress={onCancel}

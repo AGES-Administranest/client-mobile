@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "expo": "~57.0.22",
     "expo-auth-session": "~57.0.12",
+    "expo-calendar": "~57.0.5",
     "expo-camera": "~57.0.4",
     "expo-crypto": "~57.0.3",
     "expo-dev-client": "~57.0.19",
@@ -45,7 +46,8 @@
     "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.2",
     "react-native-worklets": "0.10.1",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -14,7 +14,6 @@ import {
   TermsScreen,
   useAuth,
 } from 'features/auth';
-import { ClinicsScreen } from 'features/clinics';
 import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
 import {
@@ -24,6 +23,7 @@ import {
   type InventoryAlertSnapshot,
 } from 'features/inventory';
 import { MaterialsScreen } from 'features/materials';
+import { PartnersScreen } from 'features/partners';
 import { ReportsScreen } from 'features/reports';
 import { StockSyncProvider } from 'features/stock';
 import { I18nProvider } from 'shared/i18n';
@@ -36,7 +36,7 @@ const SCREENS: Record<TabValue, React.ComponentType> = {
   day: HomeScreen,
   finance: FinanceScreen,
   materials: MaterialsScreen,
-  clinics: ClinicsScreen,
+  partners: PartnersScreen,
   reports: ReportsScreen,
 };
 
@@ -88,9 +88,21 @@ export function AccountInventoryAlerts() {
 }
 
 function AppContent() {
-  const { session, account } = useAuth();
+  const { session, account, restoring } = useAuth();
   const [tab, setTab] = React.useState<TabValue>('day');
   const insets = useSafeAreaInsets();
+
+  // Blank background while a saved session comes back, so the welcome
+  // screen does not flash before the home.
+  if (restoring) {
+    return (
+      <LinearGradient
+        colors={Colors.background.primary.colors}
+        locations={Colors.background.primary.locations}
+        style={StyleSheet.absoluteFill}
+      />
+    );
+  }
 
   if (!session || !account) {
     return <AuthFlow />;
