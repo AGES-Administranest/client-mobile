@@ -459,7 +459,6 @@
       "confirm": "Confirm",
       "close": "Close",
       "location": "Location",
-      "newClient": "New client",
       "submitError": "Couldn't save. Please try again."
     },
     "supplyPrompt": {
@@ -483,7 +482,7 @@
     "placeholders": {
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "location": "Search client by name",
+      "location": "Search clinic by name",
       "notes": "Notes about the procedure",
       "number": "0",
       "time": "HH:MM",
@@ -507,7 +506,7 @@
     "clientSearch": {
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
-      "empty": "No clients found"
+      "empty": "No clinics found"
     },
     "completion": {
       "action": "Complete procedure",
@@ -573,41 +572,6 @@
       "empty": "No appointments on this day.",
       "error": "Could not load the appointments.",
       "untitled": "Untitled"
-    }
-  },
-  "clients": {
-    "newClient": {
-      "title": "New client",
-      "type": "Type",
-      "types": {
-        "clinic": "Clinic",
-        "individual": "Individual"
-      },
-      "fields": {
-        "name": {
-          "label": "Name",
-          "placeholder": "Client name"
-        },
-        "phone": {
-          "label": "Phone (optional)",
-          "placeholder": "Area code + number"
-        }
-      },
-      "errors": {
-        "name": {
-          "required": "Required field",
-          "tooShort": "Enter at least 2 characters"
-        }
-      },
-      "confirm": "Register",
-      "saving": "Saving…",
-      "cancel": "Cancel",
-      "close": "Close",
-      "failures": {
-        "duplicatedName": "A client with this name already exists.",
-        "session": "Your session expired. Please sign in again.",
-        "unknown": "Couldn't register. Please try again."
-      }
     }
   },
   "appointments": {

@@ -1,11 +1,7 @@
 import { useState } from 'react';
 
 import { useAuth } from 'features/auth';
-import {
-  useClientSearch,
-  type Client,
-  type ClientOption,
-} from 'features/clients';
+import { useClientSearch, type ClientOption } from 'features/clients';
 
 import {
   EMPTY_PROCEDURE_FORM,
@@ -59,11 +55,6 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
       return next;
     });
     clientSearch.onTermChange(client.name);
-  }
-
-  function selectCreatedClient(created: Client): void {
-    clientSearch.addCreated(created);
-    selectClient(created);
   }
 
   // Digitar de novo desfaz a escolha: o clientId não pode continuar
@@ -135,7 +126,6 @@ export function useProcedureForm(onSuccess: () => void, visible: boolean) {
       options: clientSearch.options,
       onTermChange: changeClientTerm,
       onSelect: selectClient,
-      onCreated: selectCreatedClient,
     },
     supplyPrompt,
     setField,

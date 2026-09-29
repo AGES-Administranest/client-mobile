@@ -3,11 +3,6 @@ import { useState } from 'react';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { useAuth } from 'features/auth';
 import {
-  NewClientSheet,
-  useNewClientForm,
-  type ClientType,
-} from 'features/clients';
-import {
   formatSupplyPrice,
   SupplySelectorSheet,
   useSupplySelector,
@@ -47,22 +42,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     acceptSupplyPrompt,
     finishSupplyPrompt,
   } = useProcedureForm(onClose, visible);
-  const newClient = useNewClientForm();
-  const [newClientVisible, setNewClientVisible] = useState(false);
   const supplySelector = useSupplySelector();
-
-  function closeNewClient(): void {
-    setNewClientVisible(false);
-    newClient.reset();
-  }
-
-  async function registerNewClient(): Promise<void> {
-    const created = await newClient.submit();
-    if (created) {
-      client.onCreated(created);
-      closeNewClient();
-    }
-  }
 
   function closeSupplySelector(): void {
     supplySelector.reset();
@@ -144,12 +124,6 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
       error: t('procedures.clientSearch.error'),
       empty: t('procedures.clientSearch.empty'),
     },
-    newClient: t('procedures.form.newClient'),
-  };
-
-  const clientTypeTexts: Record<ClientType, string> = {
-    CLINIC: t('clients.newClient.types.clinic'),
-    INDIVIDUAL: t('clients.newClient.types.individual'),
   };
 
   return (
@@ -165,43 +139,10 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onChangeText={setTextField}
         onChangeClientTerm={client.onTermChange}
         onSelectClient={client.onSelect}
-        onPressNewClient={() => setNewClientVisible(true)}
         onChangeSpecies={value => setField('species', value)}
         onChangeAsa={value => setField('asaClassification', value)}
         onSubmit={submit}
         onClose={onClose}
-      />
-      <NewClientSheet
-        visible={newClientVisible}
-        draft={newClient.draft}
-        fieldErrors={{
-          name: newClient.errors.name
-            ? t(`clients.newClient.errors.name.${newClient.errors.name}`)
-            : undefined,
-        }}
-        failureMessage={newClient.failure ? t(newClient.failure) : null}
-        isSaving={newClient.isSaving}
-        title={t('clients.newClient.title')}
-        typeLabel={t('clients.newClient.type')}
-        typeTexts={clientTypeTexts}
-        fieldTexts={{
-          name: {
-            label: t('clients.newClient.fields.name.label'),
-            placeholder: t('clients.newClient.fields.name.placeholder'),
-          },
-          phone: {
-            label: t('clients.newClient.fields.phone.label'),
-            placeholder: t('clients.newClient.fields.phone.placeholder'),
-          },
-        }}
-        confirmLabel={t('clients.newClient.confirm')}
-        savingLabel={t('clients.newClient.saving')}
-        cancelLabel={t('clients.newClient.cancel')}
-        closeLabel={t('clients.newClient.close')}
-        onChangeField={newClient.setField}
-        onChangeType={newClient.setType}
-        onSubmit={registerNewClient}
-        onClose={closeNewClient}
       />
       <ConfirmSheet
         visible={supplyPrompt?.step === 'confirm'}

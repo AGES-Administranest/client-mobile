@@ -1,6 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
-import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 import { LabelPlaceholder } from 'theme/colors';
 
@@ -21,11 +21,14 @@ type ClientAutocompleteProps = {
   status: ClientSearchStatus;
   options: ClientOption[];
   messages: ClientAutocompleteMessages;
-  newClientLabel: string;
   onChangeText: (value: string) => void;
   onSelect: (option: ClientOption) => void;
-  onPressNewClient: () => void;
 };
+
+// Atraso entre perder o foco e esconder a lista: sem ele, o blur do
+// TextInput chega antes do onPress da opção tocada e a seleção nunca
+// acontece (a lista já sumiu quando o toque seria processado).
+const BLUR_CLOSE_DELAY_MS = 150;
 
 export function ClientAutocomplete({
   label,
@@ -35,37 +38,61 @@ export function ClientAutocomplete({
   status,
   options,
   messages,
-  newClientLabel,
   onChangeText,
   onSelect,
-  onPressNewClient,
 }: ClientAutocompleteProps) {
+  const [focused, setFocused] = useState(false);
+  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (blurTimeout.current) clearTimeout(blurTimeout.current);
+    },
+    [],
+  );
+
+  function handleFocus(): void {
+    if (blurTimeout.current) {
+      clearTimeout(blurTimeout.current);
+      blurTimeout.current = null;
+    }
+    setFocused(true);
+  }
+
+  function handleBlur(): void {
+    blurTimeout.current = setTimeout(
+      () => setFocused(false),
+      BLUR_CLOSE_DELAY_MS,
+    );
+  }
+
+  function handleSelect(option: ClientOption): void {
+    if (blurTimeout.current) {
+      clearTimeout(blurTimeout.current);
+      blurTimeout.current = null;
+    }
+    setFocused(false);
+    onSelect(option);
+  }
+
   return (
     <View className="mb-3">
-      <View className="mb-1 flex-row items-center justify-between">
-        <Text className="text-xs font-semibold uppercase text-label-primary">
-          {label}
-        </Text>
-        <Button
-          variant="link"
-          size="sm"
-          className="h-auto p-0"
-          onPress={onPressNewClient}
-        >
-          <Text className="text-xs font-semibold">{newClientLabel}</Text>
-        </Button>
-      </View>
+      <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
+        {label}
+      </Text>
       <TextInput
         accessibilityLabel={label}
         className={
           error
-            ? 'rounded-xl border border-alert-primary bg-white px-4 py-3 text-base text-label-primary'
-            : 'rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary'
+            ? 'rounded-xl border border-alert-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
+            : 'rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
         }
         placeholder={placeholder}
         placeholderTextColor={LabelPlaceholder}
         value={value}
         onChangeText={onChangeText}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         autoCorrect={false}
       />
       {error ? (
@@ -73,10 +100,10 @@ export function ClientAutocomplete({
       ) : null}
 
       <ResultList
-        status={status}
+        status={focused ? status : 'idle'}
         options={options}
         messages={messages}
-        onSelect={onSelect}
+        onSelect={handleSelect}
       />
     </View>
   );

@@ -42,7 +42,6 @@ export type ProcedureFormTexts = {
   asaOptions: AsaClassification[];
   errors: Partial<Record<keyof ProcedureFormValues, string>>;
   clientSearchMessages: ClientAutocompleteMessages;
-  newClient: string;
 };
 
 export type ProcedureClientField = {
@@ -62,7 +61,6 @@ type ProcedureFormSheetProps = {
   onChangeText: (key: ProcedureTextField, value: string) => void;
   onChangeClientTerm: (term: string) => void;
   onSelectClient: (client: ClientOption) => void;
-  onPressNewClient: () => void;
   onChangeSpecies: (value: Species) => void;
   onChangeAsa: (value: AsaClassification) => void;
   onSubmit: () => void;
@@ -80,7 +78,6 @@ export function ProcedureFormSheet({
   onChangeText,
   onChangeClientTerm,
   onSelectClient,
-  onPressNewClient,
   onChangeSpecies,
   onChangeAsa,
   onSubmit,
@@ -169,10 +166,8 @@ export function ProcedureFormSheet({
                 status={client.status}
                 options={client.options}
                 messages={texts.clientSearchMessages}
-                newClientLabel={texts.newClient}
                 onChangeText={onChangeClientTerm}
                 onSelect={onSelectClient}
-                onPressNewClient={onPressNewClient}
               />
 
               <View className="flex-row gap-3">
@@ -327,8 +322,8 @@ function Field({
       <TextInput
         className={
           multiline
-            ? 'h-24 rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary'
-            : 'rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary'
+            ? 'h-24 rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
+            : 'rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
         }
         placeholder={placeholder}
         placeholderTextColor={LabelPlaceholder}

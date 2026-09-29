@@ -459,7 +459,6 @@
       "confirm": "Confirmar",
       "close": "Fechar",
       "location": "Local",
-      "newClient": "Novo tomador",
       "submitError": "Não foi possível salvar. Tente novamente."
     },
     "supplyPrompt": {
@@ -483,7 +482,7 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Buscar tomador pelo nome",
+      "location": "Buscar clínica pelo nome",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
@@ -507,7 +506,7 @@
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhum tomador encontrado"
+      "empty": "Nenhuma clínica encontrada"
     },
     "completion": {
       "action": "Finalizar procedimento",
@@ -573,41 +572,6 @@
       "empty": "Nenhum atendimento neste dia.",
       "error": "Não foi possível carregar os atendimentos.",
       "untitled": "Sem nome"
-    }
-  },
-  "clients": {
-    "newClient": {
-      "title": "Novo tomador",
-      "type": "Tipo",
-      "types": {
-        "clinic": "Clínica",
-        "individual": "Pessoa física"
-      },
-      "fields": {
-        "name": {
-          "label": "Nome",
-          "placeholder": "Nome do tomador"
-        },
-        "phone": {
-          "label": "Telefone (opcional)",
-          "placeholder": "DDD + número"
-        }
-      },
-      "errors": {
-        "name": {
-          "required": "Campo obrigatório",
-          "tooShort": "Informe ao menos 2 caracteres"
-        }
-      },
-      "confirm": "Cadastrar",
-      "saving": "Salvando…",
-      "cancel": "Cancelar",
-      "close": "Fechar",
-      "failures": {
-        "duplicatedName": "Já existe um tomador com esse nome.",
-        "session": "Sua sessão expirou. Entre novamente.",
-        "unknown": "Não foi possível cadastrar. Tente novamente."
-      }
     }
   },
   "appointments": {
