@@ -1,4 +1,5 @@
 import {
+  formatAppointmentSchedule,
   formatAppointmentTime,
   formatAsaLabel,
   getAppointmentDateKey,
@@ -54,6 +55,26 @@ describe('appointment domain utils', () => {
       expect(day1Apps).toBeDefined();
       expect(day1Apps[0].id).toBe('app-1');
       expect(day1Apps[1].id).toBe('app-2');
+    });
+  });
+
+  describe('formatAppointmentSchedule', () => {
+    // Datas locais: o card mostra a hora no fuso do aparelho.
+    const start = new Date(2026, 8, 30, 15, 0).toISOString();
+    const end = new Date(2026, 8, 30, 16, 30).toISOString();
+
+    it.each([
+      ['início e fim, sem data', start, end, false, '15:00 – 16:30'],
+      ['só o início, sem data', start, null, false, '15:00'],
+      ['início e fim, com data', start, end, true, '30 set · 15:00 – 16:30'],
+      ['só o início, com data', start, undefined, true, '30 set · 15:00'],
+    ])('%s', (_label, startsAt, endsAt, withDate, expected) => {
+      expect(
+        formatAppointmentSchedule(startsAt, endsAt, {
+          withDate,
+          locale: 'pt-BR',
+        }),
+      ).toBe(expected);
     });
   });
 

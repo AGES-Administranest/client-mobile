@@ -9,7 +9,7 @@ import { cn } from 'app/lib/utils';
 
 import { AsaBadge } from './AsaBadge';
 import {
-  formatAppointmentDateBadge,
+  formatAppointmentSchedule,
   formatCurrency,
   type Appointment,
   type AppointmentStatus,
@@ -31,6 +31,9 @@ export type AppointmentDayListProps = {
   emptyState?: ReactNode;
   onAddAppointment?: () => void;
   onSelectAppointment?: (appointment: Appointment) => void;
+  /** A lista cobre mais de um dia (o mês): cada card mostra a data também. */
+  showDate?: boolean;
+  locale?: string;
   className?: string;
 };
 
@@ -49,6 +52,8 @@ export function AppointmentDayList({
   emptyState,
   onAddAppointment,
   onSelectAppointment,
+  showDate = false,
+  locale,
   className,
 }: AppointmentDayListProps) {
   const count = appointments.length;
@@ -95,7 +100,11 @@ export function AppointmentDayList({
               ? speciesLabels[item.species] ?? item.species
               : null;
             const formattedAmount = formatCurrency(item.amount);
-            const dateBadge = formatAppointmentDateBadge(item.startsAt);
+            const schedule = formatAppointmentSchedule(
+              item.startsAt,
+              item.endsAt,
+              { withDate: showDate, locale },
+            );
 
             return (
               <Pressable
@@ -152,7 +161,7 @@ export function AppointmentDayList({
                   </Text>
                 )}
 
-                {/* Linha 3: Local/Clínica e Data/Hora */}
+                {/* Linha 3: Local/Clínica e horário */}
                 <View className="flex-row items-center justify-between">
                   {item.location ? (
                     <View className="flex-row items-center gap-1.5 flex-1 mr-2">
@@ -172,7 +181,7 @@ export function AppointmentDayList({
                   )}
 
                   <Text className="text-xs font-normal text-label-tertiary">
-                    {dateBadge}
+                    {schedule}
                   </Text>
                 </View>
               </Pressable>

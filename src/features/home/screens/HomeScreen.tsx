@@ -339,6 +339,8 @@ export function HomeScreen() {
               date={selectedDate}
               formattedDate=""
               appointments={agenda}
+              showDate={showsMonth}
+              locale={locale}
               speciesLabels={speciesLabels}
               statusLabels={statusLabels}
               onSelectAppointment={appointment =>

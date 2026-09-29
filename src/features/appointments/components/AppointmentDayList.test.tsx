@@ -65,4 +65,49 @@ describe('AppointmentDayList', () => {
     expect(json).toContain('ASA I');
     expect(json).toContain('R$');
   });
+
+  const scheduled: Appointment = {
+    id: 'app-2',
+    patientName: 'Thomas',
+    procedureName: 'Limpeza',
+    startsAt: new Date(2026, 8, 30, 15, 0).toISOString(),
+    endsAt: new Date(2026, 8, 30, 16, 0).toISOString(),
+    status: 'SCHEDULED',
+  };
+
+  it('mostra o horário do agendamento no card, sem a data, na lista do dia', async () => {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <AppointmentDayList
+          date="2026-09-30"
+          formattedDate=""
+          appointments={[scheduled]}
+          locale="pt-BR"
+        />,
+      );
+    });
+
+    const json = JSON.stringify(renderer!.toJSON());
+    expect(json).toContain('15:00 – 16:00');
+    expect(json).not.toContain('30 set');
+  });
+
+  it('mostra a data junto do horário quando a lista cobre o mês', async () => {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <AppointmentDayList
+          date="2026-09-30"
+          formattedDate=""
+          appointments={[scheduled]}
+          locale="pt-BR"
+          showDate
+        />,
+      );
+    });
+
+    const json = JSON.stringify(renderer!.toJSON());
+    expect(json).toContain('30 set · 15:00 – 16:00');
+  });
 });
