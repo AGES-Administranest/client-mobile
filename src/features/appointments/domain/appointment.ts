@@ -137,3 +137,13 @@ export function formatCurrency(amount?: number | string | null): string {
     maximumFractionDigits: 2,
   });
 }
+
+// The form stores the bare class ("II"); older rows may carry "ASA II"
+// already. Either way the badge reads "ASA II".
+export function formatAsaLabel(asa: string): string {
+  const value = asa
+    .trim()
+    .replace(/^asa\s*/i, '')
+    .toUpperCase();
+  return `ASA ${value}`;
+}

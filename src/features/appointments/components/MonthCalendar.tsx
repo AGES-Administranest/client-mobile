@@ -10,11 +10,19 @@ const WEEK_LENGTH = 7;
 
 type MonthCalendarProps = {
   controller: AppointmentsState;
+  /** Overrides the controller's: null highlights no day. */
+  selectedDate?: string | null;
+  onSelectDate?: (date: string) => void;
   className?: string;
 };
 
 // The month grid with its locale labels, driven by a useAppointments controller.
-export function MonthCalendar({ controller, className }: MonthCalendarProps) {
+export function MonthCalendar({
+  controller,
+  selectedDate = controller.selectedDate,
+  onSelectDate = controller.onSelectDate,
+  className,
+}: MonthCalendarProps) {
   const { t, locale } = useTranslation();
   const { year, monthIndex } = controller;
 
@@ -57,13 +65,13 @@ export function MonthCalendar({ controller, className }: MonthCalendarProps) {
     <AppointmentCalendar
       year={year}
       monthIndex={monthIndex}
-      selectedDate={controller.selectedDate}
+      selectedDate={selectedDate ?? ''}
       appointmentsByDate={controller.appointmentsByDate}
       monthLabel={monthLabel}
       weekdays={weekdays}
       previousMonthLabel={t('appointments.calendar.prevMonth')}
       nextMonthLabel={t('appointments.calendar.nextMonth')}
-      onSelectDate={controller.onSelectDate}
+      onSelectDate={onSelectDate}
       onPreviousMonth={controller.onPreviousMonth}
       onNextMonth={controller.onNextMonth}
       className={className}

@@ -652,9 +652,19 @@
       "cancel": "Cancelar"
     },
     "viewMonth": "Ver mês",
+    "viewWeek": "Ver semana",
     "dayOf": "dia {{day}}",
     "emptyToday": "Sem atendimentos hoje",
-    "emptySelectedDay": "Sem atendimentos neste dia"
+    "emptySelectedDay": "Sem atendimentos neste dia",
+    "emptyMonth": "Sem atendimentos neste mês",
+    "exportToCalendar": "Adicionar à agenda",
+    "exportSuccessTitle": "Adicionado à agenda",
+    "exportSuccess": "Agendamento adicionado à sua agenda.",
+    "exportPermissionDeniedTitle": "Permissão necessária",
+    "exportPermissionDenied": "Não conseguimos acessar sua agenda. Habilite a permissão de calendário nas configurações do dispositivo para adicionar este agendamento.",
+    "exportErrorTitle": "Não foi possível adicionar",
+    "exportError": "Algo deu errado ao adicionar o agendamento à sua agenda. Tente novamente.",
+    "dismiss": "Entendi"
   },
   "home": {
     "greeting": "Olá, Dr. {{name}}"
