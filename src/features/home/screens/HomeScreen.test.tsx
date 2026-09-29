@@ -108,12 +108,52 @@ function press(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
   });
 }
 
-it('opens the month calendar from "Ver mês"', async () => {
+function monthGridDays(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root.findAll(
+    node =>
+      typeof node.props.testID === 'string' &&
+      node.props.testID.startsWith('calendar-day-') &&
+      typeof node.props.onPress === 'function',
+  );
+}
+
+it('expands the month in place with "Ver mês" and folds it back', async () => {
   const renderer = await renderHome();
+  const daysInMonth = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth() + 1,
+    0,
+  ).getDate();
+
+  expect(monthGridDays(renderer)).toHaveLength(0);
 
   await press(renderer, 'Ver mês');
 
-  expect(texts(renderer)).toContain('PROCEDIMENTOS DO MÊS OU DIA');
+  expect(monthGridDays(renderer)).toHaveLength(daysInMonth);
+  expect(texts(renderer)).not.toContain('PROCEDIMENTOS DO MÊS OU DIA');
+
+  await press(renderer, 'Ver semana');
+
+  expect(monthGridDays(renderer)).toHaveLength(0);
+});
+
+it('moves between months while expanded', async () => {
+  const renderer = await renderHome();
+  const next = new Date();
+  next.setDate(1);
+  next.setMonth(next.getMonth() + 1);
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  await press(renderer, 'Ver mês');
+  await press(renderer, 'Próximo mês');
+
+  expect(
+    renderer.root.findAll(
+      node =>
+        node.props.testID ===
+        `calendar-day-${next.getFullYear()}-${pad(next.getMonth() + 1)}-01`,
+    ).length,
+  ).toBeGreaterThan(0);
 });
 
 it('keeps the week strip and the month calendar on the same day', async () => {
