@@ -1,6 +1,5 @@
 import {
   currencyToNumber,
-  digitsOnly,
   formatCurrency as maskCurrency,
 } from 'app/components/ui/item-modal/domain/itemModal';
 import type { TranslationKey, useTranslation } from 'shared/i18n';
@@ -28,6 +27,8 @@ export type Formatters = {
 };
 
 type Shown = { text: string; missing?: boolean };
+
+const QUANTITY_DECIMALS = 3;
 
 export type ReviewLineView = {
   description: string;
@@ -80,6 +81,7 @@ export function reviewLineView(
   line: ReviewLine,
   lines: readonly ReviewLine[],
   format: Formatters,
+  typedQuantity: string | null = null,
 ): ReviewLineView {
   const { t, money, number } = format;
   const total = lineTotal(line);
@@ -111,7 +113,7 @@ export function reviewLineView(
       expiry: { text: line.expiry || '—' },
     },
     inputs: {
-      quantity: line.quantity === null ? '' : String(line.quantity),
+      quantity: quantityInputFor(typedQuantity, line.quantity),
       unit: unit || '—',
       unitValue: moneyInput(line.unitValue),
       lot: line.lot,
@@ -196,9 +198,30 @@ export function moneyFromInput(text: string): number | null {
   return masked === '' ? null : currencyToNumber(masked);
 }
 
+function quantityInput(value: number | null): string {
+  return value === null ? '' : String(value).replace('.', ',');
+}
+
+/** The decimal pad may type "." for the comma; DECIMAL(14, 3) keeps 3 places. */
+export function maskQuantityInput(text: string): string {
+  const [whole = '', ...decimals] = text.replace(/[^\d.,]/g, '').split(/[.,]/);
+  if (decimals.length === 0) return whole;
+  return `${whole || '0'},${decimals.join('').slice(0, QUANTITY_DECIMALS)}`;
+}
+
 export function quantityFromInput(text: string): number | null {
-  const digits = digitsOnly(text);
-  return digits === '' ? null : Number(digits);
+  const masked = maskQuantityInput(text);
+  return masked === '' ? null : Number(masked.replace(',', '.'));
+}
+
+/** Keeps what was typed while it still reads as the value: "2," before "2,5". */
+export function quantityInputFor(
+  typed: string | null,
+  value: number | null,
+): string {
+  return typed !== null && quantityFromInput(typed) === value
+    ? typed
+    : quantityInput(value);
 }
 
 export function reviewLineLabels(t: Translate): ReviewLineLabels {

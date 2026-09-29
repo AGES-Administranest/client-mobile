@@ -20,6 +20,7 @@ import { formatCurrency } from 'shared/utils/currency';
 import { LinkItemScreen } from './LinkItemScreen';
 import {
   attentionView,
+  maskQuantityInput,
   moneyFromInput,
   moneyInput,
   quantityFromInput,
@@ -37,6 +38,7 @@ import { ReviewHeaderCard } from '../components/ReviewHeaderCard';
 import { ReviewLineCard } from '../components/ReviewLineCard';
 import { SaveStatusBar } from '../components/SaveStatusBar';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { MAX_DRAFT_TEXT_LENGTH } from '../domain/draft';
 import {
   linesNeedingAttention,
   type LineIssue,
@@ -66,6 +68,7 @@ export function ReviewScreen({
   const { header, lines, partial } = state.review;
   const supplier = useSupplierName(header.supplierId, header.supplierName);
   const [sheet, setSheet] = useState<'leave' | 'discard' | null>(null);
+  const [typedQuantity, setTypedQuantity] = useState<string | null>(null);
 
   const format: Formatters = {
     t,
@@ -97,9 +100,20 @@ export function ReviewScreen({
     setSheet('leave');
   }
 
+  function typeQuantity(lineId: string, text: string) {
+    const typed = maskQuantityInput(text);
+    setTypedQuantity(typed);
+    state.changeLine(lineId, { quantity: quantityFromInput(typed) });
+  }
+
   function renderLine(line: ReviewLine) {
-    const view = reviewLineView(line, lines, format);
     const isEditing = state.editingLineId === line.id;
+    const view = reviewLineView(
+      line,
+      lines,
+      format,
+      isEditing ? typedQuantity : null,
+    );
     const { issue } = view;
 
     return (
@@ -115,9 +129,8 @@ export function ReviewScreen({
         onToggleEdit={() => state.editLine(isEditing ? null : line.id)}
         shown={view.shown}
         inputs={view.inputs}
-        onChangeQuantity={text =>
-          state.changeLine(line.id, { quantity: quantityFromInput(text) })
-        }
+        lotMaxLength={MAX_DRAFT_TEXT_LENGTH}
+        onChangeQuantity={text => typeQuantity(line.id, text)}
         onChangeUnitValue={text =>
           state.changeLine(line.id, { unitValue: moneyFromInput(text) })
         }
@@ -180,6 +193,7 @@ export function ReviewScreen({
                 : undefined
             }
             invoiceNumber={header.invoiceNumber}
+            invoiceNumberMaxLength={MAX_DRAFT_TEXT_LENGTH}
             orderDate={header.orderDate}
             total={moneyInput(header.totalAmount)}
             sumLabel={sum.label}

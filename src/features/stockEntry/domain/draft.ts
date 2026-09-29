@@ -7,6 +7,9 @@ import {
   type ReadingFailure,
 } from './extraction';
 
+/** `PATCH` and `PUT /items` refuse a longer invoice number or lot. */
+export const MAX_DRAFT_TEXT_LENGTH = 60;
+
 /** A pending entry, as `GET /stock-entries` lists it. */
 export type DraftSummary = {
   id: string;

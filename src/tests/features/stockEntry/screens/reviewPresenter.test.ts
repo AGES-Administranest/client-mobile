@@ -1,8 +1,10 @@
 import type { Review, ReviewLine } from 'features/stockEntry/domain/review';
 import {
   attentionView,
+  maskQuantityInput,
   moneyFromInput,
   quantityFromInput,
+  quantityInputFor,
   reviewLineView,
   sumView,
   type Formatters,
@@ -119,9 +121,38 @@ describe('typed values', () => {
     ['4', 4],
     ['4a', 4],
     ['', null],
+    ['2,5', 2.5],
+    ['2.5', 2.5],
+    ['2,', 2],
+    [',5', 0.5],
+    ['1,23456', 1.234],
   ])('quantity %p → %p', (text, expected) => {
     expect(quantityFromInput(text)).toBe(expected);
   });
+
+  it.each([
+    ['2.5', '2,5'],
+    ['2,', '2,'],
+    [',5', '0,5'],
+    ['1,23456', '1,234'],
+    ['2,5,1', '2,51'],
+    ['4a', '4'],
+  ])('quantity typed %p is kept as %p', (text, expected) => {
+    expect(maskQuantityInput(text)).toBe(expected);
+  });
+
+  it.each<[string | null, number | null, string]>([
+    ['2,', 2, '2,'],
+    ['2,50', 2.5, '2,50'],
+    ['2,', 7, '7'],
+    [null, 2.5, '2,5'],
+    [null, null, ''],
+  ])(
+    'quantity field with %p typed and %p saved shows %p',
+    (typed, value, expected) => {
+      expect(quantityInputFor(typed, value)).toBe(expected);
+    },
+  );
 
   it.each([
     ['2250', 22.5],

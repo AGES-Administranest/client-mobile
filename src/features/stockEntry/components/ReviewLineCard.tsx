@@ -57,6 +57,7 @@ type ReviewLineCardProps = {
     lot: string;
     expiry: string;
   };
+  lotMaxLength: number;
   onChangeQuantity: (text: string) => void;
   onChangeUnitValue: (text: string) => void;
   onChangeLot: (text: string) => void;
@@ -82,6 +83,7 @@ export function ReviewLineCard({
   onToggleEdit,
   shown,
   inputs,
+  lotMaxLength,
   onChangeQuantity,
   onChangeUnitValue,
   onChangeLot,
@@ -149,7 +151,7 @@ export function ReviewLineCard({
               className="flex-1"
               label={labels.quantity}
               value={inputs.quantity}
-              keyboardType="number-pad"
+              keyboardType="decimal-pad"
               onChangeText={onChangeQuantity}
             />
             <FormField
@@ -170,6 +172,7 @@ export function ReviewLineCard({
               className="flex-1"
               label={labels.lot}
               value={inputs.lot}
+              maxLength={lotMaxLength}
               onChangeText={onChangeLot}
             />
             <FormField

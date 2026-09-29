@@ -10,6 +10,7 @@ type FormFieldProps = {
   onChangeText?: (text: string) => void;
   placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
+  maxLength?: number;
   className?: string;
 };
 
@@ -20,6 +21,7 @@ export function FormField({
   onChangeText,
   placeholder,
   keyboardType,
+  maxLength,
   className,
 }: FormFieldProps) {
   return (
@@ -35,6 +37,7 @@ export function FormField({
         placeholder={placeholder}
         placeholderTextColor={LabelPlaceholder}
         keyboardType={keyboardType}
+        maxLength={maxLength}
         className={cn(
           'rounded-xl border border-border-primary px-3 py-2.5 text-sm text-label-primary',
           onChangeText ? 'bg-white' : 'bg-details-primary',

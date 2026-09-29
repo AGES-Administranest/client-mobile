@@ -502,6 +502,26 @@ describe('the review', () => {
     expect(texts(flow)).not.toContain('A quantidade não veio na nota');
   });
 
+  it('keeps a decimal quantity while it is typed', async () => {
+    const flow = await sendPdf();
+
+    await press(flow, 'Informar quantidade');
+    await type(flow, 'QTD', '2,');
+    expect(inputValues(flow)).toContain('2,');
+
+    await type(flow, 'QTD', '2,5');
+    await settle();
+
+    expect(inputValues(flow)).toContain('2,5');
+    expect(saveLinesMock).toHaveBeenLastCalledWith(
+      SESSION.idToken,
+      DOCUMENT.id,
+      expect.arrayContaining([
+        expect.objectContaining({ sourceIndex: 2, quantity: 2.5 }),
+      ]),
+    );
+  });
+
   it('asks before leaving when the draft could not be saved', async () => {
     saveLinesMock.mockRejectedValue(new Error('offline'));
     const flow = await sendPdf();

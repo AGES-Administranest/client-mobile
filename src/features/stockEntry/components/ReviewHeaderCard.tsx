@@ -17,6 +17,7 @@ type ReviewHeaderCardProps = {
   /** Shown under the supplier when it is not one of the user's. */
   supplierNote?: string;
   invoiceNumber: string;
+  invoiceNumberMaxLength: number;
   orderDate: string;
   total: string;
   sumLabel: string;
@@ -31,6 +32,7 @@ export function ReviewHeaderCard({
   supplierName,
   supplierNote,
   invoiceNumber,
+  invoiceNumberMaxLength,
   orderDate,
   total,
   sumLabel,
@@ -52,6 +54,7 @@ export function ReviewHeaderCard({
           className="flex-1"
           label={labels.invoiceNumber}
           value={invoiceNumber}
+          maxLength={invoiceNumberMaxLength}
           onChangeText={onChangeInvoiceNumber}
         />
         <FormField
