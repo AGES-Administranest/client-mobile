@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
@@ -576,6 +577,7 @@ function ItemModal({
               {isDetail ? (
                 <View className="gap-3">
                   <Button
+                    icon={Pencil}
                     shape="pill"
                     className="h-[49px] w-full"
                     onPress={() => item && onEdit?.(item)}
@@ -585,6 +587,7 @@ function ItemModal({
                     </Text>
                   </Button>
                   <Button
+                    icon={Trash2}
                     variant="secondary"
                     shape="pill"
                     className="h-[49px] w-full"

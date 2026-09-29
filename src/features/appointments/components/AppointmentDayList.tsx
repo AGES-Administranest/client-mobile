@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin } from 'lucide-react-native';
+import { CalendarDays, MapPin, Plus } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -78,6 +78,7 @@ export function AppointmentDayList({
           </Text>
           {onAddAppointment && (
             <Button
+              icon={Plus}
               onPress={onAddAppointment}
               className="mt-4 rounded-full px-5 py-2.5"
             >

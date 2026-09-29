@@ -37,17 +37,28 @@ test('the message is black, not muted grey', async () => {
   expect(message).not.toContain('text-label-tertiary');
 });
 
-test('the confirm button uses the brown from the palette', async () => {
+function buttonClass(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  label: string,
+): string {
+  return renderer.root.find(
+    node =>
+      node.props?.role === 'button' &&
+      typeof node.props?.className === 'string' &&
+      node.findAll(
+        child =>
+          typeof child.type === 'string' && child.props?.children === label,
+      ).length > 0,
+  ).props.className as string;
+}
+
+test('confirm is the palette brown and cancel the palette red', async () => {
   const renderer = await renderSheet();
 
-  // `bg-primary` resolves to --primary, documented in global.css as
-  // palette-button-primary (the brown). `bg-secondary` is the red one.
-  const buttons = classNames(renderer).filter(name =>
-    name.includes('rounded-full'),
-  );
-
-  expect(buttons.some(name => name.includes('bg-primary'))).toBe(true);
-  expect(buttons.every(name => !name.includes('bg-secondary'))).toBe(true);
+  // `bg-primary` resolves to --primary (palette-button-primary, the brown);
+  // `bg-secondary` to --secondary (palette-button-secondary, the red).
+  expect(buttonClass(renderer, 'Excluir')).toContain('bg-primary');
+  expect(buttonClass(renderer, 'Cancelar')).toContain('bg-secondary');
 });
 
 test('confirming and cancelling call the right handler', async () => {

@@ -1,3 +1,4 @@
+import { Check, type LucideIcon, X } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -21,6 +22,13 @@ type ConfirmSheetProps = {
   cancelLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Ícone do confirmar: ✓ por padrão; exclusões passam a lixeira. */
+  confirmIcon?: LucideIcon;
+  /**
+   * 'danger' (padrão) pinta o cancelar do vermelho da paleta (button-secondary). 'button' usa o marrom do
+   * confirmar, para perguntas sem risco em que as duas respostas pesam igual.
+   */
+  cancelAppearance?: 'danger' | 'button';
 };
 
 /**
@@ -38,6 +46,8 @@ function ConfirmSheet({
   confirmLabel,
   cancelLabel,
   onConfirm,
+  confirmIcon = Check,
+  cancelAppearance = 'danger',
   onCancel,
 }: ConfirmSheetProps) {
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -90,22 +100,24 @@ function ConfirmSheet({
 
               <Button
                 shape="pill"
+                icon={confirmIcon}
                 className="h-[49px] w-full"
                 onPress={onConfirm}
               >
                 <Text className="font-semibold">{confirmLabel}</Text>
               </Button>
-              <Pressable
-                accessibilityRole="button"
+              <Button
+                shape="pill"
+                variant={
+                  cancelAppearance === 'danger' ? 'secondary' : 'default'
+                }
+                icon={X}
+                className="h-[49px] w-full"
                 accessibilityLabel={cancelLabel}
-                hitSlop={8}
-                className="h-11 items-center justify-center active:opacity-70"
                 onPress={onCancel}
               >
-                <Text className="font-semibold text-label-quartenery">
-                  {cancelLabel}
-                </Text>
-              </Pressable>
+                <Text className="font-semibold">{cancelLabel}</Text>
+              </Button>
             </Pressable>
           </Animated.View>
         </Pressable>

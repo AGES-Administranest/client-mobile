@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react-native';
+import { Check, ChevronDown } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -320,6 +320,7 @@ export function ProcedureFormSheet({
             ) : null}
 
             <Button
+              icon={Check}
               shape="pill"
               className="h-[49px] w-full"
               disabled={submitting}

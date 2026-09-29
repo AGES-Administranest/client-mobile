@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
@@ -70,6 +71,7 @@ export function TravelSection({ editable, texts }: TravelSectionProps) {
             </View>
           </View>
           <Button
+            icon={Check}
             shape="pill"
             className="h-[49px] w-full"
             onPress={() => setExpanded(false)}
