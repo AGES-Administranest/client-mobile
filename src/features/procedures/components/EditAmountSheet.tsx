@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -75,7 +76,9 @@ export function EditAmountSheet({
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View className="flex-1" style={{ opacity: overlayOpacity }}>
+        {/* style, não className: na web o NativeWind não aplica className em
+            Animated.View, e sem flex: 1 a folha subia para o topo. */}
+        <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
           <Pressable
             className="flex-1 justify-end bg-background-shade"
             onPress={onClose}
@@ -112,6 +115,7 @@ export function EditAmountSheet({
                 </View>
 
                 <Button
+                  icon={Check}
                   shape="pill"
                   className="h-[49px] w-full"
                   disabled={submitting}

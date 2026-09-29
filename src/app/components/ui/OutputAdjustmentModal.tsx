@@ -118,13 +118,17 @@ function OutputAdjustmentModal({
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View className="flex-1" style={{ opacity: overlayOpacity }}>
+      {/* style, não className: na web o NativeWind não aplica className em
+            Animated.View, e sem flex: 1 a folha subia para o topo. */}
+      <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
         <View className="flex-1 justify-end bg-background-shade">
           {/* O limite de 85% sobe para o wrapper animado, que é o filho
               direto da tela; a folha encolhe dentro dele e o ScrollView rola. */}
           <Animated.View
-            className="max-h-[85%]"
-            style={{ transform: [{ translateY: sheetTranslateY }] }}
+            style={{
+              maxHeight: '85%',
+              transform: [{ translateY: sheetTranslateY }],
+            }}
           >
             <View className="shrink rounded-t-3xl bg-background-modal p-5">
               <View className="mb-4 flex-row items-center justify-between">
@@ -290,6 +294,7 @@ function OutputAdjustmentModal({
                 ) : null}
 
                 <Button
+                  icon={Check}
                   shape="pill"
                   onPress={onSubmit}
                   disabled={isSaving}
