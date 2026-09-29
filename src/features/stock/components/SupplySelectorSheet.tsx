@@ -1,5 +1,15 @@
 import { Check, Search } from 'lucide-react-native';
-import { Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  Modal,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -7,6 +17,8 @@ import { cn } from 'app/lib/utils';
 import { LabelPrimary, LabelTertiary } from 'theme/colors';
 
 import type { SupplyOption } from '../domain/supplySelection';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 type SupplySelectorSheetProps = {
   visible: boolean;
@@ -82,6 +94,25 @@ function SupplySelectorSheet({
   insufficientStockMessage,
   formatPrice,
 }: SupplySelectorSheetProps) {
+  // Como as outras modais: o fundo aparece com fade, só a folha sobe.
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  useEffect(() => {
+    Animated.timing(overlayOpacity, {
+      toValue: visible ? 1 : 0,
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+    Animated.timing(sheetTranslateY, {
+      toValue: visible ? 0 : SCREEN_HEIGHT,
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [visible, overlayOpacity, sheetTranslateY]);
+
   function renderList() {
     if (hasError) {
       return <ListMessage message={errorMessage} />;
@@ -129,91 +160,101 @@ function SupplySelectorSheet({
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="none"
       onRequestClose={onClose}
     >
-      <Pressable
-        className="flex-1 justify-end bg-background-shade"
-        accessibilityLabel={closeLabel}
-        onPress={onClose}
-      >
+      <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
         <Pressable
-          className="gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
-          onPress={event => event.stopPropagation()}
+          className="flex-1 justify-end bg-background-shade"
+          accessibilityLabel={closeLabel}
+          onPress={onClose}
         >
-          <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
-
-          <Text className="text-xl font-bold text-label-primary">{title}</Text>
-
-          <View className="h-px bg-details-primary" />
-
-          <View className="gap-2">
-            <Text className="text-xs font-semibold text-label-primary">
-              {materialLabel}
-            </Text>
-
-            <View className="flex-row items-center gap-2 rounded-xl border border-details-primary bg-white px-4 py-3">
-              <Icon as={Search} size={16} className="text-label-tertiary" />
-              <TextInput
-                value={term}
-                onChangeText={onTermChange}
-                placeholder={searchPlaceholder}
-                placeholderTextColor={LabelTertiary}
-                selectionColor={LabelPrimary}
-                autoCorrect={false}
-                className="flex-1 text-[15px] text-label-primary"
-              />
-            </View>
-
-            <View className="max-h-80 overflow-hidden rounded-2xl bg-white shadow-md shadow-black/10">
-              <ScrollView keyboardShouldPersistTaps="handled">
-                {renderList()}
-              </ScrollView>
-            </View>
-          </View>
-
-          <View className="gap-2">
-            <Text className="text-xs font-semibold text-label-primary">
-              {quantityLabel}
-            </Text>
-            <TextInput
-              value={quantity}
-              onChangeText={onQuantityChange}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={LabelTertiary}
-              selectionColor={LabelPrimary}
-              className={cn(
-                'rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary',
-                isOverBalance ? 'border-destructive' : 'border-details-primary',
-              )}
-            />
-            {/* O aviso compara com o saldo do item escolhido: sem escolha não
-                há com o que comparar. */}
-            {selected && isOverBalance && (
-              <Text className="text-xs text-destructive">
-                {insufficientStockMessage}
-              </Text>
-            )}
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !canSubmit }}
-            disabled={!canSubmit}
-            onPress={onConfirm}
-            className={cn(
-              'flex-row items-center justify-center gap-2 rounded-full bg-button-primary py-4',
-              !canSubmit && 'opacity-50',
-            )}
+          <Animated.View
+            style={{ transform: [{ translateY: sheetTranslateY }] }}
           >
-            <Icon as={Check} size={16} className="text-white" />
-            <Text className="text-base font-semibold text-white">
-              {confirmLabel}
-            </Text>
-          </Pressable>
+            <Pressable
+              className="gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
+              onPress={event => event.stopPropagation()}
+            >
+              <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
+
+              <Text className="text-xl font-bold text-label-primary">
+                {title}
+              </Text>
+
+              <View className="h-px bg-details-primary" />
+
+              <View className="gap-2">
+                <Text className="text-xs font-semibold text-label-primary">
+                  {materialLabel}
+                </Text>
+
+                <View className="flex-row items-center gap-2 rounded-xl border border-details-primary bg-white px-4 py-3">
+                  <Icon as={Search} size={16} className="text-label-tertiary" />
+                  <TextInput
+                    value={term}
+                    onChangeText={onTermChange}
+                    placeholder={searchPlaceholder}
+                    placeholderTextColor={LabelTertiary}
+                    selectionColor={LabelPrimary}
+                    autoCorrect={false}
+                    className="flex-1 text-[15px] text-label-primary"
+                  />
+                </View>
+
+                <View className="max-h-80 overflow-hidden rounded-2xl bg-white shadow-md shadow-black/10">
+                  <ScrollView keyboardShouldPersistTaps="handled">
+                    {renderList()}
+                  </ScrollView>
+                </View>
+              </View>
+
+              <View className="gap-2">
+                <Text className="text-xs font-semibold text-label-primary">
+                  {quantityLabel}
+                </Text>
+                <TextInput
+                  value={quantity}
+                  onChangeText={onQuantityChange}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor={LabelTertiary}
+                  selectionColor={LabelPrimary}
+                  className={cn(
+                    'rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary',
+                    isOverBalance
+                      ? 'border-destructive'
+                      : 'border-details-primary',
+                  )}
+                />
+                {/* O aviso compara com o saldo do item escolhido: sem escolha não
+                há com o que comparar. */}
+                {selected && isOverBalance && (
+                  <Text className="text-xs text-destructive">
+                    {insufficientStockMessage}
+                  </Text>
+                )}
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !canSubmit }}
+                disabled={!canSubmit}
+                onPress={onConfirm}
+                className={cn(
+                  'flex-row items-center justify-center gap-2 rounded-full bg-button-primary py-4',
+                  !canSubmit && 'opacity-50',
+                )}
+              >
+                <Icon as={Check} size={16} className="text-white" />
+                <Text className="text-base font-semibold text-white">
+                  {confirmLabel}
+                </Text>
+              </Pressable>
+            </Pressable>
+          </Animated.View>
         </Pressable>
-      </Pressable>
+      </Animated.View>
     </Modal>
   );
 }
