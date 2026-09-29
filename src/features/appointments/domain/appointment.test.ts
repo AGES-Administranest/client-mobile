@@ -1,5 +1,6 @@
 import {
   formatAppointmentTime,
+  formatAsaLabel,
   getAppointmentDateKey,
   groupAppointmentsByDate,
   isSameDay,
@@ -79,6 +80,17 @@ describe('appointment domain utils', () => {
 
     it('returns false when dates differ', () => {
       expect(isSameDay('2026-09-17', '2026-09-18')).toBe(false);
+    });
+  });
+
+  describe('formatAsaLabel', () => {
+    it.each([
+      ['II', 'ASA II'],
+      ['ASA III', 'ASA III'],
+      ['asa iv', 'ASA IV'],
+      ['  I ', 'ASA I'],
+    ])('reads %p as %p', (asa, label) => {
+      expect(formatAsaLabel(asa)).toBe(label);
     });
   });
 });

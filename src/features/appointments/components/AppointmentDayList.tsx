@@ -7,6 +7,7 @@ import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
+import { AsaBadge } from './AsaBadge';
 import {
   formatAppointmentDateBadge,
   formatCurrency,
@@ -118,13 +119,7 @@ export function AppointmentDayList({
                       </Text>
                     )}
 
-                    {item.asa && (
-                      <View className="rounded-md bg-details-primary px-2 py-0.5">
-                        <Text className="text-[10px] font-bold text-label-tertiary uppercase">
-                          {item.asa}
-                        </Text>
-                      </View>
-                    )}
+                    {item.asa ? <AsaBadge asa={item.asa} /> : null}
                   </View>
 
                   <View className="items-end">
