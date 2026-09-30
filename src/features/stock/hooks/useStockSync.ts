@@ -26,6 +26,7 @@ export type SyncFailure = { code: string };
 export type StockSyncState = {
   sync: () => Promise<void>;
   isSyncing: boolean;
+  syncedAt: number | null;
   pendingCount: number;
   needsAdjustment: string[];
   balances: ItemBalance[];
@@ -44,6 +45,7 @@ export function useStockSync(): StockSyncState {
   const userId = account?.id ?? null;
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncedAt, setSyncedAt] = useState<number | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [needsAdjustment, setNeedsAdjustment] = useState<string[]>([]);
   const [balances, setBalances] = useState<ItemBalance[]>([]);
@@ -72,6 +74,7 @@ export function useStockSync(): StockSyncState {
       const applied: string[] = [];
       const negatives: string[] = [];
       let lastBalances: ItemBalance[] = [];
+      let changed = false;
 
       for (const batch of toSyncBatches(pending)) {
         const result = await pushPendingMovements(idToken, batch);
@@ -79,6 +82,7 @@ export function useStockSync(): StockSyncState {
 
         await removePendingMovements(userId, accepted);
         applied.push(...accepted);
+        changed = changed || accepted.length > 0;
         negatives.push(...result.needsAdjustment);
         lastBalances = result.balances;
       }
@@ -91,6 +95,7 @@ export function useStockSync(): StockSyncState {
         await saveSyncCursor(userId, result.cursor);
         since = result.cursor;
         lastBalances = result.balances.length ? result.balances : lastBalances;
+        changed = changed || result.movements.length > 0;
 
         if (!result.hasMore) {
           break;
@@ -101,11 +106,14 @@ export function useStockSync(): StockSyncState {
         setNeedsAdjustment(negatives);
         setBalances(lastBalances);
         setFailure(null);
+
+        if (changed) {
+          setSyncedAt(Date.now());
+        }
       }
     } catch (error) {
       if (isMounted.current) setFailure(toFailure(error));
     } finally {
-
       if (isMounted.current) {
         setIsSyncing(false);
         setPendingCount((await loadPendingMovements(userId)).length);
@@ -157,5 +165,13 @@ export function useStockSync(): StockSyncState {
     [sync],
   );
 
-  return { sync, isSyncing, pendingCount, needsAdjustment, balances, failure };
+  return {
+    sync,
+    isSyncing,
+    syncedAt,
+    pendingCount,
+    needsAdjustment,
+    balances,
+    failure,
+  };
 }

@@ -159,9 +159,9 @@ describe('matchesFilters', () => {
   });
 
   it('drops a row whose name does not match', () => {
-    expect(matchesFilters(movement, { itemName: 'gaze', range: NO_RANGE })).toBe(
-      false,
-    );
+    expect(
+      matchesFilters(movement, { itemName: 'gaze', range: NO_RANGE }),
+    ).toBe(false);
   });
 
   it('keeps a row that would not even be sent as a search', () => {

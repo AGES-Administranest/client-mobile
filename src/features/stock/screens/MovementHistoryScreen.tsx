@@ -36,10 +36,12 @@ const SAVED_MESSAGE_DURATION_MS = 3000;
 
 type MovementHistoryScreenProps = {
   savedMessageDurationMs?: number;
+  searchDebounceMs?: number;
 };
 
 export function MovementHistoryScreen({
   savedMessageDurationMs = SAVED_MESSAGE_DURATION_MS,
+  searchDebounceMs,
 }: MovementHistoryScreenProps = {}) {
   const { t, locale } = useTranslation();
   const {
@@ -51,20 +53,22 @@ export function MovementHistoryScreen({
     clearFilters,
   } = useMovementFilters();
   const { movements, pendingIds, isLoading, hasError, retry } =
-    useMovementHistory(filters);
-  const { sync } = useStockSyncState();
+    useMovementHistory(filters, searchDebounceMs);
+  const { sync, syncedAt } = useStockSyncState();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const adjustment = useOutputAdjustment();
 
-  useEffect(
-    () =>
-      onConnectionRestored(() => {
-        sync().then(retry, retry);
-      }),
-    [retry, sync],
-  );
+  useEffect(() => onConnectionRestored(retry), [retry]);
+
+  useEffect(() => {
+    if (syncedAt === null) {
+      return;
+    }
+
+    retry();
+  }, [syncedAt, retry]);
 
   useEffect(() => {
     if (savedAt === null) {

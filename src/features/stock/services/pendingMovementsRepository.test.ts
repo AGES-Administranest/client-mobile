@@ -168,7 +168,10 @@ describe('the sync cursor', () => {
 
 describe('a record the queue could not read back', () => {
   it('is refused on the way in instead of vanishing on the way out', async () => {
-    const broken = { ...pending('a'), id: undefined } as unknown as PendingMovement;
+    const broken = {
+      ...pending('a'),
+      id: undefined,
+    } as unknown as PendingMovement;
 
     await expect(addPendingMovement(USER, broken)).rejects.toThrow();
     expect(await loadPendingMovements(USER)).toEqual([]);

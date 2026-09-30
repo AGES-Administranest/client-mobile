@@ -89,7 +89,8 @@ const ACCOUNT: Account = {
   termsVersion: TERMS_VERSION,
 };
 
-const AFTER_DEBOUNCE_MS = 400;
+const SEARCH_DEBOUNCE_MS = 20;
+const AFTER_DEBOUNCE_MS = 60;
 
 function normalize(value: string) {
   return value
@@ -184,7 +185,10 @@ async function mount(props: { savedMessageDurationMs?: number } = {}) {
       <I18nProvider>
         <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
           <StockSyncProvider>
-            <MovementHistoryScreen {...props} />
+            <MovementHistoryScreen
+              searchDebounceMs={SEARCH_DEBOUNCE_MS}
+              {...props}
+            />
           </StockSyncProvider>
         </AuthProvider>
       </I18nProvider>,

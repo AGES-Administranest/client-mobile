@@ -38,21 +38,14 @@ import {
   type Species,
 } from 'features/appointments';
 import { useAuth } from 'features/auth';
-import {
-  InventoryNotificationsScreen,
-  useInventory,
-  isValidExpirationDate,
-  type ExpiringLot,
-  type MonitoredItem,
-} from 'features/inventory';
-import { fetchItems } from 'features/materials';
+import { InventoryNotificationsScreen, useInventory } from 'features/inventory';
 import { AppointmentDetailScreen, DiaDiaScreen } from 'features/procedures';
 import { useTranslation } from 'shared/i18n';
 import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
 
 export function HomeScreen() {
   const { t, locale } = useTranslation();
-  const { session, account, signOut } = useAuth();
+  const { account, signOut } = useAuth();
   const insets = useSafeAreaInsets();
   const { status, items, lots, refresh } = useInventory();
   const [accountVisible, setAccountVisible] = useState(false);
@@ -66,8 +59,6 @@ export function HomeScreen() {
   const [openAppointmentId, setOpenAppointmentId] = useState<string | null>(
     null,
   );
-  const [monitoredItems, setMonitoredItems] = useState<MonitoredItem[]>([]);
-  const [expiringLots, setExpiringLots] = useState<ExpiringLot[]>([]);
   // Drives both the week strip and the expanded month grid, so switching
   // between them keeps the selected date.
   const calendar = useAppointments();
@@ -99,34 +90,8 @@ export function HomeScreen() {
 
   const openNotifications = useCallback(() => {
     setNotificationsVisible(true);
-    if (!session) return;
-    fetchItems(session.idToken).then(backendItems => {
-      setMonitoredItems(
-        backendItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          unit: item.unit,
-          quantity: parseFloat(item.currentQuantity),
-          minimumStock: item.minimumStock ? parseFloat(item.minimumStock) : 0,
-        })),
-      );
-      setExpiringLots(
-        backendItems
-          .filter(
-            (item): item is typeof item & { nearestExpiration: string } =>
-              item.nearestExpiration !== null &&
-              isValidExpirationDate(item.nearestExpiration),
-          )
-          .map(item => ({
-            id: item.id,
-            itemId: item.id,
-            name: item.name,
-            expirationDate:
-              item.nearestExpiration as ExpiringLot['expirationDate'],
-          })),
-      );
-    });
-  }, [session]);
+    refresh();
+  }, [refresh]);
 
   const speciesLabels: Record<Species, string> = useMemo(
     () => ({

@@ -308,3 +308,39 @@ it('sends the queue on its own when the connection comes back', async () => {
   expect(pushMock).toHaveBeenCalledTimes(1);
   expect(pushMock.mock.calls[0][1].map(m => m.id)).toEqual(['a']);
 });
+
+describe('syncedAt', () => {
+  it('stays null when the sync had nothing to change', async () => {
+    await mount();
+
+    expect(current.syncedAt).toBeNull();
+  });
+
+  it('is stamped once the queue is drained, so the history can refresh', async () => {
+    await addPendingMovement(USER, pending('a'));
+
+    pushMock.mockResolvedValue({
+      applied: [{ id: 'a' } as never],
+      duplicated: [],
+      balances: [],
+      needsAdjustment: [],
+    });
+
+    await mount();
+
+    expect(current.syncedAt).not.toBeNull();
+  });
+
+  it('is stamped when another device sent movements over', async () => {
+    pullMock.mockResolvedValue({
+      movements: [{ id: 'remote-1' } as never],
+      balances: [],
+      cursor: 'cursor-1',
+      hasMore: false,
+    });
+
+    await mount();
+
+    expect(current.syncedAt).not.toBeNull();
+  });
+});

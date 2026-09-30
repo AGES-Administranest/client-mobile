@@ -24,7 +24,11 @@ export const EMPTY_MOVEMENT_FILTERS: MovementFilters = {
 export const MIN_SEARCH_LENGTH = 2;
 
 export function normalizeSearchTerm(value: string): string {
-  return value.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 }
 
 export function toMovementQuery(filters: MovementFilters): MovementQuery {
