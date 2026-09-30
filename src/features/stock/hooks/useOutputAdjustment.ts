@@ -139,18 +139,25 @@ export function useOutputAdjustment(): OutputAdjustmentState {
       return false;
     }
 
+    // O sync só aceita custo unitário positivo: um movimento sem custo seria
+    // recusado pelo servidor e nunca sairia da fila.
+    if (!item || item.unitCost <= 0) {
+      setFailure({ code: 'NO_UNIT_COST', params: {} });
+      return false;
+    }
+
     setIsSaving(true);
 
     const movement: PendingMovement = {
       id: randomUUID(),
       itemId: draft.itemId as string,
-      itemName: item?.name ?? '',
-      unit: item?.unit ?? 'other',
+      itemName: item.name,
+      unit: item.unit,
       type: 'outbound',
       source: 'manualAdjustment',
       adjustmentReason: draft.reason as AdjustmentReason,
       quantity,
-      unitCost: item?.unitCost ?? 0,
+      unitCost: item.unitCost,
       occurredAt: new Date().toISOString(),
       notes: requiresWrittenReason(draft.reason)
         ? draft.otherReason.trim()

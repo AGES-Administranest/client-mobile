@@ -5,10 +5,15 @@ import { useAuth } from 'features/auth';
 import { onConnectionRestored } from 'shared/services';
 import { ApiError } from 'shared/services/apiClient';
 
-import { acceptedMovementIds, toSyncBatches } from '../domain/pendingMovement';
+import {
+  acceptedMovementIds,
+  toSyncBatches,
+  type PendingMovement,
+} from '../domain/pendingMovement';
 import {
   loadPendingMovements,
   loadSyncCursor,
+  rejectPendingMovements,
   removePendingMovements,
   saveSyncCursor,
 } from '../services/pendingMovementsRepository';
@@ -17,6 +22,7 @@ import {
   pushPendingMovements,
   SYNC_EPOCH,
   type ItemBalance,
+  type PushResult,
 } from '../services/stockSyncService';
 
 const MAX_PULL_ROUNDS = 20;
@@ -37,6 +43,69 @@ function toFailure(error: unknown): SyncFailure {
   return {
     code: error instanceof ApiError ? error.code ?? 'UNKNOWN' : 'OFFLINE',
   };
+}
+
+// Erros que reenviar não resolve: o servidor recusou o conteúdo. Sessão
+// expirada (401/403) e limites (408/429) passam, e a fila espera a próxima.
+function isPermanentRejection(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    error.status >= 400 &&
+    error.status < 500 &&
+    ![401, 403, 408, 429].includes(error.status)
+  );
+}
+
+// O servidor valida o lote inteiro antes de aplicar: um movimento inválido
+// recusa todos. Quando isso acontece, reenvia um a um para que o resto passe
+// e só o culpado seja posto de lado.
+async function pushIsolatingRejections(
+  idToken: string,
+  userId: string,
+  batch: readonly PendingMovement[],
+): Promise<PushResult> {
+  try {
+    return await pushPendingMovements(idToken, batch);
+  } catch (error) {
+    if (!isPermanentRejection(error)) {
+      throw error;
+    }
+
+    if (batch.length === 1) {
+      await rejectPendingMovements(userId, batch);
+      return { applied: [], duplicated: [], balances: [], needsAdjustment: [] };
+    }
+  }
+
+  const merged: PushResult = {
+    applied: [],
+    duplicated: [],
+    balances: [],
+    needsAdjustment: [],
+  };
+  const rejected: PendingMovement[] = [];
+
+  for (const movement of batch) {
+    try {
+      const result = await pushPendingMovements(idToken, [movement]);
+
+      merged.applied.push(...result.applied);
+      merged.duplicated.push(...result.duplicated);
+      merged.balances.push(...result.balances);
+      merged.needsAdjustment.push(...result.needsAdjustment);
+    } catch (error) {
+      if (!isPermanentRejection(error)) {
+        await rejectPendingMovements(userId, rejected);
+        throw error;
+      }
+
+      rejected.push(movement);
+    }
+  }
+
+  await rejectPendingMovements(userId, rejected);
+
+  return merged;
 }
 
 export function useStockSync(): StockSyncState {
@@ -77,7 +146,7 @@ export function useStockSync(): StockSyncState {
       let changed = false;
 
       for (const batch of toSyncBatches(pending)) {
-        const result = await pushPendingMovements(idToken, batch);
+        const result = await pushIsolatingRejections(idToken, userId, batch);
         const accepted = acceptedMovementIds(result);
 
         await removePendingMovements(userId, accepted);

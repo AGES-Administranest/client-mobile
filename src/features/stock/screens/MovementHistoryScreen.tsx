@@ -97,7 +97,8 @@ export function MovementHistoryScreen({
         `stock.outputAdjustment.errors.${adjustment.failure.code}` as
           | 'stock.outputAdjustment.errors.QUEUE_WRITE_FAILED'
           | 'stock.outputAdjustment.errors.INSUFFICIENT_STOCK'
-          | 'stock.outputAdjustment.errors.NO_ACCOUNT',
+          | 'stock.outputAdjustment.errors.NO_ACCOUNT'
+          | 'stock.outputAdjustment.errors.NO_UNIT_COST',
         adjustment.failure.params,
       )
     : null;

@@ -3,7 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   addPendingMovement,
   loadPendingMovements,
+  loadRejectedMovements,
   loadSyncCursor,
+  rejectPendingMovements,
   removePendingMovements,
   saveSyncCursor,
 } from './pendingMovementsRepository';
@@ -175,5 +177,47 @@ describe('a record the queue could not read back', () => {
 
     await expect(addPendingMovement(USER, broken)).rejects.toThrow();
     expect(await loadPendingMovements(USER)).toEqual([]);
+  });
+});
+
+describe('a record the server would reject', () => {
+  it('is refused when it has no unit cost', async () => {
+    await expect(
+      addPendingMovement(USER, { ...pending('a'), unitCost: 0 }),
+    ).rejects.toThrow();
+    expect(await loadPendingMovements(USER)).toEqual([]);
+  });
+
+  it('is refused when it has no quantity', async () => {
+    await expect(
+      addPendingMovement(USER, { ...pending('a'), quantity: 0 }),
+    ).rejects.toThrow();
+    expect(await loadPendingMovements(USER)).toEqual([]);
+  });
+});
+
+describe('rejected movements', () => {
+  it('leave the queue and are kept aside instead of deleted', async () => {
+    await addPendingMovement(USER, pending('a'));
+    await addPendingMovement(USER, pending('b'));
+
+    await rejectPendingMovements(USER, [pending('a')]);
+
+    expect((await loadPendingMovements(USER)).map(m => m.id)).toEqual(['b']);
+    expect((await loadRejectedMovements(USER)).map(m => m.id)).toEqual(['a']);
+  });
+
+  it('pile up across syncs', async () => {
+    await addPendingMovement(USER, pending('a'));
+    await addPendingMovement(USER, pending('b'));
+
+    await rejectPendingMovements(USER, [pending('a')]);
+    await rejectPendingMovements(USER, [pending('b')]);
+
+    expect(await loadPendingMovements(USER)).toEqual([]);
+    expect((await loadRejectedMovements(USER)).map(m => m.id)).toEqual([
+      'a',
+      'b',
+    ]);
   });
 });

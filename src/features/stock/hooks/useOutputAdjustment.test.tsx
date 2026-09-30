@@ -245,6 +245,22 @@ test('reports a failure when the queue could not be written', async () => {
   expect(current.isSaving).toBe(false);
 });
 
+test('refuses an item with no unit cost, which the sync would never accept', async () => {
+  fetchMock.mockResolvedValue([{ ...ITEMS[0], unitCost: 0 }]);
+
+  await mount();
+  await fillValidDraft();
+
+  let saved: boolean | undefined;
+  await act(async () => {
+    saved = await current.submit();
+  });
+
+  expect(saved).toBe(false);
+  expect(current.failure).toEqual({ code: 'NO_UNIT_COST', params: {} });
+  expect(await queued()).toEqual([]);
+});
+
 test('clears the form and the failure on reset', async () => {
   const AsyncStorage = jest.requireMock(
     '@react-native-async-storage/async-storage',

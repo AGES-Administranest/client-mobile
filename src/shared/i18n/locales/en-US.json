@@ -360,7 +360,8 @@
         "mustBePositive": "Quantity must be greater than zero",
         "QUEUE_WRITE_FAILED": "Could not save the adjustment on this device. Try again.",
         "INSUFFICIENT_STOCK": "Quantity is larger than the available balance ({{available}}).",
-        "NO_ACCOUNT": "Sign in again to record the adjustment."
+        "NO_ACCOUNT": "Sign in again to record the adjustment.",
+        "NO_UNIT_COST": "This item has no unit cost yet. Record a purchase for it before adjusting."
       }
     },
     "supplySelector": {

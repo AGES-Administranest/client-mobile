@@ -360,7 +360,8 @@
         "mustBePositive": "A quantidade deve ser maior que zero",
         "QUEUE_WRITE_FAILED": "Não foi possível salvar o ajuste neste aparelho. Tente de novo.",
         "INSUFFICIENT_STOCK": "Quantidade maior que o saldo disponível ({{available}}).",
-        "NO_ACCOUNT": "Entre novamente para registrar o ajuste."
+        "NO_ACCOUNT": "Entre novamente para registrar o ajuste.",
+        "NO_UNIT_COST": "Este insumo ainda não tem custo unitário. Registre uma compra dele antes de ajustar."
       }
     },
     "supplySelector": {

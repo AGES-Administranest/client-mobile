@@ -7,6 +7,7 @@ import type { PendingMovement } from '../domain/pendingMovement';
 import {
   addPendingMovement,
   loadPendingMovements,
+  loadRejectedMovements,
   loadSyncCursor,
 } from '../services/pendingMovementsRepository';
 import {
@@ -171,6 +172,84 @@ it('keeps the queue when the token expired, so nothing is lost', async () => {
 
   expect(await loadPendingMovements(USER)).toHaveLength(1);
   expect(current.failure).toEqual({ code: 'TOKEN_EXPIRED' });
+});
+
+describe('a movement the server refuses for good', () => {
+  const { ApiError } = jest.requireActual('shared/services/apiClient');
+
+  function accepted(id: string) {
+    return {
+      applied: [{ id } as never],
+      duplicated: [],
+      balances: [],
+      needsAdjustment: [],
+    };
+  }
+
+  it('is set aside so the rest of the batch still goes through', async () => {
+    await addPendingMovement(USER, pending('a'));
+    await addPendingMovement(USER, pending('b'));
+    await addPendingMovement(USER, pending('c'));
+
+    pushMock
+      .mockRejectedValueOnce(new ApiError('invalid', 'VALIDATION_ERROR', 400))
+      .mockResolvedValueOnce(accepted('a'))
+      .mockRejectedValueOnce(new ApiError('invalid', 'VALIDATION_ERROR', 400))
+      .mockResolvedValueOnce(accepted('c'));
+
+    await mount();
+
+    expect(pushMock.mock.calls.map(call => call[1].map(m => m.id))).toEqual([
+      ['a', 'b', 'c'],
+      ['a'],
+      ['b'],
+      ['c'],
+    ]);
+    expect(await loadPendingMovements(USER)).toEqual([]);
+    expect((await loadRejectedMovements(USER)).map(m => m.id)).toEqual(['b']);
+    expect(current.failure).toBeNull();
+  });
+
+  it('stops blocking the queue on the next sync', async () => {
+    await addPendingMovement(USER, pending('a'));
+
+    pushMock.mockRejectedValueOnce(
+      new ApiError('item not found', 'ITEM_NOT_FOUND', 404),
+    );
+
+    await mount();
+
+    expect(await loadPendingMovements(USER)).toEqual([]);
+    expect((await loadRejectedMovements(USER)).map(m => m.id)).toEqual(['a']);
+
+    await addPendingMovement(USER, pending('b'));
+    pushMock.mockResolvedValueOnce(accepted('b'));
+
+    await act(async () => {
+      await current.sync();
+    });
+
+    expect(pushMock.mock.calls[1][1].map(m => m.id)).toEqual(['b']);
+    expect(await loadPendingMovements(USER)).toEqual([]);
+  });
+
+  it('keeps the queue when the connection drops while isolating', async () => {
+    await addPendingMovement(USER, pending('a'));
+    await addPendingMovement(USER, pending('b'));
+
+    pushMock
+      .mockRejectedValueOnce(new ApiError('invalid', 'VALIDATION_ERROR', 400))
+      .mockRejectedValueOnce(new Error('network down'));
+
+    await mount();
+
+    expect((await loadPendingMovements(USER)).map(m => m.id)).toEqual([
+      'a',
+      'b',
+    ]);
+    expect(await loadRejectedMovements(USER)).toEqual([]);
+    expect(current.failure).toEqual({ code: 'OFFLINE' });
+  });
 });
 
 it('splits a queue larger than the batch limit into several calls', async () => {
