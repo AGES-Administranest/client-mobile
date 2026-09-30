@@ -7,6 +7,7 @@ import type {
   ExtractedLine,
 } from 'features/stockEntry/domain/extraction';
 import {
+  BLOCKING_ISSUES,
   acceptComputedTotal,
   addLine,
   fromExtraction,
@@ -171,6 +172,15 @@ describe('lineIssue', () => {
   ])('%s', (_, changes, expected) => {
     expect(lineIssue({ ...LINE, ...changes })).toBe(expected);
   });
+
+  it.each(['', 'SER', 'SERINGA 5ML'])(
+    'blocks an unlinked line described as %p',
+    description => {
+      const issue = lineIssue({ ...LINE, link: null, description });
+
+      expect(issue && BLOCKING_ISSUES.includes(issue)).toBe(true);
+    },
+  );
 });
 
 describe('totals', () => {

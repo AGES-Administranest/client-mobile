@@ -55,7 +55,11 @@ export type LineIssue =
   | 'noUnitValue';
 
 /** Red on screen; the rest are yellow. */
-export const BLOCKING_ISSUES: readonly LineIssue[] = ['mismatch', 'unlinked'];
+export const BLOCKING_ISSUES: readonly LineIssue[] = [
+  'mismatch',
+  'shortName',
+  'unlinked',
+];
 
 export type LineChanges = Partial<
   Pick<ReviewLine, 'quantity' | 'unitValue' | 'lot' | 'expiry'>
