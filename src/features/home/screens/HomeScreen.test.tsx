@@ -20,8 +20,10 @@ jest.mock('features/appointments/services/appointmentService', () => ({
   fetchAppointments: (...args: unknown[]) => mockFetchAppointments(...args),
 }));
 
-jest.mock('features/materials', () => ({
-  ...jest.requireActual('features/materials'),
+// Mocka o serviço, não o barrel: `requireActual('features/materials')` entra
+// num ciclo (materials → stockEntry → materials) e lê o barrel pela metade.
+jest.mock('features/materials/services/itemService', () => ({
+  ...jest.requireActual('features/materials/services/itemService'),
   fetchItems: jest.fn(async () => []),
 }));
 
