@@ -49,6 +49,9 @@ type ItemModalProps = {
   onConfirm?: (draft: ItemDraft) => void;
   onEdit?: (item: StockItem) => void;
   onDelete?: (item: StockItem) => void;
+  /** Opens a new item already filled in. Keep it stable while visible. */
+  initialDraft?: ItemPrefill;
+  isSubmitting?: boolean;
 };
 
 export type ItemDraft = {
@@ -64,6 +67,10 @@ export type ItemDraft = {
   expiration: string;
 };
 
+type ItemPrefill = Partial<
+  Pick<ItemDraft, 'name' | 'unit' | 'unitCost' | 'quantity' | 'expiration'>
+>;
+
 function ItemModal({
   visible,
   onClose,
@@ -75,6 +82,8 @@ function ItemModal({
   onConfirm,
   onEdit,
   onDelete,
+  initialDraft,
+  isSubmitting = false,
 }: ItemModalProps) {
   const { t, locale } = useTranslation();
   const isDetail = mode === 'detail';
@@ -123,6 +132,7 @@ function ItemModal({
     !isDetail && !isEditing && showLotFields && !isAddingToExisting;
 
   const expirationInPast = !isDetail && isPastDate(expiration);
+  const cannotConfirm = isSubmitting || (showExpiration && expirationInPast);
 
   function clearError(field: ItemFormField) {
     setErrors(current => {
@@ -199,7 +209,17 @@ function ItemModal({
 
     setCategory(categoryOptions[0]?.value ?? '');
     clearFields();
-  }, [visible, isDetail, item, categoryOptions]);
+
+    if (initialDraft) {
+      setQuery(initialDraft.name ?? '');
+      setUnit(initialDraft.unit ?? '');
+      setUnitCost(initialDraft.unitCost ?? '');
+      setQuantity(initialDraft.quantity ?? '');
+      setExpiration(initialDraft.expiration ?? '');
+      setShowLotFields(true);
+      setIsAddingNew(true);
+    }
+  }, [visible, isDetail, item, categoryOptions, initialDraft]);
 
   function handleSelectExisting(existing: StockItem) {
     setSelectedItem(existing);
@@ -586,9 +606,9 @@ function ItemModal({
               ) : (
                 <Pressable
                   onPress={handleConfirm}
-                  disabled={showExpiration && expirationInPast}
+                  disabled={cannotConfirm}
                   className={`flex-row items-center justify-center gap-2 rounded-full bg-button-primary py-4 ${
-                    showExpiration && expirationInPast ? 'opacity-50' : ''
+                    cannotConfirm ? 'opacity-50' : ''
                   }`}
                 >
                   <Text className="text-base font-semibold text-white">
@@ -604,4 +624,4 @@ function ItemModal({
   );
 }
 
-export { ItemModal, type ItemModalMode, type ItemModalProps };
+export { ItemModal, type ItemModalMode, type ItemModalProps, type ItemPrefill };

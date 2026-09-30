@@ -1,5 +1,6 @@
 import { ApiError, NetworkError, postJson } from 'shared/api';
 
+import type { Extraction } from '../domain/extraction';
 import { InvoiceDocument, MAX_DOCUMENT_BYTES } from '../domain/invoiceDocument';
 
 /**
@@ -31,6 +32,15 @@ export class UploadError extends Error {
     super(reason);
     this.name = 'UploadError';
   }
+
+  /** On a duplicated file, the entry that already holds it. */
+  get existingEntryId(): string | null {
+    const id =
+      this.cause instanceof ApiError
+        ? this.cause.details?.purchaseInvoiceId
+        : undefined;
+    return typeof id === 'string' ? id : null;
+  }
 }
 
 /** What `POST /upload-url` returns: the S3 form, already signed. */
@@ -40,7 +50,11 @@ type UploadTarget = {
   expiresAt: number;
 };
 
-type UploadConfirmation = { contentLength: number; contentType: string };
+type UploadConfirmation = {
+  contentLength: number;
+  contentType: string;
+  extraction: Extraction;
+};
 
 /** The backend's error codes are the contract (ADR-07), not its messages. */
 const FAILURE_BY_CODE: Record<string, UploadFailure> = {
@@ -54,7 +68,7 @@ const FAILURE_BY_CODE: Record<string, UploadFailure> = {
 export async function uploadInvoiceDocument(
   document: InvoiceDocument,
   idToken: string,
-): Promise<void> {
+): Promise<Extraction> {
   // The API refuses this with a 413 anyway; refusing here saves the round trip
   // and, more to the point, the wait before the user is told.
   if (document.sizeBytes > MAX_DOCUMENT_BYTES) {
@@ -62,7 +76,8 @@ export async function uploadInvoiceDocument(
   }
 
   await sendToBucket(document, idToken);
-  await confirmUpload(document, idToken);
+  const { extraction } = await confirmUpload(document, idToken);
+  return extraction;
 }
 
 async function sendToBucket(
@@ -116,12 +131,15 @@ function requestUploadTarget(
   );
 }
 
-/** The API checks the bucket here; until it answers, nothing is uploaded. */
-async function confirmUpload(
+/**
+ * The API checks the bucket here; until it answers, nothing is uploaded. It
+ * also reads the PDF before answering (US10 §0.3).
+ */
+function confirmUpload(
   document: InvoiceDocument,
   idToken: string,
-): Promise<void> {
-  await callApi(() =>
+): Promise<UploadConfirmation> {
+  return callApi(() =>
     postJson<UploadConfirmation>(
       `/stock-entries/${document.id}/uploaded`,
       idToken,
