@@ -9,10 +9,20 @@
  */
 
 /** The error envelope every failing route returns. */
-type ErrorEnvelope = { code?: string; message?: string };
+type ErrorEnvelope = {
+  code?: string;
+  message?: string;
+  details?: Record<string, unknown>;
+};
 
 export class ApiError extends Error {
-  constructor(readonly status: number, readonly code: string, message: string) {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    message: string,
+    /** What the screen needs to react, such as the id a 409 points to. */
+    readonly details: Record<string, unknown> | null = null,
+  ) {
     super(message);
     this.name = 'ApiError';
   }
@@ -77,5 +87,6 @@ async function toApiError(response: Response): Promise<ApiError> {
     response.status,
     envelope?.code ?? 'ERRO_HTTP',
     envelope?.message ?? `HTTP ${response.status}`,
+    envelope?.details ?? null,
   );
 }

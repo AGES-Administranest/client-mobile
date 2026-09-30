@@ -430,3 +430,68 @@ describe('form validation', () => {
     expect(drafts).toHaveLength(1);
   });
 });
+
+describe('opened already filled in', () => {
+  const PREFILL = {
+    name: 'Sevoflurano 250 mL',
+    unit: 'frasco',
+    unitCost: '189,00',
+    quantity: '2',
+  };
+
+  async function openPrefilled(onConfirm: (draft: unknown) => void) {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    const props = {
+      onClose: () => {},
+      categoryOptions: CATEGORY_OPTIONS,
+      unitOptions: UNIT_OPTIONS,
+      initialDraft: PREFILL,
+      onConfirm,
+    };
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <I18nProvider>
+          <ItemModal {...props} visible={false} />
+        </I18nProvider>,
+      );
+    });
+    await act(async () => {
+      renderer.update(
+        <I18nProvider>
+          <ItemModal {...props} visible />
+        </I18nProvider>,
+      );
+    });
+    return renderer!;
+  }
+
+  test('shows the values it was given as a new item', async () => {
+    const renderer = await openPrefilled(() => {});
+
+    const values = inputValues(renderer);
+    expect(values).toContain('Sevoflurano 250 mL');
+    expect(values).toContain('189,00');
+    expect(values).toContain('2');
+  });
+
+  test('submits them without asking to pick from the list', async () => {
+    const drafts: unknown[] = [];
+    const renderer = await openPrefilled(draft => drafts.push(draft));
+
+    await act(async () => {
+      renderer.root
+        .findAll(node => typeof node.props.onPress === 'function')
+        .pop()!
+        .props.onPress();
+    });
+
+    expect(drafts[0]).toMatchObject({
+      name: 'Sevoflurano 250 mL',
+      unit: 'frasco',
+      unitCost: '189,00',
+      quantity: '2',
+      selectedItemId: null,
+      editingItemId: null,
+    });
+  });
+});

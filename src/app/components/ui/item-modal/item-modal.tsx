@@ -49,6 +49,8 @@ type ItemModalProps = {
   onConfirm?: (draft: ItemDraft) => void;
   onEdit?: (item: StockItem) => void;
   onDelete?: (item: StockItem) => void;
+  /** Opens a new item already filled in. Keep it stable while visible. */
+  initialDraft?: ItemPrefill;
 };
 
 export type ItemDraft = {
@@ -64,6 +66,10 @@ export type ItemDraft = {
   expiration: string;
 };
 
+type ItemPrefill = Partial<
+  Pick<ItemDraft, 'name' | 'unit' | 'unitCost' | 'quantity' | 'expiration'>
+>;
+
 function ItemModal({
   visible,
   onClose,
@@ -75,6 +81,7 @@ function ItemModal({
   onConfirm,
   onEdit,
   onDelete,
+  initialDraft,
 }: ItemModalProps) {
   const { t, locale } = useTranslation();
   const isDetail = mode === 'detail';
@@ -199,7 +206,17 @@ function ItemModal({
 
     setCategory(categoryOptions[0]?.value ?? '');
     clearFields();
-  }, [visible, isDetail, item, categoryOptions]);
+
+    if (initialDraft) {
+      setQuery(initialDraft.name ?? '');
+      setUnit(initialDraft.unit ?? '');
+      setUnitCost(initialDraft.unitCost ?? '');
+      setQuantity(initialDraft.quantity ?? '');
+      setExpiration(initialDraft.expiration ?? '');
+      setShowLotFields(true);
+      setIsAddingNew(true);
+    }
+  }, [visible, isDetail, item, categoryOptions, initialDraft]);
 
   function handleSelectExisting(existing: StockItem) {
     setSelectedItem(existing);
@@ -604,4 +621,4 @@ function ItemModal({
   );
 }
 
-export { ItemModal, type ItemModalMode, type ItemModalProps };
+export { ItemModal, type ItemModalMode, type ItemModalProps, type ItemPrefill };

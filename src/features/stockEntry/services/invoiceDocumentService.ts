@@ -8,13 +8,15 @@ import { InvoiceDocument, PickedFile } from '../domain/invoiceDocument';
  *
  * The id is generated here, not by the API (ADR-09): the app owns it, so a
  * retry of the same upload reuses it instead of leaving a second draft behind.
+ * Replacing the file of an invoice passes its id for the same reason.
  */
 export async function describeDocument(
   file: PickedFile,
+  invoiceId?: string,
 ): Promise<InvoiceDocument> {
   return {
     ...file,
-    id: Crypto.randomUUID(),
+    id: invoiceId ?? Crypto.randomUUID(),
     // The bytes we hashed are the bytes we upload, and the presigned policy
     // pins this exact number — so it has to come from the file itself, never
     // from picker metadata.

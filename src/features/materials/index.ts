@@ -7,8 +7,15 @@ export {
   updateItem,
   deleteItem,
 } from './services/itemService';
-export { backendUnitLabel } from './domain/materialsFilter';
+export {
+  backendUnitLabel,
+  CATEGORY_OPTIONS,
+  toBackendUnit,
+  UNIT_OPTIONS,
+} from './domain/materialsFilter';
+export { fetchSuppliers } from './services/supplierService';
 export { createItemLot } from './services/itemLotService';
+export type { Supplier } from './services/supplierService';
 export type {
   MaterialItem,
   MaterialSegment,
