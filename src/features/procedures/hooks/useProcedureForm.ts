@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
 
+import {
+  isLocalAppointmentId,
+  isNetworkError,
+  newClientGeneratedId,
+  queueAppointmentCreate,
+  queueAppointmentUpdate,
+} from 'features/appointments';
 import { useAuth } from 'features/auth';
 import { useClientSearch, type ClientOption } from 'features/clients';
 
@@ -35,7 +42,7 @@ export function useProcedureForm(
   visible: boolean,
   editing: AppointmentResult | null = null,
 ) {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const [values, setValues] =
     useState<ProcedureFormValues>(EMPTY_PROCEDURE_FORM);
   const [errors, setErrors] = useState<ProcedureErrors>({});
@@ -124,6 +131,25 @@ export function useProcedureForm(
     onSuccess(created);
   }
 
+  async function saveEdit(
+    idToken: string,
+    appointmentId: string,
+    changes: Partial<CreateAppointmentPayload>,
+  ): Promise<void> {
+    // Um agendamento criado offline ainda não existe no backend: a edição
+    // entra direto na fila, junto do create dele.
+    if (account && isLocalAppointmentId(appointmentId)) {
+      await queueAppointmentUpdate(account.id, appointmentId, changes);
+      return;
+    }
+    try {
+      await updateAppointment(idToken, appointmentId, changes);
+    } catch (error) {
+      if (!account || !isNetworkError(error)) throw error;
+      await queueAppointmentUpdate(account.id, appointmentId, changes);
+    }
+  }
+
   async function submit(): Promise<void> {
     const validation = validateProcedureForm(values);
     setErrors(validation);
@@ -143,12 +169,31 @@ export function useProcedureForm(
         const changes: Partial<CreateAppointmentPayload> =
           toCreateAppointmentPayload(values);
         delete changes.status;
-        await updateAppointment(session.idToken, editing.id, changes);
+        await saveEdit(session.idToken, editing.id, changes);
         onSuccess();
         return;
       }
       const payload = toCreateAppointmentPayload(values);
-      const appointment = await createAppointment(session.idToken, payload);
+      // Vai também no envio online: se a resposta se perder e o app tentar
+      // de novo pela fila, o backend reconhece o mesmo registro.
+      const clientGeneratedId = newClientGeneratedId();
+      let appointment: AppointmentResult | null = null;
+      try {
+        appointment = await createAppointment(session.idToken, {
+          ...payload,
+          clientGeneratedId,
+        });
+      } catch (error) {
+        if (!account || !isNetworkError(error)) throw error;
+      }
+      if (!appointment) {
+        // Sem rede: fica na fila e aparece na agenda como pendente. Insumos
+        // mexem no estoque do backend, então a pergunta fica para o detalhe.
+        await queueAppointmentCreate(account!.id, clientGeneratedId, payload);
+        reset();
+        onSuccess({ startsAt: payload.startsAt });
+        return;
+      }
       // Insumos são lançados quando o procedimento acontece, não ao agendar.
       if (payload.status === 'SCHEDULED') {
         reset();

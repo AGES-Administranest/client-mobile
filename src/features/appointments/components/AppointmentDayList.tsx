@@ -27,6 +27,8 @@ export type AppointmentDayListProps = {
   speciesLabels?: Record<Species, string>;
   /** Shown on completed and canceled cards; scheduled ones carry no badge. */
   statusLabels?: Partial<Record<AppointmentStatus, string>>;
+  /** Shown on cards created or edited offline and not sent yet. */
+  pendingLabel?: string;
   /** Replaces the default empty card. */
   emptyState?: ReactNode;
   onAddAppointment?: () => void;
@@ -49,6 +51,7 @@ export function AppointmentDayList({
     OTHER: 'Outro',
   },
   statusLabels,
+  pendingLabel,
   emptyState,
   onAddAppointment,
   onSelectAppointment,
@@ -149,6 +152,11 @@ export function AppointmentDayList({
                     statusLabels?.[item.status] ? (
                       <Text className="text-[10px] font-semibold uppercase text-label-tertiary">
                         {statusLabels[item.status]}
+                      </Text>
+                    ) : null}
+                    {item.pendingSync && pendingLabel ? (
+                      <Text className="text-[10px] font-semibold uppercase text-label-tertiary">
+                        {pendingLabel}
                       </Text>
                     ) : null}
                   </View>

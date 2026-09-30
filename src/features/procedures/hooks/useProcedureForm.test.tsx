@@ -1,15 +1,30 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import {
+  queueAppointmentCreate,
+  queueAppointmentUpdate,
+} from 'features/appointments';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { ApiError } from 'shared/services/apiClient';
 
 import { useProcedureForm } from './useProcedureForm';
 import { validProcedureForm } from '../domain/validProcedureForm.fixture';
-import { createAppointment } from '../services/procedureService';
+import {
+  createAppointment,
+  updateAppointment,
+  type AppointmentResult,
+} from '../services/procedureService';
 
 jest.mock('../services/procedureService', () => ({
   ...jest.requireActual('../services/procedureService'),
   createAppointment: jest.fn(),
+  updateAppointment: jest.fn(),
+}));
+jest.mock('features/appointments', () => ({
+  ...jest.requireActual('features/appointments'),
+  newClientGeneratedId: () => 'cg-1',
+  queueAppointmentCreate: jest.fn().mockResolvedValue(undefined),
+  queueAppointmentUpdate: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn().mockResolvedValue([]),
@@ -302,4 +317,121 @@ test('outro erro da API continua como falha genérica, sem alerta de conflito', 
 
   expect(result.current.conflict).toBeNull();
   expect(result.current.submitFailed).toBe(true);
+});
+
+describe('sem conexão', () => {
+  const offline = () => new TypeError('Network request failed');
+
+  test('o create vai para a fila com o clientGeneratedId e o formulário fecha', async () => {
+    createAppointmentMock.mockRejectedValue(offline());
+
+    const { result, onSuccess } = await submitScheduled();
+
+    expect(createAppointmentMock).toHaveBeenCalledWith(
+      'id-token',
+      expect.objectContaining({ clientGeneratedId: 'cg-1' }),
+    );
+    expect(queueAppointmentCreate).toHaveBeenCalledWith(
+      'user-1',
+      'cg-1',
+      expect.objectContaining({ status: 'SCHEDULED', patientName: 'Rex' }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+    expect(result.current.submitFailed).toBe(false);
+    expect(result.current.supplyPrompt).toBeNull();
+  });
+
+  test('procedimento já realizado criado offline também não pergunta de insumos', async () => {
+    createAppointmentMock.mockRejectedValue(offline());
+
+    const { result, onSuccess } = await submitSuccessfully();
+
+    expect(queueAppointmentCreate).toHaveBeenCalledWith(
+      'user-1',
+      'cg-1',
+      expect.objectContaining({ status: 'COMPLETED' }),
+    );
+    expect(result.current.supplyPrompt).toBeNull();
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  test('um erro da API com rede não entra na fila', async () => {
+    createAppointmentMock.mockRejectedValue(
+      new ApiError('bad', 'INVALID_REQUEST', 400),
+    );
+
+    await submitScheduled();
+
+    expect(queueAppointmentCreate).not.toHaveBeenCalled();
+  });
+
+  const EDITING = {
+    id: 'server-1',
+    clientId: 'client-1',
+    ownerName: null,
+    procedureName: 'Orquiectomia',
+    startsAt: new Date(2026, 7, 6, 9, 0).toISOString(),
+    endsAt: new Date(2026, 7, 6, 10, 0).toISOString(),
+    patientName: 'Rex',
+    amount: '350.00',
+    status: 'COMPLETED',
+  } as unknown as AppointmentResult;
+
+  async function submitEdit(editing: AppointmentResult) {
+    const result = {
+      current: null as unknown as ReturnType<typeof useProcedureForm>,
+    };
+    const onSuccess = jest.fn();
+    function Harness() {
+      result.current = useProcedureForm(onSuccess, true, editing);
+      return null;
+    }
+    await act(async () => {
+      ReactTestRenderer.create(
+        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+          <Harness />
+        </AuthProvider>,
+      );
+    });
+    await act(async () => {
+      (
+        Object.entries(validProcedureForm) as [
+          keyof typeof validProcedureForm,
+          string,
+        ][]
+      ).forEach(([key, value]) => result.current.setField(key, value));
+    });
+    await act(async () => {
+      await result.current.submit();
+    });
+    return { result, onSuccess };
+  }
+
+  test('a edição sem rede vai para a fila e fecha como se tivesse salvo', async () => {
+    (updateAppointment as jest.Mock).mockRejectedValue(offline());
+
+    const { onSuccess } = await submitEdit(EDITING);
+
+    expect(queueAppointmentUpdate).toHaveBeenCalledWith(
+      'user-1',
+      'server-1',
+      expect.not.objectContaining({ status: expect.anything() }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  test('editar um agendamento criado offline nem tenta a rede', async () => {
+    const { onSuccess } = await submitEdit({
+      ...EDITING,
+      id: 'local:cg-9',
+    });
+
+    expect(updateAppointment).not.toHaveBeenCalled();
+    expect(queueAppointmentUpdate).toHaveBeenCalledWith(
+      'user-1',
+      'local:cg-9',
+      expect.any(Object),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
 });

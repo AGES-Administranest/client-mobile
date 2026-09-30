@@ -27,6 +27,8 @@ export type Appointment = {
   status: AppointmentStatus;
   createdAt?: string;
   updatedAt?: string;
+  /** Criado ou editado sem conexão e ainda não enviado ao backend. */
+  pendingSync?: boolean;
 };
 
 export type CreateAppointmentPayload = {

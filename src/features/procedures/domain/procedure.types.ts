@@ -60,6 +60,8 @@ export type ProcedureErrors = Partial<
 >;
 
 export interface CreateAppointmentPayload {
+  /** Chave de idempotência do backend para criações feitas offline. */
+  clientGeneratedId?: string;
   startsAt: string;
   status: AppointmentStatus;
   endsAt?: string;

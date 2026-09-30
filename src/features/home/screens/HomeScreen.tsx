@@ -328,6 +328,12 @@ export function HomeScreen() {
             </Pressable>
           </View>
 
+          {calendar.isOffline ? (
+            <Text className="text-center text-xs text-label-tertiary">
+              {t('appointments.offline')}
+            </Text>
+          ) : null}
+
           {calendar.error ? (
             <Text className="py-4 text-center text-sm text-label-tertiary">
               {t('procedures.day.error')}
@@ -343,6 +349,7 @@ export function HomeScreen() {
               locale={locale}
               speciesLabels={speciesLabels}
               statusLabels={statusLabels}
+              pendingLabel={t('appointments.pendingSync')}
               onSelectAppointment={appointment =>
                 setOpenAppointmentId(appointment.id)
               }

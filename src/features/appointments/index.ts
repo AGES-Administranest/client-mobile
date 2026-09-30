@@ -29,3 +29,16 @@ export {
   type ConflictAlertSheetProps,
   type ConflictingAppointment,
 } from './components/ConflictAlertSheet';
+export { AppointmentSyncObserver } from './screens/AppointmentSyncObserver';
+export {
+  isLocalAppointmentId,
+  isNetworkError,
+  type OfflineAppointmentChanges,
+  type OfflineAppointmentPayload,
+} from './domain/offlineAppointments';
+export {
+  findOfflineAppointment,
+  newClientGeneratedId,
+  queueAppointmentCreate,
+  queueAppointmentUpdate,
+} from './services/offlineAppointmentStore';

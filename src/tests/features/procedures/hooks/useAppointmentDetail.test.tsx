@@ -1,5 +1,6 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { findOfflineAppointment } from 'features/appointments';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { useAppointmentDetail } from 'features/procedures/hooks/useAppointmentDetail';
 import {
@@ -22,6 +23,10 @@ jest.mock('features/procedures/services/appointmentSupplyService', () => ({
   registerAppointmentSupplies: jest.fn(),
   removeAppointmentSupply: jest.fn(),
 }));
+jest.mock('features/appointments', () => ({
+  ...jest.requireActual('features/appointments'),
+  findOfflineAppointment: jest.fn(),
+}));
 // A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
@@ -32,6 +37,7 @@ const updateAmountMock = jest.mocked(updateAppointmentAmount);
 const fetchSuppliesMock = jest.mocked(fetchAppointmentSupplies);
 const registerMock = jest.mocked(registerAppointmentSupplies);
 const removeMock = jest.mocked(removeAppointmentSupply);
+const findOfflineMock = jest.mocked(findOfflineAppointment);
 
 const SESSION = {
   idToken: 'id-token',
@@ -103,6 +109,42 @@ test('loads the appointment and its saved supplies', async () => {
 
 test('shows an error when the appointment cannot be loaded', async () => {
   fetchAppointmentMock.mockRejectedValue(new Error('offline'));
+
+  const result = await mountHook();
+
+  expect(result.current.status).toBe('error');
+});
+
+test('sem rede, mostra o agendamento salvo no aparelho, sem insumos', async () => {
+  fetchAppointmentMock.mockRejectedValue(
+    new TypeError('Network request failed'),
+  );
+  findOfflineMock.mockResolvedValue({
+    id: 'appointment-1',
+    patientName: 'Thomas',
+    startsAt: '2026-09-30T18:00:00.000Z',
+    endsAt: '2026-09-30T19:00:00.000Z',
+    amount: 200,
+    status: 'SCHEDULED',
+  });
+
+  const result = await mountHook();
+
+  expect(findOfflineMock).toHaveBeenCalledWith('user-1', 'appointment-1');
+  expect(result.current.status).toBe('ready');
+  expect(result.current.appointment).toMatchObject({
+    id: 'appointment-1',
+    patientName: 'Thomas',
+    amount: '200',
+  });
+  expect(result.current.supplies).toEqual([]);
+});
+
+test('sem rede e sem nada salvo, continua mostrando o erro', async () => {
+  fetchAppointmentMock.mockRejectedValue(
+    new TypeError('Network request failed'),
+  );
+  findOfflineMock.mockResolvedValue(null);
 
   const result = await mountHook();
 

@@ -710,6 +710,19 @@
       "message": "Este horário conflita com {{procedure}} às {{time}}.",
       "unnamedProcedure": "outro atendimento",
       "adjust": "Alterar horário"
+    },
+    "offline": "Sem conexão. Mostrando a agenda salva no aparelho; o que você criar ou editar será enviado quando a internet voltar.",
+    "pendingSync": "Aguardando envio",
+    "sync": {
+      "title": "Agendamento não sincronizado",
+      "message": "Não foi possível enviar o agendamento de {{patient}} em {{date}} às {{time}}: {{reason}}",
+      "messageEdit": "Não foi possível enviar uma edição de agendamento: {{reason}}",
+      "unnamedPatient": "paciente sem nome",
+      "reasons": {
+        "conflict": "o horário conflita com outro agendamento.",
+        "notFound": "o agendamento não existe mais.",
+        "other": "os dados foram recusados pelo servidor."
+      }
     }
   },
   "home": {

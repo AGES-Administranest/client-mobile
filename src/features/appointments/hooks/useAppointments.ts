@@ -8,7 +8,17 @@ import {
   type Appointment,
   type AppointmentStatus,
 } from '../domain/appointment';
+import {
+  applyPendingOperations,
+  isNetworkError,
+} from '../domain/offlineAppointments';
 import { fetchAppointments } from '../services/appointmentService';
+import {
+  loadMonthCache,
+  loadOutbox,
+  saveMonthCache,
+  subscribeOfflineAppointments,
+} from '../services/offlineAppointmentStore';
 
 export type AppointmentsState = {
   year: number;
@@ -20,6 +30,8 @@ export type AppointmentsState = {
   selectedDayAppointments: Appointment[];
   isLoading: boolean;
   isRefreshing: boolean;
+  /** Sem conexão: o mês veio do que ficou salvo no aparelho. */
+  isOffline: boolean;
   error: string | null;
   onSelectDate: (date: string) => void;
   onPreviousMonth: () => void;
@@ -45,9 +57,41 @@ async function fetchMonth(
   return pages.flat();
 }
 
+type LoadedMonth = { appointments: Appointment[]; isOffline: boolean };
+
+// Com rede, o mês vem do backend e fica salvo; sem rede, vem do que foi salvo
+// da última vez. Nos dois casos o que ainda está na fila (criado ou editado
+// offline) entra por cima, para a agenda mostrar o que o usuário fez.
+async function loadMonth(
+  idToken: string,
+  userId: string | null,
+  month: string,
+): Promise<LoadedMonth> {
+  let appointments: Appointment[];
+  let isOffline = false;
+  try {
+    appointments = await fetchMonth(idToken, month);
+    if (userId) {
+      await saveMonthCache(userId, month, appointments);
+    }
+  } catch (error) {
+    if (!userId || !isNetworkError(error)) {
+      throw error;
+    }
+    appointments = (await loadMonthCache(userId, month)) ?? [];
+    isOffline = true;
+  }
+  const queue = userId ? await loadOutbox(userId) : [];
+  return {
+    appointments: applyPendingOperations(appointments, queue, month),
+    isOffline,
+  };
+}
+
 export function useAppointments(): AppointmentsState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
 
   const today = useMemo(() => new Date(), []);
   const todayDateString = useMemo(() => toCalendarDate(today), [today]);
@@ -61,7 +105,16 @@ export function useAppointments(): AppointmentsState {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isOffline, setIsOffline] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  // Sobe quando a fila muda ou sincroniza, para a agenda se refazer.
+  const [storeVersion, setStoreVersion] = useState(0);
+
+  useEffect(
+    () =>
+      subscribeOfflineAppointments(() => setStoreVersion(value => value + 1)),
+    [],
+  );
 
   const monthString = useMemo(() => {
     const month = String(visibleDate.monthIndex + 1).padStart(2, '0');
@@ -78,7 +131,9 @@ export function useAppointments(): AppointmentsState {
       setError(null);
 
       try {
-        setAppointments(await fetchMonth(idToken ?? '', monthString));
+        const loaded = await loadMonth(idToken ?? '', userId, monthString);
+        setAppointments(loaded.appointments);
+        setIsOffline(loaded.isOffline);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : 'Erro ao buscar agendamentos';
@@ -88,7 +143,7 @@ export function useAppointments(): AppointmentsState {
         setIsRefreshing(false);
       }
     },
-    [idToken, monthString],
+    [idToken, userId, monthString],
   );
 
   useEffect(() => {
@@ -98,9 +153,10 @@ export function useAppointments(): AppointmentsState {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await fetchMonth(idToken ?? '', monthString);
+        const loaded = await loadMonth(idToken ?? '', userId, monthString);
         if (isMounted) {
-          setAppointments(data);
+          setAppointments(loaded.appointments);
+          setIsOffline(loaded.isOffline);
         }
       } catch (err) {
         if (isMounted) {
@@ -120,7 +176,28 @@ export function useAppointments(): AppointmentsState {
     return () => {
       isMounted = false;
     };
-  }, [idToken, monthString]);
+  }, [idToken, userId, monthString]);
+
+  // Recarga silenciosa (sem spinner) quando algo entra na fila ou sincroniza.
+  useEffect(() => {
+    if (storeVersion === 0) return;
+    let isMounted = true;
+    loadMonth(idToken ?? '', userId, monthString)
+      .then(loaded => {
+        if (isMounted) {
+          setAppointments(loaded.appointments);
+          setIsOffline(loaded.isOffline);
+          setError(null);
+        }
+      })
+      .catch(() => {
+        // Mantém o que já está na tela.
+      });
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeVersion]);
 
   const appointmentsByDate = useMemo(() => {
     return groupAppointmentsByDate(appointments);
@@ -175,6 +252,7 @@ export function useAppointments(): AppointmentsState {
     selectedDayAppointments,
     isLoading,
     isRefreshing,
+    isOffline,
     error,
     onSelectDate,
     onPreviousMonth,

@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  findOfflineAppointment,
+  isLocalAppointmentId,
+  isNetworkError,
+  type Appointment,
+} from 'features/appointments';
 import { useAuth } from 'features/auth';
 
 import { toSupplyItem } from '../domain/appointmentSupply';
@@ -16,6 +22,30 @@ import {
   updateAppointmentAmount,
   type AppointmentResult,
 } from '../services/procedureService';
+
+function toAppointmentResult(appointment: Appointment): AppointmentResult {
+  return {
+    id: appointment.id,
+    clientId: appointment.clientId ?? null,
+    procedureName: appointment.procedureName ?? null,
+    startsAt: appointment.startsAt,
+    endsAt: appointment.endsAt ?? null,
+    location: appointment.location ?? null,
+    amount: appointment.amount == null ? null : String(appointment.amount),
+    patientName: appointment.patientName ?? null,
+    ownerName: appointment.ownerName ?? null,
+    species: (appointment.species ?? null) as AppointmentResult['species'],
+    patientAgeYears: appointment.patientAgeYears ?? null,
+    weightKg:
+      appointment.weightKg == null ? null : String(appointment.weightKg),
+    asa: appointment.asa ?? null,
+    notes: appointment.notes ?? null,
+    status: appointment.status,
+    createdAt: appointment.createdAt ?? '',
+    updatedAt: appointment.updatedAt ?? '',
+    deletedAt: null,
+  };
+}
 
 export type AmountError = 'REQUIRED' | 'INVALID_NUMBER' | 'FAILED';
 
@@ -35,8 +65,9 @@ export type AppointmentDetailState = {
 export function useAppointmentDetail(
   appointmentId: string | null,
 ): AppointmentDetailState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
   const [appointment, setAppointment] = useState<AppointmentResult | null>(
     null,
   );
@@ -53,6 +84,24 @@ export function useAppointmentDetail(
     if (!idToken || !appointmentId) {
       return;
     }
+    // Sem rede (ou criado offline e ainda sem id do backend), o detalhe vem
+    // do que está salvo no aparelho. Insumos não são guardados offline.
+    const loadOffline = async (): Promise<boolean> => {
+      const saved = userId
+        ? await findOfflineAppointment(userId, appointmentId)
+        : null;
+      if (!saved || currentId.current !== appointmentId) return false;
+      setAppointment(toAppointmentResult(saved));
+      setSupplies([]);
+      setStatus('ready');
+      return true;
+    };
+    if (isLocalAppointmentId(appointmentId)) {
+      if (!(await loadOffline()) && currentId.current === appointmentId) {
+        setStatus('error');
+      }
+      return;
+    }
     try {
       const [fresh, saved] = await Promise.all([
         fetchAppointment(idToken, appointmentId),
@@ -62,11 +111,12 @@ export function useAppointmentDetail(
       setAppointment(fresh);
       setSupplies(saved.map(toSupplyItem));
       setStatus('ready');
-    } catch {
+    } catch (error) {
       if (currentId.current !== appointmentId) return;
+      if (isNetworkError(error) && (await loadOffline())) return;
       setStatus('error');
     }
-  }, [idToken, appointmentId]);
+  }, [idToken, userId, appointmentId]);
 
   useEffect(() => {
     setAppointment(null);

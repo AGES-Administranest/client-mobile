@@ -710,6 +710,19 @@
       "message": "This time conflicts with {{procedure}} at {{time}}.",
       "unnamedProcedure": "another appointment",
       "adjust": "Change time"
+    },
+    "offline": "No connection. Showing the agenda saved on this device; what you create or edit will be sent when the internet is back.",
+    "pendingSync": "Waiting to send",
+    "sync": {
+      "title": "Appointment not synced",
+      "message": "Couldn't send the appointment for {{patient}} on {{date}} at {{time}}: {{reason}}",
+      "messageEdit": "Couldn't send an appointment edit: {{reason}}",
+      "unnamedPatient": "unnamed patient",
+      "reasons": {
+        "conflict": "the time conflicts with another appointment.",
+        "notFound": "the appointment no longer exists.",
+        "other": "the server refused the data."
+      }
     }
   },
   "home": {
