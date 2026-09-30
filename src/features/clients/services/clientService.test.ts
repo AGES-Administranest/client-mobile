@@ -1,12 +1,10 @@
-import { ApiError } from 'shared/services/apiClient';
-
-import { createClient, fetchClients } from './clientService';
+import { fetchClients } from './clientService';
 
 // Contrato real do ClientController (backend, módulo client):
-//   - rota singular: GET/POST /client
-//   - GET só aceita ?type=; o ValidationPipe usa forbidNonWhitelisted, então
+//   - rota singular: GET /client
+//   - só aceita ?type=; o ValidationPipe usa forbidNonWhitelisted, então
 //     `search` (ou userId) na query é 400
-//   - o dono vem do Authorization: `userId` no corpo ou na query é 400
+//   - o dono vem do Authorization: userId na query é 400
 const ID_TOKEN = 'id-token';
 
 const fetchMock = jest.fn();
@@ -27,21 +25,17 @@ function lastRequest() {
     url: new URL(url),
     init,
     headers: init.headers as Record<string, string>,
-    body:
-      typeof init.body === 'string'
-        ? (JSON.parse(init.body) as Record<string, unknown>)
-        : undefined,
   };
 }
 
 describe('fetchClients', () => {
-  test('lista em GET /client, sem nenhum parâmetro', async () => {
+  test('lista em GET /client filtrando por type=CLINIC: só clínicas cadastradas entram no dropdown', async () => {
     await fetchClients(ID_TOKEN);
 
     const { url, init } = lastRequest();
     expect(init.method).toBe('GET');
     expect(url.pathname).toBe('/client');
-    expect(url.search).toBe('');
+    expect(url.searchParams.get('type')).toBe('CLINIC');
   });
 
   test('manda o id token como bearer, como as outras chamadas', async () => {
@@ -71,42 +65,6 @@ describe('fetchClients', () => {
     await expect(fetchClients(ID_TOKEN)).rejects.toMatchObject({
       status: 401,
       code: 'TOKEN_EXPIRED',
-    });
-  });
-});
-
-describe('createClient', () => {
-  test('cria em POST /client com o payload e o bearer, sem userId', async () => {
-    await createClient(ID_TOKEN, { type: 'INDIVIDUAL', name: 'Maria Souza' });
-
-    const { url, init, headers, body } = lastRequest();
-    expect(init.method).toBe('POST');
-    expect(url.pathname).toBe('/client');
-    expect(url.search).toBe('');
-    expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
-    expect(body).toEqual({ type: 'INDIVIDUAL', name: 'Maria Souza' });
-    expect(body).not.toHaveProperty('userId');
-  });
-
-  test('preserva o code do 409 de nome duplicado', async () => {
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 409,
-      json: async () => ({
-        code: 'DUPLICATED_CLIENT_NAME',
-        message: 'A client with this name already exists',
-      }),
-    });
-
-    const error = await createClient(ID_TOKEN, {
-      type: 'CLINIC',
-      name: 'Clínica VetCenter',
-    }).catch((e: unknown) => e);
-
-    expect(error).toBeInstanceOf(ApiError);
-    expect(error).toMatchObject({
-      status: 409,
-      code: 'DUPLICATED_CLIENT_NAME',
     });
   });
 });

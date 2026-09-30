@@ -13,6 +13,10 @@ export function requireToken(idToken: string | null): string {
   return idToken;
 }
 
+export function isDuplicatedTaxIdError(error: unknown): boolean {
+  return error instanceof ApiError && error.code === 'DUPLICATED_CLIENT_TAX_ID';
+}
+
 export function toClinicFailureKey(error: unknown): TranslationKey {
   if (!(error instanceof ApiError)) {
     return 'clinics.newClinic.failures.unknown';

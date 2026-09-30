@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { Check, ChevronDown } from 'lucide-react-native';
+import { useState } from 'react';
 import {
   Animated,
   Dimensions,
-  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import {
   ClientAutocomplete,
@@ -21,6 +22,7 @@ import {
   type ClientOption,
   type ClientSearchStatus,
 } from 'features/clients';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type {
@@ -42,7 +44,6 @@ export type ProcedureFormTexts = {
   asaOptions: AsaClassification[];
   errors: Partial<Record<keyof ProcedureFormValues, string>>;
   clientSearchMessages: ClientAutocompleteMessages;
-  newClient: string;
 };
 
 export type ProcedureClientField = {
@@ -62,7 +63,6 @@ type ProcedureFormSheetProps = {
   onChangeText: (key: ProcedureTextField, value: string) => void;
   onChangeClientTerm: (term: string) => void;
   onSelectClient: (client: ClientOption) => void;
-  onPressNewClient: () => void;
   onChangeSpecies: (value: Species) => void;
   onChangeAsa: (value: AsaClassification) => void;
   onSubmit: () => void;
@@ -80,35 +80,21 @@ export function ProcedureFormSheet({
   onChangeText,
   onChangeClientTerm,
   onSelectClient,
-  onPressNewClient,
   onChangeSpecies,
   onChangeAsa,
   onSubmit,
   onClose,
 }: ProcedureFormSheetProps) {
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const [speciesOpen, setSpeciesOpen] = useState(false);
+  const selectedSpecies = texts.speciesOptions.find(
+    option => option.value === values.species,
+  );
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(backdropOpacity, {
-        toValue: visible ? 1 : 0,
-        duration: 300,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      Animated.timing(sheetTranslateY, {
-        toValue: visible ? 0 : SCREEN_HEIGHT,
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [visible, backdropOpacity, sheetTranslateY]);
+  const sheet = useSheetAnimation(visible, onClose);
 
   return (
     <Modal
-      visible={visible}
+      visible={sheet.isRendered}
       transparent
       animationType="none"
       onRequestClose={onClose}
@@ -118,7 +104,7 @@ export function ProcedureFormSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <Animated.View
-          style={[StyleSheet.absoluteFill, { opacity: backdropOpacity }]}
+          style={[StyleSheet.absoluteFill, { opacity: sheet.progress }]}
         >
           <Pressable
             accessibilityRole="button"
@@ -129,9 +115,10 @@ export function ProcedureFormSheet({
         </Animated.View>
 
         <Animated.View
+          {...sheet.panHandlers}
           style={{
             maxHeight: SCREEN_HEIGHT * 0.99,
-            transform: [{ translateY: sheetTranslateY }],
+            ...sheet.sheetStyle,
           }}
         >
           <View className="shrink gap-3 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
@@ -169,10 +156,8 @@ export function ProcedureFormSheet({
                 status={client.status}
                 options={client.options}
                 messages={texts.clientSearchMessages}
-                newClientLabel={texts.newClient}
                 onChangeText={onChangeClientTerm}
                 onSelect={onSelectClient}
-                onPressNewClient={onPressNewClient}
               />
 
               <View className="flex-row gap-3">
@@ -248,18 +233,53 @@ export function ProcedureFormSheet({
                 onChangeText={v => onChangeText('notes', v)}
               />
 
-              <Text className="mb-1 mt-1 text-xs font-semibold uppercase text-label-primary">
-                {texts.labels.species}
-              </Text>
-              <View className="mb-3 flex-row gap-2">
-                {texts.speciesOptions.map(option => (
-                  <Segment
-                    key={option.value}
-                    label={option.label}
-                    active={values.species === option.value}
-                    onPress={() => onChangeSpecies(option.value)}
+              <View className="z-10 mb-3">
+                <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
+                  {texts.labels.species}
+                </Text>
+                <Pressable
+                  onPress={() => setSpeciesOpen(open => !open)}
+                  accessibilityRole="button"
+                  className="flex-row items-center justify-between rounded-xl border border-border-primary bg-white px-4 py-2.5"
+                >
+                  <Text
+                    className={
+                      selectedSpecies
+                        ? 'text-[15px] text-label-primary'
+                        : 'text-[15px] text-label-tertiary'
+                    }
+                  >
+                    {selectedSpecies?.label ?? texts.placeholders.species}
+                  </Text>
+                  <Icon
+                    as={ChevronDown}
+                    className="size-4 text-label-tertiary"
                   />
-                ))}
+                </Pressable>
+
+                {speciesOpen ? (
+                  <View className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
+                    {texts.speciesOptions.map((option, index) => (
+                      <Pressable
+                        key={option.value}
+                        accessibilityRole="button"
+                        onPress={() => {
+                          onChangeSpecies(option.value);
+                          setSpeciesOpen(false);
+                        }}
+                        className={
+                          index === 0
+                            ? 'px-4 py-3'
+                            : 'border-t border-border-primary px-4 py-3'
+                        }
+                      >
+                        <Text className="text-[15px] text-label-primary">
+                          {option.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
               </View>
 
               <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
@@ -284,6 +304,7 @@ export function ProcedureFormSheet({
             ) : null}
 
             <Button
+              icon={Check}
               shape="pill"
               className="h-[49px] w-full"
               disabled={submitting}
@@ -327,8 +348,8 @@ function Field({
       <TextInput
         className={
           multiline
-            ? 'h-24 rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary'
-            : 'rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary'
+            ? 'h-24 rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
+            : 'rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
         }
         placeholder={placeholder}
         placeholderTextColor={LabelPlaceholder}

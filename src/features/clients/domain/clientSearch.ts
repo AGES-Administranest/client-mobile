@@ -12,7 +12,6 @@ export type ClientSearchStatus =
   | 'results';
 
 export type ClientSearchSnapshot = {
-  term: string;
   paused: boolean;
   isLoading: boolean;
   hasError: boolean;
@@ -30,34 +29,24 @@ export function normalizeForSearch(text: string): string {
 }
 
 // O GET /client não filtra por nome (só por type), então a lista inteira vem
-// de uma vez e o filtro é local. O backend também devolve os inativos: quem
-// foi desativado não deve ser escolhível num atendimento novo.
+// de uma vez e o filtro é local. Sem termo digitado (campo recém-aberto), o
+// dropdown mostra a lista inteira: o filtro só entra para refinar. O backend
+// também devolve os inativos: quem foi desativado não deve ser escolhível
+// num atendimento novo.
 export function filterClients(clients: Client[], term: string): Client[] {
   const needle = normalizeForSearch(term);
-  if (needle === '') {
-    return [];
-  }
   return clients.filter(
     client => client.active && normalizeForSearch(client.name).includes(needle),
   );
 }
 
-// Mantém a ordem alfabética que o backend usa (name asc), para o tomador
-// recém-cadastrado cair no lugar certo sem esperar um novo GET.
-export function addClient(clients: Client[], created: Client): Client[] {
-  return [...clients.filter(client => client.id !== created.id), created].sort(
-    (a, b) => a.name.localeCompare(b.name, 'pt-BR'),
-  );
-}
-
 export function getClientSearchStatus({
-  term,
   paused,
   isLoading,
   hasError,
   resultCount,
 }: ClientSearchSnapshot): ClientSearchStatus {
-  if (paused || term.trim() === '') {
+  if (paused) {
     return 'idle';
   }
   if (isLoading) {

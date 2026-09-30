@@ -1,6 +1,14 @@
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowLeft, Bell, BellOff } from 'lucide-react-native';
+import type { ReactNode } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EmptyState } from 'app/components/ui/empty-state';
+import { Icon } from 'app/components/ui/icon';
+import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
+import { Colors } from 'theme/colors';
 
 import { InventoryNotificationCard } from '../components/InventoryNotificationCard';
 import { formatExpirationDate, type ExpiringLot } from '../domain/expiryAlert';
@@ -23,6 +31,7 @@ type InventoryNotificationsScreenProps = {
   referenceDate?: Date;
   /** Só para demonstração e teste — a aba de Estoque não passa isto. */
   seedTimestamps?: AlertTimestamps;
+  onBack?: () => void;
 };
 
 export function InventoryNotificationsScreen({
@@ -32,6 +41,7 @@ export function InventoryNotificationsScreen({
   lots,
   referenceDate,
   seedTimestamps,
+  onBack,
 }: InventoryNotificationsScreenProps) {
   const { t } = useTranslation();
 
@@ -50,6 +60,14 @@ export function InventoryNotificationsScreen({
           )}
         </Text>
       </ScrollView>
+      <NotificationsLayout onBack={onBack}>
+        <View className="flex-1 items-center justify-center gap-3 px-6">
+          <Icon as={Bell} size={28} className="text-label-tertiary" />
+          <Text className="text-sm text-label-tertiary">
+            {t('inventory.overview.loading')}
+          </Text>
+        </View>
+      </NotificationsLayout>
     );
   }
 
@@ -60,6 +78,7 @@ export function InventoryNotificationsScreen({
       lots={lots}
       referenceDate={referenceDate}
       seedTimestamps={seedTimestamps}
+      onBack={onBack}
     />
   );
 }
@@ -70,6 +89,7 @@ function ReadyInventoryNotifications({
   lots,
   referenceDate,
   seedTimestamps,
+  onBack,
 }: Omit<InventoryNotificationsScreenProps, 'status'>) {
   const { t } = useTranslation();
   const { notifications, dismiss } = useInventoryNotifications(
@@ -92,44 +112,78 @@ function ReadyInventoryNotifications({
         });
 
   return (
-    <ScrollView
-      className="flex-1 bg-background-modal"
-      contentContainerClassName="gap-3 px-4 py-6"
-    >
-      <Text style={styles.heading}>{t('inventory.notifications.title')}</Text>
-
+    <NotificationsLayout onBack={onBack}>
       {notifications.length === 0 ? (
-        <Text style={styles.empty}>{t('inventory.notifications.empty')}</Text>
-      ) : (
-        notifications.map(notification => (
-          <InventoryNotificationCard
-            key={notification.key}
-            title={t(
-              notification.kind === 'lowStock'
-                ? 'inventory.notifications.lowStockTitle'
-                : 'inventory.notifications.expiryTitle',
-              { name: notification.name },
-            )}
-            description={describe(notification)}
-            elapsed={t(`inventory.elapsed.${notification.elapsed.unit}`, {
-              value: notification.elapsed.value,
-            })}
-            deleteLabel={t('inventory.notifications.delete')}
-            onDismiss={() => dismiss(notification.key)}
+        <View className="flex-1 items-center justify-center">
+          <EmptyState
+            icon={BellOff}
+            message={t('inventory.notifications.empty')}
           />
-        ))
+        </View>
+      ) : (
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="gap-3 px-4 pb-6"
+          showsVerticalScrollIndicator={false}
+        >
+          {notifications.map(notification => (
+            <InventoryNotificationCard
+              key={notification.key}
+              title={t(
+                notification.kind === 'lowStock'
+                  ? 'inventory.notifications.lowStockTitle'
+                  : 'inventory.notifications.expiryTitle',
+                { name: notification.name },
+              )}
+              description={describe(notification)}
+              elapsed={t(`inventory.elapsed.${notification.elapsed.unit}`, {
+                value: notification.elapsed.value,
+              })}
+              deleteLabel={t('inventory.notifications.delete')}
+              onDismiss={() => dismiss(notification.key)}
+            />
+          ))}
+        </ScrollView>
       )}
-    </ScrollView>
+    </NotificationsLayout>
   );
 }
 
-const styles = StyleSheet.create({
-  empty: {
-    color: '#9E9E9E',
-    fontSize: 14,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-});
+function NotificationsLayout({
+  onBack,
+  children,
+}: {
+  onBack?: () => void;
+  children: ReactNode;
+}) {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View className="flex-1" style={{ paddingTop: insets.top }}>
+      <LinearGradient
+        colors={Colors.background.primary.colors}
+        locations={Colors.background.primary.locations}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <View className="flex-row items-center px-3 pb-2 pt-1">
+        <Pressable
+          onPress={onBack}
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.back')}
+          hitSlop={8}
+          className="size-11 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+        >
+          <Icon as={ArrowLeft} className="size-5 text-white" />
+        </Pressable>
+        <Text className="flex-1 text-center text-sm font-semibold text-label-primary">
+          {t('inventory.notifications.title')}
+        </Text>
+        <View className="size-11" />
+      </View>
+
+      {children}
+    </View>
+  );
+}

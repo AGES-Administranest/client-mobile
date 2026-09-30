@@ -1,3 +1,5 @@
+import { Check, Mail } from 'lucide-react-native';
+
 import { useTranslation } from 'shared/i18n';
 
 import { AuthButton } from '../components/AuthButton';
@@ -61,6 +63,7 @@ export function ConfirmSignUpScreen({
 
       <AuthButton
         label={t('auth.confirm.submit')}
+        icon={Check}
         onPress={submit}
         isLoading={isSubmitting}
         className="mt-2"
@@ -68,6 +71,7 @@ export function ConfirmSignUpScreen({
       <AuthButton
         variant="link"
         label={t('auth.confirm.resend')}
+        icon={Mail}
         onPress={resend}
         disabled={isSubmitting}
         className="mt-2"

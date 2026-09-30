@@ -1,17 +1,9 @@
-import { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  Pressable,
-  View,
-} from 'react-native';
+import { Check, type LucideIcon, X } from 'lucide-react-native';
+import { Animated, Modal, Pressable, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
 type ConfirmSheetProps = {
   visible: boolean;
@@ -21,6 +13,13 @@ type ConfirmSheetProps = {
   cancelLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Ícone do confirmar: ✓ por padrão; exclusões passam a lixeira. */
+  confirmIcon?: LucideIcon;
+  /**
+   * 'danger' (padrão) pinta o cancelar do vermelho da paleta (button-secondary). 'button' usa o marrom do
+   * confirmar, para perguntas sem risco em que as duas respostas pesam igual.
+   */
+  cancelAppearance?: 'danger' | 'button';
 };
 
 /**
@@ -38,41 +37,25 @@ function ConfirmSheet({
   confirmLabel,
   cancelLabel,
   onConfirm,
+  confirmIcon = Check,
+  cancelAppearance = 'danger',
   onCancel,
 }: ConfirmSheetProps) {
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-
-  useEffect(() => {
-    Animated.timing(overlayOpacity, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(sheetTranslateY, {
-      toValue: visible ? 0 : SCREEN_HEIGHT,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible, overlayOpacity, sheetTranslateY]);
+  const sheet = useSheetAnimation(visible, onCancel);
 
   return (
     <Modal
-      visible={visible}
+      visible={sheet.isRendered}
       transparent
       animationType="none"
       onRequestClose={onCancel}
     >
-      <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
+      <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
         <Pressable
           className="flex-1 justify-end bg-background-shade"
           onPress={onCancel}
         >
-          <Animated.View
-            style={{ transform: [{ translateY: sheetTranslateY }] }}
-          >
+          <Animated.View style={sheet.sheetStyle} {...sheet.panHandlers}>
             <Pressable
               className="gap-4 rounded-t-3xl bg-background-modal px-5 pb-10 pt-4"
               onPress={e => e.stopPropagation()}
@@ -90,6 +73,7 @@ function ConfirmSheet({
 
               <Button
                 shape="pill"
+                icon={confirmIcon}
                 className="h-[49px] w-full"
                 onPress={onConfirm}
               >
@@ -97,7 +81,12 @@ function ConfirmSheet({
               </Button>
               <Button
                 shape="pill"
+                variant={
+                  cancelAppearance === 'danger' ? 'secondary' : 'default'
+                }
+                icon={X}
                 className="h-[49px] w-full"
+                accessibilityLabel={cancelLabel}
                 onPress={onCancel}
               >
                 <Text className="font-semibold">{cancelLabel}</Text>

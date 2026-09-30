@@ -17,7 +17,7 @@ export type ClinicField = keyof ClinicDraft;
 
 type ClinicFieldErrorCodes = {
   name: 'required' | 'tooShort';
-  cnpj: 'required' | 'invalid';
+  cnpj: 'required' | 'invalid' | 'duplicated';
   addressLine: 'required' | 'tooShort';
   city: 'required' | 'tooShort' | 'invalid';
   state: 'required' | 'invalid';

@@ -249,6 +249,23 @@ test.each([
   expect(current.isSaving).toBe(false);
 });
 
+test('reports a duplicated CNPJ as a field error, not the generic banner', async () => {
+  createClientMock.mockRejectedValue(
+    new ApiError('Duplicated', 'DUPLICATED_CLIENT_TAX_ID', 409),
+  );
+  await mount();
+  await fillName();
+
+  let created: Client | null | undefined;
+  await act(async () => {
+    created = await current.submit();
+  });
+
+  expect(created).toBeNull();
+  expect(current.errors).toMatchObject({ cnpj: 'duplicated' });
+  expect(current.failure).toBeNull();
+});
+
 test('asks to sign in again instead of calling the API without a session', async () => {
   await mount(null);
   await fillName();

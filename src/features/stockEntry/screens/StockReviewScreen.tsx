@@ -18,11 +18,11 @@ import {
 } from 'app/components/ui';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
 
 import { needsAttention, ScannedItem } from '../domain/stockItem';
-import { useSheetAnimation } from '../hooks/useSheetAnimation';
 
 type StockReviewScreenProps = {
   visible: boolean;
@@ -45,7 +45,10 @@ export function StockReviewScreen({
 }: StockReviewScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { isRendered, progress, translateY } = useSheetAnimation(visible);
+  const { isRendered, progress, sheetStyle, panHandlers } = useSheetAnimation(
+    visible,
+    onClose,
+  );
 
   return (
     <Modal
@@ -66,7 +69,7 @@ export function StockReviewScreen({
 
         <Pressable className="flex-1" onPress={onClose} />
 
-        <Animated.View style={{ transform: [{ translateY }] }}>
+        <Animated.View style={sheetStyle} {...panHandlers}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >

@@ -9,7 +9,6 @@ import { fetchClients } from '../services/clientService';
 
 jest.mock('../services/clientService', () => ({
   fetchClients: jest.fn(),
-  createClient: jest.fn(),
 }));
 // A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
@@ -159,6 +158,17 @@ test('busca a lista completa uma vez, com o token, e não a cada tecla', async (
   expect(result.current.status).toBe('results');
 });
 
+test('sem nada digitado, já mostra a lista inteira (é o dropdown)', async () => {
+  const { result } = await mountHook();
+
+  expect(result.current.status).toBe('results');
+  expect(names(result)).toEqual([
+    'Clínica VetCenter',
+    'Hospital Veterinário Pet Care',
+    'Clínica Vida Animal',
+  ]);
+});
+
 test('o filtro reage a cada tecla, sem acento e sem diferenciar maiúsculas', async () => {
   const { result } = await mountHook();
 
@@ -296,23 +306,17 @@ test('pausada esconde a lista, mas mantém o termo', async () => {
   expect(result.current.term).toBe('vet');
 });
 
-test('addCreated encaixa o tomador novo na lista já carregada, sem novo GET', async () => {
-  const { result } = await mountHook();
-  await type(result, 'nova');
-  expect(result.current.status).toBe('empty');
-
-  await act(async () => result.current.addCreated(client('Clínica Nova Vida')));
-
-  expect(names(result)).toEqual(['Clínica Nova Vida']);
-  expect(fetchMock).toHaveBeenCalledTimes(1);
-});
-
-test('reset limpa o termo', async () => {
+test('reset limpa o termo e volta a mostrar a lista inteira', async () => {
   const { result } = await mountHook();
   await type(result, 'vet');
 
   await act(async () => result.current.reset());
 
   expect(result.current.term).toBe('');
-  expect(result.current.status).toBe('idle');
+  expect(result.current.status).toBe('results');
+  expect(names(result)).toEqual([
+    'Clínica VetCenter',
+    'Hospital Veterinário Pet Care',
+    'Clínica Vida Animal',
+  ]);
 });

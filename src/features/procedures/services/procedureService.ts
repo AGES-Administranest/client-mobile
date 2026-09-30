@@ -12,7 +12,15 @@ export type AppointmentResult = {
   amount: string | null;
   patientName: string | null;
   ownerName: string | null;
-  species: 'CANINE' | 'FELINE' | 'OTHER' | null;
+  species:
+    | 'CANINE'
+    | 'FELINE'
+    | 'EQUINE'
+    | 'BOVINE'
+    | 'AVIAN'
+    | 'EXOTIC'
+    | 'OTHER'
+    | null;
   patientAgeYears: number | null;
   weightKg: string | null;
   asa: string | null;
@@ -133,4 +141,26 @@ export async function updateAppointmentAmount(
     { amount },
     { token: idToken },
   );
+}
+
+// PATCH parcial: campo omitido não muda (não dá para limpar um campo por aqui).
+export async function updateAppointment(
+  idToken: string,
+  appointmentId: string,
+  payload: Partial<Omit<CreateAppointmentPayload, 'status'>>,
+): Promise<AppointmentResult> {
+  return apiClient.patch<AppointmentResult>(
+    `/appointments/${appointmentId}`,
+    payload,
+    { token: idToken },
+  );
+}
+
+export async function deleteAppointment(
+  idToken: string,
+  appointmentId: string,
+): Promise<void> {
+  await apiClient.delete<AppointmentResult>(`/appointments/${appointmentId}`, {
+    token: idToken,
+  });
 }

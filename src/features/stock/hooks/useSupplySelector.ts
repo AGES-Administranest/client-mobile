@@ -51,7 +51,9 @@ export function useSupplySelector(): SupplySelectorState {
   const isTermTooShort = term.length > 0 && !isSearchable(term);
 
   useEffect(() => {
-    if (!idToken || !isSearchable(term)) {
+    // Vazio lista o catálogo inteiro (o backend também ignora buscas com
+    // menos de 2 caracteres); só o "quase vazio" de 1 caractere pausa.
+    if (!idToken || isTermTooShort) {
       setOptions([]);
       setIsLoading(false);
       setHasError(false);
@@ -86,7 +88,7 @@ export function useSupplySelector(): SupplySelectorState {
       isCurrent = false;
       clearTimeout(timer);
     };
-  }, [idToken, term]);
+  }, [idToken, term, isTermTooShort]);
 
   const onTermChange = useCallback((next: string) => {
     setTerm(next);
