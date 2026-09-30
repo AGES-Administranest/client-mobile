@@ -319,6 +319,15 @@ async function openEntries(
   return flow;
 }
 
+function duplicateOf(invoiceId: string) {
+  return new UploadError(
+    'duplicateFile',
+    new ApiError(409, 'INVOICE_FILE_DUPLICATED', 'duplicated', {
+      purchaseInvoiceId: invoiceId,
+    }),
+  );
+}
+
 async function sendPdf() {
   const flow = await openEntries();
   await press(flow, 'Nova entrada');
@@ -411,14 +420,7 @@ describe('a new entry', () => {
   });
 
   it('offers the existing entry when the same PDF was already sent', async () => {
-    uploadMock.mockRejectedValue(
-      new UploadError(
-        'duplicateFile',
-        new ApiError(409, 'INVOICE_FILE_DUPLICATED', 'duplicated', {
-          purchaseInvoiceId: 'invoice-existing',
-        }),
-      ),
-    );
+    uploadMock.mockRejectedValue(duplicateOf('invoice-existing'));
     const flow = await sendPdf();
     expect(texts(flow)).toContain('Documento já enviado');
 
@@ -428,6 +430,33 @@ describe('a new entry', () => {
       SESSION.idToken,
       'invoice-existing',
     );
+  });
+
+  it('offers another PDF, not the review, when the existing entry was never read', async () => {
+    uploadMock.mockRejectedValue(duplicateOf('invoice-existing'));
+    getEntryMock.mockResolvedValue({
+      id: 'invoice-existing',
+      extraction: {
+        status: 'FAILED',
+        failureReason: 'NO_TABLE_FOUND',
+        items: [],
+      },
+      lines: [],
+    });
+    const flow = await sendPdf();
+
+    await press(flow, 'Abrir a entrada existente');
+
+    expect(texts(flow)).toContain('Não encontramos os itens');
+    expect(
+      flow.root.findAll(
+        node => node.props.accessibilityLabel === 'Fechar conferência',
+      ),
+    ).toHaveLength(0);
+
+    await press(flow, 'Trocar arquivo');
+
+    expect(describeMock).toHaveBeenLastCalledWith(PICKED, 'invoice-existing');
   });
 
   it('offers another PDF for the same entry when the one sent has no text', async () => {

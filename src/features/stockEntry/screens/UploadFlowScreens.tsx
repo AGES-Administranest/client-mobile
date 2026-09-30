@@ -48,12 +48,9 @@ export function UploadFlowScreens({
   onOpenExisting,
 }: UploadFlowScreensProps) {
   const { t } = useTranslation();
+  const unread = upload.step === 'readingFailed' ? upload.readingFailure : null;
   const pdfFailure: PdfFailure | null =
-    upload.step === 'readingFailed' &&
-    upload.readingFailure &&
-    upload.readingFailure !== 'photo'
-      ? upload.readingFailure
-      : null;
+    unread && unread.reason !== 'photo' ? unread.reason : null;
   const duplicateOf =
     upload.failure === 'duplicateFile' ? upload.duplicateOf : null;
 
@@ -113,15 +110,13 @@ export function UploadFlowScreens({
             : t('stockEntry.reading.replace')
         }
         cancelLabel={t('stockEntry.reading.close')}
-        onConfirm={() => upload.replaceDocument()}
+        onConfirm={() => upload.replaceDocument(unread?.invoiceId)}
         onCancel={upload.dismissReadingFailure}
       />
 
       {/* Photo kept only as a receipt */}
       <MessageOverlay
-        visible={
-          upload.step === 'readingFailed' && upload.readingFailure === 'photo'
-        }
+        visible={unread?.reason === 'photo'}
         message={t('stockEntry.reading.photo')}
         actionLabel={t('stockEntry.errors.dismiss')}
         onDismiss={upload.dismissReadingFailure}

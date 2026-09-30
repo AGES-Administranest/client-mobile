@@ -48,9 +48,13 @@ export function StockEntryFlow({ onTypeItem }: StockEntryFlowProps = {}) {
     onTypeItem?.();
   }
 
+  function openEntry(invoiceId: string) {
+    review.openSaved(invoiceId, upload.showReadingFailure);
+  }
+
   function openExisting(invoiceId: string) {
     upload.dismissFailure();
-    review.openSaved(invoiceId);
+    openEntry(invoiceId);
   }
 
   function closeReview() {
@@ -82,7 +86,7 @@ export function StockEntryFlow({ onTypeItem }: StockEntryFlowProps = {}) {
         visible={isListOpen}
         onClose={() => setIsListOpen(false)}
         entries={entries}
-        onOpen={review.openSaved}
+        onOpen={openEntry}
         onReplace={upload.replaceDocument}
         onNewEntry={upload.openMenu}
       >

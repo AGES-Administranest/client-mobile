@@ -34,6 +34,8 @@ export type UploadStep =
 /** Anything that can stop the upload, from either half of it. */
 export type UploadFlowFailure = PickFailure | UploadFailure;
 
+type UnreadEntry = { invoiceId: string; reason: ReadingFailure };
+
 type UploadFlowOptions = {
   /** The document was read: its review can open. */
   onRead: (invoiceId: string, extraction: Extraction) => void;
@@ -45,7 +47,7 @@ export type UploadFlow = {
   step: UploadStep;
   /** Carries the invoice id (ADR-09), from the moment the file is picked. */
   document: InvoiceDocument | null;
-  readingFailure: ReadingFailure | null;
+  readingFailure: UnreadEntry | null;
   failure: UploadFlowFailure | null;
   /** On a duplicated file, the entry that already holds it. */
   duplicateOf: string | null;
@@ -60,6 +62,8 @@ export type UploadFlow = {
   /** Another PDF for an existing entry, so no second draft is left behind. */
   replaceDocument: (invoiceId?: string) => void;
   cancelDocument: () => void;
+  /** An entry opened from elsewhere whose document was never read. */
+  showReadingFailure: (invoiceId: string, reason: ReadingFailure) => void;
   dismissReadingFailure: () => void;
   dismissFailure: () => void;
 };
@@ -70,7 +74,7 @@ export function useUploadFlow({
 }: UploadFlowOptions): UploadFlow {
   const [step, setStep] = useState<UploadStep>('idle');
   const [document, setDocument] = useState<InvoiceDocument | null>(null);
-  const [readingFailure, setReadingFailure] = useState<ReadingFailure | null>(
+  const [readingFailure, setReadingFailure] = useState<UnreadEntry | null>(
     null,
   );
   const [failure, setFailure] = useState<UploadFlowFailure | null>(null);
@@ -104,7 +108,7 @@ export function useUploadFlow({
         const read = await uploadInvoiceDocument(described, session.idToken);
         if (!isMounted.current) return;
         const reason = readingFailureOf(read);
-        setReadingFailure(reason);
+        setReadingFailure(reason && { invoiceId: described.id, reason });
         setStep(reason ? 'readingFailed' : 'idle');
         if (!reason) onRead(described.id, read);
       } finally {
@@ -189,6 +193,13 @@ export function useUploadFlow({
       setDocument(null);
       setStep('idle');
     }, []),
+    showReadingFailure: useCallback(
+      (invoiceId: string, reason: ReadingFailure) => {
+        setReadingFailure({ invoiceId, reason });
+        setStep('readingFailed');
+      },
+      [],
+    ),
     dismissReadingFailure: useCallback(() => setStep('idle'), []),
     dismissFailure: useCallback(() => {
       setFailure(null);

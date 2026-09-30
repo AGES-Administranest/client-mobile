@@ -3,7 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from 'features/auth';
 import { backendUnitLabel } from 'features/materials';
 
-import type { Extraction } from '../domain/extraction';
+import {
+  readingFailure,
+  type Extraction,
+  type ReadingFailure,
+} from '../domain/extraction';
 import {
   fromExtraction,
   reviewFromDetail,
@@ -23,13 +27,15 @@ export type EntryReviewState = {
   isVisible: boolean;
   isOpening: boolean;
   openFailed: boolean;
-  /** Reopens an entry as it was last saved. */
-  openSaved: (invoiceId: string) => void;
+  /** Reopens an entry as it was last saved; one never read has no review. */
+  openSaved: (invoiceId: string, onUnread: OnUnread) => void;
   /** Opens an entry just read, straight from the upload's answer. */
   openRead: (invoiceId: string, extraction: Extraction) => void;
   close: () => void;
   dismissOpenFailure: () => void;
 };
+
+type OnUnread = (invoiceId: string, reason: ReadingFailure) => void;
 
 export function useEntryReview(): EntryReviewState {
   const { session } = useAuth();
@@ -55,14 +61,15 @@ export function useEntryReview(): EntryReviewState {
   }, []);
 
   const openSaved = useCallback(
-    (invoiceId: string) => {
+    (invoiceId: string, onUnread: OnUnread) => {
       if (!idToken) return;
       setIsOpening(true);
       getEntry(idToken, invoiceId)
         .then(detail => {
-          if (isMounted.current) {
-            show(invoiceId, reviewFromDetail(detail, backendUnitLabel));
-          }
+          if (!isMounted.current) return;
+          const reason = readingFailure(detail.extraction);
+          if (reason) onUnread(invoiceId, reason);
+          else show(invoiceId, reviewFromDetail(detail, backendUnitLabel));
         })
         .catch(() => {
           if (isMounted.current) setOpenFailed(true);
