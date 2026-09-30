@@ -644,7 +644,7 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Buscar clínica pelo nome",
+      "location": "Nome da clínica",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
@@ -672,12 +672,14 @@
       "END_BEFORE_START": "O fim deve ser depois do início",
       "INVALID_DATE": "Data inválida",
       "INVALID_TIME": "Hora inválida",
-      "IN_THE_PAST": "Escolha uma data e horário futuros"
+      "IN_THE_PAST": "Escolha uma data e horário futuros",
+      "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
+      "SELECT_CLIENT": "Escolha uma clínica da lista"
     },
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhuma clínica encontrada"
+      "empty": "Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas."
     },
     "completion": {
       "action": "Finalizar procedimento",
@@ -738,6 +740,7 @@
       "addSupply": "Adicionar insumo",
       "addSupplyShort": "Adicionar",
       "suppliesFailed": "Não foi possível salvar os insumos. Tente novamente.",
+      "pendingSyncHint": "Insumos, valor e status ficam disponíveis depois que o agendamento for enviado.",
       "amountSheet": {
         "title": "Valor do atendimento",
         "placeholder": "0,00",
@@ -862,6 +865,34 @@
       "errors": {
         "CONFLICT": "Você já possui um atendimento nesse horário.",
         "FAILED": "Não foi possível remarcar. Tente novamente."
+      }
+    },
+    "conflict": {
+      "title": "Conflito de horário",
+      "message": "Este horário conflita com {{procedure}} às {{time}}.",
+      "unnamedProcedure": "outro atendimento",
+      "adjust": "Alterar horário"
+    },
+    "offline": "Sem conexão. Mostrando a agenda salva no aparelho; o que você criar ou editar será enviado quando a internet voltar.",
+    "pendingSync": "Aguardando envio",
+    "sync": {
+      "title": "Agendamento não sincronizado",
+      "message": "Não foi possível enviar o agendamento de {{patient}} em {{date}} às {{time}}: {{reason}}",
+      "messageEdit": "Não foi possível enviar uma edição de agendamento: {{reason}}",
+      "unnamedPatient": "paciente sem nome",
+      "reasons": {
+        "conflict": "o horário conflita com outro agendamento.",
+        "notFound": "o agendamento não existe mais.",
+        "other": "os dados foram recusados pelo servidor.",
+        "clinicNotSynced": "a clínica dele não pôde ser cadastrada."
+      },
+      "clinicTitle": "Clínica não sincronizada",
+      "clinicMessage": "Não foi possível enviar a clínica {{name}}: {{reason}}",
+      "clinicMessageEdit": "Não foi possível enviar uma edição de clínica: {{reason}}",
+      "clinicReasons": {
+        "duplicatedTaxId": "já existe outra clínica com esse CNPJ.",
+        "notFound": "a clínica não existe mais.",
+        "duplicatedName": "já existe outra clínica com esse nome."
       }
     }
   },

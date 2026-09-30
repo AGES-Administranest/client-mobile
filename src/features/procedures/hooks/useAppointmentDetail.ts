@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  discardOfflineAppointment,
+  findOfflineAppointment,
+  isLocalAppointmentId,
+  isNetworkError,
+  resolveLocalAppointmentId,
+  type Appointment,
+} from 'features/appointments';
 import { useAuth } from 'features/auth';
 
 import { toSupplyItem } from '../domain/appointmentSupply';
@@ -17,12 +25,41 @@ import {
   type AppointmentResult,
 } from '../services/procedureService';
 
+function toAppointmentResult(appointment: Appointment): AppointmentResult {
+  return {
+    id: appointment.id,
+    clientId: appointment.clientId ?? null,
+    procedureName: appointment.procedureName ?? null,
+    startsAt: appointment.startsAt,
+    endsAt: appointment.endsAt ?? null,
+    location: appointment.location ?? null,
+    amount: appointment.amount == null ? null : String(appointment.amount),
+    patientName: appointment.patientName ?? null,
+    ownerName: appointment.ownerName ?? null,
+    species: (appointment.species ?? null) as AppointmentResult['species'],
+    patientAgeYears: appointment.patientAgeYears ?? null,
+    weightKg:
+      appointment.weightKg == null ? null : String(appointment.weightKg),
+    asa: appointment.asa ?? null,
+    notes: appointment.notes ?? null,
+    status: appointment.status,
+    createdAt: appointment.createdAt ?? '',
+    updatedAt: appointment.updatedAt ?? '',
+    deletedAt: null,
+  };
+}
+
 export type AmountError = 'REQUIRED' | 'INVALID_NUMBER' | 'FAILED';
 
 export type AppointmentDetailState = {
   appointment: AppointmentResult | null;
   supplies: SupplyItem[];
   status: 'loading' | 'ready' | 'error';
+  /**
+   * Criado offline e ainda na fila: não existe no backend, então insumos,
+   * valor e mudanças de status esperam o envio.
+   */
+  pendingSync: boolean;
   supplyFailed: boolean;
   savingSupply: boolean;
   refetch: () => void;
@@ -35,8 +72,9 @@ export type AppointmentDetailState = {
 export function useAppointmentDetail(
   appointmentId: string | null,
 ): AppointmentDetailState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
   const [appointment, setAppointment] = useState<AppointmentResult | null>(
     null,
   );
@@ -48,25 +86,57 @@ export function useAppointmentDetail(
   // Resposta de um atendimento anterior não pode sobrescrever o atual.
   const currentId = useRef(appointmentId);
   currentId.current = appointmentId;
+  // O id que vai para o backend: o do próprio atendimento ou, se ele foi
+  // criado offline e já sincronizou, o id real no lugar do local.
+  const [serverId, setServerId] = useState(appointmentId);
+  const pendingSync = serverId !== null && isLocalAppointmentId(serverId);
 
   const load = useCallback(async () => {
     if (!idToken || !appointmentId) {
       return;
     }
+    // Sem rede (ou criado offline e ainda sem id do backend), o detalhe vem
+    // do que está salvo no aparelho. Insumos não são guardados offline.
+    const loadOffline = async (): Promise<boolean> => {
+      const saved = userId
+        ? await findOfflineAppointment(userId, appointmentId)
+        : null;
+      if (!saved || currentId.current !== appointmentId) return false;
+      setAppointment(toAppointmentResult(saved));
+      setSupplies([]);
+      setStatus('ready');
+      return true;
+    };
+    // A tela pode continuar com o id local depois que a fila enviou o
+    // agendamento: aí ele já não está na fila e vem do backend pelo id real.
+    const resolved =
+      userId && isLocalAppointmentId(appointmentId)
+        ? await resolveLocalAppointmentId(userId, appointmentId)
+        : null;
+    if (currentId.current !== appointmentId) return;
+    setServerId(resolved ?? appointmentId);
+    if (isLocalAppointmentId(appointmentId) && !resolved) {
+      if (!(await loadOffline()) && currentId.current === appointmentId) {
+        setStatus('error');
+      }
+      return;
+    }
+    const targetId = resolved ?? appointmentId;
     try {
       const [fresh, saved] = await Promise.all([
-        fetchAppointment(idToken, appointmentId),
-        fetchAppointmentSupplies(idToken, appointmentId),
+        fetchAppointment(idToken, targetId),
+        fetchAppointmentSupplies(idToken, targetId),
       ]);
       if (currentId.current !== appointmentId) return;
       setAppointment(fresh);
       setSupplies(saved.map(toSupplyItem));
       setStatus('ready');
-    } catch {
+    } catch (error) {
       if (currentId.current !== appointmentId) return;
+      if (isNetworkError(error) && (await loadOffline())) return;
       setStatus('error');
     }
-  }, [idToken, appointmentId]);
+  }, [idToken, userId, appointmentId]);
 
   useEffect(() => {
     setAppointment(null);
@@ -79,15 +149,15 @@ export function useAppointmentDetail(
   async function changeSupplies(
     change: (token: string, id: string) => Promise<void>,
   ): Promise<boolean> {
-    if (!idToken || !appointmentId) {
+    if (!idToken || !appointmentId || !serverId || pendingSync) {
       setSupplyFailed(true);
       return false;
     }
     setSavingSupply(true);
     setSupplyFailed(false);
     try {
-      await change(idToken, appointmentId);
-      const saved = await fetchAppointmentSupplies(idToken, appointmentId);
+      await change(idToken, serverId);
+      const saved = await fetchAppointmentSupplies(idToken, serverId);
       if (currentId.current === appointmentId) {
         setSupplies(saved.map(toSupplyItem));
       }
@@ -120,15 +190,11 @@ export function useAppointmentDetail(
     if (amount === null || amount < 0) {
       return 'INVALID_NUMBER';
     }
-    if (!idToken || !appointmentId) {
+    if (!idToken || !appointmentId || !serverId || pendingSync) {
       return 'FAILED';
     }
     try {
-      const updated = await updateAppointmentAmount(
-        idToken,
-        appointmentId,
-        amount,
-      );
+      const updated = await updateAppointmentAmount(idToken, serverId, amount);
       if (currentId.current === appointmentId) {
         setAppointment(updated);
       }
@@ -139,11 +205,17 @@ export function useAppointmentDetail(
   }
 
   async function remove(): Promise<boolean> {
-    if (!idToken || !appointmentId) {
+    if (!idToken || !serverId) {
       return false;
     }
     try {
-      await deleteAppointment(idToken, appointmentId);
+      // Ainda na fila: excluir é só tirá-lo de lá.
+      if (pendingSync) {
+        if (!userId) return false;
+        await discardOfflineAppointment(userId, serverId);
+        return true;
+      }
+      await deleteAppointment(idToken, serverId);
       return true;
     } catch {
       return false;
@@ -154,6 +226,7 @@ export function useAppointmentDetail(
     appointment,
     supplies,
     status,
+    pendingSync,
     supplyFailed,
     savingSupply,
     refetch: load,

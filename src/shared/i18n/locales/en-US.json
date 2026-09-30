@@ -644,7 +644,7 @@
     "placeholders": {
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "location": "Search clinic by name",
+      "location": "Clinic name",
       "notes": "Notes about the procedure",
       "number": "0",
       "time": "HH:MM",
@@ -672,12 +672,14 @@
       "END_BEFORE_START": "End must be after start",
       "INVALID_DATE": "Invalid date",
       "INVALID_TIME": "Invalid time",
-      "IN_THE_PAST": "Pick a future date and time"
+      "IN_THE_PAST": "Pick a future date and time",
+      "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
+      "SELECT_CLIENT": "Pick a clinic from the list"
     },
     "clientSearch": {
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
-      "empty": "No clinics found"
+      "empty": "No clinics found. Add one under Partners → Clinics."
     },
     "completion": {
       "action": "Complete procedure",
@@ -738,6 +740,7 @@
       "addSupply": "Add supply",
       "addSupplyShort": "Add",
       "suppliesFailed": "Could not save the supplies. Try again.",
+      "pendingSyncHint": "Supplies, amount and status are available once the appointment is sent.",
       "amountSheet": {
         "title": "Appointment amount",
         "placeholder": "0.00",
@@ -862,6 +865,34 @@
       "errors": {
         "CONFLICT": "You already have an appointment at this time.",
         "FAILED": "Could not reschedule. Try again."
+      }
+    },
+    "conflict": {
+      "title": "Schedule conflict",
+      "message": "This time conflicts with {{procedure}} at {{time}}.",
+      "unnamedProcedure": "another appointment",
+      "adjust": "Change time"
+    },
+    "offline": "No connection. Showing the agenda saved on this device; what you create or edit will be sent when the internet is back.",
+    "pendingSync": "Waiting to send",
+    "sync": {
+      "title": "Appointment not synced",
+      "message": "Couldn't send the appointment for {{patient}} on {{date}} at {{time}}: {{reason}}",
+      "messageEdit": "Couldn't send an appointment edit: {{reason}}",
+      "unnamedPatient": "unnamed patient",
+      "reasons": {
+        "conflict": "the time conflicts with another appointment.",
+        "notFound": "the appointment no longer exists.",
+        "other": "the server refused the data.",
+        "clinicNotSynced": "its clinic could not be registered."
+      },
+      "clinicTitle": "Clinic not synced",
+      "clinicMessage": "Couldn't send the clinic {{name}}: {{reason}}",
+      "clinicMessageEdit": "Couldn't send a clinic edit: {{reason}}",
+      "clinicReasons": {
+        "duplicatedTaxId": "another clinic already has this CNPJ.",
+        "notFound": "the clinic no longer exists.",
+        "duplicatedName": "another clinic already has this name."
       }
     }
   },

@@ -18,7 +18,7 @@ describe('validateProcedureForm', () => {
     });
     expect(errors.patientName).toBe('REQUIRED');
     expect(errors.procedureName).toBe('REQUIRED');
-    expect(errors.clientId).toBe('REQUIRED');
+    expect(errors.clientId).toBe('SELECT_CLIENT');
     expect(errors.amount).toBe('REQUIRED');
     expect(errors.date).toBe('REQUIRED');
     expect(errors.startTime).toBe('REQUIRED');
@@ -204,5 +204,36 @@ describe('validateProcedureForm', () => {
         endTime: '09:00',
       }).endTime,
     ).toBeUndefined();
+  });
+});
+
+describe('validateProcedureForm — agendamento (começo no futuro)', () => {
+  // O fixture é 06/08/2026 das 09:00 às 10:00.
+  const BEFORE_START = new Date(2026, 7, 6, 8, 0, 0, 0);
+  const AFTER_START = new Date(2026, 7, 6, 12, 0, 0, 0);
+
+  it('exige o fim quando o começo é futuro, para haver duração e checagem de conflito', () => {
+    expect(
+      validateProcedureForm({ ...valid, endTime: '' }, BEFORE_START).endTime,
+    ).toBe('REQUIRED_FOR_SCHEDULE');
+  });
+
+  it('aceita agendamento futuro com fim informado', () => {
+    expect(validateProcedureForm(valid, BEFORE_START)).toEqual({});
+  });
+
+  it('continua aceitando procedimento já realizado sem fim', () => {
+    expect(
+      validateProcedureForm({ ...valid, endTime: '' }, AFTER_START).endTime,
+    ).toBeUndefined();
+  });
+
+  it('não sobrepõe o erro de data ou hora inválida com o do fim', () => {
+    const errors = validateProcedureForm(
+      { ...valid, date: '31/02/2026', endTime: '' },
+      BEFORE_START,
+    );
+    expect(errors.date).toBe('INVALID_DATE');
+    expect(errors.endTime).toBeUndefined();
   });
 });

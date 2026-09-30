@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { useAppointments } from './useAppointments';
 import * as appointmentService from '../services/appointmentService';
+import { queueAppointmentCreate } from '../services/offlineAppointmentStore';
 
 jest.mock('features/auth', () => ({
   useAuth: () => ({
@@ -33,8 +35,9 @@ async function mountHook() {
 }
 
 describe('useAppointments', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
+    await AsyncStorage.clear();
     mockFetch.mockImplementation(async (_token, { status }) =>
       status === 'SCHEDULED'
         ? [
@@ -112,5 +115,80 @@ describe('useAppointments', () => {
     expect(result.current.selectedDate).toBe('2026-08-17');
     expect(result.current.selectedDayAppointments).toHaveLength(1);
     expect(result.current.selectedDayAppointments[0].id).toBe('1');
+  });
+
+  describe('sem conexão', () => {
+    const today = new Date();
+    const inThisMonth = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      15,
+      10,
+    ).toISOString();
+    const offline = () =>
+      mockFetch.mockRejectedValue(new TypeError('Network request failed'));
+
+    it('mostra o mês salvo da última vez, somando o que foi criado offline', async () => {
+      mockFetch.mockImplementation(async (_token, { status }) =>
+        status === 'SCHEDULED'
+          ? [
+              {
+                id: '2',
+                patientName: 'Luna',
+                startsAt: inThisMonth,
+                status: 'SCHEDULED',
+              },
+            ]
+          : [],
+      );
+      await mountHook();
+      offline();
+      await queueAppointmentCreate('test-user', 'cg-1', {
+        startsAt: inThisMonth,
+        status: 'SCHEDULED',
+        patientName: 'Thomas',
+      });
+
+      const { result } = await mountHook();
+
+      expect(result.current.isOffline).toBe(true);
+      expect(result.current.error).toBeNull();
+      expect(
+        result.current.appointments.map(appointment => appointment.patientName),
+      ).toEqual(['Luna', 'Thomas']);
+      expect(result.current.appointments[1]).toMatchObject({
+        id: 'local:cg-1',
+        pendingSync: true,
+      });
+    });
+
+    it('um mês nunca aberto com rede aparece vazio, sem erro', async () => {
+      offline();
+
+      const { result } = await mountHook();
+
+      expect(result.current.isOffline).toBe(true);
+      expect(result.current.error).toBeNull();
+      expect(result.current.appointments).toEqual([]);
+    });
+
+    it('a agenda aberta se refaz quando algo entra na fila', async () => {
+      const { result } = await mountHook();
+      offline();
+
+      await act(async () => {
+        await queueAppointmentCreate('test-user', 'cg-2', {
+          startsAt: inThisMonth,
+          status: 'SCHEDULED',
+          patientName: 'Nina',
+        });
+      });
+
+      expect(
+        result.current.appointments.some(
+          appointment => appointment.patientName === 'Nina',
+        ),
+      ).toBe(true);
+    });
   });
 });

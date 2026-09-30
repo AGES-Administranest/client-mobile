@@ -27,6 +27,8 @@ export type Appointment = {
   status: AppointmentStatus;
   createdAt?: string;
   updatedAt?: string;
+  /** Criado ou editado sem conexão e ainda não enviado ao backend. */
+  pendingSync?: boolean;
 };
 
 export type CreateAppointmentPayload = {
@@ -123,6 +125,27 @@ export function formatAppointmentDateBadge(
   } catch {
     return startsAt.slice(8, 10);
   }
+}
+
+// O que o card mostra no canto: o horário, e a data junto só quando a lista
+// cobre o mês inteiro e o dia não é óbvio. "15:00 – 16:00" ou
+// "30 set · 15:00 – 16:00".
+export function formatAppointmentSchedule(
+  startsAt: string,
+  endsAt: string | null | undefined,
+  options: { withDate: boolean; locale?: string },
+): string {
+  const locale = options.locale ?? 'pt-BR';
+  const time = (iso: string) =>
+    new Date(iso).toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  const range = endsAt ? `${time(startsAt)} – ${time(endsAt)}` : time(startsAt);
+  return options.withDate
+    ? `${formatAppointmentDateBadge(startsAt, locale)} · ${range}`
+    : range;
 }
 
 export function formatCurrency(amount?: number | string | null): string {
