@@ -41,4 +41,5 @@ export {
   newClientGeneratedId,
   queueAppointmentCreate,
   queueAppointmentUpdate,
+  resolveLocalAppointmentId,
 } from './services/offlineAppointmentStore';

@@ -4,6 +4,7 @@ import {
   findOfflineAppointment,
   isLocalAppointmentId,
   isNetworkError,
+  resolveLocalAppointmentId,
   type Appointment,
 } from 'features/appointments';
 import { useAuth } from 'features/auth';
@@ -79,6 +80,9 @@ export function useAppointmentDetail(
   // Resposta de um atendimento anterior não pode sobrescrever o atual.
   const currentId = useRef(appointmentId);
   currentId.current = appointmentId;
+  // O id que vai para o backend: o do próprio atendimento ou, se ele foi
+  // criado offline e já sincronizou, o id real no lugar do local.
+  const [serverId, setServerId] = useState(appointmentId);
 
   const load = useCallback(async () => {
     if (!idToken || !appointmentId) {
@@ -96,16 +100,25 @@ export function useAppointmentDetail(
       setStatus('ready');
       return true;
     };
-    if (isLocalAppointmentId(appointmentId)) {
+    // A tela pode continuar com o id local depois que a fila enviou o
+    // agendamento: aí ele já não está na fila e vem do backend pelo id real.
+    const resolved =
+      userId && isLocalAppointmentId(appointmentId)
+        ? await resolveLocalAppointmentId(userId, appointmentId)
+        : null;
+    if (currentId.current !== appointmentId) return;
+    setServerId(resolved ?? appointmentId);
+    if (isLocalAppointmentId(appointmentId) && !resolved) {
       if (!(await loadOffline()) && currentId.current === appointmentId) {
         setStatus('error');
       }
       return;
     }
+    const targetId = resolved ?? appointmentId;
     try {
       const [fresh, saved] = await Promise.all([
-        fetchAppointment(idToken, appointmentId),
-        fetchAppointmentSupplies(idToken, appointmentId),
+        fetchAppointment(idToken, targetId),
+        fetchAppointmentSupplies(idToken, targetId),
       ]);
       if (currentId.current !== appointmentId) return;
       setAppointment(fresh);
@@ -129,15 +142,15 @@ export function useAppointmentDetail(
   async function changeSupplies(
     change: (token: string, id: string) => Promise<void>,
   ): Promise<boolean> {
-    if (!idToken || !appointmentId) {
+    if (!idToken || !appointmentId || !serverId) {
       setSupplyFailed(true);
       return false;
     }
     setSavingSupply(true);
     setSupplyFailed(false);
     try {
-      await change(idToken, appointmentId);
-      const saved = await fetchAppointmentSupplies(idToken, appointmentId);
+      await change(idToken, serverId);
+      const saved = await fetchAppointmentSupplies(idToken, serverId);
       if (currentId.current === appointmentId) {
         setSupplies(saved.map(toSupplyItem));
       }
@@ -170,15 +183,11 @@ export function useAppointmentDetail(
     if (amount === null || amount < 0) {
       return 'INVALID_NUMBER';
     }
-    if (!idToken || !appointmentId) {
+    if (!idToken || !appointmentId || !serverId) {
       return 'FAILED';
     }
     try {
-      const updated = await updateAppointmentAmount(
-        idToken,
-        appointmentId,
-        amount,
-      );
+      const updated = await updateAppointmentAmount(idToken, serverId, amount);
       if (currentId.current === appointmentId) {
         setAppointment(updated);
       }
@@ -189,11 +198,11 @@ export function useAppointmentDetail(
   }
 
   async function remove(): Promise<boolean> {
-    if (!idToken || !appointmentId) {
+    if (!idToken || !serverId) {
       return false;
     }
     try {
-      await deleteAppointment(idToken, appointmentId);
+      await deleteAppointment(idToken, serverId);
       return true;
     } catch {
       return false;

@@ -1,6 +1,9 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { findOfflineAppointment } from 'features/appointments';
+import {
+  findOfflineAppointment,
+  resolveLocalAppointmentId,
+} from 'features/appointments';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { useAppointmentDetail } from 'features/procedures/hooks/useAppointmentDetail';
 import {
@@ -26,6 +29,7 @@ jest.mock('features/procedures/services/appointmentSupplyService', () => ({
 jest.mock('features/appointments', () => ({
   ...jest.requireActual('features/appointments'),
   findOfflineAppointment: jest.fn(),
+  resolveLocalAppointmentId: jest.fn(),
 }));
 // A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
@@ -38,6 +42,7 @@ const fetchSuppliesMock = jest.mocked(fetchAppointmentSupplies);
 const registerMock = jest.mocked(registerAppointmentSupplies);
 const removeMock = jest.mocked(removeAppointmentSupply);
 const findOfflineMock = jest.mocked(findOfflineAppointment);
+const resolveLocalMock = jest.mocked(resolveLocalAppointmentId);
 
 const SESSION = {
   idToken: 'id-token',
@@ -69,13 +74,13 @@ const PROPOFOL = {
   item: { name: 'Propofol', unit: 'VIAL' },
 };
 
-async function mountHook() {
+async function mountHook(appointmentId = 'appointment-1') {
   const result = {
     current: null as unknown as ReturnType<typeof useAppointmentDetail>,
   };
 
   function Harness() {
-    result.current = useAppointmentDetail('appointment-1');
+    result.current = useAppointmentDetail(appointmentId);
     return null;
   }
 
@@ -95,6 +100,7 @@ beforeEach(() => {
   fetchSuppliesMock.mockResolvedValue([PROPOFOL]);
   registerMock.mockResolvedValue();
   removeMock.mockResolvedValue();
+  resolveLocalMock.mockResolvedValue(null);
 });
 
 test('loads the appointment and its saved supplies', async () => {
@@ -149,6 +155,41 @@ test('sem rede e sem nada salvo, continua mostrando o erro', async () => {
   const result = await mountHook();
 
   expect(result.current.status).toBe('error');
+});
+
+test('criado offline e ainda na fila, vem do aparelho sem ir ao backend', async () => {
+  findOfflineMock.mockResolvedValue({
+    id: 'local:cg-1',
+    startsAt: '2026-09-30T18:00:00.000Z',
+    status: 'SCHEDULED',
+  });
+
+  const result = await mountHook('local:cg-1');
+
+  expect(findOfflineMock).toHaveBeenCalledWith('user-1', 'local:cg-1');
+  expect(fetchAppointmentMock).not.toHaveBeenCalled();
+  expect(result.current.status).toBe('ready');
+});
+
+test('criado offline e já sincronizado, vem do backend pelo id real', async () => {
+  resolveLocalMock.mockResolvedValue('appointment-1');
+
+  const result = await mountHook('local:cg-1');
+
+  expect(resolveLocalMock).toHaveBeenCalledWith('user-1', 'local:cg-1');
+  expect(fetchAppointmentMock).toHaveBeenCalledWith(
+    'id-token',
+    'appointment-1',
+  );
+  expect(findOfflineMock).not.toHaveBeenCalled();
+  expect(result.current.status).toBe('ready');
+
+  await act(async () => {
+    await result.current.addSupply('item-1', 1);
+  });
+  expect(registerMock).toHaveBeenCalledWith('id-token', 'appointment-1', [
+    { itemId: 'item-1', quantity: 1 },
+  ]);
 });
 
 test('adding a supply saves it and reloads the list from the server', async () => {

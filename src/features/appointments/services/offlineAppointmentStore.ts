@@ -141,6 +141,19 @@ export async function saveResolvedAppointmentId(
   });
 }
 
+/**
+ * O id do backend de um agendamento criado offline que já sincronizou, ou
+ * null se ele ainda está na fila (ou se o id já é do backend).
+ */
+export async function resolveLocalAppointmentId(
+  userId: string,
+  appointmentId: string,
+): Promise<string | null> {
+  if (!isLocalAppointmentId(appointmentId)) return null;
+  const resolved = await loadResolvedAppointmentIds(userId);
+  return resolved[clientGeneratedIdOf(appointmentId)] ?? null;
+}
+
 export async function queueAppointmentUpdate(
   userId: string,
   appointmentId: string,
