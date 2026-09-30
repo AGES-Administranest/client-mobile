@@ -1,6 +1,8 @@
+import type { LucideIcon } from 'lucide-react-native';
 import { ActivityIndicator } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
@@ -8,6 +10,7 @@ import { ButtonPrimary, LabelSecondary } from '../../../theme/colors';
 
 type AuthButtonProps = {
   label: string;
+  icon?: LucideIcon;
   onPress: () => void;
   variant?: 'primary' | 'outline' | 'link';
   isLoading?: boolean;
@@ -33,6 +36,7 @@ const TEXT_CLASSES: Record<NonNullable<AuthButtonProps['variant']>, string> = {
 
 export function AuthButton({
   label,
+  icon,
   onPress,
   variant = 'primary',
   isLoading = false,
@@ -54,7 +58,12 @@ export function AuthButton({
       {isLoading ? (
         <ActivityIndicator color={isPrimary ? LabelSecondary : ButtonPrimary} />
       ) : (
-        <Text className={TEXT_CLASSES[variant]}>{label}</Text>
+        <>
+          {icon ? (
+            <Icon as={icon} size={18} className={TEXT_CLASSES[variant]} />
+          ) : null}
+          <Text className={TEXT_CLASSES[variant]}>{label}</Text>
+        </>
       )}
     </Button>
   );

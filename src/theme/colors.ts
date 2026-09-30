@@ -20,6 +20,7 @@ export const BackgroundShade = withOpacity('#504E4E', 33);
 export const DetailsPrimary = '#F0F0F7';
 export const DetailsSecondary = withOpacity('#FADE84', 50);
 export const DetailsTertiary = '#FADE84';
+export const DetailsFinish = '#C2E6CB';
 
 export const LabelPrimary = '#000000';
 export const LabelSecondary = '#FFFFFF';
@@ -45,6 +46,7 @@ export const Colors = {
     primary: DetailsPrimary,
     secondary: DetailsSecondary,
     tertiary: DetailsTertiary,
+    finish: DetailsFinish,
   },
   label: {
     primary: LabelPrimary,

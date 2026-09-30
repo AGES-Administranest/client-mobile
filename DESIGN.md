@@ -27,6 +27,7 @@ The good news: **the palette is already implemented** in this repo. Every color 
 | Link-style text on brand color | "Editar", "Cancelar", "+ Registrar" | `#594236` | `Colors.label.quartenery` | `text-label-quartenery` |
 | Borders / dividers | Input outlines, list-row separators | `#D4D4D4` | `Colors.border.primary` | `border-border-primary` |
 | Negative / destructive value | `– R$ 33.90` (Total insumos row) | `#D95743` | `Colors.alert.primary` | `text-alert-primary` |
+| Completed-status badge fill | "Concluído" chip next to ASA badge | `#C2E6CB` | `Colors.details.finish` | `bg-details-finish` |
 | Blocking state | Stock entry review: line with no linked item or whose total disagrees (border, notice, missing value), failed reading | `#D95743` | `Colors.alert.primary` | `border-alert-primary`, `text-alert-primary` |
 | Attention state | Stock entry review: line to check (quantity or unit price missing), partial-reading banner, attention counter | `#FADE84` | `Colors.details.tertiary` | `bg-details-tertiary`, `border-details-tertiary` |
 
@@ -68,11 +69,11 @@ Cross-referenced against what already exists in [`src/app/components/ui`](./src/
 | --- | --- | --- |
 | **Button** (primary pill, `bg-button-primary`) | Full-width or content-width, rounded-full, optional leading icon (`+`, `✓`) | Exists — `button.tsx`; confirm a variant covers icon-leading pill style |
 | **Icon button (circular)** | Back button, FAB (calculator icon) — circular, brand-brown fill, white icon | Exists (`icon.tsx` + `button.tsx` composition) — check a circular/icon-only variant is available |
-| **Card / StatCard** | White rounded box, eyebrow label + big value, used standalone or in a 2-column grid | `card.tsx` exists as a generic surface; a `StatCard` (label + value composition) is **not yet a shared component** — worth extracting since this pattern (Idade/Peso/Valor/Horário) repeats 4×+ per screen |
-| **Badge / Chip** | Small pill, muted background, bold small caps text (e.g. "ASA I") | **Not present yet** — new primitive needed |
-| **SectionHeader** | Eyebrow label (left) + trailing text-link action (right) — "MATERIAIS USADOS" / "+ Adicionar", "DESLOCAMENTO" / "Cancelar" | **Not present yet** — recurring pattern, worth its own component instead of ad hoc rows |
-| **ListRow (dismissible)** | Title + subtitle on the left, price + small `×` remove button on the right, divider below | **Not present yet** |
-| **EmptyState (inline)** | Dashed/soft box, centered muted text ("Nenhum deslocamento registrado") | **Not present yet** |
+| **Card / StatCard** | White rounded box, eyebrow label + big value, used standalone or in a 2-column grid | Implemented as `DetailStatCard` in `features/procedures/components` (feature-local — not moved to `app/components/ui` since only this screen uses it so far) |
+| **Badge / Chip** | Small pill, muted background, bold small caps text (e.g. "ASA I") | Implemented as `AsaBadge` in `features/appointments/components`; the status chip ("Concluído"/"Cancelado") is inline in `AppointmentDetailScreen` rather than a shared primitive |
+| **SectionHeader** | Eyebrow label (left) + trailing text-link action (right) — "MATERIAIS USADOS" / "+ Adicionar", "DESLOCAMENTO" / "Cancelar" | Still ad hoc per-section rows in `AppointmentDetailScreen`/`TravelSection` — worth extracting if a third screen needs the same pattern |
+| **ListRow (dismissible)** | Title + subtitle on the left, price + small `×` remove button on the right, divider below | Implemented as `SupplyList` in `features/procedures/components` |
+| **EmptyState (inline)** | Dashed/soft box, centered muted text ("Nenhum deslocamento registrado") | Implemented inline inside `TravelSection` (`features/procedures/components`) — not yet a standalone primitive |
 | **BottomSheet / Modal** | Drag handle, title, divider, scrollable list, pinned CTA — used for 3 of the 5 screen variants seen | Check if `@rn-primitives` already ships a sheet primitive before building one from scratch |
 | **Search-select field (autocomplete)** | Eyebrow label (left) + text-link "Novo tomador" (right) above a regular input; typing shows an inline white `rounded-xl` result list right under it (max 5 rows, hairline dividers), or a one-line muted status ("Buscando…", "Nenhum tomador encontrado", red on error). The list is filtered locally as you type (case- and accent-insensitive); picking a row fills the input with its name | Exists as `ClientAutocomplete` in `features/clients/components` — client-specific for now; move to `app/components/ui` once a second feature needs a search-select |
 | **Text** | Central place for the typography scale above (title/eyebrow/body/price variants) | Exists (`text.tsx`) — extend its variants to cover "eyebrow" and "price" if not already there |

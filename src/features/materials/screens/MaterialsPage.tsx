@@ -1,4 +1,4 @@
-import { PackageSearch, Plus } from 'lucide-react-native';
+import { PackageSearch, Plus, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
@@ -183,6 +183,7 @@ export function MaterialsScreen() {
       />
 
       <ConfirmSheet
+        confirmIcon={Trash2}
         visible={pendingDelete !== null}
         title={t('materials.deleteConfirmTitle')}
         message={t('materials.deleteConfirmMessage', {

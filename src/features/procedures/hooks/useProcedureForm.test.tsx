@@ -1,7 +1,6 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
-import type { Client } from 'features/clients';
 
 import { useProcedureForm } from './useProcedureForm';
 import { validProcedureForm } from '../domain/validProcedureForm.fixture';
@@ -12,7 +11,6 @@ jest.mock('../services/procedureService', () => ({
 }));
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn().mockResolvedValue([]),
-  createClient: jest.fn(),
 }));
 // A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
@@ -172,22 +170,6 @@ test('após salvar, o tomador e o termo voltam ao vazio', async () => {
 
   expect(result.current.values.clientId).toBeNull();
   expect(result.current.client.term).toBe('');
-});
-
-test('um tomador recém-criado fica selecionado e preenche o campo', async () => {
-  const { result } = await mountHook();
-  await act(async () => result.current.setTextField('patientName', 'Rex'));
-
-  await act(async () =>
-    result.current.client.onCreated({
-      id: 'client-new',
-      name: 'Clínica Nova Vida',
-    } as Client),
-  );
-
-  expect(result.current.values.clientId).toBe('client-new');
-  expect(result.current.client.term).toBe('Clínica Nova Vida');
-  expect(result.current.values.patientName).toBe('Rex');
 });
 
 test('asks about supplies with the new appointment id instead of closing right away', async () => {

@@ -1,8 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { Check } from 'lucide-react-native';
 import {
   Animated,
-  Dimensions,
-  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -13,9 +11,8 @@ import {
 
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPlaceholder } from 'theme/colors';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export type EditAmountSheetTexts = {
   title: string;
@@ -46,27 +43,11 @@ export function EditAmountSheet({
   onConfirm,
   onClose,
 }: EditAmountSheetProps) {
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-
-  useEffect(() => {
-    Animated.timing(overlayOpacity, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(sheetTranslateY, {
-      toValue: visible ? 0 : SCREEN_HEIGHT,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible, overlayOpacity, sheetTranslateY]);
+  const sheet = useSheetAnimation(visible, onClose);
 
   return (
     <Modal
-      visible={visible}
+      visible={sheet.isRendered}
       transparent
       animationType="none"
       onRequestClose={onClose}
@@ -75,14 +56,14 @@ export function EditAmountSheet({
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View className="flex-1" style={{ opacity: overlayOpacity }}>
+        {/* style, não className: na web o NativeWind não aplica className em
+            Animated.View, e sem flex: 1 a folha subia para o topo. */}
+        <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
           <Pressable
             className="flex-1 justify-end bg-background-shade"
             onPress={onClose}
           >
-            <Animated.View
-              style={{ transform: [{ translateY: sheetTranslateY }] }}
-            >
+            <Animated.View style={sheet.sheetStyle} {...sheet.panHandlers}>
               <Pressable
                 className="gap-4 rounded-t-3xl bg-background-modal px-5 pb-10 pt-4"
                 onPress={e => e.stopPropagation()}
@@ -112,6 +93,7 @@ export function EditAmountSheet({
                 </View>
 
                 <Button
+                  icon={Check}
                   shape="pill"
                   className="h-[49px] w-full"
                   disabled={submitting}

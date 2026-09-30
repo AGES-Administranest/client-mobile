@@ -419,7 +419,8 @@
         },
         "cnpj": {
           "required": "Informe o CNPJ.",
-          "invalid": "O CNPJ informado não é válido."
+          "invalid": "O CNPJ informado não é válido.",
+          "duplicated": "Já existe uma clínica com esse CNPJ."
         },
         "state": {
           "required": "Informe a UF.",
@@ -620,7 +621,6 @@
       "confirm": "Confirmar",
       "close": "Fechar",
       "location": "Local",
-      "newClient": "Novo tomador",
       "submitError": "Não foi possível salvar. Tente novamente."
     },
     "supplyPrompt": {
@@ -644,15 +644,20 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Buscar tomador pelo nome",
+      "location": "Buscar clínica pelo nome",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
-      "date": "DD/MM/YYYY"
+      "date": "DD/MM/YYYY",
+      "species": "Selecione a espécie"
     },
     "species": {
       "canine": "Canino",
       "feline": "Felino",
+      "equine": "Equino",
+      "bovine": "Bovino",
+      "avian": "Ave",
+      "exotic": "Exótico/Silvestre",
       "other": "Outro"
     },
     "errors": {
@@ -660,15 +665,19 @@
       "INVALID_NUMBER": "Número inválido",
       "MUST_BE_POSITIVE": "Deve ser maior que zero",
       "MUST_BE_INTEGER": "Deve ser um número inteiro",
+      "TOO_SHORT": "Mínimo de 2 caracteres",
+      "MAX_2_DECIMALS": "Máximo de 2 casas decimais",
+      "MAX_3_DECIMALS": "Máximo de 3 casas decimais",
       "AGE_OUT_OF_RANGE": "Idade deve estar entre 0 e 100",
       "END_BEFORE_START": "O fim deve ser depois do início",
       "INVALID_DATE": "Data inválida",
-      "INVALID_TIME": "Hora inválida"
+      "INVALID_TIME": "Hora inválida",
+      "IN_THE_PAST": "Escolha uma data e horário futuros"
     },
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhum tomador encontrado"
+      "empty": "Nenhuma clínica encontrada"
     },
     "completion": {
       "action": "Finalizar procedimento",
@@ -681,9 +690,9 @@
       }
     },
     "cancellation": {
-      "action": "Cancelar",
+      "action": "Não realizado",
       "title": "Motivo do cancelamento",
-      "reasonPlaceholder": "Escreva brevemente o motivo do cancelamento",
+      "reasonPlaceholder": "Escreva brevemente o motivo",
       "confirm": "Confirmar",
       "errors": {
         "REQUIRED": "Informe o motivo do cancelamento.",
@@ -704,6 +713,12 @@
       "CANCELED": "Cancelado"
     },
     "detail": {
+      "edit": "Editar atendimento",
+      "editTitle": "Editar atendimento",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir este atendimento?",
+      "deleteCancel": "Cancelar",
+      "deleteFailed": "Não foi possível excluir. Tente novamente.",
       "title": "Atendimento",
       "back": "Voltar",
       "loadError": "Não foi possível carregar o atendimento.",
@@ -714,8 +729,14 @@
       "amount": "Valor",
       "noAmount": "Sem valor",
       "editAmount": "Editar valor",
+      "weightLabel": "Peso",
+      "notInformed": "Não informado",
+      "ageValue": "{{years}} anos",
+      "weightValue": "{{kg}} kg",
+      "completedBadge": "Concluído",
       "suppliesTitle": "Materiais usados",
       "addSupply": "Adicionar insumo",
+      "addSupplyShort": "Adicionar",
       "suppliesFailed": "Não foi possível salvar os insumos. Tente novamente.",
       "amountSheet": {
         "title": "Valor do atendimento",
@@ -726,7 +747,25 @@
           "INVALID_NUMBER": "Informe um valor válido, como 350,00.",
           "FAILED": "Não foi possível salvar o valor. Tente novamente."
         }
-      }
+      },
+      "hoursWorked": {
+        "title": "Horas trabalhadas",
+        "edit": "Editar",
+        "minutesLabel": "{{count}} minutos",
+        "valuePerHour": "Valor/hora"
+      },
+      "travel": {
+        "title": "Deslocamento",
+        "empty": "Nenhum deslocamento registrado",
+        "register": "+ Registrar",
+        "collapse": "Cancelar",
+        "vehicleLabel": "Carro",
+        "vehiclePlaceholder": "Selecione um carro",
+        "distanceLabel": "Distância (km)",
+        "distancePlaceholder": "Ex: 34",
+        "confirm": "Confirmar"
+      },
+      "cancellationReason": "Motivo do cancelamento"
     },
     "day": {
       "previous": "Dia anterior",
@@ -736,42 +775,16 @@
       "untitled": "Sem nome"
     }
   },
-  "clients": {
-    "newClient": {
-      "title": "Novo tomador",
-      "type": "Tipo",
-      "types": {
-        "clinic": "Clínica",
-        "individual": "Pessoa física"
-      },
-      "fields": {
-        "name": {
-          "label": "Nome",
-          "placeholder": "Nome do tomador"
-        },
-        "phone": {
-          "label": "Telefone (opcional)",
-          "placeholder": "DDD + número"
-        }
-      },
-      "errors": {
-        "name": {
-          "required": "Campo obrigatório",
-          "tooShort": "Informe ao menos 2 caracteres"
-        }
-      },
-      "confirm": "Cadastrar",
-      "saving": "Salvando…",
-      "cancel": "Cancelar",
-      "close": "Fechar",
-      "failures": {
-        "duplicatedName": "Já existe um tomador com esse nome.",
-        "session": "Sua sessão expirou. Entre novamente.",
-        "unknown": "Não foi possível cadastrar. Tente novamente."
-      }
-    }
-  },
   "appointments": {
+    "notDone": {
+      "reasons": {
+        "noShow": "Paciente não compareceu",
+        "clientCanceled": "Cancelamento do cliente",
+        "emergency": "Emergência",
+        "other": "Outro"
+      },
+      "dismiss": "Cancelar"
+    },
     "title": "Agendamentos",
     "calendar": {
       "prevMonth": "Mês anterior",
@@ -794,6 +807,10 @@
     "species": {
       "canine": "Canino",
       "feline": "Felino",
+      "equine": "Equino",
+      "bovine": "Bovino",
+      "avian": "Ave",
+      "exotic": "Exótico/Silvestre",
       "other": "Outro"
     },
     "form": {
@@ -813,9 +830,40 @@
       "cancel": "Cancelar"
     },
     "viewMonth": "Ver mês",
+    "viewWeek": "Ver semana",
     "dayOf": "dia {{day}}",
     "emptyToday": "Sem atendimentos hoje",
-    "emptySelectedDay": "Sem atendimentos neste dia"
+    "emptySelectedDay": "Sem atendimentos neste dia",
+    "emptyMonth": "Sem atendimentos neste mês",
+    "exportToCalendar": "Adicionar à agenda",
+    "exportSuccessTitle": "Adicionado à agenda",
+    "exportSuccess": "Agendamento adicionado à sua agenda.",
+    "exportPermissionDeniedTitle": "Permissão necessária",
+    "exportPermissionDenied": "Não conseguimos acessar sua agenda. Habilite a permissão de calendário nas configurações do dispositivo para adicionar este agendamento.",
+    "exportErrorTitle": "Não foi possível adicionar",
+    "exportError": "Algo deu errado ao adicionar o agendamento à sua agenda. Tente novamente.",
+    "dismiss": "Entendi",
+    "statusActions": {
+      "open": "Atualizar status",
+      "notDone": "Não realizado",
+      "cancel": "Cancelar atendimento",
+      "cancelReason": "Por que o atendimento foi cancelado?",
+      "cancelToast": "Atendimento cancelado"
+    },
+    "reschedule": {
+      "title": "Remarcar atendimento",
+      "message": "O procedimento não foi realizado. Escolha a nova data e horário.",
+      "date": "Data",
+      "startTime": "Início",
+      "endTime": "Fim",
+      "confirm": "Remarcar",
+      "dismiss": "Cancelar",
+      "done": "Atendimento remarcado.",
+      "errors": {
+        "CONFLICT": "Você já possui um atendimento nesse horário.",
+        "FAILED": "Não foi possível remarcar. Tente novamente."
+      }
+    }
   },
   "home": {
     "greeting": "Olá, Dr. {{name}}"

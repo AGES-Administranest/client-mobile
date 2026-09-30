@@ -17,6 +17,8 @@ export function validateProcedureForm(
   }
   if (values.procedureName.trim() === '') {
     errors.procedureName = 'REQUIRED';
+  } else if (values.procedureName.trim().length < 2) {
+    errors.procedureName = 'TOO_SHORT';
   }
   if (values.clientId === null) {
     errors.clientId = 'REQUIRED';
@@ -70,6 +72,8 @@ export function validateProcedureForm(
       errors.weightKg = 'INVALID_NUMBER';
     } else if (weight <= 0) {
       errors.weightKg = 'MUST_BE_POSITIVE';
+    } else if (decimalPlaces(values.weightKg) > 3) {
+      errors.weightKg = 'MAX_3_DECIMALS';
     }
   }
 
@@ -92,8 +96,17 @@ export function validateProcedureForm(
       errors.amount = 'INVALID_NUMBER';
     } else if (amount <= 0) {
       errors.amount = 'MUST_BE_POSITIVE';
+    } else if (decimalPlaces(values.amount) > 2) {
+      errors.amount = 'MAX_2_DECIMALS';
     }
   }
 
   return errors;
+}
+
+// Conta no texto digitado (vírgula ou ponto): o número já convertido pode
+// trazer resíduo de ponto flutuante.
+function decimalPlaces(raw: string): number {
+  const [, fraction = ''] = raw.trim().replace(',', '.').split('.');
+  return fraction.length;
 }

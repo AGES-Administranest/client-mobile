@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Animated,
   Dimensions,
-  Easing,
   Modal,
   Pressable,
   TextInput,
@@ -12,6 +12,7 @@ import {
 import { Button } from 'app/components/ui/button';
 import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { Text } from 'app/components/ui/text';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { useTranslation, type TranslationKey } from 'shared/i18n';
 
 import {
@@ -88,23 +89,7 @@ function ItemModal({
   const isDetail = mode === 'detail';
   const isEditing = !isDetail && item !== null;
 
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-
-  useEffect(() => {
-    Animated.timing(overlayOpacity, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(sheetTranslateY, {
-      toValue: visible ? 0 : SCREEN_HEIGHT,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [visible, overlayOpacity, sheetTranslateY]);
+  const sheet = useSheetAnimation(visible, onClose);
 
   const [category, setCategory] = useState(
     item?.category ?? categoryOptions[0]?.value ?? '',
@@ -308,20 +293,21 @@ function ItemModal({
 
   return (
     <Modal
-      visible={visible}
+      visible={sheet.isRendered}
       transparent
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View style={{ flex: 1, opacity: overlayOpacity }}>
+      <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
         <Pressable
           className="flex-1 justify-end bg-background-shade"
           onPress={onClose}
         >
           <Animated.View
+            {...sheet.panHandlers}
             style={{
               maxHeight: SCREEN_HEIGHT * 0.9,
-              transform: [{ translateY: sheetTranslateY }],
+              ...sheet.sheetStyle,
             }}
           >
             <Pressable
@@ -596,6 +582,7 @@ function ItemModal({
               {isDetail ? (
                 <View className="gap-3">
                   <Button
+                    icon={Pencil}
                     shape="pill"
                     className="h-[49px] w-full"
                     onPress={() => item && onEdit?.(item)}
@@ -605,6 +592,7 @@ function ItemModal({
                     </Text>
                   </Button>
                   <Button
+                    icon={Trash2}
                     variant="secondary"
                     shape="pill"
                     className="h-[49px] w-full"

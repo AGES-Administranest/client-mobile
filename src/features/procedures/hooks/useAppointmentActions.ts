@@ -3,6 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from 'features/auth';
 import { ApiError } from 'shared/services/apiClient';
 
+import {
+  resolveCancellationReason,
+  type CancellationReasonLabels,
+  type CancellationReasonPreset,
+} from '../domain/cancellationReasonPresets';
 import type { AppointmentStatus } from '../domain/procedure.types';
 import { toCancellationOutcome } from '../domain/toCancellationOutcome';
 import {
@@ -26,19 +31,22 @@ export type ActionableAppointment = {
 
 export type CancellationState = {
   sheetVisible: boolean;
+  preset: CancellationReasonPreset | null;
   reason: string;
   reasonError: CancellationReasonError | null;
   failed: boolean;
   open: () => void;
   close: () => void;
+  setPreset: (preset: CancellationReasonPreset) => void;
   setReason: (reason: string) => void;
-  confirm: () => Promise<void>;
+  confirm: (labels: CancellationReasonLabels) => Promise<void>;
 };
 
 export type AppointmentActionsState = {
   visible: boolean;
   submitting: boolean;
   notice: AppointmentActionNotice | null;
+  justCanceled: boolean;
   complete: () => Promise<void>;
   cancellation: CancellationState;
 };
@@ -58,10 +66,14 @@ export function useAppointmentActions(
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState<AppointmentActionNotice | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [preset, setPresetValue] = useState<CancellationReasonPreset | null>(
+    null,
+  );
   const [reason, setReasonValue] = useState('');
   const [reasonError, setReasonError] =
     useState<CancellationReasonError | null>(null);
   const [cancelFailed, setCancelFailed] = useState(false);
+  const [justCanceled, setJustCanceled] = useState(false);
   // Uma trava para as duas ações: finalizar e cancelar o mesmo agendamento
   // ao mesmo tempo não faz sentido, e o backend recusaria uma delas.
   const inFlight = useRef(false);
@@ -77,9 +89,11 @@ export function useAppointmentActions(
   useEffect(() => {
     setNotice(null);
     setSheetVisible(false);
+    setPresetValue(null);
     setReasonValue('');
     setReasonError(null);
     setCancelFailed(false);
+    setJustCanceled(false);
   }, [appointment.id]);
 
   async function run(action: (idToken: string) => Promise<void>) {
@@ -137,6 +151,7 @@ export function useAppointmentActions(
 
   function closeSheet(): void {
     setSheetVisible(false);
+    setPresetValue(null);
     setReasonValue('');
     setReasonError(null);
     setCancelFailed(false);
@@ -158,17 +173,27 @@ export function useAppointmentActions(
     closeSheet();
   }
 
+  function setPreset(value: CancellationReasonPreset): void {
+    // O texto fica: com o campo sempre à vista, ele detalha o chip escolhido.
+    setPresetValue(value);
+    setReasonError(null);
+    setCancelFailed(false);
+  }
+
   function setReason(value: string): void {
     setReasonValue(value);
     setReasonError(null);
     setCancelFailed(false);
   }
 
-  async function confirmCancel(): Promise<void> {
+  async function confirmCancel(
+    labels: CancellationReasonLabels,
+  ): Promise<void> {
     if (inFlight.current) {
       return;
     }
-    const validation = validateCancellationReason(reason);
+    const resolved = resolveCancellationReason(preset, reason, labels);
+    const validation = validateCancellationReason(resolved);
     setReasonError(validation);
     if (validation !== null) {
       return;
@@ -176,9 +201,10 @@ export function useAppointmentActions(
     setCancelFailed(false);
     const ran = await run(async idToken => {
       try {
-        await cancelAppointment(idToken, appointment.id, reason.trim());
+        await cancelAppointment(idToken, appointment.id, resolved.trim());
         if (isMounted.current) {
           closeSheet();
+          setJustCanceled(true);
           onChanged();
         }
       } catch (error) {
@@ -188,6 +214,7 @@ export function useAppointmentActions(
         const outcome = toCancellationOutcome(toErrorInfo(error));
         if (outcome === 'CANCELED') {
           closeSheet();
+          setJustCanceled(true);
           onChanged();
         } else if (outcome === 'COMPLETED') {
           closeSheet();
@@ -217,14 +244,17 @@ export function useAppointmentActions(
       notice === 'COMPLETED',
     submitting,
     notice,
+    justCanceled,
     complete,
     cancellation: {
       sheetVisible,
+      preset,
       reason,
       reasonError,
       failed: cancelFailed,
       open: openCancel,
       close: closeCancel,
+      setPreset,
       setReason,
       confirm: confirmCancel,
     },

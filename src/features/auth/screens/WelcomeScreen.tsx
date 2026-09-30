@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { LogIn, UserPlus } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -59,12 +60,14 @@ export function WelcomeScreen({
           </Text>
           <AuthButton
             label={t('auth.welcome.createAccount')}
+            icon={UserPlus}
             onPress={onCreateAccount}
             disabled={social.isSubmitting}
           />
           <OrDivider label={t('auth.welcome.or')} />
           <AuthButton
             label={t('auth.welcome.login')}
+            icon={LogIn}
             onPress={onLogin}
             disabled={social.isSubmitting}
           />
