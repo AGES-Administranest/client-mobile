@@ -174,13 +174,14 @@ export function useReview(initial: Review): ReviewState {
 
 /** The item form opens with what the line already knows. */
 function prefillFor(line: ReviewLine | undefined, name: string): ItemPrefill {
+  // No quantity: the form keeps only digits, so 1.5 would come back as 15.
+  // The line keeps its own unless one is typed there.
   return {
     name: name.trim() || line?.description || '',
     unitCost:
       line && line.unitValue !== null
         ? formatCurrency(String(Math.round(line.unitValue * 100)))
         : '',
-    quantity: line && line.quantity !== null ? String(line.quantity) : '',
     expiration: line?.expiry ?? '',
   };
 }
