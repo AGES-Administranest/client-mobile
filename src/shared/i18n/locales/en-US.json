@@ -721,7 +721,16 @@
       "reasons": {
         "conflict": "the time conflicts with another appointment.",
         "notFound": "the appointment no longer exists.",
-        "other": "the server refused the data."
+        "other": "the server refused the data.",
+        "clinicNotSynced": "its clinic could not be registered."
+      },
+      "clinicTitle": "Clinic not synced",
+      "clinicMessage": "Couldn't send the clinic {{name}}: {{reason}}",
+      "clinicMessageEdit": "Couldn't send a clinic edit: {{reason}}",
+      "clinicReasons": {
+        "duplicatedTaxId": "another clinic already has this CNPJ.",
+        "notFound": "the clinic no longer exists.",
+        "duplicatedName": "another clinic already has this name."
       }
     }
   },

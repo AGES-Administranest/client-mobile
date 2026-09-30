@@ -355,6 +355,28 @@ describe('sem conexão', () => {
     expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 
+  test('com uma clínica cadastrada offline, nem tenta a rede: vai direto para a fila', async () => {
+    const { result, onSuccess } = await mountWithFilledForm();
+    await act(async () =>
+      result.current.client.onSelect({
+        id: 'local:clinic-1',
+        name: 'Clínica Casa',
+      }),
+    );
+    await act(async () => result.current.setField('date', FUTURE_DATE));
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(createAppointmentMock).not.toHaveBeenCalled();
+    expect(queueAppointmentCreate).toHaveBeenCalledWith(
+      'user-1',
+      'cg-1',
+      expect.objectContaining({ clientId: 'local:clinic-1' }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
   test('um erro da API com rede não entra na fila', async () => {
     createAppointmentMock.mockRejectedValue(
       new ApiError('bad', 'INVALID_REQUEST', 400),

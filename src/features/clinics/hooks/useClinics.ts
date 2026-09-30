@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
+import {
+  loadClientsWithOffline,
+  subscribeOfflineClients,
+} from 'features/clients';
 import type { TranslationKey } from 'shared/i18n';
 
 import { requireToken, toClinicFailureKey } from './clinicFailure';
@@ -15,11 +19,20 @@ export type ClinicsState = {
 };
 
 export function useClinics(): ClinicsState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
   const [clinics, setClinics] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadFailure, setLoadFailure] = useState<TranslationKey | null>(null);
+  // Sobe quando a fila offline muda ou sincroniza: a lista se refaz e as
+  // clínicas criadas offline trocam o id local pelo do backend.
+  const [version, setVersion] = useState(0);
+
+  useEffect(
+    () => subscribeOfflineClients(() => setVersion(current => current + 1)),
+    [],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -27,9 +40,9 @@ export function useClinics(): ClinicsState {
     setIsLoading(true);
     setLoadFailure(null);
 
-    (async () => fetchClinics(requireToken(idToken)))()
+    loadClientsWithOffline(userId, () => fetchClinics(requireToken(idToken)))
       .then(loaded => {
-        if (isMounted) setClinics(loaded);
+        if (isMounted) setClinics(loaded.clients);
       })
       .catch(error => {
         if (!isMounted) return;
@@ -47,7 +60,7 @@ export function useClinics(): ClinicsState {
     return () => {
       isMounted = false;
     };
-  }, [idToken]);
+  }, [idToken, userId, version]);
 
   return { clinics, isLoading, loadFailure, setClinics };
 }

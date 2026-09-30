@@ -1,3 +1,4 @@
+import { resolveLocalClientId } from 'features/clients';
 import { ApiError, apiClient } from 'shared/services/apiClient';
 
 import {
@@ -23,6 +24,7 @@ async function send(
   idToken: string,
   userId: string,
   operation: PendingAppointmentOperation,
+  clientId: string | undefined,
 ): Promise<void> {
   if (operation.kind === 'create') {
     // O /sync é idempotente pelo clientGeneratedId: se a resposta de um envio
@@ -33,6 +35,7 @@ async function send(
       [
         {
           ...operation.payload,
+          ...(clientId !== undefined ? { clientId } : {}),
           clientGeneratedId: operation.clientGeneratedId,
         },
       ],
@@ -49,9 +52,37 @@ async function send(
   }
   await apiClient.patch(
     `/appointments/${operation.appointmentId}`,
-    operation.changes,
+    {
+      ...operation.changes,
+      ...(clientId !== undefined ? { clientId } : {}),
+    },
     { token: idToken },
   );
+}
+
+type ClientIdCheck =
+  | { status: 'ready'; clientId: string | undefined }
+  | { status: 'pending' }
+  | { status: 'missing' };
+
+// Um agendamento pode apontar para uma clínica cadastrada offline. Ele só
+// sai depois dela (a fila de clínicas roda antes), com o id do backend no
+// lugar do local; se a clínica foi recusada, ele não tem como ir.
+async function checkClientId(
+  userId: string,
+  operation: PendingAppointmentOperation,
+): Promise<ClientIdCheck> {
+  const clientId =
+    operation.kind === 'create'
+      ? operation.payload.clientId
+      : operation.changes.clientId;
+  if (clientId === undefined) {
+    return { status: 'ready', clientId: undefined };
+  }
+  const resolution = await resolveLocalClientId(userId, clientId);
+  return resolution.status === 'resolved'
+    ? { status: 'ready', clientId: resolution.clientId }
+    : resolution;
 }
 
 // Só um 4xx de dado (conflito, validação, não encontrado) é definitivo. Sem
@@ -97,8 +128,19 @@ async function run(idToken: string, userId: string): Promise<SyncResult> {
     if (!next) break;
     attempted.add(JSON.stringify(next));
 
+    const client = await checkClientId(userId, next);
+    if (client.status === 'pending') {
+      // Espera a clínica; as operações seguintes podem ir.
+      continue;
+    }
+    if (client.status === 'missing') {
+      rejections.push({ operation: next, code: 'CLIENT_NOT_SYNCED' });
+      await removeIfUnchanged(userId, next);
+      continue;
+    }
+
     try {
-      await send(idToken, userId, next);
+      await send(idToken, userId, next, client.clientId);
       synced += 1;
     } catch (error) {
       if (!isPermanentRejection(error)) break;

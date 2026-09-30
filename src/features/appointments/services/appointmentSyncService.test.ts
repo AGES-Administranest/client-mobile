@@ -11,6 +11,12 @@ import {
 } from './offlineAppointmentStore';
 import type { PendingAppointmentOperation } from '../domain/offlineAppointments';
 
+const mockResolveLocalClientId = jest.fn();
+
+jest.mock('features/clients', () => ({
+  resolveLocalClientId: (...args: unknown[]) =>
+    mockResolveLocalClientId(...args),
+}));
 jest.mock('shared/services/apiClient', () => ({
   ...jest.requireActual('shared/services/apiClient'),
   apiClient: { post: jest.fn(), patch: jest.fn() },
@@ -40,6 +46,12 @@ beforeEach(async () => {
   jest.clearAllMocks();
   await AsyncStorage.clear();
   post.mockResolvedValue([{ id: 'server-9' }]);
+  mockResolveLocalClientId.mockImplementation(
+    async (_user: string, clientId: string) => ({
+      status: 'resolved',
+      clientId,
+    }),
+  );
   patch.mockResolvedValue({ id: 'server-1' });
 });
 
@@ -121,6 +133,64 @@ test('uma operação editada enquanto era enviada fica na fila com a edição', 
     { token: 'token' },
   );
   expect(await loadOutbox(USER)).toEqual([]);
+});
+
+describe('agendamento que aponta para uma clínica cadastrada offline', () => {
+  const WITH_LOCAL_CLINIC: PendingAppointmentOperation = {
+    ...CREATE,
+    payload: { ...CREATE.payload, clientId: 'local:clinic-1' },
+  };
+
+  test('sai com o id real da clínica depois que ela sincronizou', async () => {
+    await saveOutbox(USER, [WITH_LOCAL_CLINIC]);
+    mockResolveLocalClientId.mockResolvedValue({
+      status: 'resolved',
+      clientId: 'clinic-real',
+    });
+
+    await syncPendingAppointments('token', USER);
+
+    expect(post).toHaveBeenCalledWith(
+      '/appointments/sync',
+      [
+        expect.objectContaining({
+          clientId: 'clinic-real',
+          clientGeneratedId: 'cg-1',
+        }),
+      ],
+      { token: 'token' },
+    );
+    expect(await loadOutbox(USER)).toEqual([]);
+  });
+
+  test('espera na fila enquanto a clínica não sincronizou, sem travar as outras', async () => {
+    await saveOutbox(USER, [WITH_LOCAL_CLINIC, UPDATE]);
+    mockResolveLocalClientId.mockImplementation(
+      async (_user: string, clientId: string) =>
+        clientId === 'local:clinic-1'
+          ? { status: 'pending' }
+          : { status: 'resolved', clientId },
+    );
+
+    const result = await syncPendingAppointments('token', USER);
+
+    expect(post).not.toHaveBeenCalled();
+    expect(patch).toHaveBeenCalled();
+    expect(result).toEqual({ synced: 1, rejected: 0, pending: 1 });
+    expect(await loadOutbox(USER)).toEqual([WITH_LOCAL_CLINIC]);
+  });
+
+  test('é recusado quando a clínica dele foi recusada', async () => {
+    await saveOutbox(USER, [WITH_LOCAL_CLINIC]);
+    mockResolveLocalClientId.mockResolvedValue({ status: 'missing' });
+
+    await syncPendingAppointments('token', USER);
+
+    expect(post).not.toHaveBeenCalled();
+    expect(await loadRejections(USER)).toEqual([
+      { operation: WITH_LOCAL_CLINIC, code: 'CLIENT_NOT_SYNCED' },
+    ]);
+  });
 });
 
 test('editar pelo id local um agendamento que já sincronizou vai para o id real', async () => {

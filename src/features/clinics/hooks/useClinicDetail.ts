@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
+import {
+  findOfflineDuplicates,
+  isLocalClientId,
+  queueClinicUpdate,
+} from 'features/clients';
 import type { TranslationKey } from 'shared/i18n';
+import { isNetworkError } from 'shared/utils/network';
 
 import {
   isDuplicatedTaxIdError,
@@ -35,8 +41,9 @@ export type ClinicDetailState = {
 };
 
 export function useClinicDetail(clinic: Client | null): ClinicDetailState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
   const [draft, setDraft] = useState<ClinicDraft>(EMPTY_CLINIC_DRAFT);
   const [errors, setErrors] = useState<ClinicDraftErrors>({});
   const [failure, setFailure] = useState<TranslationKey | null>(null);
@@ -101,9 +108,38 @@ export function useClinicDetail(clinic: Client | null): ClinicDetailState {
     if (!clinic || !isClinicDraftValid(validationErrors)) {
       return null;
     }
-    return call(
-      token => updateClient(token, clinic.id, toCreateClientPayload(draft)),
+    const changes = toCreateClientPayload(draft);
+    // Clínica criada offline ainda não existe no backend; sem rede, a edição
+    // de qualquer uma entra na fila e vale na lista na hora.
+    const saveOffline = async (): Promise<Client | null> => {
+      if (!userId) return null;
+      const duplicates = await findOfflineDuplicates(
+        userId,
+        changes,
+        clinic.id,
+      );
+      if (duplicates.taxId) {
+        setErrors(current => ({ ...current, cnpj: 'duplicated' }));
+      }
+      if (duplicates.name) {
+        setFailure('clinics.newClinic.failures.duplicatedName');
+      }
+      if (duplicates.taxId || duplicates.name) {
+        return null;
+      }
+      return queueClinicUpdate(userId, clinic.id, changes);
+    };
+    if (userId && isLocalClientId(clinic.id)) {
+      return call(() => saveOffline());
+    }
+    let wentOffline = false;
+    const updated = await call(
+      token => updateClient(token, clinic.id, changes),
       error => {
+        if (userId && isNetworkError(error)) {
+          wentOffline = true;
+          return true;
+        }
         if (!isDuplicatedTaxIdError(error)) {
           return false;
         }
@@ -111,7 +147,8 @@ export function useClinicDetail(clinic: Client | null): ClinicDetailState {
         return true;
       },
     );
-  }, [call, clinic, draft]);
+    return wentOffline ? call(() => saveOffline()) : updated;
+  }, [call, clinic, draft, userId]);
 
   const remove = useCallback(async () => {
     if (!clinic) {

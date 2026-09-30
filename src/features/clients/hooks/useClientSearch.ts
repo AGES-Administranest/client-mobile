@@ -10,6 +10,10 @@ import {
   type ClientSearchStatus,
 } from '../domain/clientSearch';
 import { fetchClients } from '../services/clientService';
+import {
+  loadClientsWithOffline,
+  subscribeOfflineClients,
+} from '../services/offlineClientStore';
 
 export type ClientSearchState = {
   term: string;
@@ -48,7 +52,8 @@ export function useClientSearch({
   active,
   paused,
 }: ClientSearchOptions): ClientSearchState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
+  const userId = account?.id ?? null;
   const [term, setTerm] = useState('');
   const [clients, setClients] = useState<Client[] | null>(null);
   const [hasError, setHasError] = useState(false);
@@ -68,9 +73,11 @@ export function useClientSearch({
     let isCurrent = true;
     setHasError(false);
 
-    fetchClients(idToken)
-      .then(list => {
-        if (isCurrent) setClients(list);
+    // Sem rede, a lista salva da última vez (mais as clínicas cadastradas
+    // offline) — o formulário de agendamento funciona offline também.
+    loadClientsWithOffline(userId, () => fetchClients(idToken))
+      .then(loaded => {
+        if (isCurrent) setClients(loaded.clients);
       })
       .catch(() => {
         if (isCurrent) setHasError(true);
@@ -79,7 +86,13 @@ export function useClientSearch({
     return () => {
       isCurrent = false;
     };
-  }, [idToken, active, attempt]);
+  }, [idToken, userId, active, attempt]);
+
+  // Clínica cadastrada ou sincronizada enquanto o campo está aberto.
+  useEffect(
+    () => subscribeOfflineClients(() => setAttempt(current => current + 1)),
+    [],
+  );
 
   const onTermChange = useCallback(
     (next: string) => {

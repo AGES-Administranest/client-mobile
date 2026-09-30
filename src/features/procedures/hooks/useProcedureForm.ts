@@ -8,7 +8,11 @@ import {
   queueAppointmentUpdate,
 } from 'features/appointments';
 import { useAuth } from 'features/auth';
-import { useClientSearch, type ClientOption } from 'features/clients';
+import {
+  isLocalClientId,
+  useClientSearch,
+  type ClientOption,
+} from 'features/clients';
 
 import {
   EMPTY_PROCEDURE_FORM,
@@ -131,6 +135,12 @@ export function useProcedureForm(
     onSuccess(created);
   }
 
+  function pointsToLocalClinic(
+    payload: Partial<CreateAppointmentPayload>,
+  ): boolean {
+    return payload.clientId !== undefined && isLocalClientId(payload.clientId);
+  }
+
   async function saveEdit(
     idToken: string,
     appointmentId: string,
@@ -138,7 +148,10 @@ export function useProcedureForm(
   ): Promise<void> {
     // Um agendamento criado offline ainda não existe no backend: a edição
     // entra direto na fila, junto do create dele.
-    if (account && isLocalAppointmentId(appointmentId)) {
+    if (
+      account &&
+      (isLocalAppointmentId(appointmentId) || pointsToLocalClinic(changes))
+    ) {
       await queueAppointmentUpdate(account.id, appointmentId, changes);
       return;
     }
@@ -177,14 +190,18 @@ export function useProcedureForm(
       // Vai também no envio online: se a resposta se perder e o app tentar
       // de novo pela fila, o backend reconhece o mesmo registro.
       const clientGeneratedId = newClientGeneratedId();
+      // Uma clínica cadastrada offline só tem id local, que o backend
+      // recusaria: o agendamento espera na fila e sai logo depois dela.
       let appointment: AppointmentResult | null = null;
-      try {
-        appointment = await createAppointment(session.idToken, {
-          ...payload,
-          clientGeneratedId,
-        });
-      } catch (error) {
-        if (!account || !isNetworkError(error)) throw error;
+      if (!(account && pointsToLocalClinic(payload))) {
+        try {
+          appointment = await createAppointment(session.idToken, {
+            ...payload,
+            clientGeneratedId,
+          });
+        } catch (error) {
+          if (!account || !isNetworkError(error)) throw error;
+        }
       }
       if (!appointment) {
         // Sem rede: fica na fila e aparece na agenda como pendente. Insumos

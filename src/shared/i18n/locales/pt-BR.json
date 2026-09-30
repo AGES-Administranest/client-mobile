@@ -721,7 +721,16 @@
       "reasons": {
         "conflict": "o horário conflita com outro agendamento.",
         "notFound": "o agendamento não existe mais.",
-        "other": "os dados foram recusados pelo servidor."
+        "other": "os dados foram recusados pelo servidor.",
+        "clinicNotSynced": "a clínica dele não pôde ser cadastrada."
+      },
+      "clinicTitle": "Clínica não sincronizada",
+      "clinicMessage": "Não foi possível enviar a clínica {{name}}: {{reason}}",
+      "clinicMessageEdit": "Não foi possível enviar uma edição de clínica: {{reason}}",
+      "clinicReasons": {
+        "duplicatedTaxId": "já existe outra clínica com esse CNPJ.",
+        "notFound": "a clínica não existe mais.",
+        "duplicatedName": "já existe outra clínica com esse nome."
       }
     }
   },

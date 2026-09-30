@@ -1,7 +1,13 @@
 import { useCallback, useState } from 'react';
 
 import { useAuth } from 'features/auth';
+import {
+  findOfflineDuplicates,
+  queueClinicCreate,
+  type OfflineDuplicates,
+} from 'features/clients';
 import type { TranslationKey } from 'shared/i18n';
+import { isNetworkError } from 'shared/utils/network';
 
 import {
   isDuplicatedTaxIdError,
@@ -32,8 +38,9 @@ export type NewClinicFormState = {
 };
 
 export function useNewClinicForm(): NewClinicFormState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
   const [draft, setDraft] = useState<ClinicDraft>(EMPTY_CLINIC_DRAFT);
   const [errors, setErrors] = useState<ClinicDraftErrors>({});
   const [failure, setFailure] = useState<TranslationKey | null>(null);
@@ -61,6 +68,41 @@ export function useNewClinicForm(): NewClinicFormState {
     setIsSaving(false);
   }, []);
 
+  // Mesmo retorno que o backend daria: CNPJ repetido no campo, nome repetido
+  // no aviso do formulário.
+  const applyDuplicates = useCallback((duplicates: OfflineDuplicates) => {
+    if (duplicates.taxId) {
+      setErrors(current => ({ ...current, cnpj: 'duplicated' }));
+    }
+    if (duplicates.name) {
+      setFailure('clinics.newClinic.failures.duplicatedName');
+    }
+  }, []);
+
+  // Sem rede a clínica entra na fila e já aparece na lista (e no campo Local
+  // do agendamento); vai para o backend quando a conexão voltar.
+  const saveOffline = useCallback(
+    async (
+      ownerId: string,
+      payload: ReturnType<typeof toCreateClientPayload>,
+    ): Promise<Client | null> => {
+      try {
+        const duplicates = await findOfflineDuplicates(ownerId, payload);
+        if (duplicates.taxId || duplicates.name) {
+          applyDuplicates(duplicates);
+          return null;
+        }
+        return await queueClinicCreate(ownerId, payload);
+      } catch {
+        setFailure('clinics.newClinic.failures.unknown');
+        return null;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [applyDuplicates],
+  );
+
   const submit = useCallback(async () => {
     const validationErrors = validateClinicDraft(draft);
     setErrors(validationErrors);
@@ -71,15 +113,16 @@ export function useNewClinicForm(): NewClinicFormState {
     }
 
     setIsSaving(true);
+    const payload = toCreateClientPayload(draft);
 
     try {
-      const client = await createClient(
-        requireToken(idToken),
-        toCreateClientPayload(draft),
-      );
+      const client = await createClient(requireToken(idToken), payload);
       setIsSaving(false);
       return client;
     } catch (error) {
+      if (userId && isNetworkError(error)) {
+        return saveOffline(userId, payload);
+      }
       setIsSaving(false);
       if (isDuplicatedTaxIdError(error)) {
         setErrors(current => ({ ...current, cnpj: 'duplicated' }));
@@ -88,7 +131,7 @@ export function useNewClinicForm(): NewClinicFormState {
       }
       return null;
     }
-  }, [draft, idToken]);
+  }, [draft, idToken, userId, saveOffline]);
 
   return { draft, errors, failure, isSaving, setField, reset, submit };
 }
