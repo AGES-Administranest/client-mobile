@@ -740,6 +740,7 @@
       "addSupply": "Add supply",
       "addSupplyShort": "Add",
       "suppliesFailed": "Could not save the supplies. Try again.",
+      "pendingSyncHint": "Supplies, amount and status are available once the appointment is sent.",
       "amountSheet": {
         "title": "Appointment amount",
         "placeholder": "0.00",

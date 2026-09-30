@@ -1,6 +1,7 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import {
+  discardOfflineAppointment,
   findOfflineAppointment,
   resolveLocalAppointmentId,
 } from 'features/appointments';
@@ -28,6 +29,7 @@ jest.mock('features/procedures/services/appointmentSupplyService', () => ({
 }));
 jest.mock('features/appointments', () => ({
   ...jest.requireActual('features/appointments'),
+  discardOfflineAppointment: jest.fn(),
   findOfflineAppointment: jest.fn(),
   resolveLocalAppointmentId: jest.fn(),
 }));
@@ -42,6 +44,7 @@ const fetchSuppliesMock = jest.mocked(fetchAppointmentSupplies);
 const registerMock = jest.mocked(registerAppointmentSupplies);
 const removeMock = jest.mocked(removeAppointmentSupply);
 const findOfflineMock = jest.mocked(findOfflineAppointment);
+const discardMock = jest.mocked(discardOfflineAppointment);
 const resolveLocalMock = jest.mocked(resolveLocalAppointmentId);
 
 const SESSION = {
@@ -169,6 +172,46 @@ test('criado offline e ainda na fila, vem do aparelho sem ir ao backend', async 
   expect(findOfflineMock).toHaveBeenCalledWith('user-1', 'local:cg-1');
   expect(fetchAppointmentMock).not.toHaveBeenCalled();
   expect(result.current.status).toBe('ready');
+  expect(result.current.pendingSync).toBe(true);
+});
+
+test('ainda na fila, insumos e valor não vão ao backend com o id local', async () => {
+  findOfflineMock.mockResolvedValue({
+    id: 'local:cg-1',
+    startsAt: '2026-09-30T18:00:00.000Z',
+    status: 'COMPLETED',
+  });
+  const result = await mountHook('local:cg-1');
+
+  let saved = true;
+  let amountError: string | null = null;
+  await act(async () => {
+    saved = await result.current.addSupply('item-1', 1);
+    amountError = await result.current.saveAmount('200');
+  });
+
+  expect(saved).toBe(false);
+  expect(amountError).toBe('FAILED');
+  expect(registerMock).not.toHaveBeenCalled();
+  expect(updateAmountMock).not.toHaveBeenCalled();
+});
+
+test('ainda na fila, excluir só o tira da fila', async () => {
+  findOfflineMock.mockResolvedValue({
+    id: 'local:cg-1',
+    startsAt: '2026-09-30T18:00:00.000Z',
+    status: 'SCHEDULED',
+  });
+  discardMock.mockResolvedValue();
+  const result = await mountHook('local:cg-1');
+
+  let removed = false;
+  await act(async () => {
+    removed = await result.current.remove();
+  });
+
+  expect(removed).toBe(true);
+  expect(discardMock).toHaveBeenCalledWith('user-1', 'local:cg-1');
 });
 
 test('criado offline e já sincronizado, vem do backend pelo id real', async () => {
@@ -183,6 +226,7 @@ test('criado offline e já sincronizado, vem do backend pelo id real', async () 
   );
   expect(findOfflineMock).not.toHaveBeenCalled();
   expect(result.current.status).toBe('ready');
+  expect(result.current.pendingSync).toBe(false);
 
   await act(async () => {
     await result.current.addSupply('item-1', 1);

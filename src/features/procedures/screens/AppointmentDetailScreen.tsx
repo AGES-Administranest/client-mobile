@@ -144,6 +144,9 @@ export function AppointmentDetailScreen({
   );
 
   const editable = appointment !== null && appointment.status !== 'CANCELED';
+  // O que mexe no backend (valor, insumos, status) espera o agendamento
+  // criado offline sair da fila; editar os dados dele continua valendo.
+  const syncedEditable = editable && !detail.pendingSync;
   const totalCost = calculateSupplyTotalCost(detail.supplies);
   const margin = appointment
     ? grossMargin(appointment.amount, totalCost)
@@ -399,7 +402,7 @@ export function AppointmentDetailScreen({
                     <Text className="text-[11px] font-semibold uppercase tracking-wide text-label-primary">
                       {t('procedures.detail.hoursWorked.title')}
                     </Text>
-                    {editable ? (
+                    {syncedEditable ? (
                       <Pressable
                         onPress={openAmountSheet}
                         accessibilityRole="button"
@@ -446,7 +449,7 @@ export function AppointmentDetailScreen({
                   <Text className="text-xs font-bold uppercase text-label-primary">
                     {t('procedures.detail.suppliesTitle')}
                   </Text>
-                  {editable ? (
+                  {syncedEditable ? (
                     <Pressable
                       onPress={() => setSelectorVisible(true)}
                       accessibilityRole="button"
@@ -481,8 +484,13 @@ export function AppointmentDetailScreen({
                     }),
                   }))}
                   emptyMessage={t('procedures.supplies.empty')}
-                  onRemove={editable ? removeSupply : undefined}
+                  onRemove={syncedEditable ? removeSupply : undefined}
                 />
+                {detail.pendingSync ? (
+                  <Text className="text-xs text-label-tertiary">
+                    {t('procedures.detail.pendingSyncHint')}
+                  </Text>
+                ) : null}
                 {detail.supplyFailed ? (
                   <Text className="text-xs text-alert-primary">
                     {t('procedures.detail.suppliesFailed')}
@@ -490,7 +498,7 @@ export function AppointmentDetailScreen({
                 ) : null}
 
                 <TravelSection
-                  editable={editable}
+                  editable={syncedEditable}
                   texts={{
                     title: t('procedures.detail.travel.title'),
                     emptyMessage: t('procedures.detail.travel.empty'),
@@ -525,14 +533,16 @@ export function AppointmentDetailScreen({
 
               {/* A key no valor remonta as ações quando ele é preenchido: o aviso
                 de "preencha o valor" não pode continuar na tela. */}
-              <ActionsSection
-                key={appointment.amount ?? 'no-amount'}
-                appointment={appointment}
-                onChanged={() => {
-                  detail.refetch();
-                  onChanged();
-                }}
-              />
+              {detail.pendingSync ? null : (
+                <ActionsSection
+                  key={appointment.amount ?? 'no-amount'}
+                  appointment={appointment}
+                  onChanged={() => {
+                    detail.refetch();
+                    onChanged();
+                  }}
+                />
+              )}
 
               {/* Only upcoming work goes to the calendar, and the web has no
                 native calendar to write to. */}

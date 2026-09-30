@@ -740,6 +740,7 @@
       "addSupply": "Adicionar insumo",
       "addSupplyShort": "Adicionar",
       "suppliesFailed": "Não foi possível salvar os insumos. Tente novamente.",
+      "pendingSyncHint": "Insumos, valor e status ficam disponíveis depois que o agendamento for enviado.",
       "amountSheet": {
         "title": "Valor do atendimento",
         "placeholder": "0,00",

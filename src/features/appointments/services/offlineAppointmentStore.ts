@@ -175,6 +175,24 @@ export async function queueAppointmentUpdate(
   notifyOfflineAppointmentsChanged();
 }
 
+/** Descarta um agendamento criado offline que ainda não saiu da fila. */
+export async function discardOfflineAppointment(
+  userId: string,
+  appointmentId: string,
+): Promise<void> {
+  const clientGeneratedId = clientGeneratedIdOf(appointmentId);
+  const queue = await loadOutbox(userId);
+  await saveOutbox(
+    userId,
+    queue.filter(
+      operation =>
+        operation.kind !== 'create' ||
+        operation.clientGeneratedId !== clientGeneratedId,
+    ),
+  );
+  notifyOfflineAppointmentsChanged();
+}
+
 export function loadRejections(userId: string): Promise<SyncRejection[]> {
   return readJson<SyncRejection[]>(rejectionsKey(userId), []);
 }

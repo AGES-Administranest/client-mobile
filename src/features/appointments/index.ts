@@ -37,6 +37,7 @@ export {
   type OfflineAppointmentPayload,
 } from './domain/offlineAppointments';
 export {
+  discardOfflineAppointment,
   findOfflineAppointment,
   newClientGeneratedId,
   queueAppointmentCreate,

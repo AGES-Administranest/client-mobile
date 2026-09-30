@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
+  discardOfflineAppointment,
   findOfflineAppointment,
   isLocalAppointmentId,
   isNetworkError,
@@ -54,6 +55,11 @@ export type AppointmentDetailState = {
   appointment: AppointmentResult | null;
   supplies: SupplyItem[];
   status: 'loading' | 'ready' | 'error';
+  /**
+   * Criado offline e ainda na fila: não existe no backend, então insumos,
+   * valor e mudanças de status esperam o envio.
+   */
+  pendingSync: boolean;
   supplyFailed: boolean;
   savingSupply: boolean;
   refetch: () => void;
@@ -83,6 +89,7 @@ export function useAppointmentDetail(
   // O id que vai para o backend: o do próprio atendimento ou, se ele foi
   // criado offline e já sincronizou, o id real no lugar do local.
   const [serverId, setServerId] = useState(appointmentId);
+  const pendingSync = serverId !== null && isLocalAppointmentId(serverId);
 
   const load = useCallback(async () => {
     if (!idToken || !appointmentId) {
@@ -142,7 +149,7 @@ export function useAppointmentDetail(
   async function changeSupplies(
     change: (token: string, id: string) => Promise<void>,
   ): Promise<boolean> {
-    if (!idToken || !appointmentId || !serverId) {
+    if (!idToken || !appointmentId || !serverId || pendingSync) {
       setSupplyFailed(true);
       return false;
     }
@@ -183,7 +190,7 @@ export function useAppointmentDetail(
     if (amount === null || amount < 0) {
       return 'INVALID_NUMBER';
     }
-    if (!idToken || !appointmentId || !serverId) {
+    if (!idToken || !appointmentId || !serverId || pendingSync) {
       return 'FAILED';
     }
     try {
@@ -202,6 +209,12 @@ export function useAppointmentDetail(
       return false;
     }
     try {
+      // Ainda na fila: excluir é só tirá-lo de lá.
+      if (pendingSync) {
+        if (!userId) return false;
+        await discardOfflineAppointment(userId, serverId);
+        return true;
+      }
       await deleteAppointment(idToken, serverId);
       return true;
     } catch {
@@ -213,6 +226,7 @@ export function useAppointmentDetail(
     appointment,
     supplies,
     status,
+    pendingSync,
     supplyFailed,
     savingSupply,
     refetch: load,
