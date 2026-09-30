@@ -349,9 +349,15 @@ export function updateHeader(
   return { ...header, ...changes };
 }
 
-/** pt-BR: "1.234,5" is 1234.5. Empty or not a number is null. */
+/**
+ * pt-BR: "1.234,5" is 1234.5. Without a comma the dot is the decimal point,
+ * as keyboards outside pt-BR type it. Empty or not a number is null.
+ */
 export function parseDecimal(text: string): number | null {
-  const normalized = text.trim().replace(/\./g, '').replace(',', '.');
+  const trimmed = text.trim();
+  const normalized = trimmed.includes(',')
+    ? trimmed.replace(/\./g, '').replace(',', '.')
+    : trimmed;
   if (normalized === '') return null;
   const value = Number(normalized);
   return Number.isFinite(value) ? value : null;
