@@ -285,6 +285,7 @@ export function ReviewScreen({
         createFailed={state.newItemFailed}
         newItem={state.newItem}
         onCancelNewItem={state.cancelNewItem}
+        isCreatingItem={state.isCreatingItem}
         onConfirmNewItem={draft => {
           state.createAndLink(draft);
         }}

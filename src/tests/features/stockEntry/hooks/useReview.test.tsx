@@ -131,3 +131,26 @@ it('keeps a fractional quantity on the line an item is created for', async () =>
     link: { itemId: 'seringa-3' },
   });
 });
+
+it('creates the item once when confirm is tapped twice', async () => {
+  let respond!: (item: BackendItem) => void;
+  createItemMock.mockReturnValue(
+    new Promise(resolve => {
+      respond = resolve;
+    }),
+  );
+  await openNewItem();
+
+  await act(async () => {
+    state.createAndLink(DRAFT);
+    state.createAndLink(DRAFT);
+  });
+
+  expect(createItemMock).toHaveBeenCalledTimes(1);
+  expect(state.isCreatingItem).toBe(true);
+
+  await act(async () => respond(CREATED));
+
+  expect(state.isCreatingItem).toBe(false);
+  expect(state.review.lines[0].link?.itemId).toBe('seringa-3');
+});

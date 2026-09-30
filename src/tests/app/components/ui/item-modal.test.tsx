@@ -323,6 +323,21 @@ test('a past expiration typed by hand still blocks the submit', async () => {
   expect(drafts).toHaveLength(0);
 });
 
+test('the confirm button waits while the item is being sent', async () => {
+  const renderer = await mountThenOpen({ mode: 'create', isSubmitting: true });
+
+  const confirm = renderer.root
+    .findAll(node => typeof node.props?.onPress === 'function')
+    .filter(node =>
+      JSON.stringify(
+        node.findAllByType('Text' as never).map(t => t.props.children),
+      ).includes('Confirmar'),
+    )
+    .pop()!;
+
+  expect(confirm.props.disabled).toBe(true);
+});
+
 describe('form validation', () => {
   async function openWithConfirm(onConfirm: (draft: unknown) => void) {
     let renderer: ReactTestRenderer.ReactTestRenderer;

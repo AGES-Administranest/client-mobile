@@ -35,6 +35,7 @@ type LinkItemScreenProps = {
   newItem: ItemPrefill | null;
   onCancelNewItem: () => void;
   onConfirmNewItem: (draft: ItemDraft) => void;
+  isCreatingItem: boolean;
 };
 
 export function LinkItemScreen({
@@ -50,6 +51,7 @@ export function LinkItemScreen({
   newItem,
   onCancelNewItem,
   onConfirmNewItem,
+  isCreatingItem,
 }: LinkItemScreenProps) {
   const { t } = useTranslation();
   const search = useSupplySelector();
@@ -200,6 +202,7 @@ export function LinkItemScreen({
         unitOptions={UNIT_OPTIONS}
         onConfirm={onConfirmNewItem}
         onClose={onCancelNewItem}
+        isSubmitting={isCreatingItem}
       />
     </FullScreenModal>
   );

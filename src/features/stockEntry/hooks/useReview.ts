@@ -53,6 +53,7 @@ export type ReviewState = {
   startNewItem: (name: string) => void;
   cancelNewItem: () => void;
   createAndLink: (draft: ItemDraft) => Promise<void>;
+  isCreatingItem: boolean;
   newItemFailed: boolean;
 };
 
@@ -65,6 +66,9 @@ export function useReview(initial: Review): ReviewState {
   const [linkingLineId, setLinkingLineId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState<ItemPrefill | null>(null);
   const [newItemFailed, setNewItemFailed] = useState(false);
+  const [isCreatingItem, setIsCreatingItem] = useState(false);
+  // A second tap can land before the re-render, so the state alone is late.
+  const isCreating = useRef(false);
   const nextId = useRef(0);
 
   const newLineId = useCallback((prefix: string) => {
@@ -113,8 +117,10 @@ export function useReview(initial: Review): ReviewState {
 
   const createAndLink = useCallback(
     async (draft: ItemDraft) => {
-      if (!idToken || !linkingLineId) return;
+      if (!idToken || !linkingLineId || isCreating.current) return;
       const lineId = linkingLineId;
+      isCreating.current = true;
+      setIsCreatingItem(true);
       try {
         const created = await createItem(idToken, newItemPayload(draft));
         editLines(lines => linkCreatedItem(lines, lineId, created, draft));
@@ -123,6 +129,9 @@ export function useReview(initial: Review): ReviewState {
       } catch {
         setNewItem(null);
         setNewItemFailed(true);
+      } finally {
+        isCreating.current = false;
+        setIsCreatingItem(false);
       }
     },
     [editLines, idToken, linkingLineId],
@@ -168,6 +177,7 @@ export function useReview(initial: Review): ReviewState {
     startNewItem,
     cancelNewItem: useCallback(() => setNewItem(null), []),
     createAndLink,
+    isCreatingItem,
     newItemFailed,
   };
 }
