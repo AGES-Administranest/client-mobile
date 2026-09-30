@@ -24,3 +24,23 @@ export {
   useExportToCalendar,
   type ExportToCalendarState,
 } from './hooks/useExportToCalendar';
+export {
+  ConflictAlertSheet,
+  type ConflictAlertSheetProps,
+  type ConflictingAppointment,
+} from './components/ConflictAlertSheet';
+export { AppointmentSyncObserver } from './screens/AppointmentSyncObserver';
+export {
+  isLocalAppointmentId,
+  isNetworkError,
+  type OfflineAppointmentChanges,
+  type OfflineAppointmentPayload,
+} from './domain/offlineAppointments';
+export {
+  discardOfflineAppointment,
+  findOfflineAppointment,
+  newClientGeneratedId,
+  queueAppointmentCreate,
+  queueAppointmentUpdate,
+  resolveLocalAppointmentId,
+} from './services/offlineAppointmentStore';

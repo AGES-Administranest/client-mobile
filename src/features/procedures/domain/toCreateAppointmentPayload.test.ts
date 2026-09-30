@@ -14,6 +14,16 @@ describe('toCreateAppointmentPayload', () => {
     expect(payload).not.toHaveProperty('userId');
   });
 
+  it('envia status SCHEDULED quando o começo é depois de agora', () => {
+    const now = new Date(2026, 7, 6, 8, 59, 0, 0);
+    expect(toCreateAppointmentPayload(valid, now).status).toBe('SCHEDULED');
+  });
+
+  it('envia status COMPLETED quando o começo já passou', () => {
+    const now = new Date(2026, 7, 6, 9, 30, 0, 0);
+    expect(toCreateAppointmentPayload(valid, now).status).toBe('COMPLETED');
+  });
+
   it('parseia vírgula decimal em number', () => {
     const payload = toCreateAppointmentPayload(valid);
     expect(payload.weightKg).toBe(12.5);

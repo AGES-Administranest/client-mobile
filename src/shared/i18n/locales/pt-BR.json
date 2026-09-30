@@ -70,11 +70,15 @@
     "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
   },
   "stockEntry": {
-    "trigger": "Registrar entrada",
+    "trigger": "Entradas",
+    "triggerWithCount": "Entradas ({{count}})",
     "menu": {
-      "scanNote": "Escanear nota",
       "attachPdf": "Anexar PDF",
-      "typeItem": "Digitar insumo"
+      "attachPdfCaption": "Fornecedor, número e itens são lidos do arquivo",
+      "photo": "Fotografar a nota",
+      "photoCaption": "A galeria fica dentro da câmera",
+      "typeItem": "Digitar insumo",
+      "typeItemCaption": "Cadastra um item no estoque"
     },
     "scan": {
       "instruction": "Posicione o documento dentro da área demarcada",
@@ -84,14 +88,171 @@
       "fromLibrary": "Escolher da galeria",
       "cancel": "Cancelar"
     },
-    "uploading": "Enviando o documento...",
+    "preparing": "Preparando o arquivo...",
+    "uploading": "Enviando e lendo o documento...",
+    "confirmFile": {
+      "back": "Voltar",
+      "title": "Confirmar arquivo",
+      "subtitle": "O PDF só é lido depois do envio.",
+      "meta": "PDF · {{size}}",
+      "info": "Fornecedor, número e itens são lidos no envio. Você confere tudo antes de dar entrada.",
+      "send": "Enviar este arquivo",
+      "replace": "Trocar arquivo",
+      "cancel": "Cancelar"
+    },
+    "reading": {
+      "photo": "A foto ficou anexada como comprovante. Fotos não passam pela leitura automática: para ler os itens, envie o PDF da nota.",
+      "noTextLayer": {
+        "title": "Este PDF não tem texto",
+        "message": "Parece uma digitalização. Ele ficou anexado como comprovante, mas os itens não podem ser lidos. Envie o PDF gerado pelo sistema do fornecedor."
+      },
+      "noTableFound": {
+        "title": "Não encontramos os itens",
+        "message": "O PDF foi lido, mas nenhuma tabela de itens apareceu nele. Confira se é o pedido certo."
+      },
+      "timeout": {
+        "title": "A leitura demorou demais",
+        "message": "O PDF ficou anexado, mas não deu tempo de ler os itens. Envie de novo."
+      },
+      "unreadable": {
+        "title": "Não conseguimos ler este PDF",
+        "message": "O arquivo ficou anexado, mas a leitura falhou. Tente outro PDF."
+      },
+      "replaceWithText": "Trocar por PDF com texto",
+      "replace": "Trocar arquivo",
+      "close": "Fechar"
+    },
     "review": {
-      "confirm": "Confirmar",
-      "found": "{{count}} itens encontrados · toque para corrigir",
-      "foundOne": "1 item encontrado · toque para corrigir",
-      "namePlaceholder": "Nome do item",
-      "checkItem": "Confira o nome e a quantidade",
-      "remove": "Excluir item"
+      "back": "Fechar conferência",
+      "title": "Conferir",
+      "partial": "Lemos {{read}} de {{total}} páginas. Confira e complete os itens que faltam.",
+      "supplier": "FORNECEDOR",
+      "supplierNotRegistered": "Não cadastrado nos seus fornecedores",
+      "supplierNotRead": "Não lido",
+      "invoiceNumber": "Nº DA NOTA",
+      "date": "DATA",
+      "datePlaceholder": "dd/mm/aaaa",
+      "total": "VALOR TOTAL DA NOTA",
+      "linesSum": "Soma das linhas: {{sum}}",
+      "linesSumDifference": "Soma das linhas: {{sum}} · diferença de {{difference}}",
+      "attentionOne": "1 linha precisa de atenção",
+      "attention": "{{count}} linhas precisam de atenção",
+      "allChecked": "Tudo conferido",
+      "showOnlyAttention": "Ver só essas",
+      "showAll": "Ver todas",
+      "items": "ITENS DA NOTA",
+      "linesOne": "1 linha",
+      "lines": "{{count}} linhas",
+      "addLine": "Adicionar item manualmente",
+      "confirm": "Dar entrada no estoque",
+      "confirmUnavailable": "Dar entrada no estoque chega na próxima etapa. A conferência fica salva como rascunho.",
+      "leaveTitle": "Sair da conferência?",
+      "leaveMessage": "Algumas alterações não foram salvas e vão se perder.",
+      "leaveConfirm": "Sair sem salvar",
+      "leaveCancel": "Continuar conferindo",
+      "line": {
+        "addedByHand": "Adicionado na conferência",
+        "split": "Dividida · lote {{part}} de {{of}}",
+        "unlinked": "Sem item vinculado",
+        "linkedWithoutName": "Item vinculado",
+        "quantity": "QTD",
+        "unit": "UN",
+        "unitValue": "V. UNIT",
+        "total": "TOTAL",
+        "lineTotal": "TOTAL DA LINHA",
+        "lot": "LOTE",
+        "expiry": "VALIDADE",
+        "missing": "informar",
+        "edit": "Editar",
+        "done": "Concluir",
+        "splitAction": "Dividir",
+        "remove": "Remover linha",
+        "issues": {
+          "mismatch": "{{quantity}} × {{unitValue}} dá {{computed}}. A nota traz {{printed}}.",
+          "shortName": "A descrição da nota tem {{count}} letras. Curta demais para identificar o item.",
+          "unlinked": "Nenhum item do seu estoque foi reconhecido nesta descrição.",
+          "noQuantity": "A quantidade não veio na nota. Nada entraria no estoque assim.",
+          "noUnitValue": "O valor unitário não veio na nota. Sem ele não há total da linha."
+        },
+        "fixes": {
+          "mismatch": "Usar {{computed}}",
+          "shortName": "Vincular a um item",
+          "unlinked": "Vincular a um item",
+          "noQuantity": "Informar quantidade",
+          "noUnitValue": "Informar valor unitário"
+        }
+      },
+      "save": {
+        "idle": "Salvo automaticamente",
+        "saving": "Salvando rascunho…",
+        "saved": "Rascunho salvo agora",
+        "failed": "Não foi possível salvar",
+        "retry": "Tentar de novo"
+      },
+      "discard": "Descartar entrada"
+    },
+    "link": {
+      "back": "Voltar à conferência",
+      "title": "Vincular item",
+      "lineOf": "LINHA {{index}} DE {{count}}",
+      "catalogItem": "ITEM DO CATÁLOGO",
+      "searchPlaceholder": "Buscar no catálogo",
+      "suggestions": "SUGESTÕES DA LEITURA",
+      "noSuggestions": "A leitura não achou itens parecidos. Busque pelo nome.",
+      "resultsOne": "1 ITEM NO CATÁLOGO",
+      "results": "{{count}} ITENS NO CATÁLOGO",
+      "noResults": "NENHUM ITEM NO CATÁLOGO",
+      "noResultsHint": "Nada encontrado para “{{term}}”. Você pode cadastrar agora e seguir conferindo.",
+      "searching": "Buscando…",
+      "searchError": "Não foi possível buscar agora. Tente de novo.",
+      "typeMore": "Digite pelo menos 2 letras.",
+      "create": "Cadastrar “{{name}}”",
+      "createCaption": "Nome, quantidade e valor vêm da nota",
+      "createFailed": "Não foi possível cadastrar o item. Tente de novo."
+    },
+    "entries": {
+      "title": "Entradas",
+      "back": "Fechar entradas",
+      "pending": "PENDÊNCIAS",
+      "countOne": "1 entrada",
+      "count": "{{count}} entradas",
+      "empty": "Nenhuma entrada pendente. Toda nota enviada aparece aqui até ser conferida.",
+      "loadFailed": "Não foi possível carregar as entradas.",
+      "retry": "Tentar de novo",
+      "newEntry": "Nova entrada",
+      "untitled": "Documento sem nome",
+      "pdf": "PDF",
+      "photo": "Foto",
+      "invoiceNumber": "NF {{number}}",
+      "status": {
+        "ready": "Pronta para conferir",
+        "processing": "Processando",
+        "failed": "Falhou",
+        "photo": "Rascunho manual",
+        "notUploaded": "Envio não concluído"
+      },
+      "reasons": {
+        "photo": "Foto guardada como comprovante. Os itens não são lidos de fotos.",
+        "notUploaded": "O arquivo não chegou ao servidor."
+      },
+      "actions": {
+        "review": "Conferir",
+        "replace": "Trocar arquivo",
+        "discard": "Descartar"
+      },
+      "discardTitle": "Descartar esta entrada?",
+      "discardMessage": "O documento continua guardado, mas a entrada sai das pendências e o mesmo arquivo pode ser enviado de novo.",
+      "discardConfirm": "Descartar",
+      "discardCancel": "Voltar",
+      "discardFailed": "Não foi possível descartar a entrada. Tente de novo.",
+      "opening": "Abrindo a entrada...",
+      "openFailed": "Não foi possível abrir a entrada. Tente de novo."
+    },
+    "duplicate": {
+      "title": "Documento já enviado",
+      "message": "Este PDF já está em outra entrada.",
+      "open": "Abrir a entrada existente",
+      "close": "Fechar"
     },
     "errors": {
       "dismiss": "Entendi",
@@ -99,7 +260,7 @@
       "unsupportedType": "Só aceitamos PDF ou foto em JPEG. Tire a foto pelo app ou escolha outro arquivo.",
       "offline": "Sem conexão com a internet. O envio precisa de rede — tente de novo quando voltar.",
       "tooLarge": "Este arquivo passa de 15 MB. Tire a foto de novo ou envie um PDF menor.",
-      "duplicateFile": "Este documento já foi enviado antes. Abra a entrada existente em vez de criar outra.",
+      "duplicateFile": "Este documento já foi enviado antes, em outra entrada.",
       "notProvisioned": "Sua conta ainda não terminou de ser criada. Saia e entre de novo no app.",
       "uploadRejected": "O envio do arquivo foi recusado. Tente de novo.",
       "notConfirmed": "O arquivo não chegou completo ao servidor. Tente enviar de novo.",
@@ -489,7 +650,7 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Buscar clínica pelo nome",
+      "location": "Nome da clínica",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
@@ -517,12 +678,14 @@
       "END_BEFORE_START": "O fim deve ser depois do início",
       "INVALID_DATE": "Data inválida",
       "INVALID_TIME": "Hora inválida",
-      "IN_THE_PAST": "Escolha uma data e horário futuros"
+      "IN_THE_PAST": "Escolha uma data e horário futuros",
+      "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
+      "SELECT_CLIENT": "Escolha uma clínica da lista"
     },
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhuma clínica encontrada"
+      "empty": "Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas."
     },
     "completion": {
       "action": "Finalizar procedimento",
@@ -583,6 +746,7 @@
       "addSupply": "Adicionar insumo",
       "addSupplyShort": "Adicionar",
       "suppliesFailed": "Não foi possível salvar os insumos. Tente novamente.",
+      "pendingSyncHint": "Insumos, valor e status ficam disponíveis depois que o agendamento for enviado.",
       "amountSheet": {
         "title": "Valor do atendimento",
         "placeholder": "0,00",
@@ -707,6 +871,34 @@
       "errors": {
         "CONFLICT": "Você já possui um atendimento nesse horário.",
         "FAILED": "Não foi possível remarcar. Tente novamente."
+      }
+    },
+    "conflict": {
+      "title": "Conflito de horário",
+      "message": "Este horário conflita com {{procedure}} às {{time}}.",
+      "unnamedProcedure": "outro atendimento",
+      "adjust": "Alterar horário"
+    },
+    "offline": "Sem conexão. Mostrando a agenda salva no aparelho; o que você criar ou editar será enviado quando a internet voltar.",
+    "pendingSync": "Aguardando envio",
+    "sync": {
+      "title": "Agendamento não sincronizado",
+      "message": "Não foi possível enviar o agendamento de {{patient}} em {{date}} às {{time}}: {{reason}}",
+      "messageEdit": "Não foi possível enviar uma edição de agendamento: {{reason}}",
+      "unnamedPatient": "paciente sem nome",
+      "reasons": {
+        "conflict": "o horário conflita com outro agendamento.",
+        "notFound": "o agendamento não existe mais.",
+        "other": "os dados foram recusados pelo servidor.",
+        "clinicNotSynced": "a clínica dele não pôde ser cadastrada."
+      },
+      "clinicTitle": "Clínica não sincronizada",
+      "clinicMessage": "Não foi possível enviar a clínica {{name}}: {{reason}}",
+      "clinicMessageEdit": "Não foi possível enviar uma edição de clínica: {{reason}}",
+      "clinicReasons": {
+        "duplicatedTaxId": "já existe outra clínica com esse CNPJ.",
+        "notFound": "a clínica não existe mais.",
+        "duplicatedName": "já existe outra clínica com esse nome."
       }
     }
   },

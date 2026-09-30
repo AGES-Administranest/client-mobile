@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import {
@@ -6,6 +7,7 @@ import {
   type Account,
   type AuthSession,
 } from 'features/auth';
+import { loadClientOutbox } from 'features/clients';
 import { ApiError } from 'shared/services/apiClient';
 
 import { useNewClinicForm } from './useNewClinicForm';
@@ -16,6 +18,7 @@ import { createClient } from '../services/clientService';
 jest.mock('../services/clientService', () => ({
   createClient: jest.fn(),
 }));
+jest.mock('expo-crypto', () => ({ randomUUID: () => 'uuid-1' }));
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
@@ -229,11 +232,6 @@ test.each([
     new ApiError('Validation failed', 'VALIDATION_ERROR', 400),
     'clinics.newClinic.failures.unknown',
   ],
-  [
-    'a request that never reached the API',
-    new TypeError('Network request failed'),
-    'clinics.newClinic.failures.unknown',
-  ],
 ])('reports %s with its own message', async (_case, error, key) => {
   createClientMock.mockRejectedValue(error);
   await mount();
@@ -303,4 +301,68 @@ test('reset clears what was typed and the API failure', async () => {
 
   expect(current.draft).toEqual(EMPTY_CLINIC_DRAFT);
   expect(current.failure).toBeNull();
+});
+
+describe('sem conexão', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    createClientMock.mockRejectedValue(new TypeError('Network request failed'));
+  });
+
+  test('a clínica entra na fila e volta com id local, pronta para a lista', async () => {
+    await mount();
+    await fillName();
+
+    let created: Client | null | undefined;
+    await act(async () => {
+      created = await current.submit();
+    });
+
+    expect(created).toMatchObject({
+      id: 'local:uuid-1',
+      name: 'Clínica VetNova',
+      active: true,
+    });
+    expect(current.failure).toBeNull();
+    expect(current.isSaving).toBe(false);
+    expect(await loadClientOutbox(ACCOUNT.id)).toEqual([
+      expect.objectContaining({ kind: 'create', localId: 'local:uuid-1' }),
+    ]);
+  });
+
+  test('um CNPJ que já está na lista salva ou na fila é recusado no campo, mesmo com outro nome', async () => {
+    await mount();
+    await fillName('Clínica VetNova');
+    await act(async () => {
+      await current.submit();
+    });
+
+    await fillName('Clínica Outra');
+    let second: Client | null | undefined;
+    await act(async () => {
+      second = await current.submit();
+    });
+
+    expect(second).toBeNull();
+    expect(current.errors).toMatchObject({ cnpj: 'duplicated' });
+    expect(current.failure).toBeNull();
+    expect(await loadClientOutbox(ACCOUNT.id)).toHaveLength(1);
+  });
+
+  test('um nome que já está na lista salva é recusado na hora, como o backend faria', async () => {
+    await mount();
+    await fillName();
+    await act(async () => {
+      await current.submit();
+    });
+
+    let second: Client | null | undefined;
+    await act(async () => {
+      second = await current.submit();
+    });
+
+    expect(second).toBeNull();
+    expect(current.failure).toBe('clinics.newClinic.failures.duplicatedName');
+    expect(await loadClientOutbox(ACCOUNT.id)).toHaveLength(1);
+  });
 });

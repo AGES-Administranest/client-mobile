@@ -31,6 +31,7 @@ import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import {
   AsaBadge,
+  ConflictAlertSheet,
   FeedbackSheet,
   formatAppointmentDateBadge,
   useExportToCalendar,
@@ -69,6 +70,7 @@ import {
   useAppointmentDetail,
   type AmountError,
 } from '../hooks/useAppointmentDetail';
+import { useConflictAlert } from '../hooks/useConflictAlert';
 import { useProcedureForm } from '../hooks/useProcedureForm';
 import { useProcedureFormTexts } from '../hooks/useProcedureFormTexts';
 import {
@@ -115,6 +117,7 @@ export function AppointmentDetailScreen({
     form.errors,
     t('procedures.detail.editTitle'),
   );
+  const conflictAlert = useConflictAlert(form.conflict);
 
   // Modal's own `animationType="slide"` only slides vertically; this is a
   // push-style detail view, so it animates in from the right by hand.
@@ -141,6 +144,9 @@ export function AppointmentDetailScreen({
   );
 
   const editable = appointment !== null && appointment.status !== 'CANCELED';
+  // O que mexe no backend (valor, insumos, status) espera o agendamento
+  // criado offline sair da fila; editar os dados dele continua valendo.
+  const syncedEditable = editable && !detail.pendingSync;
   const totalCost = calculateSupplyTotalCost(detail.supplies);
   const margin = appointment
     ? grossMargin(appointment.amount, totalCost)
@@ -396,7 +402,7 @@ export function AppointmentDetailScreen({
                     <Text className="text-[11px] font-semibold uppercase tracking-wide text-label-primary">
                       {t('procedures.detail.hoursWorked.title')}
                     </Text>
-                    {editable ? (
+                    {syncedEditable ? (
                       <Pressable
                         onPress={openAmountSheet}
                         accessibilityRole="button"
@@ -443,7 +449,7 @@ export function AppointmentDetailScreen({
                   <Text className="text-xs font-bold uppercase text-label-primary">
                     {t('procedures.detail.suppliesTitle')}
                   </Text>
-                  {editable ? (
+                  {syncedEditable ? (
                     <Pressable
                       onPress={() => setSelectorVisible(true)}
                       accessibilityRole="button"
@@ -478,8 +484,13 @@ export function AppointmentDetailScreen({
                     }),
                   }))}
                   emptyMessage={t('procedures.supplies.empty')}
-                  onRemove={editable ? removeSupply : undefined}
+                  onRemove={syncedEditable ? removeSupply : undefined}
                 />
+                {detail.pendingSync ? (
+                  <Text className="text-xs text-label-tertiary">
+                    {t('procedures.detail.pendingSyncHint')}
+                  </Text>
+                ) : null}
                 {detail.supplyFailed ? (
                   <Text className="text-xs text-alert-primary">
                     {t('procedures.detail.suppliesFailed')}
@@ -487,7 +498,7 @@ export function AppointmentDetailScreen({
                 ) : null}
 
                 <TravelSection
-                  editable={editable}
+                  editable={syncedEditable}
                   texts={{
                     title: t('procedures.detail.travel.title'),
                     emptyMessage: t('procedures.detail.travel.empty'),
@@ -522,14 +533,16 @@ export function AppointmentDetailScreen({
 
               {/* A key no valor remonta as ações quando ele é preenchido: o aviso
                 de "preencha o valor" não pode continuar na tela. */}
-              <ActionsSection
-                key={appointment.amount ?? 'no-amount'}
-                appointment={appointment}
-                onChanged={() => {
-                  detail.refetch();
-                  onChanged();
-                }}
-              />
+              {detail.pendingSync ? null : (
+                <ActionsSection
+                  key={appointment.amount ?? 'no-amount'}
+                  appointment={appointment}
+                  onChanged={() => {
+                    detail.refetch();
+                    onChanged();
+                  }}
+                />
+              )}
 
               {/* Only upcoming work goes to the calendar, and the web has no
                 native calendar to write to. */}
@@ -542,7 +555,7 @@ export function AppointmentDetailScreen({
       </Animated.View>
 
       <ProcedureFormSheet
-        visible={editVisible}
+        visible={editVisible && form.conflict === null}
         values={form.values}
         submitting={form.submitting}
         submitFailed={form.submitFailed}
@@ -556,6 +569,11 @@ export function AppointmentDetailScreen({
         onChangeAsa={value => form.setField('asaClassification', value)}
         onSubmit={form.submit}
         onClose={() => setEditVisible(false)}
+      />
+      <ConflictAlertSheet
+        visible={editVisible && conflictAlert.visible}
+        conflictingAppointment={conflictAlert.conflictingAppointment}
+        onAdjust={form.dismissConflict}
       />
 
       <ConfirmSheet

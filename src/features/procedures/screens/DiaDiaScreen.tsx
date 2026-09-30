@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { ConflictAlertSheet } from 'features/appointments';
 import { useAuth } from 'features/auth';
 import {
   formatSupplyPrice,
@@ -10,6 +11,7 @@ import {
 import { useTranslation } from 'shared/i18n';
 
 import { ProcedureFormSheet } from '../components/ProcedureFormSheet';
+import { useConflictAlert } from '../hooks/useConflictAlert';
 import { useProcedureForm } from '../hooks/useProcedureForm';
 import { useProcedureFormTexts } from '../hooks/useProcedureFormTexts';
 import { registerAppointmentSupplies } from '../services/appointmentSupplyService';
@@ -29,6 +31,8 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     submitFailed,
     client,
     supplyPrompt,
+    conflict,
+    dismissConflict,
     setField,
     setTextField,
     submit,
@@ -67,11 +71,14 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
   }
 
   const texts = useProcedureFormTexts(errors);
+  const conflictAlert = useConflictAlert(conflict);
 
   return (
     <>
       <ProcedureFormSheet
-        visible={visible && supplyPrompt === null}
+        // Um Modal sobre outro não abre no iOS: o formulário sai de cena
+        // enquanto a pergunta ou o alerta de conflito estão abertos.
+        visible={visible && supplyPrompt === null && conflict === null}
         values={values}
         submitting={submitting}
         submitFailed={submitFailed}
@@ -86,6 +93,11 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onSubmit={submit}
         // O ItemModal passa o evento do toque; fechar sem criar não leva dado.
         onClose={() => onClose()}
+      />
+      <ConflictAlertSheet
+        visible={visible && conflictAlert.visible}
+        conflictingAppointment={conflictAlert.conflictingAppointment}
+        onAdjust={dismissConflict}
       />
       <ConfirmSheet
         visible={supplyPrompt?.step === 'confirm'}

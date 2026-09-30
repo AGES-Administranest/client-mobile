@@ -1,7 +1,18 @@
 import { useEffect, useState } from 'react';
 
+import {
+  isLocalAppointmentId,
+  isNetworkError,
+  newClientGeneratedId,
+  queueAppointmentCreate,
+  queueAppointmentUpdate,
+} from 'features/appointments';
 import { useAuth } from 'features/auth';
-import { useClientSearch, type ClientOption } from 'features/clients';
+import {
+  isLocalClientId,
+  useClientSearch,
+  type ClientOption,
+} from 'features/clients';
 
 import {
   EMPTY_PROCEDURE_FORM,
@@ -16,8 +27,10 @@ import { toProcedureFormValues } from '../domain/toProcedureFormValues';
 import { validateProcedureForm } from '../domain/validateProcedureForm';
 import {
   createAppointment,
+  readTimeConflict,
   updateAppointment,
   type AppointmentResult,
+  type ConflictingAppointment,
 } from '../services/procedureService';
 
 type SupplyPrompt = {
@@ -33,7 +46,7 @@ export function useProcedureForm(
   visible: boolean,
   editing: AppointmentResult | null = null,
 ) {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const [values, setValues] =
     useState<ProcedureFormValues>(EMPTY_PROCEDURE_FORM);
   const [errors, setErrors] = useState<ProcedureErrors>({});
@@ -47,6 +60,7 @@ export function useProcedureForm(
     paused: selectedClient !== null,
   });
   const [supplyPrompt, setSupplyPrompt] = useState<SupplyPrompt | null>(null);
+  const [conflict, setConflict] = useState<ConflictingAppointment | null>(null);
 
   useEffect(() => {
     if (!visible || !editing) {
@@ -98,6 +112,12 @@ export function useProcedureForm(
     clientSearch.reset();
     setErrors({});
     setSubmitFailed(false);
+    setConflict(null);
+  }
+
+  // Volta ao formulário com o que foi digitado, para trocar o horário.
+  function dismissConflict(): void {
+    setConflict(null);
   }
 
   function acceptSupplyPrompt(): void {
@@ -115,6 +135,34 @@ export function useProcedureForm(
     onSuccess(created);
   }
 
+  function pointsToLocalClinic(
+    payload: Partial<CreateAppointmentPayload>,
+  ): boolean {
+    return payload.clientId !== undefined && isLocalClientId(payload.clientId);
+  }
+
+  async function saveEdit(
+    idToken: string,
+    appointmentId: string,
+    changes: Partial<CreateAppointmentPayload>,
+  ): Promise<void> {
+    // Um agendamento criado offline ainda não existe no backend: a edição
+    // entra direto na fila, junto do create dele.
+    if (
+      account &&
+      (isLocalAppointmentId(appointmentId) || pointsToLocalClinic(changes))
+    ) {
+      await queueAppointmentUpdate(account.id, appointmentId, changes);
+      return;
+    }
+    try {
+      await updateAppointment(idToken, appointmentId, changes);
+    } catch (error) {
+      if (!account || !isNetworkError(error)) throw error;
+      await queueAppointmentUpdate(account.id, appointmentId, changes);
+    }
+  }
+
   async function submit(): Promise<void> {
     const validation = validateProcedureForm(values);
     setErrors(validation);
@@ -128,19 +176,47 @@ export function useProcedureForm(
 
     setSubmitting(true);
     setSubmitFailed(false);
+    setConflict(null);
     try {
       if (editing) {
         const changes: Partial<CreateAppointmentPayload> =
           toCreateAppointmentPayload(values);
         delete changes.status;
-        await updateAppointment(session.idToken, editing.id, changes);
+        await saveEdit(session.idToken, editing.id, changes);
         onSuccess();
         return;
       }
-      const appointment = await createAppointment(
-        session.idToken,
-        toCreateAppointmentPayload(values),
-      );
+      const payload = toCreateAppointmentPayload(values);
+      // Vai também no envio online: se a resposta se perder e o app tentar
+      // de novo pela fila, o backend reconhece o mesmo registro.
+      const clientGeneratedId = newClientGeneratedId();
+      // Uma clínica cadastrada offline só tem id local, que o backend
+      // recusaria: o agendamento espera na fila e sai logo depois dela.
+      let appointment: AppointmentResult | null = null;
+      if (!(account && pointsToLocalClinic(payload))) {
+        try {
+          appointment = await createAppointment(session.idToken, {
+            ...payload,
+            clientGeneratedId,
+          });
+        } catch (error) {
+          if (!account || !isNetworkError(error)) throw error;
+        }
+      }
+      if (!appointment) {
+        // Sem rede: fica na fila e aparece na agenda como pendente. Insumos
+        // mexem no estoque do backend, então a pergunta fica para o detalhe.
+        await queueAppointmentCreate(account!.id, clientGeneratedId, payload);
+        reset();
+        onSuccess({ startsAt: payload.startsAt });
+        return;
+      }
+      // Insumos são lançados quando o procedimento acontece, não ao agendar.
+      if (payload.status === 'SCHEDULED') {
+        reset();
+        onSuccess({ startsAt: appointment.startsAt });
+        return;
+      }
       // Os valores só são limpos ao fim da pergunta; a tela esconde o
       // formulário enquanto ela está aberta.
       setSupplyPrompt({
@@ -148,8 +224,13 @@ export function useProcedureForm(
         startsAt: appointment.startsAt,
         step: 'confirm',
       });
-    } catch {
-      setSubmitFailed(true);
+    } catch (error) {
+      const conflicting = readTimeConflict(error);
+      if (conflicting) {
+        setConflict(conflicting);
+      } else {
+        setSubmitFailed(true);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -168,6 +249,8 @@ export function useProcedureForm(
       onSelect: selectClient,
     },
     supplyPrompt,
+    conflict,
+    dismissConflict,
     setField,
     setTextField,
     submit,

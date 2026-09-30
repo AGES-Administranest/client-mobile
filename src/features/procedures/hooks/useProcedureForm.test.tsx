@@ -1,13 +1,30 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import {
+  queueAppointmentCreate,
+  queueAppointmentUpdate,
+} from 'features/appointments';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
+import { ApiError } from 'shared/services/apiClient';
 
 import { useProcedureForm } from './useProcedureForm';
 import { validProcedureForm } from '../domain/validProcedureForm.fixture';
-import { createAppointment } from '../services/procedureService';
+import {
+  createAppointment,
+  updateAppointment,
+  type AppointmentResult,
+} from '../services/procedureService';
 
 jest.mock('../services/procedureService', () => ({
+  ...jest.requireActual('../services/procedureService'),
   createAppointment: jest.fn(),
+  updateAppointment: jest.fn(),
+}));
+jest.mock('features/appointments', () => ({
+  ...jest.requireActual('features/appointments'),
+  newClientGeneratedId: () => 'cg-1',
+  queueAppointmentCreate: jest.fn().mockResolvedValue(undefined),
+  queueAppointmentUpdate: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn().mockResolvedValue([]),
@@ -116,7 +133,7 @@ test('digitar depois de escolher desfaz o clientId', async () => {
   expect(result.current.client.term).toBe('Clínica Vet');
 });
 
-test('enviar sem tomador escolhido marca o campo como obrigatório e não chama a API', async () => {
+test('enviar sem tomador escolhido da lista pede para escolher uma clínica e não chama a API', async () => {
   const { result } = await mountHook();
   await act(async () => result.current.client.onTermChange('Clínica Vet'));
 
@@ -124,16 +141,16 @@ test('enviar sem tomador escolhido marca o campo como obrigatório e não chama 
     await result.current.submit();
   });
 
-  expect(result.current.errors.clientId).toBe('REQUIRED');
+  expect(result.current.errors.clientId).toBe('SELECT_CLIENT');
   expect(createAppointmentMock).not.toHaveBeenCalled();
 });
 
-test('escolher o tomador limpa o erro de obrigatório do campo', async () => {
+test('escolher o tomador limpa o erro do campo', async () => {
   const { result } = await mountHook();
   await act(async () => {
     await result.current.submit();
   });
-  expect(result.current.errors.clientId).toBe('REQUIRED');
+  expect(result.current.errors.clientId).toBe('SELECT_CLIENT');
 
   await act(async () => result.current.client.onSelect(VETCENTER));
 
@@ -216,4 +233,227 @@ test('does not ask about supplies when the appointment fails to save', async () 
   expect(result.current.supplyPrompt).toBeNull();
   expect(result.current.submitFailed).toBe(true);
   expect(onSuccess).not.toHaveBeenCalled();
+});
+
+// O fixture é de agosto de 2026, já passado; 2099 é sempre futuro.
+const FUTURE_DATE = '06/08/2099';
+
+async function submitScheduled(onSuccess: () => void = jest.fn()) {
+  const mounted = await mountWithFilledForm(onSuccess);
+  await act(async () => mounted.result.current.setField('date', FUTURE_DATE));
+  await act(async () => {
+    await mounted.result.current.submit();
+  });
+  return mounted;
+}
+
+test('com começo no futuro, salva como SCHEDULED e fecha sem perguntar de insumos', async () => {
+  createAppointmentMock.mockResolvedValue({
+    id: 'appointment-2',
+    startsAt: '2099-08-06T12:00:00.000Z',
+  } as never);
+
+  const { result, onSuccess } = await submitScheduled();
+
+  expect(createAppointmentMock).toHaveBeenCalledWith(
+    'id-token',
+    expect.objectContaining({ status: 'SCHEDULED' }),
+  );
+  expect(result.current.supplyPrompt).toBeNull();
+  expect(onSuccess).toHaveBeenCalledWith({
+    startsAt: '2099-08-06T12:00:00.000Z',
+  });
+  expect(result.current.values.patientName).toBe('');
+});
+
+test('um 409 de conflito de horário abre o alerta com o agendamento que ocupa o horário', async () => {
+  const conflicting = {
+    id: 'appointment-9',
+    startsAt: '2099-08-06T12:30:00.000Z',
+    endsAt: '2099-08-06T13:30:00.000Z',
+    procedureName: 'Castração',
+  };
+  createAppointmentMock.mockRejectedValue(
+    new ApiError('conflict', 'APPOINTMENT_TIME_CONFLICT', 409, {
+      conflict: true,
+      conflictingAppointment: conflicting,
+    }),
+  );
+
+  const { result, onSuccess } = await submitScheduled();
+
+  expect(result.current.conflict).toEqual(conflicting);
+  expect(result.current.submitFailed).toBe(false);
+  expect(onSuccess).not.toHaveBeenCalled();
+});
+
+test('ajustar o horário fecha o alerta e mantém o que foi digitado', async () => {
+  createAppointmentMock.mockRejectedValue(
+    new ApiError('conflict', 'APPOINTMENT_TIME_CONFLICT', 409, {
+      conflict: true,
+      conflictingAppointment: {
+        id: 'appointment-9',
+        startsAt: '2099-08-06T12:30:00.000Z',
+        endsAt: '2099-08-06T13:30:00.000Z',
+        procedureName: null,
+      },
+    }),
+  );
+  const { result } = await submitScheduled();
+
+  await act(async () => result.current.dismissConflict());
+
+  expect(result.current.conflict).toBeNull();
+  expect(result.current.values.patientName).toBe('Rex');
+  expect(result.current.values.date).toBe(FUTURE_DATE);
+});
+
+test('outro erro da API continua como falha genérica, sem alerta de conflito', async () => {
+  createAppointmentMock.mockRejectedValue(
+    new ApiError('bad', 'INVALID_REQUEST', 400),
+  );
+
+  const { result } = await submitScheduled();
+
+  expect(result.current.conflict).toBeNull();
+  expect(result.current.submitFailed).toBe(true);
+});
+
+describe('sem conexão', () => {
+  const offline = () => new TypeError('Network request failed');
+
+  test('o create vai para a fila com o clientGeneratedId e o formulário fecha', async () => {
+    createAppointmentMock.mockRejectedValue(offline());
+
+    const { result, onSuccess } = await submitScheduled();
+
+    expect(createAppointmentMock).toHaveBeenCalledWith(
+      'id-token',
+      expect.objectContaining({ clientGeneratedId: 'cg-1' }),
+    );
+    expect(queueAppointmentCreate).toHaveBeenCalledWith(
+      'user-1',
+      'cg-1',
+      expect.objectContaining({ status: 'SCHEDULED', patientName: 'Rex' }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+    expect(result.current.submitFailed).toBe(false);
+    expect(result.current.supplyPrompt).toBeNull();
+  });
+
+  test('procedimento já realizado criado offline também não pergunta de insumos', async () => {
+    createAppointmentMock.mockRejectedValue(offline());
+
+    const { result, onSuccess } = await submitSuccessfully();
+
+    expect(queueAppointmentCreate).toHaveBeenCalledWith(
+      'user-1',
+      'cg-1',
+      expect.objectContaining({ status: 'COMPLETED' }),
+    );
+    expect(result.current.supplyPrompt).toBeNull();
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  test('com uma clínica cadastrada offline, nem tenta a rede: vai direto para a fila', async () => {
+    const { result, onSuccess } = await mountWithFilledForm();
+    await act(async () =>
+      result.current.client.onSelect({
+        id: 'local:clinic-1',
+        name: 'Clínica Casa',
+      }),
+    );
+    await act(async () => result.current.setField('date', FUTURE_DATE));
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(createAppointmentMock).not.toHaveBeenCalled();
+    expect(queueAppointmentCreate).toHaveBeenCalledWith(
+      'user-1',
+      'cg-1',
+      expect.objectContaining({ clientId: 'local:clinic-1' }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  test('um erro da API com rede não entra na fila', async () => {
+    createAppointmentMock.mockRejectedValue(
+      new ApiError('bad', 'INVALID_REQUEST', 400),
+    );
+
+    await submitScheduled();
+
+    expect(queueAppointmentCreate).not.toHaveBeenCalled();
+  });
+
+  const EDITING = {
+    id: 'server-1',
+    clientId: 'client-1',
+    ownerName: null,
+    procedureName: 'Orquiectomia',
+    startsAt: new Date(2026, 7, 6, 9, 0).toISOString(),
+    endsAt: new Date(2026, 7, 6, 10, 0).toISOString(),
+    patientName: 'Rex',
+    amount: '350.00',
+    status: 'COMPLETED',
+  } as unknown as AppointmentResult;
+
+  async function submitEdit(editing: AppointmentResult) {
+    const result = {
+      current: null as unknown as ReturnType<typeof useProcedureForm>,
+    };
+    const onSuccess = jest.fn();
+    function Harness() {
+      result.current = useProcedureForm(onSuccess, true, editing);
+      return null;
+    }
+    await act(async () => {
+      ReactTestRenderer.create(
+        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+          <Harness />
+        </AuthProvider>,
+      );
+    });
+    await act(async () => {
+      (
+        Object.entries(validProcedureForm) as [
+          keyof typeof validProcedureForm,
+          string,
+        ][]
+      ).forEach(([key, value]) => result.current.setField(key, value));
+    });
+    await act(async () => {
+      await result.current.submit();
+    });
+    return { result, onSuccess };
+  }
+
+  test('a edição sem rede vai para a fila e fecha como se tivesse salvo', async () => {
+    (updateAppointment as jest.Mock).mockRejectedValue(offline());
+
+    const { onSuccess } = await submitEdit(EDITING);
+
+    expect(queueAppointmentUpdate).toHaveBeenCalledWith(
+      'user-1',
+      'server-1',
+      expect.not.objectContaining({ status: expect.anything() }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  test('editar um agendamento criado offline nem tenta a rede', async () => {
+    const { onSuccess } = await submitEdit({
+      ...EDITING,
+      id: 'local:cg-9',
+    });
+
+    expect(updateAppointment).not.toHaveBeenCalled();
+    expect(queueAppointmentUpdate).toHaveBeenCalledWith(
+      'user-1',
+      'local:cg-9',
+      expect.any(Object),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
 });

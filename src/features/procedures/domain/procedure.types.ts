@@ -50,6 +50,8 @@ export type FieldErrorCode =
   | 'AGE_OUT_OF_RANGE'
   | 'END_BEFORE_START'
   | 'IN_THE_PAST'
+  | 'REQUIRED_FOR_SCHEDULE'
+  | 'SELECT_CLIENT'
   | 'INVALID_DATE'
   | 'INVALID_TIME';
 
@@ -58,6 +60,8 @@ export type ProcedureErrors = Partial<
 >;
 
 export interface CreateAppointmentPayload {
+  /** Chave de idempotência do backend para criações feitas offline. */
+  clientGeneratedId?: string;
   startsAt: string;
   status: AppointmentStatus;
   endsAt?: string;

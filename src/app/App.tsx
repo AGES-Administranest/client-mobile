@@ -7,6 +7,7 @@ import {
 } from 'react-native-safe-area-context';
 
 import { TabBar, type TabValue } from 'app/components/ui/tabbar';
+import { AppointmentSyncObserver } from 'features/appointments';
 import {
   AuthFlow,
   AuthProvider,
@@ -124,6 +125,8 @@ function AppContent() {
         style={StyleSheet.absoluteFill}
       />
       <Screen />
+      {/* Fora das abas: a fila offline sobe mesmo com outra aba aberta. */}
+      <AppointmentSyncObserver />
       <View style={tabBarWrapperStyle}>
         <TabBar value={tab} onValueChange={setTab} className="mx-4 mb-[25px]" />
       </View>

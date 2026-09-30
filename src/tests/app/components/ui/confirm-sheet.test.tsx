@@ -88,3 +88,34 @@ test('confirming and cancelling call the right handler', async () => {
   });
   expect(onCancel).toHaveBeenCalledTimes(1);
 });
+
+test('without a cancel label only the confirm button shows, and tapping outside still cancels', async () => {
+  const onCancel = jest.fn();
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <ConfirmSheet
+        visible
+        title="Aviso"
+        confirmLabel="Entendi"
+        onConfirm={() => {}}
+        onCancel={onCancel}
+      />,
+    );
+  });
+
+  const texts = renderer!.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children);
+  expect(texts).toContain('Entendi');
+  expect(texts).not.toContain('Cancelar');
+
+  const backdrop = renderer!.root.find(
+    node =>
+      typeof node.props?.onPress === 'function' &&
+      typeof node.props?.className === 'string' &&
+      node.props.className.includes('bg-background-shade'),
+  );
+  await act(async () => backdrop.props.onPress());
+  expect(onCancel).toHaveBeenCalledTimes(1);
+});
