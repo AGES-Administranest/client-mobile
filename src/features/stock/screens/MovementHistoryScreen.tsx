@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
+import { onConnectionRestored } from 'shared/services';
 import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
 
 import { MovementFilters } from '../../../app/components/ui/MovementFilters';
@@ -26,6 +27,7 @@ import {
   getMovementOriginKey,
   getUnitPluralForm,
 } from '../domain/stockMovement';
+import { useStockSyncState } from '../hooks/StockSyncContext';
 import { useMovementFilters } from '../hooks/useMovementFilters';
 import { useMovementHistory } from '../hooks/useMovementHistory';
 import { useOutputAdjustment } from '../hooks/useOutputAdjustment';
@@ -34,25 +36,39 @@ const SAVED_MESSAGE_DURATION_MS = 3000;
 
 type MovementHistoryScreenProps = {
   savedMessageDurationMs?: number;
+  searchDebounceMs?: number;
 };
 
 export function MovementHistoryScreen({
   savedMessageDurationMs = SAVED_MESSAGE_DURATION_MS,
+  searchDebounceMs,
 }: MovementHistoryScreenProps = {}) {
   const { t, locale } = useTranslation();
-  const { movements, isLoading, hasError, retry } = useMovementHistory();
   const {
     filters,
-    visibleMovements,
     isFiltering,
+    isNarrowing,
     setItemName,
     setRange,
     clearFilters,
-  } = useMovementFilters(movements);
+  } = useMovementFilters();
+  const { movements, pendingIds, isLoading, hasError, retry } =
+    useMovementHistory(filters, searchDebounceMs);
+  const { sync, syncedAt } = useStockSyncState();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const adjustment = useOutputAdjustment();
+
+  useEffect(() => onConnectionRestored(retry), [retry]);
+
+  useEffect(() => {
+    if (syncedAt === null) {
+      return;
+    }
+
+    retry();
+  }, [syncedAt, retry]);
 
   useEffect(() => {
     if (savedAt === null) {
@@ -79,9 +95,10 @@ export function MovementHistoryScreen({
   const failureMessage = adjustment.failure
     ? t(
         `stock.outputAdjustment.errors.${adjustment.failure.code}` as
+          | 'stock.outputAdjustment.errors.QUEUE_WRITE_FAILED'
           | 'stock.outputAdjustment.errors.INSUFFICIENT_STOCK'
-          | 'stock.outputAdjustment.errors.ITEM_NOT_FOUND'
-          | 'stock.outputAdjustment.errors.UNKNOWN',
+          | 'stock.outputAdjustment.errors.NO_ACCOUNT'
+          | 'stock.outputAdjustment.errors.NO_UNIT_COST',
         adjustment.failure.params,
       )
     : null;
@@ -98,6 +115,8 @@ export function MovementHistoryScreen({
     if (saved) {
       setIsAdjustmentOpen(false);
       setSavedAt(current => (current ?? 0) + 1);
+      retry();
+      sync();
     }
   };
 
@@ -122,8 +141,11 @@ export function MovementHistoryScreen({
     });
   };
 
-  const items: MovementListItem[] = visibleMovements.map(movement => {
+  const pending = new Set(pendingIds);
+
+  const items: MovementListItem[] = movements.map(movement => {
     const appointment = getMovementAppointment(movement);
+    const date = formatMovementDate(movement.occurredAt, locale);
     const unit = t(
       `stock.movementHistory.units.${movement.unit}.${getUnitPluralForm(
         movement,
@@ -134,7 +156,9 @@ export function MovementHistoryScreen({
       id: movement.id,
       direction: movement.type,
       title: movement.itemName,
-      subtitle: formatMovementDate(movement.occurredAt, locale),
+      subtitle: pending.has(movement.id)
+        ? t('stock.movementHistory.pending', { date })
+        : date,
       category: t(
         `stock.movementHistory.origins.${getMovementOriginKey(movement)}`,
       ),
@@ -208,12 +232,12 @@ export function MovementHistoryScreen({
           items={items}
           isLoading={isLoading}
           emptyMessage={t(
-            isFiltering
+            isNarrowing
               ? 'stock.movementHistory.emptyFiltered'
               : 'stock.movementHistory.empty',
           )}
           error={
-            hasError
+            hasError && items.length === 0
               ? {
                   message: t('stock.movementHistory.error'),
                   retryLabel: t('common.retry'),

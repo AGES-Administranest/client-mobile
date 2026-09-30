@@ -1,22 +1,54 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { I18nProvider } from 'shared/i18n';
-
-import type { StockMovement } from '../../../features/stock/domain/stockMovement';
-import { MovementHistoryScreen } from '../../../features/stock/screens/MovementHistoryScreen';
+import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
+import type { StockMovement } from 'features/stock/domain/stockMovement';
+import { StockSyncProvider } from 'features/stock/hooks/StockSyncContext';
+import { MovementHistoryScreen } from 'features/stock/screens/MovementHistoryScreen';
 import {
-  createOutputAdjustment,
-  StockAdjustmentError,
-} from '../../../features/stock/services/stockAdjustmentService';
-import { fetchStockMovements } from '../../../features/stock/services/stockMovementService';
+  addPendingMovement,
+  loadPendingMovements,
+} from 'features/stock/services/pendingMovementsRepository';
+import { fetchStockMovements } from 'features/stock/services/stockMovementService';
+import { I18nProvider } from 'shared/i18n';
+import { toCalendarDate } from 'shared/utils/calendar';
 
-jest.mock('../../../features/stock/services/stockMovementService', () => ({
+const mockConnectionListeners = new Set<() => void>();
+
+jest.mock('features/auth/services/authService', () => ({}));
+jest.mock('features/auth/services/socialAuthService', () => ({}));
+jest.mock('features/auth/services/accountApi', () => ({}));
+jest.mock('shared/services', () => ({
+  onConnectionRestored: jest.fn((listener: () => void) => {
+    mockConnectionListeners.add(listener);
+    return () => mockConnectionListeners.delete(listener);
+  }),
+}));
+
+jest.mock('features/stock/services/stockMovementService', () => ({
   fetchStockMovements: jest.fn(),
 }));
 
-jest.mock('../../../features/stock/services/stockAdjustmentService', () => {
+jest.mock('features/stock/services/stockSyncService', () => ({
+  ...jest.requireActual('features/stock/services/stockSyncService'),
+  pushPendingMovements: jest.fn(async () => ({
+    applied: [],
+    duplicated: [],
+    balances: [],
+    needsAdjustment: [],
+  })),
+  pullStockMovements: jest.fn(async () => ({
+    movements: [],
+    balances: [],
+    cursor: 'cursor-1',
+    hasMore: false,
+    afterId: null,
+  })),
+}));
+
+jest.mock('features/stock/services/stockAdjustmentService', () => {
   const actual = jest.requireActual(
-    '../../../features/stock/services/stockAdjustmentService',
+    'features/stock/services/stockAdjustmentService',
   );
 
   return {
@@ -28,10 +60,10 @@ jest.mock('../../../features/stock/services/stockAdjustmentService', () => {
           name: 'Propofol 10mg/ml 20ml',
           unit: 'ampoule',
           availableQuantity: 8,
+          unitCost: 10,
         },
       ]),
     ),
-    createOutputAdjustment: jest.fn(() => Promise.resolve()),
   };
 });
 
@@ -39,8 +71,67 @@ const fetchMock = fetchStockMovements as jest.MockedFunction<
   typeof fetchStockMovements
 >;
 
+const ID_TOKEN = 'id-token';
+
+const SESSION = {
+  idToken: ID_TOKEN,
+  accessToken: 'access',
+  refreshToken: 'refresh',
+  expiresAt: 1,
+};
+
+const USER = 'user-1';
+
+const ACCOUNT: Account = {
+  id: USER,
+  name: 'Bruna Senha',
+  email: 'bruna@example.com',
+  termsAcceptedAt: '2026-09-13T12:00:00.000Z',
+  termsVersion: TERMS_VERSION,
+};
+
+const SEARCH_DEBOUNCE_MS = 20;
+const AFTER_DEBOUNCE_MS = 60;
+
+function normalize(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function respondFilteringLikeTheBackend(movements: StockMovement[]) {
+  fetchMock.mockImplementation(async (_idToken, filters = {}) => {
+    let result = movements;
+
+    if (filters.search) {
+      const term = normalize(filters.search);
+      result = result.filter(movement =>
+        normalize(movement.itemName).includes(term),
+      );
+    }
+
+    if (filters.periodStart) {
+      const from = filters.periodStart;
+      result = result.filter(
+        movement => toCalendarDate(movement.occurredAt) >= from,
+      );
+    }
+
+    if (filters.periodEnd) {
+      const to = filters.periodEnd;
+      result = result.filter(
+        movement => toCalendarDate(movement.occurredAt) <= to,
+      );
+    }
+
+    return result;
+  });
+}
+
 const APPOINTMENT_OUTBOUND: StockMovement = {
   id: 'movement-1',
+  itemId: 'item-1',
   itemName: 'Propofol 10mg/ml 20ml',
   unit: 'ampoule',
   type: 'outbound',
@@ -53,6 +144,7 @@ const APPOINTMENT_OUTBOUND: StockMovement = {
 
 const PURCHASE_INBOUND: StockMovement = {
   id: 'movement-2',
+  itemId: 'item-2',
   itemName: 'Seringa 60ml (cx 30un)',
   unit: 'box',
   type: 'inbound',
@@ -64,6 +156,7 @@ const PURCHASE_INBOUND: StockMovement = {
 
 const EXPIRATION_ADJUSTMENT: StockMovement = {
   id: 'movement-3',
+  itemId: 'item-3',
   itemName: 'Soro fisiológico 500ml',
   unit: 'unit',
   type: 'outbound',
@@ -91,7 +184,14 @@ async function mount(props: { savedMessageDurationMs?: number } = {}) {
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
-        <MovementHistoryScreen {...props} />
+        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+          <StockSyncProvider>
+            <MovementHistoryScreen
+              searchDebounceMs={SEARCH_DEBOUNCE_MS}
+              {...props}
+            />
+          </StockSyncProvider>
+        </AuthProvider>
       </I18nProvider>,
     );
   });
@@ -171,7 +271,11 @@ async function pickSingleDay(
   });
 }
 
-beforeEach(() => fetchMock.mockReset());
+beforeEach(async () => {
+  fetchMock.mockReset();
+  mockConnectionListeners.clear();
+  await AsyncStorage.clear();
+});
 
 test('lists inbounds, appointment outbounds and manual adjustments with date, value, quantity and origin', async () => {
   fetchMock.mockResolvedValue([
@@ -264,21 +368,71 @@ test('offers a retry when the history fails to load, and recovers on success', a
   expect(texts).not.toContain('Não foi possível carregar o histórico.');
 });
 
+test('does not show locally queued movements when the history is offline', async () => {
+  await addPendingMovement(USER, {
+    id: 'offline-movement',
+    itemId: 'item-offline',
+    itemName: 'Item cadastrado offline',
+    unit: 'unit',
+    type: 'inbound',
+    source: 'manualPurchase',
+    quantity: 1,
+    unitCost: 10,
+    occurredAt: '2026-09-10T08:00:00.000Z',
+    notes: null,
+  });
+  fetchMock.mockRejectedValue(new Error('network down'));
+
+  const texts = await renderScreen();
+
+  expect(texts).not.toContain('Item cadastrado offline');
+  expect(texts).toContain('Não foi possível carregar o histórico.');
+  expect(await loadPendingMovements(USER)).toHaveLength(1);
+});
+
+test('refreshes the history after the connection is restored', async () => {
+  fetchMock
+    .mockRejectedValueOnce(new Error('network down'))
+    .mockResolvedValueOnce([PURCHASE_INBOUND]);
+
+  const renderer = await mount();
+
+  await act(async () => {
+    mockConnectionListeners.forEach(listener => listener());
+  });
+  await wait(50);
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(readTexts(renderer)).toContain('Seringa 60ml (cx 30un)');
+  expect(readTexts(renderer)).not.toContain(
+    'Não foi possível carregar o histórico.',
+  );
+});
+
 describe('filters', () => {
   beforeEach(() => {
-    fetchMock.mockResolvedValue([
+    respondFilteringLikeTheBackend([
       APPOINTMENT_OUTBOUND,
       PURCHASE_INBOUND,
       EXPIRATION_ADJUSTMENT,
     ]);
   });
 
+  async function search(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    term: string,
+  ) {
+    await act(async () => {
+      searchInput(renderer).props.onChangeText(term);
+    });
+
+    await wait(AFTER_DEBOUNCE_MS);
+  }
+
   it('filters by item name as the user types', async () => {
     const renderer = await mount();
 
-    await act(async () => {
-      searchInput(renderer).props.onChangeText('seringa');
-    });
+    await search(renderer, 'seringa');
 
     const texts = readTexts(renderer);
 
@@ -287,17 +441,29 @@ describe('filters', () => {
     expect(texts).not.toContain('Soro');
   });
 
-  it('ignores accents and case in the item search', async () => {
+  it('hands the term to the backend as typed, accents included', async () => {
     const renderer = await mount();
 
-    await act(async () => {
-      searchInput(renderer).props.onChangeText('FISIOLOGICO');
-    });
+    await search(renderer, 'FISIOLÓGICO');
+
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      ID_TOKEN,
+      expect.objectContaining({ search: 'FISIOLÓGICO' }),
+    );
 
     const texts = readTexts(renderer);
 
     expect(texts).toContain('Soro fisiológico 500ml');
     expect(texts).not.toContain('Propofol');
+  });
+
+  it('does not query on a term shorter than the backend accepts', async () => {
+    const renderer = await mount();
+
+    await search(renderer, 's');
+
+    expect(fetchMock).toHaveBeenLastCalledWith(ID_TOKEN, {});
+    expect(readTexts(renderer)).toContain('Propofol 10mg/ml 20ml');
   });
 
   it('returns only that day when the same day is picked as start and end', async () => {
@@ -347,9 +513,7 @@ describe('filters', () => {
   it('combines the item and the period filters', async () => {
     const renderer = await mount();
 
-    await act(async () => {
-      searchInput(renderer).props.onChangeText('propofol');
-    });
+    await search(renderer, 'propofol');
 
     await pickSingleDay(renderer, '2026-09-05');
 
@@ -361,9 +525,7 @@ describe('filters', () => {
   it('tells the user nothing matched, not that there is no history', async () => {
     const renderer = await mount();
 
-    await act(async () => {
-      searchInput(renderer).props.onChangeText('cetamina');
-    });
+    await search(renderer, 'cetamina');
 
     const texts = readTexts(renderer);
 
@@ -374,9 +536,7 @@ describe('filters', () => {
   it('restores the full history when the filters are cleared', async () => {
     const renderer = await mount();
 
-    await act(async () => {
-      searchInput(renderer).props.onChangeText('seringa');
-    });
+    await search(renderer, 'seringa');
 
     expect(readTexts(renderer)).not.toContain('Propofol');
 
@@ -389,6 +549,8 @@ describe('filters', () => {
         )
         .props.onPress();
     });
+
+    await wait(AFTER_DEBOUNCE_MS);
 
     const texts = readTexts(renderer);
 
@@ -410,7 +572,7 @@ describe('filters', () => {
 
 describe('calendar visibility', () => {
   beforeEach(() => {
-    fetchMock.mockResolvedValue([
+    respondFilteringLikeTheBackend([
       APPOINTMENT_OUTBOUND,
       PURCHASE_INBOUND,
       EXPIRATION_ADJUSTMENT,
@@ -474,13 +636,8 @@ describe('calendar visibility', () => {
 });
 
 describe('output adjustment', () => {
-  const createMock = createOutputAdjustment as jest.MockedFunction<
-    typeof createOutputAdjustment
-  >;
-
   beforeEach(() => {
-    fetchMock.mockResolvedValue([PURCHASE_INBOUND]);
-    createMock.mockReset().mockResolvedValue(undefined);
+    respondFilteringLikeTheBackend([PURCHASE_INBOUND]);
   });
 
   function pressableWithText(
@@ -558,12 +715,14 @@ describe('output adjustment', () => {
       pressableWithText(renderer, 'Salvar').props.onPress();
     });
 
-    expect(createMock).toHaveBeenCalledWith({
-      itemId: 'item-1',
-      quantity: 2,
-      reason: 'loss',
-      notes: null,
-    });
+    expect(await loadPendingMovements(USER)).toEqual([
+      expect.objectContaining({
+        itemId: 'item-1',
+        quantity: 2,
+        adjustmentReason: 'loss',
+        notes: null,
+      }),
+    ]);
     expect(readTexts(renderer)).toContain('Atualização salva');
 
     const modal = renderer.root.findAll(
@@ -614,15 +773,13 @@ describe('output adjustment', () => {
   });
 
   it('reports what went wrong and keeps the form open on failure', async () => {
-    createMock.mockRejectedValueOnce(
-      new StockAdjustmentError('Insufficient stock', 'INSUFFICIENT_STOCK', {
-        available: 8,
-      }),
-    );
-
     const renderer = await mount();
 
     await fillValidAdjustment(renderer);
+
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('disk full'),
+    );
 
     await act(async () => {
       pressableWithText(renderer, 'Salvar').props.onPress();
@@ -630,7 +787,9 @@ describe('output adjustment', () => {
 
     const texts = readTexts(renderer);
 
-    expect(texts).toContain('Quantidade maior que o saldo disponível (8).');
+    expect(texts).toContain(
+      'Não foi possível salvar o ajuste neste aparelho. Tente de novo.',
+    );
     expect(texts).not.toContain('Atualização salva');
 
     const modal = renderer.root.findAll(

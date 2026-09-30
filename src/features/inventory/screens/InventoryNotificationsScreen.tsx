@@ -20,7 +20,7 @@ import type { MonitoredItem } from '../domain/lowStockAlert';
 import { useInventoryNotifications } from '../hooks/useInventoryNotifications';
 
 type InventoryNotificationsScreenProps = {
-  status?: 'loading' | 'ready';
+  status?: 'loading' | 'ready' | 'error';
   userId: string;
   /**
    * Recebida por prop: quem tem a lista de itens é a aba de Estoque. Quando o
@@ -45,13 +45,17 @@ export function InventoryNotificationsScreen({
 }: InventoryNotificationsScreenProps) {
   const { t } = useTranslation();
 
-  if (status === 'loading') {
+  if (status !== 'ready') {
     return (
       <NotificationsLayout onBack={onBack}>
         <View className="flex-1 items-center justify-center gap-3 px-6">
           <Icon as={Bell} size={28} className="text-label-tertiary" />
           <Text className="text-sm text-label-tertiary">
-            {t('inventory.overview.loading')}
+            {t(
+              status === 'error'
+                ? 'inventory.notifications.error'
+                : 'inventory.overview.loading',
+            )}
           </Text>
         </View>
       </NotificationsLayout>

@@ -1,93 +1,100 @@
+import { apiClient } from 'shared/services/apiClient';
+
+import {
+  toAdjustmentReason,
+  toMeasurementUnit,
+  toMovementSource,
+  toMovementType,
+  type BackendAdjustmentReason,
+  type BackendMeasurementUnit,
+  type BackendMovementSource,
+  type BackendMovementType,
+} from './backendEnums';
+import type { MovementQuery } from '../domain/movementFilters';
 import type { StockMovement } from '../domain/stockMovement';
 
-const MOVEMENTS: StockMovement[] = [
-  {
-    id: 'movement-1',
-    itemName: 'Propofol 10mg/ml 20ml',
-    unit: 'ampoule',
-    type: 'outbound',
-    source: 'appointment',
-    quantity: 2,
-    unitCost: 19.9,
-    occurredAt: '2026-09-08T09:30:00',
-    appointment: { id: 'appointment-1', label: 'Orquiectomia — Mel' },
-  },
-  {
-    id: 'movement-2',
-    itemName: 'Seringa 60ml (cx 30un)',
-    unit: 'box',
-    type: 'inbound',
-    source: 'manualPurchase',
-    quantity: 1,
-    unitCost: 145,
-    occurredAt: '2026-09-05T14:00:00',
-  },
-  {
-    id: 'movement-3',
-    itemName: 'Midazolam 5mg/ml',
-    unit: 'ampoule',
-    type: 'outbound',
-    source: 'appointment',
-    quantity: 1,
-    unitCost: 12.5,
-    occurredAt: '2026-09-04T08:15:00',
-    appointment: { id: 'appointment-2', label: 'OSH — Thor' },
-  },
-  {
-    id: 'movement-4',
-    itemName: 'Isoflurano 100ml',
-    unit: 'vial',
-    type: 'inbound',
-    source: 'orderImport',
-    quantity: 5,
-    unitCost: 189,
-    occurredAt: '2026-09-02T11:45:00',
-  },
-  {
-    id: 'movement-5',
-    itemName: 'Soro fisiológico 500ml',
-    unit: 'unit',
-    type: 'outbound',
-    source: 'manualAdjustment',
-    adjustmentReason: 'expiration',
-    quantity: 3,
-    unitCost: 8.9,
-    occurredAt: '2026-08-29T17:20:00',
-  },
-  {
-    id: 'movement-6',
-    itemName: 'Cetamina 50mg/ml',
-    unit: 'ampoule',
-    type: 'outbound',
-    source: 'appointment',
-    quantity: 1.5,
-    unitCost: 34,
-    occurredAt: '2026-08-27T10:05:00',
-    appointment: { id: 'appointment-3', label: 'Mastectomia — Luna' },
-  },
-  {
-    id: 'movement-7',
-    itemName: 'Gaze estéril',
-    unit: 'box',
-    type: 'outbound',
-    source: 'manualAdjustment',
-    adjustmentReason: 'breakage',
-    quantity: 2,
-    unitCost: 27.5,
-    occurredAt: '2026-08-24T16:40:00',
-  },
-  {
-    id: 'movement-8',
-    itemName: 'Fentanil 0,05mg/ml',
-    unit: 'ampoule',
-    type: 'inbound',
-    source: 'correctionReversal',
-    quantity: 1,
-    unitCost: 22,
-    occurredAt: '2026-08-21T13:10:00',
-  },
-];
+type BackendAppointment = {
+  id: string;
+  label: string;
+  procedureName: string;
+  patientName: string;
+};
 
-export async function fetchStockMovements(): Promise<StockMovement[]> {
-  return Promise.resolve(MOVEMENTS);
+export type BackendStockMovement = {
+  id: string;
+  itemId: string;
+  itemName: string;
+  unit: BackendMeasurementUnit;
+  type: BackendMovementType;
+  source: BackendMovementSource;
+  adjustmentReason: BackendAdjustmentReason | null;
+  quantity: string;
+  unitCost: string;
+  occurredAt: string;
+  appointmentId: string | null;
+  purchaseOrderId: string | null;
+  lotId: string | null;
+  supplierId: string | null;
+  appointment: BackendAppointment | null;
+  notes: string | null;
+};
+
+const MAX_PAGE_SIZE = 100;
+
+export function toStockMovement(movement: BackendStockMovement): StockMovement {
+  const source = toMovementSource(movement.source);
+
+  const mapped: StockMovement = {
+    id: movement.id,
+    itemId: movement.itemId,
+    itemName: movement.itemName,
+    unit: toMeasurementUnit(movement.unit),
+    type: toMovementType(movement.type),
+    source,
+    quantity: Number(movement.quantity),
+    unitCost: Number(movement.unitCost),
+    occurredAt: movement.occurredAt,
+  };
+
+  if (movement.adjustmentReason) {
+    mapped.adjustmentReason = toAdjustmentReason(movement.adjustmentReason);
+  }
+
+  if (source === 'appointment' && movement.appointment) {
+    mapped.appointment = {
+      id: movement.appointment.id,
+      label: movement.appointment.label,
+    };
+  }
+
+  return mapped;
+}
+
+export async function fetchStockMovements(
+  idToken: string,
+  filters: MovementQuery = {},
+): Promise<StockMovement[]> {
+  const query = new URLSearchParams({
+    page: String(filters.page ?? 1),
+    limit: String(MAX_PAGE_SIZE),
+  });
+
+  if (filters.search) {
+    query.set('search', filters.search);
+  }
+
+  if (filters.periodStart) {
+    query.set('periodStart', filters.periodStart);
+  }
+
+  if (filters.periodEnd) {
+    query.set('periodEnd', filters.periodEnd);
+  }
+
+  const movements = await apiClient.get<BackendStockMovement[]>(
+    `/stock-movement?${query.toString()}`,
+    { token: idToken },
+  );
+
+  return movements.map(toStockMovement);
 }

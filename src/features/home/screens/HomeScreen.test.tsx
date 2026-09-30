@@ -2,6 +2,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
+import { InventoryProvider } from 'features/inventory';
 import { I18nProvider } from 'shared/i18n';
 
 import { HomeScreen } from './HomeScreen';
@@ -17,6 +18,13 @@ const mockFetchAppointments = jest.fn();
 
 jest.mock('features/appointments/services/appointmentService', () => ({
   fetchAppointments: (...args: unknown[]) => mockFetchAppointments(...args),
+}));
+
+// Mocka o serviço, não o barrel: `requireActual('features/materials')` entra
+// num ciclo (materials → stockEntry → materials) e lê o barrel pela metade.
+jest.mock('features/materials/services/itemService', () => ({
+  ...jest.requireActual('features/materials/services/itemService'),
+  fetchItems: jest.fn(async () => []),
 }));
 
 const METRICS = {
@@ -47,7 +55,9 @@ async function renderHome() {
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-            <HomeScreen />
+            <InventoryProvider>
+              <HomeScreen />
+            </InventoryProvider>
           </AuthProvider>
         </I18nProvider>
       </SafeAreaProvider>,

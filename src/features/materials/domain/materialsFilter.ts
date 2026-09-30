@@ -99,8 +99,8 @@ export function backendItemToMaterial(item: BackendItem): MaterialItem {
   };
 }
 
-export function backendUnitLabel(unit: BackendMeasurementUnit): string {
-  return UNIT_LABEL[unit] ?? unit;
+export function backendUnitLabel(unit: string): string {
+  return UNIT_LABEL[unit as BackendMeasurementUnit] ?? unit;
 }
 
 export function toBackendUnit(unit: string): BackendMeasurementUnit {
