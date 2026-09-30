@@ -38,14 +38,7 @@ import {
 } from 'features/appointments';
 import { useAuth } from 'features/auth';
 import { useClientNames } from 'features/clients';
-import {
-  InventoryNotificationsScreen,
-  useInventory,
-  isValidExpirationDate,
-  type ExpiringLot,
-  type MonitoredItem,
-} from 'features/inventory';
-import { fetchItems } from 'features/materials';
+import { InventoryNotificationsScreen, useInventory } from 'features/inventory';
 import { AppointmentDetailScreen, DiaDiaScreen } from 'features/procedures';
 import { useTranslation } from 'shared/i18n';
 import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
@@ -55,9 +48,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 export function HomeScreen() {
   const { t, locale } = useTranslation();
   const { account, signOut } = useAuth();
-  const insets = useSafeAreaInsets();
   const { status, items, lots, refresh } = useInventory();
-  const { session, account, signOut } = useAuth();
   const [accountVisible, setAccountVisible] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
   const notificationsTranslateX = useRef(

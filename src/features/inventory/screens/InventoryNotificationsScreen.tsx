@@ -47,24 +47,15 @@ export function InventoryNotificationsScreen({
 
   if (status !== 'ready') {
     return (
-      <ScrollView
-        className="flex-1 bg-background-modal"
-        contentContainerClassName="gap-3 px-4 py-6"
-      >
-        <Text style={styles.heading}>{t('inventory.notifications.title')}</Text>
-        <Text style={styles.empty}>
-          {t(
-            status === 'error'
-              ? 'inventory.notifications.error'
-              : 'inventory.overview.loading',
-          )}
-        </Text>
-      </ScrollView>
       <NotificationsLayout onBack={onBack}>
         <View className="flex-1 items-center justify-center gap-3 px-6">
           <Icon as={Bell} size={28} className="text-label-tertiary" />
           <Text className="text-sm text-label-tertiary">
-            {t('inventory.overview.loading')}
+            {t(
+              status === 'error'
+                ? 'inventory.notifications.error'
+                : 'inventory.overview.loading',
+            )}
           </Text>
         </View>
       </NotificationsLayout>
