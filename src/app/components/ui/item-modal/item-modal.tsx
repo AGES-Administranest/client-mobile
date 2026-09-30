@@ -51,6 +51,7 @@ type ItemModalProps = {
   onDelete?: (item: StockItem) => void;
   /** Opens a new item already filled in. Keep it stable while visible. */
   initialDraft?: ItemPrefill;
+  isSubmitting?: boolean;
 };
 
 export type ItemDraft = {
@@ -82,6 +83,7 @@ function ItemModal({
   onEdit,
   onDelete,
   initialDraft,
+  isSubmitting = false,
 }: ItemModalProps) {
   const { t, locale } = useTranslation();
   const isDetail = mode === 'detail';
@@ -130,6 +132,7 @@ function ItemModal({
     !isDetail && !isEditing && showLotFields && !isAddingToExisting;
 
   const expirationInPast = !isDetail && isPastDate(expiration);
+  const cannotConfirm = isSubmitting || (showExpiration && expirationInPast);
 
   function clearError(field: ItemFormField) {
     setErrors(current => {
@@ -603,9 +606,9 @@ function ItemModal({
               ) : (
                 <Pressable
                   onPress={handleConfirm}
-                  disabled={showExpiration && expirationInPast}
+                  disabled={cannotConfirm}
                   className={`flex-row items-center justify-center gap-2 rounded-full bg-button-primary py-4 ${
-                    showExpiration && expirationInPast ? 'opacity-50' : ''
+                    cannotConfirm ? 'opacity-50' : ''
                   }`}
                 >
                   <Text className="text-base font-semibold text-white">

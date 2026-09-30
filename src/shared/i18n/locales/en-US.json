@@ -69,11 +69,15 @@
     "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
   },
   "stockEntry": {
-    "trigger": "Register entry",
+    "trigger": "Entries",
+    "triggerWithCount": "Entries ({{count}})",
     "menu": {
-      "scanNote": "Scan invoice",
       "attachPdf": "Attach PDF",
-      "typeItem": "Enter item"
+      "attachPdfCaption": "Supplier, number and items are read from the file",
+      "photo": "Photograph the invoice",
+      "photoCaption": "The gallery is inside the camera",
+      "typeItem": "Enter item",
+      "typeItemCaption": "Registers an item in stock"
     },
     "scan": {
       "instruction": "Position the document inside the marked area",
@@ -83,14 +87,171 @@
       "fromLibrary": "Choose from library",
       "cancel": "Cancel"
     },
-    "uploading": "Sending the document...",
+    "preparing": "Preparing the file...",
+    "uploading": "Sending and reading the document...",
+    "confirmFile": {
+      "back": "Back",
+      "title": "Confirm file",
+      "subtitle": "The PDF is only read after it is sent.",
+      "meta": "PDF · {{size}}",
+      "info": "Supplier, number and items are read when it is sent. You check everything before stocking it.",
+      "send": "Send this file",
+      "replace": "Change file",
+      "cancel": "Cancel"
+    },
+    "reading": {
+      "photo": "The photo was attached as a receipt. Photos are not read automatically: to read the items, send the invoice PDF.",
+      "noTextLayer": {
+        "title": "This PDF has no text",
+        "message": "It looks like a scan. It was attached as a receipt, but its items cannot be read. Send the PDF produced by the supplier's system."
+      },
+      "noTableFound": {
+        "title": "No items found",
+        "message": "The PDF was read, but no table of items showed up in it. Check that it is the right order."
+      },
+      "timeout": {
+        "title": "Reading took too long",
+        "message": "The PDF was attached, but there was no time to read its items. Send it again."
+      },
+      "unreadable": {
+        "title": "We could not read this PDF",
+        "message": "The file was attached, but reading it failed. Try another PDF."
+      },
+      "replaceWithText": "Change to a PDF with text",
+      "replace": "Change file",
+      "close": "Close"
+    },
     "review": {
-      "confirm": "Confirm",
-      "found": "{{count}} items found · tap to fix",
-      "foundOne": "1 item found · tap to fix",
-      "namePlaceholder": "Item name",
-      "checkItem": "Check the name and quantity",
-      "remove": "Delete item"
+      "back": "Close review",
+      "title": "Review",
+      "partial": "We read {{read}} of {{total}} pages. Check and complete the missing items.",
+      "supplier": "SUPPLIER",
+      "supplierNotRegistered": "Not among your suppliers",
+      "supplierNotRead": "Not read",
+      "invoiceNumber": "INVOICE NO.",
+      "date": "DATE",
+      "datePlaceholder": "dd/mm/yyyy",
+      "total": "INVOICE TOTAL",
+      "linesSum": "Sum of lines: {{sum}}",
+      "linesSumDifference": "Sum of lines: {{sum}} · {{difference}} off",
+      "attentionOne": "1 line needs attention",
+      "attention": "{{count}} lines need attention",
+      "allChecked": "All checked",
+      "showOnlyAttention": "Show only these",
+      "showAll": "Show all",
+      "items": "INVOICE ITEMS",
+      "linesOne": "1 line",
+      "lines": "{{count}} lines",
+      "addLine": "Add item by hand",
+      "confirm": "Add to stock",
+      "confirmUnavailable": "Adding to stock comes in the next step. The review stays saved as a draft.",
+      "leaveTitle": "Leave the review?",
+      "leaveMessage": "Some changes were not saved and will be lost.",
+      "leaveConfirm": "Leave without saving",
+      "leaveCancel": "Keep reviewing",
+      "line": {
+        "addedByHand": "Added in the review",
+        "split": "Split · lot {{part}} of {{of}}",
+        "unlinked": "No linked item",
+        "linkedWithoutName": "Linked item",
+        "quantity": "QTY",
+        "unit": "UNIT",
+        "unitValue": "UNIT PRICE",
+        "total": "TOTAL",
+        "lineTotal": "LINE TOTAL",
+        "lot": "LOT",
+        "expiry": "EXPIRY",
+        "missing": "fill in",
+        "edit": "Edit",
+        "done": "Done",
+        "splitAction": "Split",
+        "remove": "Remove line",
+        "issues": {
+          "mismatch": "{{quantity}} × {{unitValue}} is {{computed}}. The invoice says {{printed}}.",
+          "shortName": "The invoice description has {{count}} letters. Too short to identify the item.",
+          "unlinked": "No item in your stock was recognized in this description.",
+          "noQuantity": "The quantity is not on the invoice. Nothing would go into stock like this.",
+          "noUnitValue": "The unit price is not on the invoice. Without it there is no line total."
+        },
+        "fixes": {
+          "mismatch": "Use {{computed}}",
+          "shortName": "Link to an item",
+          "unlinked": "Link to an item",
+          "noQuantity": "Fill in quantity",
+          "noUnitValue": "Fill in unit price"
+        }
+      },
+      "save": {
+        "idle": "Saved automatically",
+        "saving": "Saving draft…",
+        "saved": "Draft saved just now",
+        "failed": "Could not save",
+        "retry": "Try again"
+      },
+      "discard": "Discard entry"
+    },
+    "link": {
+      "back": "Back to the review",
+      "title": "Link item",
+      "lineOf": "LINE {{index}} OF {{count}}",
+      "catalogItem": "CATALOG ITEM",
+      "searchPlaceholder": "Search the catalog",
+      "suggestions": "SUGGESTIONS FROM THE READING",
+      "noSuggestions": "The reading found no similar items. Search by name.",
+      "resultsOne": "1 ITEM IN THE CATALOG",
+      "results": "{{count}} ITEMS IN THE CATALOG",
+      "noResults": "NO ITEM IN THE CATALOG",
+      "noResultsHint": "Nothing found for “{{term}}”. You can register it now and keep reviewing.",
+      "searching": "Searching…",
+      "searchError": "Could not search right now. Try again.",
+      "typeMore": "Type at least 2 letters.",
+      "create": "Register “{{name}}”",
+      "createCaption": "Name, quantity and price come from the invoice",
+      "createFailed": "Could not register the item. Try again."
+    },
+    "entries": {
+      "title": "Entries",
+      "back": "Close entries",
+      "pending": "PENDING",
+      "countOne": "1 entry",
+      "count": "{{count}} entries",
+      "empty": "No pending entries. Every invoice you send shows up here until it is reviewed.",
+      "loadFailed": "Could not load the entries.",
+      "retry": "Try again",
+      "newEntry": "New entry",
+      "untitled": "Unnamed document",
+      "pdf": "PDF",
+      "photo": "Photo",
+      "invoiceNumber": "Invoice {{number}}",
+      "status": {
+        "ready": "Ready to review",
+        "processing": "Processing",
+        "failed": "Failed",
+        "photo": "Manual draft",
+        "notUploaded": "Upload not finished"
+      },
+      "reasons": {
+        "photo": "Photo kept as a receipt. Items are not read from photos.",
+        "notUploaded": "The file did not reach the server."
+      },
+      "actions": {
+        "review": "Review",
+        "replace": "Change file",
+        "discard": "Discard"
+      },
+      "discardTitle": "Discard this entry?",
+      "discardMessage": "The document is kept, but the entry leaves the pending list and the same file can be sent again.",
+      "discardConfirm": "Discard",
+      "discardCancel": "Back",
+      "discardFailed": "Could not discard the entry. Try again.",
+      "opening": "Opening the entry...",
+      "openFailed": "Could not open the entry. Try again."
+    },
+    "duplicate": {
+      "title": "Document already sent",
+      "message": "This PDF is already in another entry.",
+      "open": "Open the existing entry",
+      "close": "Close"
     },
     "errors": {
       "dismiss": "Got it",
@@ -98,7 +259,7 @@
       "unsupportedType": "We only take a PDF or a JPEG photo. Take the photo in the app or pick another file.",
       "offline": "No internet connection. Sending needs a network — try again once it is back.",
       "tooLarge": "This file is over 15 MB. Take the photo again or send a smaller PDF.",
-      "duplicateFile": "This document was sent before. Open the existing entry instead of creating another.",
+      "duplicateFile": "This document was already sent, in another entry.",
       "notProvisioned": "Your account is not finished yet. Sign out and sign in again.",
       "uploadRejected": "The upload was refused. Please try again.",
       "notConfirmed": "The file did not arrive complete. Please send it again.",

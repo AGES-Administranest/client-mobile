@@ -1,5 +1,11 @@
-import { uploadInvoiceDocument, UploadError } from './invoiceUploadService';
-import { InvoiceDocument, MAX_DOCUMENT_BYTES } from '../domain/invoiceDocument';
+import {
+  InvoiceDocument,
+  MAX_DOCUMENT_BYTES,
+} from 'features/stockEntry/domain/invoiceDocument';
+import {
+  uploadInvoiceDocument,
+  UploadError,
+} from 'features/stockEntry/services/invoiceUploadService';
 
 const DOCUMENT: InvoiceDocument = {
   id: '5f3b7d0c-2a1e-4c7b-9a11-1f2e3d4c5b6a',
@@ -89,6 +95,24 @@ describe('uploadInvoiceDocument', () => {
     expect(authOf(sign[1])).toBe(`Bearer ${ID_TOKEN}`);
     expect(authOf(confirm[1])).toBe(`Bearer ${ID_TOKEN}`);
     expect(authOf(upload[1])).toBeUndefined();
+  });
+
+  it('hands back what the API read from the document', async () => {
+    const extraction = { status: 'MANUAL', items: [] };
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(TARGET))
+      .mockResolvedValueOnce(bucketResponse(204))
+      .mockResolvedValueOnce(
+        jsonResponse({
+          contentLength: 3,
+          contentType: 'image/jpeg',
+          extraction,
+        }),
+      );
+
+    await expect(uploadInvoiceDocument(DOCUMENT, ID_TOKEN)).resolves.toEqual(
+      extraction,
+    );
   });
 
   // S3 reads the policy fields as they arrive and stops at the file: a field

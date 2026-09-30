@@ -28,6 +28,8 @@ The good news: **the palette is already implemented** in this repo. Every color 
 | Borders / dividers | Input outlines, list-row separators | `#D4D4D4` | `Colors.border.primary` | `border-border-primary` |
 | Negative / destructive value | `– R$ 33.90` (Total insumos row) | `#D95743` | `Colors.alert.primary` | `text-alert-primary` |
 | Completed-status badge fill | "Concluído" chip next to ASA badge | `#C2E6CB` | `Colors.details.finish` | `bg-details-finish` |
+| Blocking state | Stock entry review: line with no linked item or whose total disagrees (border, notice, missing value), failed reading | `#D95743` | `Colors.alert.primary` | `border-alert-primary`, `text-alert-primary` |
+| Attention state | Stock entry review: line to check (quantity or unit price missing), partial-reading banner, attention counter | `#FADE84` | `Colors.details.tertiary` | `bg-details-tertiary`, `border-details-tertiary` |
 
 Since `Colors.background.primary` is a 3-stop gradient object (not a hex string), it's meant to be consumed via a `LinearGradient` component, not a plain Tailwind background class — check how `src/app/App.tsx` or existing screens already render it before adding a second implementation.
 
@@ -76,6 +78,8 @@ Cross-referenced against what already exists in [`src/app/components/ui`](./src/
 | **Search-select field (autocomplete)** | Eyebrow label (left) + text-link "Novo tomador" (right) above a regular input; typing shows an inline white `rounded-xl` result list right under it (max 5 rows, hairline dividers), or a one-line muted status ("Buscando…", "Nenhum tomador encontrado", red on error). The list is filtered locally as you type (case- and accent-insensitive); picking a row fills the input with its name | Exists as `ClientAutocomplete` in `features/clients/components` — client-specific for now; move to `app/components/ui` once a second feature needs a search-select |
 | **Text** | Central place for the typography scale above (title/eyebrow/body/price variants) | Exists (`text.tsx`) — extend its variants to cover "eyebrow" and "price" if not already there |
 
+**Stock entry (US10) compositions**, in `features/stockEntry/components` until a second feature needs them: `FullScreenModal` (slide-in `Modal` over the background gradient), `ScreenHeader` (back chevron + title), `NoticeBanner` (alert / warning / info, with an optional pill action), `FormField` (eyebrow label + `rounded-xl` input; read-only without `onChangeText`), `MenuOption` (icon circle, title, caption, chevron), `CatalogOption` (list row with hairline divider), `AttentionCounter`, `ReviewLineCard`, `EntryCard` (a pending entry: title, meta, total, a status pill — yellow (`details-tertiary`) when ready, lavender (`details-primary`) while processing, red outline when failed, gray outline otherwise — and text-link actions) and `SaveStatusBar` (the draft's autosave state, with a retry link when it fails).
+
 When implementing, follow this repo's existing pattern: base primitives live in `src/app/components/ui` (shared, shadcn-style, using `cva` + `cn()`); feature-specific compositions (like a `finance`-specific `StatCard` row) live in `src/features/<feature>/components`.
 
 ## 6. Screen anatomy (top → bottom)
@@ -108,7 +112,8 @@ The Figma frame contains 5 states of the same screen — useful as the acceptanc
 - **Text-link actions instead of icon buttons** for reversible/secondary actions inline in a section header (`Editar`, `Cancelar`, `+ Registrar`, `+ Adicionar`) — always brand-brown (`label-quartenery`), never a separate button component.
 - **Destructive remove = small `×` glyph**, not a trash icon, placed at the end of a list row.
 - **Any "add" flow opens a bottom sheet**, never a full-screen navigation — consistent with this app having no stack navigator today (`src/app/App.tsx` currently only switches tabs), so a sheet/modal is the natural primitive to add rather than introducing new screens for CRUD-style flows.
-- **Negative monetary values are red** (`alert-primary`), positive/neutral bold values are black (`label-primary`) — don't invent a second "success green".
+- **Negative monetary values are red** (`alert-primary`), positive/neutral bold values are black (`label-primary`) — don't invent a second "success green". The same red marks a blocking state (a stock entry line that cannot go into stock as it is); a state that only needs checking is yellow (`details-tertiary`).
+- **A review or detail that fills the screen** opens as a `Modal` with `animationType="slide"` and a back chevron (appointment detail, stock entry review), since there is no stack navigator. Adding or editing a record from inside it is still a bottom sheet.
 
 ## 9. Open questions for a follow-up pass
 
