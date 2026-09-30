@@ -3,7 +3,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
 
-import { requireToken, toClinicFailureKey } from './clinicFailure';
+import {
+  isDuplicatedTaxIdError,
+  requireToken,
+  toClinicFailureKey,
+} from './clinicFailure';
 import type { Client } from '../domain/client';
 import {
   clientToClinicDraft,
@@ -67,13 +71,21 @@ export function useClinicDetail(clinic: Client | null): ClinicDetailState {
   }, []);
 
   const call = useCallback(
-    async <T>(request: (token: string) => Promise<T>): Promise<T | null> => {
+    async <T>(
+      request: (token: string) => Promise<T>,
+      // Deixa o chamador tratar um erro específico (ex: CNPJ duplicado como
+      // erro do campo) em vez do banner genérico; volta `false` para manter
+      // o comportamento padrão.
+      onError?: (error: unknown) => boolean,
+    ): Promise<T | null> => {
       setFailure(null);
       setIsSaving(true);
       try {
         return await request(requireToken(idToken));
       } catch (error) {
-        setFailure(toClinicFailureKey(error));
+        if (!onError?.(error)) {
+          setFailure(toClinicFailureKey(error));
+        }
         return null;
       } finally {
         setIsSaving(false);
@@ -89,8 +101,15 @@ export function useClinicDetail(clinic: Client | null): ClinicDetailState {
     if (!clinic || !isClinicDraftValid(validationErrors)) {
       return null;
     }
-    return call(token =>
-      updateClient(token, clinic.id, toCreateClientPayload(draft)),
+    return call(
+      token => updateClient(token, clinic.id, toCreateClientPayload(draft)),
+      error => {
+        if (!isDuplicatedTaxIdError(error)) {
+          return false;
+        }
+        setErrors(current => ({ ...current, cnpj: 'duplicated' }));
+        return true;
+      },
     );
   }, [call, clinic, draft]);
 

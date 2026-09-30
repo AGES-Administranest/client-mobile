@@ -1,3 +1,5 @@
+import { LogIn, UserPlus } from 'lucide-react-native';
+
 import { useTranslation } from 'shared/i18n';
 
 import { AuthButton } from '../components/AuthButton';
@@ -96,6 +98,7 @@ export function SignUpScreen({
 
       <AuthButton
         label={t('auth.signUp.submit')}
+        icon={UserPlus}
         onPress={submit}
         isLoading={isSubmitting}
         className="mt-2"
@@ -103,6 +106,7 @@ export function SignUpScreen({
       <AuthButton
         variant="link"
         label={t('auth.signUp.hasAccount')}
+        icon={LogIn}
         onPress={onLogin}
         disabled={isSubmitting}
         className="mt-2"

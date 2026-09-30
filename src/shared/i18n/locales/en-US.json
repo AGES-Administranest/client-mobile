@@ -258,7 +258,8 @@
         },
         "cnpj": {
           "required": "Enter the CNPJ.",
-          "invalid": "The CNPJ is not valid."
+          "invalid": "The CNPJ is not valid.",
+          "duplicated": "A clinic with this CNPJ already exists."
         },
         "state": {
           "required": "Enter the state.",
@@ -459,7 +460,6 @@
       "confirm": "Confirm",
       "close": "Close",
       "location": "Location",
-      "newClient": "New client",
       "submitError": "Couldn't save. Please try again."
     },
     "supplyPrompt": {
@@ -483,15 +483,20 @@
     "placeholders": {
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "location": "Search client by name",
+      "location": "Search clinic by name",
       "notes": "Notes about the procedure",
       "number": "0",
       "time": "HH:MM",
-      "date": "DD/MM/YYYY"
+      "date": "DD/MM/YYYY",
+      "species": "Select the species"
     },
     "species": {
       "canine": "Canine",
       "feline": "Feline",
+      "equine": "Equine",
+      "bovine": "Bovine",
+      "avian": "Avian",
+      "exotic": "Exotic/Wildlife",
       "other": "Other"
     },
     "errors": {
@@ -499,15 +504,19 @@
       "INVALID_NUMBER": "Invalid number",
       "MUST_BE_POSITIVE": "Must be greater than zero",
       "MUST_BE_INTEGER": "Must be a whole number",
+      "TOO_SHORT": "At least 2 characters",
+      "MAX_2_DECIMALS": "At most 2 decimal places",
+      "MAX_3_DECIMALS": "At most 3 decimal places",
       "AGE_OUT_OF_RANGE": "Age must be between 0 and 100",
       "END_BEFORE_START": "End must be after start",
       "INVALID_DATE": "Invalid date",
-      "INVALID_TIME": "Invalid time"
+      "INVALID_TIME": "Invalid time",
+      "IN_THE_PAST": "Pick a future date and time"
     },
     "clientSearch": {
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
-      "empty": "No clients found"
+      "empty": "No clinics found"
     },
     "completion": {
       "action": "Complete procedure",
@@ -520,9 +529,9 @@
       }
     },
     "cancellation": {
-      "action": "Cancel",
+      "action": "Not done",
       "title": "Cancellation reason",
-      "reasonPlaceholder": "Briefly describe why the appointment was canceled",
+      "reasonPlaceholder": "Briefly describe the reason",
       "confirm": "Confirm",
       "errors": {
         "REQUIRED": "Enter the cancellation reason.",
@@ -543,6 +552,12 @@
       "CANCELED": "Canceled"
     },
     "detail": {
+      "edit": "Edit appointment",
+      "editTitle": "Edit appointment",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this appointment?",
+      "deleteCancel": "Cancel",
+      "deleteFailed": "Couldn't delete. Please try again.",
       "title": "Appointment",
       "back": "Back",
       "loadError": "Could not load the appointment.",
@@ -553,8 +568,14 @@
       "amount": "Amount",
       "noAmount": "No amount",
       "editAmount": "Edit amount",
+      "weightLabel": "Weight",
+      "notInformed": "Not informed",
+      "ageValue": "{{years}} years",
+      "weightValue": "{{kg}} kg",
+      "completedBadge": "Completed",
       "suppliesTitle": "Supplies used",
       "addSupply": "Add supply",
+      "addSupplyShort": "Add",
       "suppliesFailed": "Could not save the supplies. Try again.",
       "amountSheet": {
         "title": "Appointment amount",
@@ -565,7 +586,25 @@
           "INVALID_NUMBER": "Enter a valid amount, like 350.00.",
           "FAILED": "Could not save the amount. Try again."
         }
-      }
+      },
+      "hoursWorked": {
+        "title": "Hours worked",
+        "edit": "Edit",
+        "minutesLabel": "{{count}} minutes",
+        "valuePerHour": "Value/hour"
+      },
+      "travel": {
+        "title": "Travel",
+        "empty": "No travel registered",
+        "register": "+ Register",
+        "collapse": "Cancel",
+        "vehicleLabel": "Vehicle",
+        "vehiclePlaceholder": "Select a vehicle",
+        "distanceLabel": "Distance (km)",
+        "distancePlaceholder": "E.g. 34",
+        "confirm": "Confirm"
+      },
+      "cancellationReason": "Cancellation reason"
     },
     "day": {
       "previous": "Previous day",
@@ -575,42 +614,16 @@
       "untitled": "Untitled"
     }
   },
-  "clients": {
-    "newClient": {
-      "title": "New client",
-      "type": "Type",
-      "types": {
-        "clinic": "Clinic",
-        "individual": "Individual"
-      },
-      "fields": {
-        "name": {
-          "label": "Name",
-          "placeholder": "Client name"
-        },
-        "phone": {
-          "label": "Phone (optional)",
-          "placeholder": "Area code + number"
-        }
-      },
-      "errors": {
-        "name": {
-          "required": "Required field",
-          "tooShort": "Enter at least 2 characters"
-        }
-      },
-      "confirm": "Register",
-      "saving": "Saving…",
-      "cancel": "Cancel",
-      "close": "Close",
-      "failures": {
-        "duplicatedName": "A client with this name already exists.",
-        "session": "Your session expired. Please sign in again.",
-        "unknown": "Couldn't register. Please try again."
-      }
-    }
-  },
   "appointments": {
+    "notDone": {
+      "reasons": {
+        "noShow": "Patient did not attend",
+        "clientCanceled": "Client cancellation",
+        "emergency": "Emergency",
+        "other": "Other"
+      },
+      "dismiss": "Cancel"
+    },
     "title": "Appointments",
     "calendar": {
       "prevMonth": "Previous month",
@@ -633,6 +646,10 @@
     "species": {
       "canine": "Canine",
       "feline": "Feline",
+      "equine": "Equine",
+      "bovine": "Bovine",
+      "avian": "Avian",
+      "exotic": "Exotic/Wildlife",
       "other": "Other"
     },
     "form": {
@@ -652,9 +669,40 @@
       "cancel": "Cancel"
     },
     "viewMonth": "View month",
+    "viewWeek": "View week",
     "dayOf": "day {{day}}",
     "emptyToday": "No appointments today",
-    "emptySelectedDay": "No appointments on this day"
+    "emptySelectedDay": "No appointments on this day",
+    "emptyMonth": "No appointments this month",
+    "exportToCalendar": "Add to calendar",
+    "exportSuccessTitle": "Added to calendar",
+    "exportSuccess": "Appointment added to your calendar.",
+    "exportPermissionDeniedTitle": "Permission required",
+    "exportPermissionDenied": "We could not access your calendar. Enable calendar permission in your device settings to add this appointment.",
+    "exportErrorTitle": "Could not add appointment",
+    "exportError": "Something went wrong while adding the appointment to your calendar. Please try again.",
+    "dismiss": "Got it",
+    "statusActions": {
+      "open": "Update status",
+      "notDone": "Not done",
+      "cancel": "Cancel appointment",
+      "cancelReason": "Why was the appointment canceled?",
+      "cancelToast": "Appointment canceled"
+    },
+    "reschedule": {
+      "title": "Reschedule appointment",
+      "message": "The procedure was not done. Pick the new date and time.",
+      "date": "Date",
+      "startTime": "Start",
+      "endTime": "End",
+      "confirm": "Reschedule",
+      "dismiss": "Cancel",
+      "done": "Appointment rescheduled.",
+      "errors": {
+        "CONFLICT": "You already have an appointment at this time.",
+        "FAILED": "Could not reschedule. Try again."
+      }
+    }
   },
   "home": {
     "greeting": "Hello, Dr. {{name}}"

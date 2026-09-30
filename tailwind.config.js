@@ -46,6 +46,7 @@ module.exports = {
         'background-modal': 'hsl(var(--palette-background-modal))',
         'details-primary': 'hsl(var(--palette-details-primary))',
         'details-tertiary': 'hsl(var(--palette-details-tertiary))',
+        'details-finish': 'hsl(var(--palette-details-finish))',
         'label-primary': 'hsl(var(--palette-label-primary))',
         'label-secondary': 'hsl(var(--palette-label-secondary))',
         'label-tertiary': 'hsl(var(--palette-label-tertiary))',

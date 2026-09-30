@@ -1,4 +1,11 @@
-export type Species = 'CANINE' | 'FELINE' | 'OTHER';
+export type Species =
+  | 'CANINE'
+  | 'FELINE'
+  | 'EQUINE'
+  | 'BOVINE'
+  | 'AVIAN'
+  | 'EXOTIC'
+  | 'OTHER';
 
 export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELED';
 
@@ -37,8 +44,12 @@ export type FieldErrorCode =
   | 'INVALID_NUMBER'
   | 'MUST_BE_POSITIVE'
   | 'MUST_BE_INTEGER'
+  | 'TOO_SHORT'
+  | 'MAX_2_DECIMALS'
+  | 'MAX_3_DECIMALS'
   | 'AGE_OUT_OF_RANGE'
   | 'END_BEFORE_START'
+  | 'IN_THE_PAST'
   | 'INVALID_DATE'
   | 'INVALID_TIME';
 

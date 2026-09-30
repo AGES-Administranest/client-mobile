@@ -3,7 +3,11 @@ import { useCallback, useState } from 'react';
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
 
-import { requireToken, toClinicFailureKey } from './clinicFailure';
+import {
+  isDuplicatedTaxIdError,
+  requireToken,
+  toClinicFailureKey,
+} from './clinicFailure';
 import type { Client } from '../domain/client';
 import {
   EMPTY_CLINIC_DRAFT,
@@ -77,7 +81,11 @@ export function useNewClinicForm(): NewClinicFormState {
       return client;
     } catch (error) {
       setIsSaving(false);
-      setFailure(toClinicFailureKey(error));
+      if (isDuplicatedTaxIdError(error)) {
+        setErrors(current => ({ ...current, cnpj: 'duplicated' }));
+      } else {
+        setFailure(toClinicFailureKey(error));
+      }
       return null;
     }
   }, [draft, idToken]);

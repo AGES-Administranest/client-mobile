@@ -4,10 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionButton } from 'app/components/ui';
 import { Icon } from 'app/components/ui/icon';
+import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundShade } from 'theme/colors';
-
-import { useSheetAnimation } from '../hooks/useSheetAnimation';
 
 const MENU_LABEL_MIN_WIDTH = 100;
 
@@ -28,7 +27,10 @@ export function StockEntryModal({
 }: StockEntryModalProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { isRendered, progress, translateY } = useSheetAnimation(visible);
+  const { isRendered, progress, sheetStyle, panHandlers } = useSheetAnimation(
+    visible,
+    onClose,
+  );
 
   return (
     <Modal
@@ -49,7 +51,7 @@ export function StockEntryModal({
 
         <Pressable className="flex-1" onPress={onClose} />
 
-        <Animated.View style={{ transform: [{ translateY }] }}>
+        <Animated.View style={sheetStyle} {...panHandlers}>
           <View
             className="gap-8 rounded-t-[20px] bg-background-modal px-5 pt-3"
             style={{ paddingBottom: insets.bottom + 24 }}

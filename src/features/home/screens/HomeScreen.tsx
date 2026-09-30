@@ -1,28 +1,43 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   Bell,
   CalendarX2,
-  ChevronLeft,
   LogOut,
   Maximize2,
+  Minimize2,
 } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import { Icon } from 'app/components/ui/icon';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
 import {
   AppointmentDayList,
-  AppointmentsScreen,
   DaySummary,
+  MonthCalendar,
   useAppointments,
   WeekStrip,
   type AppointmentStatus,
   type Species,
 } from 'features/appointments';
 import { useAuth } from 'features/auth';
+import { useClientNames } from 'features/clients';
 import {
   InventoryNotificationsScreen,
   isValidExpirationDate,
@@ -33,25 +48,75 @@ import { fetchItems } from 'features/materials';
 import { AppointmentDetailScreen, DiaDiaScreen } from 'features/procedures';
 import { useTranslation } from 'shared/i18n';
 import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
-import { Colors } from 'theme/colors';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export function HomeScreen() {
   const { t, locale } = useTranslation();
   const { session, account, signOut } = useAuth();
-  const insets = useSafeAreaInsets();
   const [accountVisible, setAccountVisible] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const notificationsTranslateX = useRef(
+    new Animated.Value(SCREEN_WIDTH),
+  ).current;
   const [newProcedureVisible, setNewProcedureVisible] = useState(false);
-  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [monthExpanded, setMonthExpanded] = useState(false);
+  // Expanded, the grid starts with no day picked and the agenda shows the
+  // whole month; picking a day narrows it to that day.
+  const [monthDayPicked, setMonthDayPicked] = useState(false);
+  const showsMonth = monthExpanded && !monthDayPicked;
   const [openAppointmentId, setOpenAppointmentId] = useState<string | null>(
     null,
   );
   const [monitoredItems, setMonitoredItems] = useState<MonitoredItem[]>([]);
   const [expiringLots, setExpiringLots] = useState<ExpiringLot[]>([]);
-  // Shared by the week strip here and the month screen, so both stay on the
-  // same date.
+  // Drives both the week strip and the expanded month grid, so switching
+  // between them keeps the selected date.
   const calendar = useAppointments();
-  const { selectedDate, selectedDayAppointments, onRefresh } = calendar;
+  const clientNames = useClientNames();
+  const { selectedDate, selectedDayAppointments, onRefresh, monthString } =
+    calendar;
+
+  // Another month starts unpicked again.
+  useEffect(() => setMonthDayPicked(false), [monthString]);
+
+  // Modal's own `animationType="slide"` only slides vertically; the
+  // notifications screen is a push-style view, so it animates in from the
+  // right by hand instead.
+  useEffect(() => {
+    Animated.timing(notificationsTranslateX, {
+      toValue: notificationsVisible ? 0 : SCREEN_WIDTH,
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [notificationsVisible, notificationsTranslateX]);
+
+  const pickMonthDay = (date: string) => {
+    if (monthDayPicked && date === selectedDate) {
+      // Tapping the picked day again goes back to the whole month.
+      setMonthDayPicked(false);
+      return;
+    }
+    calendar.onSelectDate(date);
+    setMonthDayPicked(true);
+  };
+  // Expanded, the agenda and its totals cover the whole visible month.
+  const agenda = useMemo(
+    () =>
+      (showsMonth
+        ? [...calendar.appointments].sort((a, b) =>
+            a.startsAt.localeCompare(b.startsAt),
+          )
+        : selectedDayAppointments
+      ).map(appointment => ({
+        ...appointment,
+        location:
+          appointment.location ??
+          (appointment.clientId ? clientNames[appointment.clientId] : null),
+      })),
+    [showsMonth, calendar.appointments, selectedDayAppointments, clientNames],
+  );
 
   const openNotifications = useCallback(() => {
     setNotificationsVisible(true);
@@ -88,6 +153,10 @@ export function HomeScreen() {
     () => ({
       CANINE: t('appointments.species.canine'),
       FELINE: t('appointments.species.feline'),
+      EQUINE: t('appointments.species.equine'),
+      BOVINE: t('appointments.species.bovine'),
+      AVIAN: t('appointments.species.avian'),
+      EXOTIC: t('appointments.species.exotic'),
       OTHER: t('appointments.species.other'),
     }),
     [t],
@@ -102,7 +171,7 @@ export function HomeScreen() {
 
   // A canceled appointment neither happens nor earns, so it counts for neither.
   const summary = useMemo(() => {
-    const active = selectedDayAppointments.filter(
+    const active = agenda.filter(
       appointment => appointment.status !== 'CANCELED',
     );
     const revenue = active.reduce(
@@ -111,26 +180,17 @@ export function HomeScreen() {
     );
     return {
       count: active.length,
-      revenue: revenue.toLocaleString(locale, { maximumFractionDigits: 2 }),
+      // "2.000" stays whole, "2.467,50" keeps both decimals.
+      revenue: revenue.toLocaleString(locale, {
+        minimumFractionDigits: Number.isInteger(revenue) ? 0 : 2,
+        maximumFractionDigits: 2,
+      }),
     };
-  }, [selectedDayAppointments, locale]);
+  }, [agenda, locale]);
 
   const selected = fromCalendarDate(selectedDate);
   const isToday = selectedDate === toCalendarDate(new Date());
   const firstName = account?.name.trim().split(/\s+/)[0] ?? '';
-
-  const openNewProcedure = () => {
-    setCalendarVisible(false);
-    setNewProcedureVisible(true);
-  };
-
-  const detail = (
-    <AppointmentDetailScreen
-      appointmentId={openAppointmentId}
-      onClose={() => setOpenAppointmentId(null)}
-      onChanged={onRefresh}
-    />
-  );
 
   return (
     <View className="flex-1">
@@ -176,50 +236,88 @@ export function HomeScreen() {
         </View>
 
         <View className="flex-row items-center justify-between px-4">
-          <Text className="text-xl font-bold text-label-primary">
-            {monthLabel(calendar.year, calendar.monthIndex, locale)}
-          </Text>
+          {/* Expanded, the grid below carries the month and its arrows. */}
+          {monthExpanded ? (
+            <View />
+          ) : (
+            <Text className="text-xl font-bold text-label-primary">
+              {monthLabel(calendar.year, calendar.monthIndex, locale)}
+            </Text>
+          )}
           <Pressable
-            onPress={() => setCalendarVisible(true)}
+            onPress={() => {
+              setMonthDayPicked(false);
+              setMonthExpanded(expanded => !expanded);
+            }}
             accessibilityRole="button"
-            accessibilityLabel={t('appointments.viewMonth')}
+            accessibilityLabel={
+              monthExpanded
+                ? t('appointments.viewWeek')
+                : t('appointments.viewMonth')
+            }
+            accessibilityState={{ expanded: monthExpanded }}
             hitSlop={8}
             className="flex-row items-center gap-1.5 rounded-lg bg-button-primary px-3 py-1.5 active:opacity-80"
           >
-            <Icon as={Maximize2} className="size-3.5 text-white" />
+            <Icon
+              as={monthExpanded ? Minimize2 : Maximize2}
+              className="size-3.5 text-white"
+            />
             <Text className="text-sm font-semibold text-white">
-              {t('appointments.viewMonth')}
+              {monthExpanded
+                ? t('appointments.viewWeek')
+                : t('appointments.viewMonth')}
             </Text>
           </Pressable>
         </View>
 
-        <WeekStrip
-          year={calendar.year}
-          monthIndex={calendar.monthIndex}
-          selectedDate={selectedDate}
-          appointmentsByDate={calendar.appointmentsByDate}
-          locale={locale}
-          onSelectDate={calendar.onSelectDate}
-        />
+        <AnimatedSwap swapKey={monthExpanded}>
+          {monthExpanded ? (
+            <MonthCalendar
+              controller={calendar}
+              selectedDate={monthDayPicked ? selectedDate : null}
+              onSelectDate={pickMonthDay}
+              // O AnimatedSwap recorta o que passa da sua altura; o pb dá
+              // espaço para a sombra do card não sair cortada embaixo.
+              className="px-4 pb-4"
+            />
+          ) : (
+            <WeekStrip
+              year={calendar.year}
+              monthIndex={calendar.monthIndex}
+              selectedDate={selectedDate}
+              appointmentsByDate={calendar.appointmentsByDate}
+              locale={locale}
+              onSelectDate={calendar.onSelectDate}
+            />
+          )}
+        </AnimatedSwap>
 
         <View className="gap-4 px-4">
-          <DaySummary
-            count={summary.count}
-            revenue={summary.revenue}
-            labels={{
-              attendances: t('appointments.attendances'),
-              day: t('appointments.dayOf', { day: selected.getDate() }),
-              revenue: t('appointments.revenue'),
-              estimated: t('appointments.estimated'),
-            }}
-          />
+          {/* Figma: a visão de mês não mostra os cards de resumo. */}
+          {monthExpanded ? null : (
+            <DaySummary
+              count={summary.count}
+              revenue={summary.revenue}
+              labels={{
+                attendances: t('appointments.attendances'),
+                day: t('appointments.dayOf', { day: selected.getDate() }),
+                revenue: t('appointments.revenue'),
+                estimated: t('appointments.estimated'),
+              }}
+            />
+          )}
 
           <View className="flex-row items-center justify-between">
             <Text className="text-xs font-bold uppercase text-label-primary">
-              {`${t('appointments.agenda')} — ${agendaDate(selected, locale)}`}
+              {`${t('appointments.agenda')} — ${
+                showsMonth
+                  ? monthName(calendar.year, calendar.monthIndex, locale)
+                  : agendaDate(selected, locale)
+              }`}
             </Text>
             <Pressable
-              onPress={openNewProcedure}
+              onPress={() => setNewProcedureVisible(true)}
               accessibilityRole="button"
               hitSlop={8}
               className="active:opacity-70"
@@ -240,7 +338,7 @@ export function HomeScreen() {
               sectionTitle=""
               date={selectedDate}
               formattedDate=""
-              appointments={selectedDayAppointments}
+              appointments={agenda}
               speciesLabels={speciesLabels}
               statusLabels={statusLabels}
               onSelectAppointment={appointment =>
@@ -249,12 +347,16 @@ export function HomeScreen() {
               emptyState={
                 calendar.isLoading ? null : (
                   <View className="items-center gap-3 py-16">
+                    {/* Figma: ícone e texto do estado vazio saem em marrom
+                        (label-quartenery), não em preto. */}
                     <Icon
                       as={CalendarX2}
-                      className="size-16 text-label-primary"
+                      className="size-16 text-label-quartenery"
                     />
-                    <Text className="text-base font-semibold text-label-primary">
-                      {isToday
+                    <Text className="text-base font-semibold text-label-quartenery">
+                      {showsMonth
+                        ? t('appointments.emptyMonth')
+                        : isToday
                         ? t('appointments.emptyToday')
                         : t('appointments.emptySelectedDay')}
                     </Text>
@@ -266,66 +368,38 @@ export function HomeScreen() {
         </View>
       </ScrollView>
 
-      <Modal
-        visible={calendarVisible}
-        animationType="slide"
-        onRequestClose={() => setCalendarVisible(false)}
-      >
-        <View
-          className="flex-1"
-          style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
-        >
-          <LinearGradient
-            colors={Colors.background.primary.colors}
-            locations={Colors.background.primary.locations}
-            style={StyleSheet.absoluteFill}
-          />
-          <AppointmentsScreen
-            controller={calendar}
-            statusLabels={statusLabels}
-            onBack={() => setCalendarVisible(false)}
-            onAddAppointment={openNewProcedure}
-            onSelectAppointment={appointment =>
-              setOpenAppointmentId(appointment.id)
-            }
-          />
-          {/* The detail opens over this modal while it is up. */}
-          {calendarVisible ? detail : null}
-        </View>
-      </Modal>
-      {calendarVisible ? null : detail}
+      <AppointmentDetailScreen
+        appointmentId={openAppointmentId}
+        onClose={() => setOpenAppointmentId(null)}
+        onChanged={onRefresh}
+      />
 
       <Modal
         visible={notificationsVisible}
-        animationType="slide"
+        transparent
+        animationType="none"
         onRequestClose={() => setNotificationsVisible(false)}
       >
-        <View
-          className="flex-1 bg-background-modal"
-          style={{ paddingTop: insets.top }}
+        <Animated.View
+          style={{
+            flex: 1,
+            transform: [{ translateX: notificationsTranslateX }],
+          }}
         >
-          <Pressable
-            onPress={() => setNotificationsVisible(false)}
-            accessibilityRole="button"
-            accessibilityLabel={t('auth.back')}
-            hitSlop={8}
-            className="ml-3 h-11 w-11 items-center justify-center"
-          >
-            <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
-          </Pressable>
           <InventoryNotificationsScreen
             userId={account?.id ?? ''}
             items={monitoredItems}
             lots={expiringLots}
+            onBack={() => setNotificationsVisible(false)}
           />
-        </View>
+        </Animated.View>
       </Modal>
       <OptionsModal
         visible={accountVisible}
         onClose={() => setAccountVisible(false)}
         options={[
           {
-            labelKey: 'auth.account.signOut',
+            label: t('auth.account.signOut'),
             icon: LogOut,
             variant: 'outline',
             onPress: () => {
@@ -337,12 +411,76 @@ export function HomeScreen() {
       />
       <DiaDiaScreen
         visible={newProcedureVisible}
-        onClose={() => {
+        onClose={created => {
           setNewProcedureVisible(false);
+          const createdDate = created ? toCalendarDate(created.startsAt) : null;
+          // Outro mês já dispara a própria busca ao ser exibido.
+          if (createdDate && !createdDate.startsWith(monthString)) {
+            calendar.onSelectDate(createdDate);
+            return;
+          }
+          if (createdDate) {
+            calendar.onSelectDate(createdDate);
+            setMonthDayPicked(monthExpanded);
+          }
           onRefresh();
         }}
       />
     </View>
+  );
+}
+
+const SWAP_DURATION_MS = 250;
+
+// A className does not reach Animated.View, and without the clip the growing
+// grid draws over the cards below it.
+const styles = StyleSheet.create({ clip: { overflow: 'hidden' } });
+
+// Grows or shrinks to the height of what it holds and fades the new content
+// in whenever `swapKey` changes (the week strip ↔ month grid).
+function AnimatedSwap({
+  swapKey,
+  children,
+}: {
+  swapKey: unknown;
+  children: ReactNode;
+}) {
+  const height = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+  const measured = useRef(false);
+
+  useEffect(() => {
+    opacity.setValue(0);
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: SWAP_DURATION_MS,
+      useNativeDriver: true,
+    }).start();
+  }, [swapKey, opacity]);
+
+  return (
+    <Animated.View style={[styles.clip, measured.current ? { height } : null]}>
+      <Animated.View
+        style={{ opacity }}
+        onLayout={event => {
+          const next = event.nativeEvent.layout.height;
+          if (!measured.current) {
+            // First layout: take the size as is, nothing to animate from.
+            measured.current = true;
+            height.setValue(next);
+            return;
+          }
+          Animated.timing(height, {
+            toValue: next,
+            duration: SWAP_DURATION_MS,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+          }).start();
+        }}
+      >
+        {children}
+      </Animated.View>
+    </Animated.View>
   );
 }
 
@@ -364,6 +502,13 @@ function monthLabel(year: number, monthIndex: number, locale: string): string {
     .toLocaleDateString(locale, { month: 'short' })
     .replace('.', '');
   return `${capitalize(month)} ${year}`;
+}
+
+// "setembro"
+function monthName(year: number, monthIndex: number, locale: string): string {
+  return new Date(year, monthIndex, 1).toLocaleDateString(locale, {
+    month: 'long',
+  });
 }
 
 // "16 AGO"

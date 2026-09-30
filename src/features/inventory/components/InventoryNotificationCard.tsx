@@ -5,9 +5,11 @@ import {
   PanResponder,
   Platform,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
+
+import { Icon } from 'app/components/ui/icon';
+import { Text } from 'app/components/ui/text';
 
 type InventoryNotificationCardProps = {
   title: string;
@@ -119,7 +121,7 @@ export function InventoryNotificationCard({
 
   return (
     <View
-      style={styles.row}
+      className="w-full"
       onLayout={event => {
         widthRef.current = event.nativeEvent.layout.width;
       }}
@@ -136,19 +138,29 @@ export function InventoryNotificationCard({
         }
       }}
     >
-      <View style={styles.deleteLayer} pointerEvents="none">
-        <Trash2 size={20} color="#FFFFFF" />
+      <View
+        className="absolute inset-0 items-end justify-center rounded-[14px] bg-button-secondary pr-5"
+        pointerEvents="none"
+      >
+        <Icon as={Trash2} size={20} className="text-white" />
       </View>
 
+      {/* className não chega no Animated.View — o visual mora na View comum de dentro. */}
       <Animated.View
         style={[styles.card, { transform: [{ translateX }] }]}
         {...panResponder.panHandlers}
       >
-        <View style={styles.icon} />
-        <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{description}</Text>
-          <Text style={styles.subtitle}>{elapsed}</Text>
+        <View className="w-full flex-row items-start gap-2.5 rounded-[14px] bg-white px-4 py-3">
+          <View className="mt-1 size-2 shrink-0 rounded bg-details-tertiary" />
+          <View className="flex-1">
+            <Text className="text-sm font-semibold text-label-primary">
+              {title}
+            </Text>
+            <Text className="pt-0.5 text-xs text-label-tertiary">
+              {description}
+            </Text>
+            <Text className="text-xs text-label-tertiary">{elapsed}</Text>
+          </View>
         </View>
       </Animated.View>
     </View>
@@ -162,48 +174,11 @@ const styles = StyleSheet.create({
     // que só virava a largura real depois do primeiro `onLayout`, o que dava
     // um quadro estreito na abertura.
     alignSelf: 'stretch',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    flexDirection: 'row',
-    padding: 12,
-  },
-  content: {
-    flex: 1,
-  },
-  deleteLayer: {
-    alignItems: 'flex-end',
-    backgroundColor: '#C0392B',
-    borderRadius: 12,
-    bottom: 0,
-    justifyContent: 'center',
-    left: 0,
-    paddingRight: 20,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  icon: {
-    backgroundColor: '#F5D76E',
-    borderRadius: 5,
-    height: 10,
-    marginRight: 10,
-    marginTop: 5,
-    width: 10,
-  },
-  row: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  subtitle: {
-    color: '#9E9E9E',
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  title: {
-    color: '#1A1A1A',
-    fontSize: 15,
-    fontWeight: '600',
-    lineHeight: 20,
+    borderRadius: 14,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
 });

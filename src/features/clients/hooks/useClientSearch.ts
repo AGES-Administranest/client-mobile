@@ -4,7 +4,6 @@ import { useAuth } from 'features/auth';
 
 import type { Client } from '../domain/client';
 import {
-  addClient,
   filterClients,
   getClientSearchStatus,
   MAX_VISIBLE_RESULTS,
@@ -17,8 +16,6 @@ export type ClientSearchState = {
   status: ClientSearchStatus;
   options: Client[];
   onTermChange: (term: string) => void;
-  /** Encaixa um tomador recém-criado na lista já carregada, sem novo GET. */
-  addCreated: (client: Client) => void;
   reset: () => void;
 };
 
@@ -36,7 +33,9 @@ type ClientSearchOptions = {
 /**
  * Estratégia de cache: a lista inteira é buscada uma vez a cada vez que o
  * campo passa a estar `active` (o formulário abre), e o filtro roda em memória
- * a cada tecla, sem rede e sem debounce.
+ * a cada tecla, sem rede e sem debounce. Sem termo digitado, `options` já traz
+ * a lista inteira (até MAX_VISIBLE_RESULTS): quem abre o campo escolhe direto
+ * de um dropdown, sem precisar digitar nada.
  *
  * Por que a cada abertura e não uma vez por sessão: tomadores são cadastrados
  * também na aba Clínicas, e uma lista guardada desde o login não os veria.
@@ -92,10 +91,6 @@ export function useClientSearch({
     [hasError],
   );
 
-  const addCreated = useCallback((created: Client) => {
-    setClients(current => (current ? addClient(current, created) : current));
-  }, []);
-
   const reset = useCallback(() => {
     setTerm('');
   }, []);
@@ -109,12 +104,11 @@ export function useClientSearch({
   );
 
   const status = getClientSearchStatus({
-    term,
     paused,
     isLoading: clients === null && !hasError,
     hasError: clients === null && hasError,
     resultCount: options.length,
   });
 
-  return { term, status, options, onTermChange, addCreated, reset };
+  return { term, status, options, onTermChange, reset };
 }
