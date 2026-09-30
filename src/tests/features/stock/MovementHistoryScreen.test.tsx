@@ -42,6 +42,7 @@ jest.mock('features/stock/services/stockSyncService', () => ({
     balances: [],
     cursor: 'cursor-1',
     hasMore: false,
+    afterId: null,
   })),
 }));
 

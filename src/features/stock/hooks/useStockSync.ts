@@ -157,12 +157,14 @@ export function useStockSync(): StockSyncState {
       }
 
       let since = (await loadSyncCursor(userId)) ?? SYNC_EPOCH;
+      let afterId: string | null = null;
 
       for (let round = 0; round < MAX_PULL_ROUNDS; round += 1) {
-        const result = await pullStockMovements(idToken, since);
+        const result = await pullStockMovements(idToken, since, afterId);
 
         await saveSyncCursor(userId, result.cursor);
         since = result.cursor;
+        afterId = result.afterId;
         lastBalances = result.balances.length ? result.balances : lastBalances;
         changed = changed || result.movements.length > 0;
 

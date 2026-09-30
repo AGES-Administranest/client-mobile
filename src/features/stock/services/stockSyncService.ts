@@ -40,6 +40,7 @@ export type PullResult = {
   balances: ItemBalance[];
   cursor: string;
   hasMore: boolean;
+  afterId: string | null;
 };
 
 function toItemBalance(balance: BackendBalance): ItemBalance {
@@ -90,17 +91,26 @@ export async function pushPendingMovements(
   };
 }
 
+// `afterId` continua uma página cheia exatamente de onde ela parou. Sem ele o
+// servidor recua uma janela de segurança a partir de `since` e, se a página
+// inteira couber nessa janela, devolve a mesma página para sempre.
 export async function pullStockMovements(
   idToken: string,
   since: string,
+  afterId: string | null = null,
 ): Promise<PullResult> {
   const query = new URLSearchParams({ since });
+
+  if (afterId) {
+    query.set('afterId', afterId);
+  }
 
   const response = await apiClient.get<{
     movements: BackendStockMovement[];
     balances: BackendBalance[];
     cursor: string;
     hasMore: boolean;
+    afterId: string | null;
   }>(`/stock-movement/sync?${query.toString()}`, { token: idToken });
 
   return {
@@ -108,5 +118,6 @@ export async function pullStockMovements(
     balances: response.balances.map(toItemBalance),
     cursor: response.cursor,
     hasMore: response.hasMore,
+    afterId: response.hasMore ? response.afterId : null,
   };
 }

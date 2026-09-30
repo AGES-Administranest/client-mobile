@@ -222,4 +222,45 @@ describe('pullStockMovements', () => {
     expect(result.hasMore).toBe(true);
     expect(result.movements[0].source).toBe('manualAdjustment');
   });
+
+  it('does not send afterId on a fresh pull', async () => {
+    respondWith({ movements: [], balances: [], cursor: 'c1', hasMore: false });
+
+    await pullStockMovements(ID_TOKEN, SYNC_EPOCH);
+
+    expect(lastRequest().query.has('afterId')).toBe(false);
+  });
+
+  it('continues a full page from the afterId it was given', async () => {
+    respondWith({ movements: [], balances: [], cursor: 'c2', hasMore: false });
+
+    await pullStockMovements(ID_TOKEN, 'c1', 'movement-100');
+
+    expect(lastRequest().query.get('since')).toBe('c1');
+    expect(lastRequest().query.get('afterId')).toBe('movement-100');
+  });
+
+  it('returns the afterId to continue from only while there is more', async () => {
+    respondWith({
+      movements: [],
+      balances: [],
+      cursor: 'c1',
+      hasMore: true,
+      afterId: 'movement-100',
+    });
+
+    expect((await pullStockMovements(ID_TOKEN, SYNC_EPOCH)).afterId).toBe(
+      'movement-100',
+    );
+
+    respondWith({
+      movements: [],
+      balances: [],
+      cursor: 'c2',
+      hasMore: false,
+      afterId: 'stale',
+    });
+
+    expect((await pullStockMovements(ID_TOKEN, 'c1')).afterId).toBeNull();
+  });
 });

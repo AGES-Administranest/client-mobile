@@ -96,8 +96,12 @@ function balance(currentQuantity: string) {
   };
 }
 
-function emptyPull(cursor = 'cursor-1', hasMore = false) {
-  return { movements: [], balances: [], cursor, hasMore };
+function emptyPull(
+  cursor = 'cursor-1',
+  hasMore = false,
+  afterId: string | null = null,
+) {
+  return { movements: [], balances: [], cursor, hasMore, afterId };
 }
 
 let current: ReturnType<typeof useStockSync>;
@@ -132,7 +136,11 @@ it('does not call the sync route when there is nothing queued', async () => {
 it('still pulls what other devices did when the queue is empty', async () => {
   await mount();
 
-  expect(pullMock).toHaveBeenCalledWith(ID_TOKEN, '1970-01-01T00:00:00.000Z');
+  expect(pullMock).toHaveBeenCalledWith(
+    ID_TOKEN,
+    '1970-01-01T00:00:00.000Z',
+    null,
+  );
 });
 
 it('clears both what was applied and what came back as already there', async () => {
@@ -273,16 +281,36 @@ it('splits a queue larger than the batch limit into several calls', async () => 
 
 it('keeps pulling while the server says there is more', async () => {
   pullMock
-    .mockResolvedValueOnce(emptyPull('cursor-1', true))
-    .mockResolvedValueOnce(emptyPull('cursor-2', true))
+    .mockResolvedValueOnce(emptyPull('cursor-1', true, 'movement-100'))
+    .mockResolvedValueOnce(emptyPull('cursor-2', true, 'movement-200'))
     .mockResolvedValueOnce(emptyPull('cursor-3', false));
 
   await mount();
 
   expect(pullMock).toHaveBeenCalledTimes(3);
-  expect(pullMock.mock.calls[1][1]).toBe('cursor-1');
-  expect(pullMock.mock.calls[2][1]).toBe('cursor-2');
+  expect(pullMock.mock.calls[0].slice(1)).toEqual([
+    '1970-01-01T00:00:00.000Z',
+    null,
+  ]);
+  expect(pullMock.mock.calls[1].slice(1)).toEqual(['cursor-1', 'movement-100']);
+  expect(pullMock.mock.calls[2].slice(1)).toEqual(['cursor-2', 'movement-200']);
   expect(await loadSyncCursor(USER)).toBe('cursor-3');
+});
+
+it('starts the next sync fresh, without the afterId of the last page', async () => {
+  pullMock
+    .mockResolvedValueOnce(emptyPull('cursor-1', true, 'movement-100'))
+    .mockResolvedValueOnce(emptyPull('cursor-2', false));
+
+  await mount();
+
+  pullMock.mockResolvedValueOnce(emptyPull('cursor-3', false));
+
+  await act(async () => {
+    await current.sync();
+  });
+
+  expect(pullMock.mock.calls[2].slice(1)).toEqual(['cursor-2', null]);
 });
 
 it('reports the items that went negative without calling it a failure', async () => {
@@ -416,6 +444,7 @@ describe('syncedAt', () => {
       balances: [],
       cursor: 'cursor-1',
       hasMore: false,
+      afterId: null,
     });
 
     await mount();
