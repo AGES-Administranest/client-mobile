@@ -72,14 +72,20 @@ export function WelcomeScreen({
             disabled={social.isSubmitting}
           />
 
-          <OrDivider label={t('auth.social.divider')} />
-          <SocialSignInButtons
-            labels={{ Google: t('auth.social.google') }}
-            onPress={social.signInWith}
-            pendingProvider={social.pendingProvider}
-            disabled={social.isSubmitting}
-          />
-          <FormMessage message={social.errorKey ? t(social.errorKey) : null} />
+          {social.isEnabled && (
+            <>
+              <OrDivider label={t('auth.social.divider')} />
+              <SocialSignInButtons
+                labels={{ Google: t('auth.social.google') }}
+                onPress={social.signInWith}
+                pendingProvider={social.pendingProvider}
+                disabled={social.isSubmitting}
+              />
+              <FormMessage
+                message={social.errorKey ? t(social.errorKey) : null}
+              />
+            </>
+          )}
         </View>
       </ScrollView>
     </View>

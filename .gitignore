@@ -12,6 +12,8 @@ ios/
 # and differ per machine. The committed template is .env.example.
 .env
 .env.local
+.env.production
+.env.*.local
 
 # node.js
 #

@@ -14,6 +14,7 @@ Administranest mobile app, built with [Expo](https://expo.dev) ([React Native](h
   - [Physical device via Expo Go](#physical-device-via-expo-go)
   - [Android emulator / native build](#android-emulator--native-build)
   - [iOS simulator / native build](#ios-simulator--native-build-macos-only)
+  - [Production build](#production-build)
 - [Architecture](#architecture)
   - [Local notifications](#local-notifications)
   - [Internationalization (i18n)](#internationalization-i18n)
@@ -120,8 +121,11 @@ Opens at **http://localhost:8081** in your browser.
 To produce a static build (e.g. to preview it as a deployed site):
 
 ```sh
-npm run web:build   # outputs to dist/
+npm run web:build       # production build, needs .env.production — see below
+npm run web:build:dev   # same, but with your local .env
 ```
+
+Both write to `dist/`.
 
 Both commands go through Expo's Metro web bundler — see the `web` key in [`app.json`](./app.json) for its config.
 
@@ -150,6 +154,32 @@ The fastest way to see the app on a real phone with zero native setup:
    First run generates the native `ios/` project (via `expo prebuild`, automatic), runs `pod install`, and boots the default simulator. To pick a specific device, pass `--simulator "iPhone 16"`.
 
 Generated `android/`/`ios/` folders aren't committed (see `.gitignore`) — delete and re-run either command any time to regenerate them cleanly from `app.json`.
+
+### Production build
+
+A production build points at the AWS stack instead of the local emulator, and is the
+only build that offers **Continue with Google** — everywhere else sign in is e-mail and
+password. Both come from `.env.production`:
+
+```sh
+cp .env.production.example .env.production   # then fill in the production values
+```
+
+```sh
+npm run web:build      # static site in dist/
+npm run android:prod   # release build on the emulator/device
+npm run ios:prod       # Release configuration on the simulator/device
+```
+
+Expo reads `.env.production` (not `.env`) for these, and the `EXPO_PUBLIC_APP_ENV=production`
+in it is what turns on the Google buttons. Anything the file leaves out still falls back
+to `.env`, so each command first runs `scripts/check-production-env.js`, which refuses to
+build when the file is missing, incomplete, or points at a local address — or when a
+`.env.local` (which outranks it) is around.
+
+`android:prod` signs with the debug key from `expo prebuild`: fine for testing on a
+device, not for the Play Store. Store builds need a real signing setup (EAS Build or a
+release keystore).
 
 ## Architecture
 
@@ -252,13 +282,15 @@ emulator and against real AWS.
 
 #### Configuration
 
-Five `EXPO_PUBLIC_*` variables in `.env`, documented in
+Six `EXPO_PUBLIC_*` variables in `.env`, documented in
 [`.env.example`](./.env.example). They are inlined into the bundle at build time, so
 nothing secret can live there — and nothing needs to, since the Cognito app client is
 public by design.
 
-Four of them point at Cognito. The fifth, `EXPO_PUBLIC_API_URL`, points at the
-Administranest backend: Cognito is where the app signs in, but the user's own record
+`EXPO_PUBLIC_APP_ENV` is `development` locally and `production` in
+`.env.production`; only `production` shows **Continue with Google** (see
+[Production build](#production-build)). Four of the others point at Cognito.
+`EXPO_PUBLIC_API_URL` points at the Administranest backend: Cognito is where the app signs in, but the user's own record
 lives in our API, created by `POST /auth/session` on the first valid login.
 
 To point the app at the local emulator, run `npm run dev:bootstrap` in the backend repo
@@ -347,8 +379,9 @@ new, and the backend cannot tell the two apart.
   address added there.
 - Closing the browser or declining at the provider resolves to `null` and shows no
   error.
-- Locally, the Google screen is a fake IdP from the backend's Compose file: type any
-  e-mail as the user.
+- The buttons only show up when `EXPO_PUBLIC_APP_ENV=production`. To try the flow
+  locally, set it to `production` in your `.env` for a moment: the Google screen is
+  then a fake IdP from the backend's Compose file — type any e-mail as the user.
 - Sign in with Apple is out of scope for now. Before shipping to the App Store it has to
   be reconsidered: Apple requires it when an iOS app offers another social login
   (guideline 4.8). Adding it is one more `SocialProvider` — same flow, see ADR-13.
