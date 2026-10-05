@@ -5,17 +5,18 @@
   "main": "index.js",
   "scripts": {
     "android": "expo run:android",
-    "android:prod": "node scripts/check-production-env.js && expo run:android --variant release",
+    "android:production": "node scripts/with-production-env.js expo run:android --variant release",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "ios": "expo run:ios",
-    "ios:prod": "node scripts/check-production-env.js && expo run:ios --configuration Release",
+    "ios:production": "node scripts/with-production-env.js expo run:ios --configuration Release",
     "lint": "eslint .",
     "start": "expo start",
+    "start:production": "node scripts/with-production-env.js expo start --clear",
     "test": "jest",
     "web": "expo start --web",
-    "web:build": "node scripts/check-production-env.js && expo export --platform web",
-    "web:build:dev": "expo export --platform web --dev"
+    "web:build": "expo export --platform web",
+    "web:build:production": "node scripts/with-production-env.js expo export --platform web --clear"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

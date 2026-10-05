@@ -17,8 +17,8 @@ export function getCognitoConfig(): CognitoConfig {
     );
   }
 
-  // `||`, not `??`: .env.production clears the emulator address with an empty
-  // value, since a missing one would fall through to the local .env.
+  // `||`, not `??`: .env.prod clears the emulator address with an empty value,
+  // which means "the real AWS address", not an endpoint of "".
   const endpoint =
     process.env.EXPO_PUBLIC_COGNITO_ENDPOINT ||
     `https://cognito-idp.${region}.amazonaws.com`;
