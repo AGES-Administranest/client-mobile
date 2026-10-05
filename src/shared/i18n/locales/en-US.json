@@ -905,5 +905,43 @@
   },
   "home": {
     "greeting": "Hello, Dr. {{name}}"
+  },
+  "fixedCosts": {
+    "form": {
+      "title": "New fixed cost",
+      "editTitle": "Edit fixed cost",
+      "confirm": "Save",
+      "saving": "Saving...",
+      "deactivate": "Deactivate",
+      "deactivating": "Deactivating...",
+      "deactivateConfirmTitle": "Deactivate fixed cost",
+      "deactivateConfirmMessage": "The cost stops counting toward the monthly total, but its history stays saved. You can reactivate it later.",
+      "close": "Close",
+      "cancel": "Cancel",
+      "labels": {
+        "description": "Description",
+        "monthlyAmount": "Monthly amount",
+        "category": "Category"
+      },
+      "placeholders": {
+        "description": "E.g.: Clinic rent",
+        "monthlyAmount": "$0.00"
+      },
+      "errors": {
+        "required": "Fill in this field.",
+        "invalid": "Enter a valid value greater than zero."
+      },
+      "errorSession": "Your session expired. Sign out and sign in again.",
+      "errorUnknown": "Could not save the fixed cost."
+    },
+    "categories": {
+      "RENT": "Rent",
+      "WATER": "Water",
+      "ELECTRICITY": "Electricity",
+      "INTERNET": "Internet",
+      "PHONE": "Phone",
+      "ACCOUNTANT": "Accountant",
+      "OTHER": "Other"
+    }
   }
 }

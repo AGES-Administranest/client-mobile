@@ -905,5 +905,43 @@
   },
   "home": {
     "greeting": "Olá, Dr. {{name}}"
+  },
+  "fixedCosts": {
+    "form": {
+      "title": "Novo custo fixo",
+      "editTitle": "Editar custo fixo",
+      "confirm": "Salvar",
+      "saving": "Salvando...",
+      "deactivate": "Inativar",
+      "deactivating": "Inativando...",
+      "deactivateConfirmTitle": "Inativar custo fixo",
+      "deactivateConfirmMessage": "O custo deixa de contar no total mensal, mas o histórico dele continua guardado. Você pode reativá-lo depois.",
+      "close": "Fechar",
+      "cancel": "Cancelar",
+      "labels": {
+        "description": "Descrição",
+        "monthlyAmount": "Valor mensal",
+        "category": "Categoria"
+      },
+      "placeholders": {
+        "description": "Ex.: Aluguel do consultório",
+        "monthlyAmount": "R$ 0,00"
+      },
+      "errors": {
+        "required": "Preencha este campo.",
+        "invalid": "Informe um valor válido, maior que zero."
+      },
+      "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
+      "errorUnknown": "Não foi possível salvar o custo fixo."
+    },
+    "categories": {
+      "RENT": "Aluguel",
+      "WATER": "Água",
+      "ELECTRICITY": "Luz",
+      "INTERNET": "Internet",
+      "PHONE": "Telefone",
+      "ACCOUNTANT": "Contador",
+      "OTHER": "Outros"
+    }
   }
 }
