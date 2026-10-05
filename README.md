@@ -121,8 +121,8 @@ Opens at **http://localhost:8081** in your browser.
 To produce a static build (e.g. to preview it as a deployed site):
 
 ```sh
-npm run web:build       # production build, needs .env.production — see below
-npm run web:build:dev   # same, but with your local .env
+npm run web:build              # with your local .env
+npm run web:build:production   # against AWS, needs .env.prod — see below
 ```
 
 Both write to `dist/`.
@@ -157,28 +157,31 @@ Generated `android/`/`ios/` folders aren't committed (see `.gitignore`) — dele
 
 ### Production build
 
-A production build points at the AWS stack instead of the local emulator, and is the
-only build that offers **Continue with Google** — everywhere else sign in is e-mail and
-password. Both come from `.env.production`:
+Every script runs against your local `.env` by default. Pointing the app at the AWS
+stack is always explicit, through a `:production` script — and that is also the only
+build that offers **Continue with Google**; everywhere else sign in is e-mail and
+password. The production values live in `.env.prod`:
 
 ```sh
-cp .env.production.example .env.production   # then fill in the production values
+cp .env.prod.example .env.prod   # then fill in the production values
 ```
 
 ```sh
-npm run web:build      # static site in dist/
-npm run android:prod   # release build on the emulator/device
-npm run ios:prod       # Release configuration on the simulator/device
+npm run start:production       # dev server (Expo Go, simulators, web) against AWS
+npm run web:build:production   # static site in dist/
+npm run android:production     # release build on the emulator/device
+npm run ios:production         # Release configuration on the simulator/device
 ```
 
-Expo reads `.env.production` (not `.env`) for these, and the `EXPO_PUBLIC_APP_ENV=production`
-in it is what turns on the Google buttons. Anything the file leaves out still falls back
-to `.env`, so each command first runs `scripts/check-production-env.js`, which refuses to
-build when the file is missing, incomplete, or points at a local address — or when a
-`.env.local` (which outranks it) is around.
+`scripts/with-production-env.js` checks `.env.prod` — every variable present,
+`EXPO_PUBLIC_APP_ENV=production`, no local address — and runs the command with those
+values in the environment, where they win over any `.env*` file. The file is called
+`.env.prod` and not `.env.production` because Expo loads `.env.production` by itself on
+every release build, which would quietly make the plain `web:build` a production one.
+Don't create a `.env.production` for the same reason.
 
-`android:prod` signs with the debug key from `expo prebuild`: fine for testing on a
-device, not for the Play Store. Store builds need a real signing setup (EAS Build or a
+`android:production` signs with the debug key from `expo prebuild`: fine for testing on
+a device, not for the Play Store. Store builds need a real signing setup (EAS Build or a
 release keystore).
 
 ## Architecture
@@ -287,8 +290,7 @@ Six `EXPO_PUBLIC_*` variables in `.env`, documented in
 nothing secret can live there — and nothing needs to, since the Cognito app client is
 public by design.
 
-`EXPO_PUBLIC_APP_ENV` is `development` locally and `production` in
-`.env.production`; only `production` shows **Continue with Google** (see
+`EXPO_PUBLIC_APP_ENV` is `development` locally and `production` in `.env.prod`; only `production` shows **Continue with Google** (see
 [Production build](#production-build)). Four of the others point at Cognito.
 `EXPO_PUBLIC_API_URL` points at the Administranest backend: Cognito is where the app signs in, but the user's own record
 lives in our API, created by `POST /auth/session` on the first valid login.

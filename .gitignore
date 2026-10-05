@@ -12,6 +12,7 @@ ios/
 # and differ per machine. The committed template is .env.example.
 .env
 .env.local
+.env.prod
 .env.production
 .env.*.local
 
