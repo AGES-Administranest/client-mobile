@@ -1,5 +1,6 @@
 declare const process: {
   env: {
+    EXPO_PUBLIC_APP_ENV?: 'development' | 'production';
     EXPO_PUBLIC_COGNITO_CLIENT_ID?: string;
     EXPO_PUBLIC_COGNITO_ENDPOINT?: string;
     EXPO_PUBLIC_COGNITO_OAUTH_URL?: string;

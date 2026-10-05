@@ -78,14 +78,18 @@ export function LoginScreen({
         className="mt-2"
       />
 
-      <OrDivider label={t('auth.social.divider')} />
-      <SocialSignInButtons
-        labels={{ Google: t('auth.social.google') }}
-        onPress={social.signInWith}
-        pendingProvider={social.pendingProvider}
-        disabled={isSubmitting || social.isSubmitting}
-      />
-      <FormMessage message={social.errorKey ? t(social.errorKey) : null} />
+      {social.isEnabled && (
+        <>
+          <OrDivider label={t('auth.social.divider')} />
+          <SocialSignInButtons
+            labels={{ Google: t('auth.social.google') }}
+            onPress={social.signInWith}
+            pendingProvider={social.pendingProvider}
+            disabled={isSubmitting || social.isSubmitting}
+          />
+          <FormMessage message={social.errorKey ? t(social.errorKey) : null} />
+        </>
+      )}
 
       <AuthButton
         variant="link"

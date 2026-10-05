@@ -132,7 +132,27 @@ describe('welcome', () => {
   });
 });
 
-describe('social sign in', () => {
+describe('social sign in outside production', () => {
+  it('offers only e-mail and password on the welcome and login screens', async () => {
+    const renderer = await renderFlow();
+
+    expect(byLabel(renderer, 'Continuar com Google')).toBeUndefined();
+
+    await press(renderer, 'Login');
+
+    expect(byLabel(renderer, 'Continuar com Google')).toBeUndefined();
+  });
+});
+
+describe('social sign in in production', () => {
+  beforeEach(() => {
+    process.env.EXPO_PUBLIC_APP_ENV = 'production';
+  });
+
+  afterEach(() => {
+    delete process.env.EXPO_PUBLIC_APP_ENV;
+  });
+
   it('offers Google, and only Google, on the welcome and login screens', async () => {
     const renderer = await renderFlow();
 
