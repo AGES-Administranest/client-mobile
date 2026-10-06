@@ -217,6 +217,28 @@ async function wait(ms: number) {
   });
 }
 
+// The period filter's calendar opens on "today"'s month when no day is
+// picked yet — pinned so the suite doesn't start failing every time the
+// calendar month rolls over. Real timers stay on (the save-status tests
+// above use `wait`'s real `setTimeout`); only `Date`/`performance.now` are
+// faked.
+beforeAll(() => {
+  jest.useFakeTimers({
+    doNotFake: [
+      'setTimeout',
+      'clearTimeout',
+      'setInterval',
+      'clearInterval',
+      'nextTick',
+    ],
+  });
+  jest.setSystemTime(new Date('2026-09-15T12:00:00'));
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 async function renderScreen() {
   return readTexts(await mount());
 }
