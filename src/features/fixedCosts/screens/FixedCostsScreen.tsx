@@ -125,7 +125,7 @@ export function FixedCostsScreen({ visible, onClose }: FixedCostsScreenProps) {
           style={StyleSheet.absoluteFill}
         />
 
-        <View className="flex-row items-center gap-3 px-5 pb-2 pt-1">
+        <View className="flex-row items-center px-5 pb-2 pt-1">
           <Button
             shape="pill"
             size="icon"
@@ -134,9 +134,12 @@ export function FixedCostsScreen({ visible, onClose }: FixedCostsScreenProps) {
             accessibilityLabel={t('fixedCosts.back')}
             onPress={onClose}
           />
-          <Text className="text-xl font-bold text-label-primary">
+          <Text className="flex-1 text-center text-base font-bold uppercase tracking-wide text-label-primary">
             {t('fixedCosts.title')}
           </Text>
+          {/* Espaçador do mesmo tamanho do botão de voltar, pra o título ficar
+              realmente centralizado na tela, não só no espaço sobrando. */}
+          <View className="size-10" />
         </View>
 
         <ScrollView
@@ -204,7 +207,7 @@ export function FixedCostsScreen({ visible, onClose }: FixedCostsScreenProps) {
           <Button
             shape="pill"
             icon={Plus}
-            className="h-10 w-full"
+            className="h-12 w-full"
             onPress={openCreate}
           >
             <Text className="font-semibold">{t('fixedCosts.addButton')}</Text>

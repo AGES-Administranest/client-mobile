@@ -169,7 +169,7 @@ export function FixedCostFormSheet({
               <Button
                 icon={Check}
                 shape="pill"
-                className="h-10 w-full"
+                className="h-12 w-full"
                 disabled={isSaving}
                 onPress={onSubmit}
               >
@@ -183,7 +183,7 @@ export function FixedCostFormSheet({
                   icon={Trash2}
                   variant="secondary"
                   shape="pill"
-                  className="h-10 w-full"
+                  className="h-12 w-full"
                   disabled={isDeactivating}
                   onPress={() => setConfirmingDeactivate(true)}
                 >

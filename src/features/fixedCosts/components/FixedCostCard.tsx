@@ -35,7 +35,7 @@ function FixedCostCard({
         </View>
         <Text className="text-xs text-label-tertiary">{categoryLabel}</Text>
         {inactive ? (
-          <View className="self-start rounded-full bg-alert-primary/25 px-3.5 py-1">
+          <View className="self-start rounded-full bg-alert-primary px-3.5 py-1">
             <Text className="text-xs font-bold text-label-primary">
               {inactiveLabel}
             </Text>
