@@ -204,7 +204,7 @@ export function FixedCostsScreen({ visible, onClose }: FixedCostsScreenProps) {
           <Button
             shape="pill"
             icon={Plus}
-            className="h-[49px] w-full"
+            className="h-10 w-full"
             onPress={openCreate}
           >
             <Text className="font-semibold">{t('fixedCosts.addButton')}</Text>

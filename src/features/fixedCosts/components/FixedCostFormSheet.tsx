@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react-native';
+import { Check, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   Animated,
@@ -113,22 +113,9 @@ export function FixedCostFormSheet({
             <View className="shrink gap-3 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
               <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
 
-              <View className="flex-row items-center justify-between">
-                <Text className="text-xl font-bold text-label-primary">
-                  {isEditing ? texts.editTitle : texts.title}
-                </Text>
-                {isEditing ? (
-                  <Pressable
-                    onPress={() => setConfirmingDeactivate(true)}
-                    accessibilityRole="button"
-                    hitSlop={8}
-                  >
-                    <Text className="text-sm font-semibold text-label-quartenery">
-                      {isDeactivating ? texts.deactivating : texts.deactivate}
-                    </Text>
-                  </Pressable>
-                ) : null}
-              </View>
+              <Text className="text-xl font-bold text-label-primary">
+                {isEditing ? texts.editTitle : texts.title}
+              </Text>
 
               <View className="h-px bg-details-primary" />
 
@@ -182,7 +169,7 @@ export function FixedCostFormSheet({
               <Button
                 icon={Check}
                 shape="pill"
-                className="h-[49px] w-full"
+                className="h-10 w-full"
                 disabled={isSaving}
                 onPress={onSubmit}
               >
@@ -190,6 +177,21 @@ export function FixedCostFormSheet({
                   {isSaving ? texts.saving : texts.confirm}
                 </Text>
               </Button>
+
+              {isEditing ? (
+                <Button
+                  icon={Trash2}
+                  variant="secondary"
+                  shape="pill"
+                  className="h-10 w-full"
+                  disabled={isDeactivating}
+                  onPress={() => setConfirmingDeactivate(true)}
+                >
+                  <Text className="font-semibold text-label-secondary">
+                    {isDeactivating ? texts.deactivating : texts.deactivate}
+                  </Text>
+                </Button>
+              ) : null}
             </View>
           </Animated.View>
         </KeyboardAvoidingView>
