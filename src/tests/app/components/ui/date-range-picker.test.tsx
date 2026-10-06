@@ -5,6 +5,26 @@ import type { CalendarRange } from 'shared/utils/calendar';
 
 const EMPTY: CalendarRange = { from: null, to: null };
 
+// Without an explicit `from`, the picker opens on "today"'s month — pinned
+// so the suite doesn't start failing every time the calendar month rolls
+// over. Real timers stay on; only `Date`/`performance.now` are faked.
+beforeAll(() => {
+  jest.useFakeTimers({
+    doNotFake: [
+      'setTimeout',
+      'clearTimeout',
+      'setInterval',
+      'clearInterval',
+      'nextTick',
+    ],
+  });
+  jest.setSystemTime(new Date('2026-09-15T12:00:00'));
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 async function render(value: CalendarRange, onChange = jest.fn()) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
