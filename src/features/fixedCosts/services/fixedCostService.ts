@@ -19,10 +19,63 @@ export type CreatedFixedCost = CreateFixedCostPayload & {
   updatedAt: string;
 };
 
+export type ListFixedCostsParams = {
+  month: string;
+  includeInactive: boolean;
+};
+
 function requireToken(idToken: string): void {
   if (!idToken) {
     throw new ApiError('No active session', 'UNAUTHENTICATED', 401);
   }
+}
+
+// Mesmos custos fixos que a tela de listagem (US18) mostra por padrão — só
+// para a tela não abrir vazia enquanto o endpoint real não existe. Troca
+// direta por `apiClient.get('/fixed-cost?...')` quando o backend expuser a
+// rota (ver comentário de `createFixedCost` abaixo).
+const SEED_FIXED_COSTS: CreatedFixedCost[] = [
+  {
+    id: 'local:seed-1',
+    description: 'Aluguel do consultório',
+    category: 'RENT',
+    monthlyAmount: 1200,
+    active: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'local:seed-2',
+    description: 'Internet',
+    category: 'INTERNET',
+    monthlyAmount: 150,
+    active: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'local:seed-3',
+    description: 'Contador',
+    category: 'ACCOUNTANT',
+    monthlyAmount: 350,
+    active: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+];
+
+// Stand-in: não existe endpoint de custos fixos no backend ainda (nenhum
+// controller/DTO em src/modules/financial). `month`/`includeInactive` já
+// seguem a mesma assinatura que `GET /fixed-cost?month=&includeInactive=`
+// vai usar quando existir.
+export async function listFixedCosts(
+  idToken: string,
+  { includeInactive }: ListFixedCostsParams,
+): Promise<CreatedFixedCost[]> {
+  requireToken(idToken);
+  return includeInactive
+    ? SEED_FIXED_COSTS
+    : SEED_FIXED_COSTS.filter(fixedCost => fixedCost.active);
 }
 
 // Stand-in: não existe endpoint de custos fixos no backend ainda (nenhum

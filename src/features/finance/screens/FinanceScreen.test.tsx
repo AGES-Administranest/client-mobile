@@ -62,7 +62,7 @@ const ACCOUNT: Account = {
   termsVersion: TERMS_VERSION,
 };
 
-test('mounts the stock movement history', async () => {
+async function renderFinanceScreen() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
@@ -79,9 +79,46 @@ test('mounts the stock movement history', async () => {
     );
   });
 
-  const texts = renderer!.root
-    .findAllByType('Text' as never)
-    .map(node => node.props.children);
+  return renderer!;
+}
 
-  expect(JSON.stringify(texts)).toContain('Histórico de movimentações');
+function textsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return JSON.stringify(
+    renderer.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children),
+  );
+}
+
+test('mounts the stock movement history', async () => {
+  const renderer = await renderFinanceScreen();
+
+  expect(textsOf(renderer)).toContain('Histórico de movimentações');
+});
+
+test('opens the fixed costs screen from the entry row', async () => {
+  const renderer = await renderFinanceScreen();
+
+  expect(textsOf(renderer)).toContain('Custos fixos mensais');
+  // A tela de custos fixos é um Modal sempre montado (visible=false por
+  // padrão), então o próprio título já existe na árvore — a prova real de
+  // que abriu é a prop `visible` virar true depois do toque na entrada.
+  const entry = renderer.root
+    .findAll(
+      node =>
+        node.props.accessibilityRole === 'button' &&
+        typeof node.props.onPress === 'function',
+    )
+    .find(node =>
+      node
+        .findAllByType('Text' as never)
+        .some(text => text.props.children === 'Custos fixos mensais'),
+    )!;
+
+  await act(() => {
+    entry.props.onPress();
+  });
+
+  const modal = renderer.root.findByProps({ animationType: 'slide' });
+  expect(modal.props.visible).toBe(true);
 });

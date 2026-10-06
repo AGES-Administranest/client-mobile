@@ -906,7 +906,22 @@
   "home": {
     "greeting": "Hello, Dr. {{name}}"
   },
+  "finance": {
+    "fixedCostsEntry": "Monthly fixed costs"
+  },
   "fixedCosts": {
+    "title": "Fixed costs",
+    "back": "Back",
+    "totalLabel": "Monthly total",
+    "activeCountOne": "{{count}} active cost",
+    "activeCountOther": "{{count}} active costs",
+    "listTitle": "Registered costs",
+    "showInactive": "Show inactive",
+    "hideInactive": "Hide inactive",
+    "inactiveTag": "Inactive",
+    "addButton": "Add fixed cost",
+    "empty": "No fixed costs registered yet.",
+    "errorLoad": "Could not load the fixed costs.",
     "form": {
       "title": "New fixed cost",
       "editTitle": "Edit fixed cost",

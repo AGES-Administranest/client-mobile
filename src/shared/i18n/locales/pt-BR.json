@@ -906,7 +906,22 @@
   "home": {
     "greeting": "Olá, Dr. {{name}}"
   },
+  "finance": {
+    "fixedCostsEntry": "Custos fixos mensais"
+  },
   "fixedCosts": {
+    "title": "Custos fixos",
+    "back": "Voltar",
+    "totalLabel": "Total mensal",
+    "activeCountOne": "{{count}} custo ativo",
+    "activeCountOther": "{{count}} custos ativos",
+    "listTitle": "Custos cadastrados",
+    "showInactive": "Mostrar inativos",
+    "hideInactive": "Ocultar inativos",
+    "inactiveTag": "Inativo",
+    "addButton": "Adicionar custo fixo",
+    "empty": "Nenhum custo fixo cadastrado ainda.",
+    "errorLoad": "Não foi possível carregar os custos fixos.",
     "form": {
       "title": "Novo custo fixo",
       "editTitle": "Editar custo fixo",

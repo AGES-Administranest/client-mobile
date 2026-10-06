@@ -1,3 +1,4 @@
+export { FixedCostsScreen } from './screens/FixedCostsScreen';
 export { FixedCostFormSheet } from './components/FixedCostFormSheet';
 export type {
   FixedCostFormSheetProps,
