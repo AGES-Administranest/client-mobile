@@ -905,5 +905,11 @@
   },
   "home": {
     "greeting": "Hello, Dr. {{name}}"
+  },
+  "pricing": {
+    "onboarding": {
+      "message": "To calculate your minimum hourly rate, enter your monthly net income goal, your available hours per week and your safety margin. With that, the calculator shows the rate and its breakdown.",
+      "configure": "Set up"
+    }
   }
 }
