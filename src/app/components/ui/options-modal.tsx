@@ -18,6 +18,12 @@ type OptionsModalProps = {
   visible: boolean;
   onClose: () => void;
   options: readonly OptionModalItem[];
+  /** Já traduzido. Sem ele, o sheet mostra só as opções. */
+  title?: string;
+  /** Já traduzida. Explica a diferença entre as opções, abaixo do título. */
+  description?: string;
+  /** Depois que a saída termina: é a hora de abrir outra folha (ver useSheetAnimation). */
+  onClosed?: () => void;
   className?: string;
 };
 
@@ -25,9 +31,12 @@ function OptionsModal({
   visible,
   onClose,
   options,
+  title,
+  description,
+  onClosed,
   className,
 }: OptionsModalProps) {
-  const sheet = useSheetAnimation(visible, onClose);
+  const sheet = useSheetAnimation(visible, onClose, onClosed);
 
   return (
     <Modal
@@ -49,7 +58,27 @@ function OptionsModal({
               )}
               onPress={e => e.stopPropagation()}
             >
-              <View className="mb-6 h-1 w-10 self-center rounded-full bg-border-primary" />
+              <View
+                className={cn(
+                  'h-1 w-10 self-center rounded-full bg-border-primary',
+                  title ? 'mb-1' : 'mb-6',
+                )}
+              />
+              {title ? (
+                <View className="gap-1 border-b border-border-primary pb-3">
+                  <Text
+                    accessibilityRole="header"
+                    className="text-base font-bold text-label-primary"
+                  >
+                    {title}
+                  </Text>
+                  {description ? (
+                    <Text className="text-[13px] text-label-tertiary">
+                      {description}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
               {options.map(option => (
                 <Button
                   key={option.label}
