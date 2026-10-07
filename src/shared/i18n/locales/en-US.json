@@ -475,6 +475,20 @@
     },
     "loadFailure": "Could not load the clinics."
   },
+  "financialEntries": {
+    "newEntry": "New entry",
+    "options": {
+      "title": "New entry",
+      "description": "Upload the invoice or the purchase order as a PDF to record it automatically, or fill it in by hand.",
+      "sendDocument": "Upload document (PDF)",
+      "manual": "Manual entry"
+    },
+    "documentSoon": {
+      "title": "PDF upload coming soon",
+      "message": "For now, record the income or the expense with a manual entry.",
+      "ok": "Got it"
+    }
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
