@@ -84,4 +84,7 @@ test('mounts the stock movement history', async () => {
     .map(node => node.props.children);
 
   expect(JSON.stringify(texts)).toContain('Histórico de movimentações');
+  expect(
+    renderer!.root.findAllByProps({ testID: 'finance-new-entry-button' }),
+  ).not.toHaveLength(0);
 });
