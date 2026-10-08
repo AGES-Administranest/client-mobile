@@ -5,6 +5,36 @@ import type { CalendarRange } from 'shared/utils/calendar';
 
 const EMPTY: CalendarRange = { from: null, to: null };
 
+const REAL_TIMERS = [
+  'hrtime',
+  'nextTick',
+  'performance',
+  'queueMicrotask',
+  'requestAnimationFrame',
+  'cancelAnimationFrame',
+  'requestIdleCallback',
+  'cancelIdleCallback',
+  'setImmediate',
+  'clearImmediate',
+  'setInterval',
+  'clearInterval',
+  'setTimeout',
+  'clearTimeout',
+] as const;
+
+// The fixtures live in September 2026 and the calendar opens on the current
+// month, so the date is pinned; only Date is faked, timers stay real.
+beforeAll(() => {
+  jest.useFakeTimers({
+    now: new Date(2026, 8, 15, 12),
+    doNotFake: [...REAL_TIMERS],
+  });
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 async function render(value: CalendarRange, onChange = jest.fn()) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 

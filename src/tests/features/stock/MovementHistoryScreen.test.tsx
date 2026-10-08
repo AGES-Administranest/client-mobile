@@ -169,6 +169,36 @@ const EXPIRATION_ADJUSTMENT: StockMovement = {
 
 const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
 
+const REAL_TIMERS = [
+  'hrtime',
+  'nextTick',
+  'performance',
+  'queueMicrotask',
+  'requestAnimationFrame',
+  'cancelAnimationFrame',
+  'requestIdleCallback',
+  'cancelIdleCallback',
+  'setImmediate',
+  'clearImmediate',
+  'setInterval',
+  'clearInterval',
+  'setTimeout',
+  'clearTimeout',
+] as const;
+
+// The fixtures live in September 2026 and the calendar opens on the current
+// month, so the date is pinned; only Date is faked, timers stay real.
+beforeAll(() => {
+  jest.useFakeTimers({
+    now: new Date(2026, 8, 15, 12),
+    doNotFake: [...REAL_TIMERS],
+  });
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 afterEach(() => {
   while (mounted.length > 0) {
     const renderer = mounted.pop();
