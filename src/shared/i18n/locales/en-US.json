@@ -4,6 +4,15 @@
     "loading": "Loading...",
     "retry": "Retry"
   },
+  "finance": {
+    "title": "Finance",
+    "openCalculator": "Open hourly rate calculator"
+  },
+  "calculator": {
+    "title": "Hourly rate calculator",
+    "subtitle": "Find the minimum amount you should charge per hour worked",
+    "back": "Back"
+  },
   "inventory": {
     "alert": {
       "titleSingular": "Low stock",
