@@ -506,6 +506,39 @@
       "other": "Outros"
     },
     "form": {
+      "title": "Novo lançamento manual",
+      "close": "Fechar",
+      "nature": {
+        "label": "Tipo",
+        "income": "Entrada",
+        "expense": "Saída"
+      },
+      "description": {
+        "label": "Descrição",
+        "placeholder": "Ex: Conta de luz"
+      },
+      "amount": {
+        "label": "Valor (R$)",
+        "placeholder": "0,00"
+      },
+      "date": {
+        "label": "Data",
+        "placeholder": "dd/mm/aaaa"
+      },
+      "category": {
+        "label": "Categoria",
+        "loading": "Carregando categorias…",
+        "retry": "Tentar de novo",
+        "empty": "Nenhuma categoria para esse tipo."
+      },
+      "scope": {
+        "label": "Escopo",
+        "professional": "Profissional",
+        "personal": "Pessoal",
+        "hint": "Sugerido pela categoria. Você pode alterar."
+      },
+      "save": "Salvar",
+      "saving": "Salvando…",
       "errors": {
         "description": {
           "required": "Informe uma descrição.",
@@ -532,7 +565,8 @@
         "unknown": "Não foi possível salvar o lançamento. Tente novamente.",
         "categories": "Não foi possível carregar as categorias."
       }
-    }
+    },
+    "saved": "Lançamento salvo."
   },
   "tabbar": {
     "day": "Dia-Dia",
