@@ -4,6 +4,15 @@
     "loading": "Carregando...",
     "retry": "Tentar novamente"
   },
+  "finance": {
+    "title": "Finanças",
+    "openCalculator": "Abrir calculadora de hora"
+  },
+  "calculator": {
+    "title": "Calculadora de hora",
+    "subtitle": "Descubra o valor mínimo que deve cobrar por hora trabalhada",
+    "back": "Voltar"
+  },
   "inventory": {
     "alert": {
       "titleSingular": "Estoque baixo",

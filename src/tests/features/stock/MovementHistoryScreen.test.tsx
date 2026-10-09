@@ -169,6 +169,36 @@ const EXPIRATION_ADJUSTMENT: StockMovement = {
 
 const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
 
+const REAL_TIMERS = [
+  'hrtime',
+  'nextTick',
+  'performance',
+  'queueMicrotask',
+  'requestAnimationFrame',
+  'cancelAnimationFrame',
+  'requestIdleCallback',
+  'cancelIdleCallback',
+  'setImmediate',
+  'clearImmediate',
+  'setInterval',
+  'clearInterval',
+  'setTimeout',
+  'clearTimeout',
+] as const;
+
+// The fixtures live in September 2026 and the calendar opens on the current
+// month, so the date is pinned; only Date is faked, timers stay real.
+beforeAll(() => {
+  jest.useFakeTimers({
+    now: new Date(2026, 8, 15, 12),
+    doNotFake: [...REAL_TIMERS],
+  });
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 afterEach(() => {
   while (mounted.length > 0) {
     const renderer = mounted.pop();
@@ -216,28 +246,6 @@ async function wait(ms: number) {
     });
   });
 }
-
-// The period filter's calendar opens on "today"'s month when no day is
-// picked yet — pinned so the suite doesn't start failing every time the
-// calendar month rolls over. Real timers stay on (the save-status tests
-// above use `wait`'s real `setTimeout`); only `Date`/`performance.now` are
-// faked.
-beforeAll(() => {
-  jest.useFakeTimers({
-    doNotFake: [
-      'setTimeout',
-      'clearTimeout',
-      'setInterval',
-      'clearInterval',
-      'nextTick',
-    ],
-  });
-  jest.setSystemTime(new Date('2026-09-15T12:00:00'));
-});
-
-afterAll(() => {
-  jest.useRealTimers();
-});
 
 async function renderScreen() {
   return readTexts(await mount());
