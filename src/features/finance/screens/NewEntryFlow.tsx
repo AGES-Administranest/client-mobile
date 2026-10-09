@@ -4,14 +4,21 @@ import { View } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { OptionsModal } from 'app/components/ui/options-modal';
+import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
+import { NewEntryForm } from './NewEntryForm';
 import { NewEntryButton } from '../components/NewEntryButton';
 
 export function NewEntryFlow() {
   const { t } = useTranslation();
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [documentSoonVisible, setDocumentSoonVisible] = useState(false);
+  // O formulário só monta na primeira abertura (e as categorias só são
+  // buscadas aí); depois fica montado para a animação de saída rodar.
+  const [formMounted, setFormMounted] = useState(false);
+  const [formVisible, setFormVisible] = useState(false);
+  const [savedVisible, setSavedVisible] = useState(false);
   // A folha seguinte só abre depois que a de opções termina de sair: no iOS
   // um Modal não aparece enquanto outro ainda está fechando.
   const nextAction = useRef<(() => void) | null>(null);
@@ -27,12 +34,35 @@ export function NewEntryFlow() {
     action?.();
   };
 
+  const openOptions = () => {
+    setSavedVisible(false);
+    setOptionsVisible(true);
+  };
+
+  const openForm = () => {
+    setFormMounted(true);
+    setFormVisible(true);
+  };
+
+  const finishSaving = () => {
+    setFormVisible(false);
+    setSavedVisible(true);
+  };
+
   return (
-    <View className="px-4 pt-3">
+    <View className="gap-3 px-4 pt-3">
       <NewEntryButton
         label={t('financialEntries.newEntry')}
-        onPress={() => setOptionsVisible(true)}
+        onPress={openOptions}
       />
+
+      {savedVisible ? (
+        <View className="rounded-xl border border-details-tertiary bg-details-secondary p-3">
+          <Text className="text-sm text-label-primary">
+            {t('financialEntries.saved')}
+          </Text>
+        </View>
+      ) : null}
 
       <OptionsModal
         visible={optionsVisible}
@@ -49,7 +79,7 @@ export function NewEntryFlow() {
           {
             label: t('financialEntries.options.manual'),
             icon: Pencil,
-            onPress: () => choose(),
+            onPress: () => choose(openForm),
           },
         ]}
       />
@@ -63,6 +93,14 @@ export function NewEntryFlow() {
         onConfirm={() => setDocumentSoonVisible(false)}
         onCancel={() => setDocumentSoonVisible(false)}
       />
+
+      {formMounted ? (
+        <NewEntryForm
+          visible={formVisible}
+          onClose={() => setFormVisible(false)}
+          onSaved={finishSaving}
+        />
+      ) : null}
     </View>
   );
 }
