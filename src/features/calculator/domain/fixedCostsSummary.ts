@@ -8,6 +8,11 @@ export type FixedCostsSummary = {
 
 export type TransportCostError = 'required' | 'notNumeric' | 'negative';
 
+// transport_monthly é decimal(14,2): 14 dígitos no total, 12 inteiros e 2
+// centavos. Acima disso o number perde precisão e o valor mostrado deixa de
+// ser o digitado.
+export const MAX_CURRENCY_DIGITS = 14;
+
 // Dígitos viram centavos ("35000" -> "350,00"); um "-" inicial é mantido para
 // que o valor negativo chegue à validação em vez de sumir da máscara.
 export function maskCurrencyInput(value: string): string {
@@ -18,7 +23,10 @@ export function maskCurrencyInput(value: string): string {
     return isNegative ? '-' : '';
   }
 
-  const padded = rawDigits.replace(/^0+/, '').padStart(3, '0');
+  const padded = rawDigits
+    .replace(/^0+/, '')
+    .slice(0, MAX_CURRENCY_DIGITS)
+    .padStart(3, '0');
   const cents = padded.slice(-2);
   const integer = padded.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 

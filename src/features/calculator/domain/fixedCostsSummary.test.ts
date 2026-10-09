@@ -23,6 +23,25 @@ describe('maskCurrencyInput', () => {
   ])('masks %p as %p', (input, expected) => {
     expect(maskCurrencyInput(input)).toBe(expected);
   });
+
+  describe('limit of 14 digits (decimal(14,2))', () => {
+    it.each([
+      ['99999999999999', '999.999.999.999,99'],
+      ['11111111111111', '111.111.111.111,11'],
+      ['11111111111111111111', '111.111.111.111,11'],
+      ['999.999.999.999,991', '999.999.999.999,99'],
+      ['-11111111111111111111', '-111.111.111.111,11'],
+      ['0000011111111111111', '111.111.111.111,11'],
+    ])('masks %p as %p', (input, expected) => {
+      expect(maskCurrencyInput(input)).toBe(expected);
+    });
+
+    it('is stable when the masked maximum is masked again', () => {
+      const masked = maskCurrencyInput('99999999999999');
+
+      expect(maskCurrencyInput(masked)).toBe(masked);
+    });
+  });
 });
 
 describe('formatAmountInput', () => {
@@ -37,6 +56,21 @@ describe('formatAmountInput', () => {
 
   it('formats zero as 0,00', () => {
     expect(formatAmountInput(0)).toBe('0,00');
+  });
+
+  it('round-trips the maximum value without losing precision', () => {
+    const maximum = 999999999999.99;
+    const formatted = formatAmountInput(maximum);
+
+    expect(formatted).toBe('999.999.999.999,99');
+    expect(parseCurrencyInput(formatted)).toBe(maximum);
+  });
+
+  it('round-trips a value typed past the limit as the truncated amount', () => {
+    const typed = maskCurrencyInput('11111111111111111111');
+
+    expect(parseCurrencyInput(typed)).toBe(111111111111.11);
+    expect(formatAmountInput(111111111111.11)).toBe(typed);
   });
 });
 
