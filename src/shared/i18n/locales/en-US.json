@@ -506,6 +506,39 @@
       "other": "Other"
     },
     "form": {
+      "title": "New manual entry",
+      "close": "Close",
+      "nature": {
+        "label": "Type",
+        "income": "Income",
+        "expense": "Expense"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "E.g. Electricity bill"
+      },
+      "amount": {
+        "label": "Amount (R$)",
+        "placeholder": "0.00"
+      },
+      "date": {
+        "label": "Date",
+        "placeholder": "dd/mm/yyyy"
+      },
+      "category": {
+        "label": "Category",
+        "loading": "Loading categories…",
+        "retry": "Try again",
+        "empty": "No categories for this type."
+      },
+      "scope": {
+        "label": "Scope",
+        "professional": "Professional",
+        "personal": "Personal",
+        "hint": "Suggested by the category. You can change it."
+      },
+      "save": "Save",
+      "saving": "Saving…",
       "errors": {
         "description": {
           "required": "Enter a description.",
@@ -532,7 +565,8 @@
         "unknown": "Could not save the entry. Try again.",
         "categories": "Could not load the categories."
       }
-    }
+    },
+    "saved": "Entry saved."
   },
   "tabbar": {
     "day": "Day-to-Day",
