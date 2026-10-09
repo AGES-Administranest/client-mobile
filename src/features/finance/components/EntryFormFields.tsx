@@ -136,10 +136,13 @@ function EntryInput({
           accessibilityLabel={label}
           placeholderTextColor={LabelPlaceholder}
           selectionColor={LabelPrimary}
-          className="flex-1 py-2.5 text-[15px] text-label-primary"
+          // min-w-0: na web o input tem largura mínima própria e empurraria o
+          // ícone para fora do campo.
+          className="min-w-0 flex-1 py-2.5 text-[15px] text-label-primary"
         />
         {trailingIcon ? (
           <View
+            className="ml-2 shrink-0"
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           >
