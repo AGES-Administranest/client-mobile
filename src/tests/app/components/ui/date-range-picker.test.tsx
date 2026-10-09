@@ -5,20 +5,30 @@ import type { CalendarRange } from 'shared/utils/calendar';
 
 const EMPTY: CalendarRange = { from: null, to: null };
 
-// Without an explicit `from`, the picker opens on "today"'s month — pinned
-// so the suite doesn't start failing every time the calendar month rolls
-// over. Real timers stay on; only `Date`/`performance.now` are faked.
+const REAL_TIMERS = [
+  'hrtime',
+  'nextTick',
+  'performance',
+  'queueMicrotask',
+  'requestAnimationFrame',
+  'cancelAnimationFrame',
+  'requestIdleCallback',
+  'cancelIdleCallback',
+  'setImmediate',
+  'clearImmediate',
+  'setInterval',
+  'clearInterval',
+  'setTimeout',
+  'clearTimeout',
+] as const;
+
+// The fixtures live in September 2026 and the calendar opens on the current
+// month, so the date is pinned; only Date is faked, timers stay real.
 beforeAll(() => {
   jest.useFakeTimers({
-    doNotFake: [
-      'setTimeout',
-      'clearTimeout',
-      'setInterval',
-      'clearInterval',
-      'nextTick',
-    ],
+    now: new Date(2026, 8, 15, 12),
+    doNotFake: [...REAL_TIMERS],
   });
-  jest.setSystemTime(new Date('2026-09-15T12:00:00'));
 });
 
 afterAll(() => {

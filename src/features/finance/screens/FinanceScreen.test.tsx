@@ -88,3 +88,49 @@ test('mounts the stock movement history', async () => {
     renderer!.root.findAllByProps({ testID: 'finance-new-entry-button' }),
   ).not.toHaveLength(0);
 });
+
+test('opens the calculator from the header icon', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <StockSyncProvider>
+              <FinanceScreen />
+            </StockSyncProvider>
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
+    );
+  });
+
+  const textsOf = () =>
+    renderer!.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children);
+
+  expect(textsOf()).toContain('Finanças');
+  expect(textsOf()).not.toContain('Calculadora de hora');
+
+  const open = renderer!.root.find(
+    node =>
+      node.props.accessibilityLabel === 'Abrir calculadora de hora' &&
+      typeof node.props.onPress === 'function',
+  );
+
+  await act(async () => open.props.onPress());
+
+  expect(textsOf()).toContain('Calculadora de hora');
+
+  const back = renderer!.root.find(
+    node =>
+      node.props.accessibilityLabel === 'Voltar' &&
+      typeof node.props.onPress === 'function',
+  );
+
+  await act(async () => back.props.onPress());
+
+  expect(textsOf()).not.toContain('Calculadora de hora');
+});
