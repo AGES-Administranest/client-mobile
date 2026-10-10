@@ -503,6 +503,90 @@
     },
     "loadFailure": "Could not load the clinics."
   },
+  "financialEntries": {
+    "newEntry": "New entry",
+    "options": {
+      "title": "New entry",
+      "description": "Upload the invoice or the purchase order as a PDF to record it automatically, or fill it in by hand.",
+      "sendDocument": "Upload document (PDF)",
+      "manual": "Manual entry"
+    },
+    "documentSoon": {
+      "title": "PDF upload coming soon",
+      "message": "For now, record the income or the expense with a manual entry.",
+      "ok": "Got it"
+    },
+    "categories": {
+      "professionalFees": "Professional fees",
+      "supplies": "Supplies",
+      "travel": "Travel",
+      "taxesAndFees": "Taxes and fees",
+      "fixedCosts": "Fixed costs",
+      "other": "Other"
+    },
+    "form": {
+      "title": "New manual entry",
+      "close": "Close",
+      "nature": {
+        "label": "Type",
+        "income": "Income",
+        "expense": "Expense"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "E.g. Electricity bill"
+      },
+      "amount": {
+        "label": "Amount (R$)",
+        "placeholder": "0.00"
+      },
+      "date": {
+        "label": "Date",
+        "placeholder": "dd/mm/yyyy"
+      },
+      "category": {
+        "label": "Category",
+        "loading": "Loading categories…",
+        "retry": "Try again",
+        "empty": "No categories for this type."
+      },
+      "scope": {
+        "label": "Scope",
+        "professional": "Professional",
+        "personal": "Personal",
+        "hint": "Suggested by the category. You can change it."
+      },
+      "save": "Save",
+      "saving": "Saving…",
+      "errors": {
+        "description": {
+          "required": "Enter a description.",
+          "tooLong": "Use at most 500 characters."
+        },
+        "amount": {
+          "required": "Enter the amount.",
+          "invalid": "Enter a valid amount.",
+          "notPositive": "Enter an amount greater than zero."
+        },
+        "date": {
+          "required": "Enter the date.",
+          "invalid": "Invalid date."
+        },
+        "categoryId": {
+          "required": "Choose a category."
+        }
+      },
+      "failures": {
+        "session": "Your session has expired. Sign out and sign in again.",
+        "categoryInvalid": "This category is no longer available. Choose another one.",
+        "idConflict": "This entry has already been saved. Check the statement.",
+        "network": "No connection. Try again when you are back online.",
+        "unknown": "Could not save the entry. Try again.",
+        "categories": "Could not load the categories."
+      }
+    },
+    "saved": "Entry saved."
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",

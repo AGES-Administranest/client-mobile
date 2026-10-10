@@ -43,20 +43,30 @@ type SheetAnimation = {
 export function useSheetAnimation(
   visible: boolean,
   onClose?: () => void,
+  /**
+   * Runs once the exit animation ends and the modal is gone. On iOS a Modal
+   * cannot be presented while another one is still leaving, so a sheet that
+   * opens another sheet should wait for this instead of opening it at once.
+   */
+  onClosed?: () => void,
 ): SheetAnimation {
   const progress = useRef(new Animated.Value(0)).current;
   const dragY = useRef(new Animated.Value(0)).current;
   const [isRendered, setIsRendered] = useState(visible);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const onClosedRef = useRef(onClosed);
+  onClosedRef.current = onClosed;
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
+  const wasOpenRef = useRef(visible);
   const sheetTop = useRef(0);
 
   useEffect(() => {
     if (visible) {
       dragY.setValue(0);
       setIsRendered(true);
+      wasOpenRef.current = true;
     }
 
     const animation = Animated.timing(progress, {
@@ -72,6 +82,11 @@ export function useSheetAnimation(
       // Unmount only after the exit finishes, or the sheet pops away.
       if (finished && !visible) {
         setIsRendered(false);
+        // Mounting closed also "finishes" an exit; only a real close counts.
+        if (wasOpenRef.current) {
+          wasOpenRef.current = false;
+          onClosedRef.current?.();
+        }
       }
     });
 

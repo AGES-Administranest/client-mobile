@@ -503,6 +503,90 @@
     },
     "loadFailure": "Não foi possível carregar as clínicas."
   },
+  "financialEntries": {
+    "newEntry": "Novo lançamento",
+    "options": {
+      "title": "Novo lançamento",
+      "description": "Envie a nota ou o pedido em PDF para lançar automaticamente, ou preencha à mão.",
+      "sendDocument": "Enviar documento (PDF)",
+      "manual": "Lançamento manual"
+    },
+    "documentSoon": {
+      "title": "Envio de PDF em breve",
+      "message": "Por enquanto, registre a entrada ou a saída pelo lançamento manual.",
+      "ok": "Entendi"
+    },
+    "categories": {
+      "professionalFees": "Honorários",
+      "supplies": "Insumos",
+      "travel": "Deslocamento",
+      "taxesAndFees": "Impostos e taxas",
+      "fixedCosts": "Custos fixos",
+      "other": "Outros"
+    },
+    "form": {
+      "title": "Novo lançamento manual",
+      "close": "Fechar",
+      "nature": {
+        "label": "Tipo",
+        "income": "Entrada",
+        "expense": "Saída"
+      },
+      "description": {
+        "label": "Descrição",
+        "placeholder": "Ex: Conta de luz"
+      },
+      "amount": {
+        "label": "Valor (R$)",
+        "placeholder": "0,00"
+      },
+      "date": {
+        "label": "Data",
+        "placeholder": "dd/mm/aaaa"
+      },
+      "category": {
+        "label": "Categoria",
+        "loading": "Carregando categorias…",
+        "retry": "Tentar de novo",
+        "empty": "Nenhuma categoria para esse tipo."
+      },
+      "scope": {
+        "label": "Escopo",
+        "professional": "Profissional",
+        "personal": "Pessoal",
+        "hint": "Sugerido pela categoria. Você pode alterar."
+      },
+      "save": "Salvar",
+      "saving": "Salvando…",
+      "errors": {
+        "description": {
+          "required": "Informe uma descrição.",
+          "tooLong": "Use no máximo 500 caracteres."
+        },
+        "amount": {
+          "required": "Informe o valor.",
+          "invalid": "Informe um valor válido.",
+          "notPositive": "Informe um valor maior que zero."
+        },
+        "date": {
+          "required": "Informe a data.",
+          "invalid": "Data inválida."
+        },
+        "categoryId": {
+          "required": "Selecione uma categoria."
+        }
+      },
+      "failures": {
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "categoryInvalid": "Essa categoria não está mais disponível. Escolha outra.",
+        "idConflict": "Este lançamento já foi salvo. Confira o extrato.",
+        "network": "Sem conexão. Tente de novo quando a internet voltar.",
+        "unknown": "Não foi possível salvar o lançamento. Tente novamente.",
+        "categories": "Não foi possível carregar as categorias."
+      }
+    },
+    "saved": "Lançamento salvo."
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",
