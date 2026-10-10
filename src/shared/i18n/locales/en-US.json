@@ -11,7 +11,26 @@
   "calculator": {
     "title": "Hourly rate calculator",
     "subtitle": "Find the minimum amount you should charge per hour worked",
-    "back": "Back"
+    "back": "Back",
+    "fixedCosts": {
+      "title": "Monthly fixed costs",
+      "professional": "Professional expenses (month)",
+      "personal": "Personal expenses (month)",
+      "depreciation": "Equipment depreciation",
+      "transport": "Transport/vehicle cost",
+      "total": "Total fixed costs",
+      "automatic": "automatic · from the app",
+      "transportField": "Transport / Vehicle (R$/month)",
+      "transportHint": "Record trips as an expense in the Finance tab",
+      "loading": "Loading fixed costs...",
+      "errors": {
+        "required": "Enter the transport amount (use 0 if none).",
+        "notNumeric": "Type numbers only.",
+        "negative": "The amount cannot be negative.",
+        "generic": "Could not save. The previous value was kept.",
+        "session": "Your session expired. Sign in again."
+      }
+    }
   },
   "inventory": {
     "alert": {

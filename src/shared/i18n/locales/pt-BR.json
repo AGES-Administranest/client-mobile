@@ -11,7 +11,26 @@
   "calculator": {
     "title": "Calculadora de hora",
     "subtitle": "Descubra o valor mínimo que deve cobrar por hora trabalhada",
-    "back": "Voltar"
+    "back": "Voltar",
+    "fixedCosts": {
+      "title": "Custos fixos mensais",
+      "professional": "Despesas profissionais (mês)",
+      "personal": "Despesas pessoais (mês)",
+      "depreciation": "Depreciação de equipamentos",
+      "transport": "Custo de transporte/veículo",
+      "total": "Total de custos fixos",
+      "automatic": "automático · do app",
+      "transportField": "Transporte / Veículo (R$/mês)",
+      "transportHint": "Registre deslocamentos como despesa na aba Finanças",
+      "loading": "Carregando custos fixos...",
+      "errors": {
+        "required": "Informe o valor do transporte (use 0 se não houver).",
+        "notNumeric": "Digite apenas números.",
+        "negative": "O valor não pode ser negativo.",
+        "generic": "Não foi possível salvar. O valor anterior foi mantido.",
+        "session": "Sua sessão expirou. Entre novamente."
+      }
+    }
   },
   "inventory": {
     "alert": {
