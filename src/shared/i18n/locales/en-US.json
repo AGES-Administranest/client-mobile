@@ -933,5 +933,26 @@
   },
   "home": {
     "greeting": "Hello, Dr. {{name}}"
+  },
+  "vehicles": {
+    "title": "Vehicles",
+    "counter": "{{count}} VEHICLES",
+    "counterSingular": "{{count}} VEHICLE",
+    "counterPlural": "{{count}} VEHICLES",
+    "countSingular": "{{count}} vehicle",
+    "countPlural": "{{count}} vehicles",
+    "back": "Back",
+    "openVehicles": "Open vehicles",
+    "addVehicle": "Add vehicle",
+    "empty": "No vehicles registered",
+    "emptySubtitle": "Register a vehicle to calculate travel costs.",
+    "costPerKm": "R$ {{cost}}/km",
+    "consumption": "{{consumption}} km/L",
+    "fuelTypes": {
+      "gasoline": "Gasoline",
+      "ethanol": "Ethanol",
+      "flex": "Flex",
+      "diesel": "Diesel"
+    }
   }
 }

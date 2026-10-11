@@ -933,5 +933,26 @@
   },
   "home": {
     "greeting": "Olá, Dr. {{name}}"
+  },
+  "vehicles": {
+    "title": "Veículos",
+    "counter": "{{count}} VEÍCULOS",
+    "counterSingular": "{{count}} VEÍCULO",
+    "counterPlural": "{{count}} VEÍCULOS",
+    "countSingular": "{{count}} veículo",
+    "countPlural": "{{count}} veículos",
+    "back": "Voltar",
+    "openVehicles": "Abrir veículos",
+    "addVehicle": "Adicionar veículo",
+    "empty": "Nenhum veículo cadastrado",
+    "emptySubtitle": "Cadastre um veículo para calcular os custos de deslocamento.",
+    "costPerKm": "R$ {{cost}}/km",
+    "consumption": "{{consumption}} km/L",
+    "fuelTypes": {
+      "gasoline": "Gasolina",
+      "ethanol": "Etanol",
+      "flex": "Flex",
+      "diesel": "Diesel"
+    }
   }
 }
