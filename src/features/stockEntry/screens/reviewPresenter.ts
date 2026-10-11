@@ -1,8 +1,8 @@
+import type { TranslationKey, useTranslation } from 'shared/i18n';
 import {
   currencyToNumber,
-  formatCurrency as maskCurrency,
-} from 'app/components/ui/item-modal/domain/itemModal';
-import type { TranslationKey, useTranslation } from 'shared/i18n';
+  formatCurrencyInput as maskCurrency,
+} from 'shared/utils/inputMasks';
 
 import type { ReviewLineLabels } from '../components/ReviewLineCard';
 import {

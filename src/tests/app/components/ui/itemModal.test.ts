@@ -1,8 +1,5 @@
 import {
-  digitsOnly,
   filterStockItems,
-  formatCurrency,
-  formatDateInput,
   isPastDate,
   toDateInput,
   shouldShowAddOption,
@@ -92,35 +89,6 @@ describe('shouldShowMinQuantity', () => {
   });
 });
 
-describe('digitsOnly', () => {
-  it('strips letters and symbols, keeping only digits', () => {
-    expect(digitsOnly('12a3b')).toBe('123');
-    expect(digitsOnly('abc')).toBe('');
-    expect(digitsOnly('10,5')).toBe('105');
-    expect(digitsOnly('')).toBe('');
-  });
-});
-
-describe('formatDateInput', () => {
-  it('returns empty string when there are no digits', () => {
-    expect(formatDateInput('')).toBe('');
-    expect(formatDateInput('abc')).toBe('');
-  });
-
-  it('inserts slashes as digits are typed', () => {
-    expect(formatDateInput('1')).toBe('1');
-    expect(formatDateInput('15')).toBe('15');
-    expect(formatDateInput('151')).toBe('15/1');
-    expect(formatDateInput('1510')).toBe('15/10');
-    expect(formatDateInput('15102030')).toBe('15/10/2030');
-  });
-
-  it('ignores non-digit characters and extra digits beyond 8', () => {
-    expect(formatDateInput('15/10/2030')).toBe('15/10/2030');
-    expect(formatDateInput('151020309999')).toBe('15/10/2030');
-  });
-});
-
 describe('isPastDate', () => {
   const today = new Date(2030, 5, 15);
 
@@ -138,27 +106,6 @@ describe('isPastDate', () => {
   it('is true for dates before today', () => {
     expect(isPastDate('14/06/2030', today)).toBe(true);
     expect(isPastDate('15/06/2029', today)).toBe(true);
-  });
-});
-
-describe('formatCurrency', () => {
-  it('returns empty string when there are no digits', () => {
-    expect(formatCurrency('')).toBe('');
-    expect(formatCurrency('abc')).toBe('');
-  });
-
-  it('treats digits as cents, ATM-style', () => {
-    expect(formatCurrency('1')).toBe('0,01');
-    expect(formatCurrency('12')).toBe('0,12');
-    expect(formatCurrency('1200')).toBe('12,00');
-  });
-
-  it('adds a thousands separator', () => {
-    expect(formatCurrency('123456')).toBe('1.234,56');
-  });
-
-  it('ignores non-digit characters in the input', () => {
-    expect(formatCurrency('R$ 12,00')).toBe('12,00');
   });
 });
 
