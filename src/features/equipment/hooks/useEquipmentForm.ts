@@ -43,8 +43,8 @@ export type EquipmentSubmitError = 'session' | 'generic';
 type UseEquipmentFormOptions = {
   target: EquipmentFormTarget;
   visible: boolean;
-  /** Chamado só depois de salvar com sucesso; quem chama atualiza a lista e fecha o sheet. */
-  onSaved: () => void | Promise<void>;
+  /** Só depois de salvar com sucesso. Quem chama atualiza a lista; o cadastro fecha o sheet, e a edição volta ao detalhe com o equipamento novo. */
+  onSaved: (savedMode: 'create' | 'edit') => void | Promise<void>;
   /** AAAA-MM-DD, o dia local. Existe para o teste fixar o relógio. */
   today?: () => string;
 };
@@ -241,8 +241,12 @@ export function useEquipmentForm({
     }
 
     isSubmittingRef.current = false;
-    if (isMounted.current) setIsSubmitting(false);
-    await onSaved();
+    if (isMounted.current) {
+      setIsSubmitting(false);
+      // Como em Clínicas, salvar uma edição volta ao detalhe sem fechar o sheet.
+      if (mode === 'edit') setMode('view');
+    }
+    await onSaved(mode);
   }, [
     mode,
     values,

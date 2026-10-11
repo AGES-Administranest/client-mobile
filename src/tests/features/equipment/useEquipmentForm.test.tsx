@@ -165,6 +165,8 @@ describe('create', () => {
     });
     expect(updateMock).not.toHaveBeenCalled();
     expect(onSaved).toHaveBeenCalledTimes(1);
+    expect(onSaved).toHaveBeenCalledWith('create');
+    expect(state.current.mode).toBe('create');
   });
 
   it('sends 120 months without a useful life and omits empty notes', async () => {
@@ -495,13 +497,17 @@ describe('view', () => {
     expect(state.current.values.notes).toBe('Calibração anual');
   });
 
-  it('saves after the edit and calls onSaved once', async () => {
+  it('saves after the edit, goes back to view without closing and calls onSaved once', async () => {
     const { state, onSaved } = await renderForm({ target: VIEW });
     await fill(state, { name: 'Novo nome' });
 
     await act(async () => {
       await state.current.submit();
     });
+
+    expect(state.current.mode).toBe('view');
+    expect(state.current.values.name).toBe('Novo nome');
+    expect(onSaved).toHaveBeenCalledWith('edit');
 
     expect(updateMock).toHaveBeenCalledWith(
       'id-token',

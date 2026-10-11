@@ -308,24 +308,46 @@ describe('view mode', () => {
     return {
       mode: 'view' as const,
       values: VIEW_VALUES,
-      texts: { ...TEXTS, title: 'Detalhes do equipamento' },
+      texts: { ...TEXTS, title: 'Vaporizador Matrx VIP 3000' },
       usefulLifeViewText: '10 anos',
       previewValue: 'R$ 70,83/mês',
       ...extra,
     };
   }
 
-  test('every field is read-only and filled, with no keyboard on focus', async () => {
+  function hasField(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    label: string,
+  ) {
+    return (
+      renderer.root.findAll(
+        node =>
+          node.props?.accessibilityLabel === label &&
+          typeof node.props?.onChangeText === 'function',
+      ).length > 0
+    );
+  }
+
+  test('the title is the equipment name and the name is not a field', async () => {
     const renderer = await renderSheet(viewProps());
 
-    for (const label of Object.values(TEXTS.labels)) {
+    expect(texts(renderer)).toContain('Vaporizador Matrx VIP 3000');
+    expect(texts(renderer)).not.toContain(TEXTS.labels.name);
+    expect(hasField(renderer, TEXTS.labels.name)).toBe(false);
+    expect(hasField(renderer, TEXTS.labels.purchaseValue)).toBe(true);
+  });
+
+  test('the other fields are read-only and filled, with no keyboard on focus', async () => {
+    const renderer = await renderSheet(viewProps());
+
+    const readOnlyLabels = Object.values(TEXTS.labels).filter(
+      text => text !== TEXTS.labels.name,
+    );
+    for (const label of readOnlyLabels) {
       const field = input(renderer, label);
       expect(field.props.editable).toBe(false);
       expect(field.props.showSoftInputOnFocus).toBe(false);
     }
-    expect(input(renderer, TEXTS.labels.name).props.value).toBe(
-      'Vaporizador Matrx VIP 3000',
-    );
     expect(input(renderer, TEXTS.labels.notes).props.value).toBe(
       'Calibração anual',
     );
@@ -335,16 +357,14 @@ describe('view mode', () => {
     const view = await renderSheet(viewProps());
     const create = await renderSheet();
 
-    const viewClass = input(view, TEXTS.labels.name).props.className;
-    expect(viewClass).toBe(input(create, TEXTS.labels.name).props.className);
+    const viewClass = input(view, TEXTS.labels.notes).props.className;
+    expect(viewClass).toBe(input(create, TEXTS.labels.notes).props.className);
     expect(viewClass).not.toMatch(/opacity/);
   });
 
-  test('shows the title and only the Editar button, without icon', async () => {
-    const renderer = await renderSheet(viewProps());
+  test('has only the Editar button, without icon, and never Excluir', async () => {
+    const renderer = await renderSheet(viewProps({ onDelete: () => {} }));
 
-    expect(texts(renderer)).toContain('Detalhes do equipamento');
-    expect(texts(renderer)).not.toContain('Editar equipamento');
     expect(texts(renderer)).toContain('Editar');
     expect(texts(renderer)).not.toContain('Confirmar');
     expect(texts(renderer)).not.toContain('Salvar');
@@ -363,21 +383,6 @@ describe('view mode', () => {
     });
 
     expect(onStartEdit).toHaveBeenCalledTimes(1);
-  });
-
-  test('Excluir only appears when onDelete is given, in the red variant', async () => {
-    const without = await renderSheet(viewProps());
-    expect(texts(without)).not.toContain('Excluir');
-
-    const onDelete = jest.fn();
-    const withDelete = await renderSheet(viewProps({ onDelete }));
-    expect(texts(withDelete)).toContain('Excluir');
-    const [, remove] = withDelete.root.findAllByType(Button);
-    expect(remove.props.variant).toBe('secondary');
-    await act(async () => {
-      remove.props.onPress();
-    });
-    expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
   test('shows the useful life with its unit, and months when they are not whole years', async () => {
@@ -414,33 +419,113 @@ describe('view mode', () => {
       expect.arrayContaining(['Depreciação estimada:', 'R$ 70,83/mês']),
     );
   });
+});
 
-  test('switching from view to edit keeps the sheet and frees the fields', async () => {
+describe('edit mode', () => {
+  const EDIT_VALUES = {
+    name: 'Vaporizador Matrx VIP 3000',
+    purchaseValue: '8.500,00',
+    acquisitionDate: '01/03/2022',
+    usefulLifeYears: '10',
+    notes: '',
+  };
+
+  function editProps(
+    extra: Partial<React.ComponentProps<typeof EquipmentFormSheet>> = {},
+  ) {
+    return {
+      mode: 'edit' as const,
+      values: EDIT_VALUES,
+      texts: { ...TEXTS, title: 'Editar equipamento', confirm: 'Salvar' },
+      ...extra,
+    };
+  }
+
+  test('brings the name field back, editable, and keeps the field order', async () => {
+    const renderer = await renderSheet(editProps());
+
+    expect(input(renderer, TEXTS.labels.name).props.editable).toBe(true);
+    const labels = renderer.root
+      .findAll(
+        node =>
+          typeof node.props?.accessibilityLabel === 'string' &&
+          typeof node.props?.onChangeText === 'function',
+      )
+      .map(node => node.props.accessibilityLabel);
+    expect([...new Set(labels)]).toEqual([
+      'Nome do equipamento',
+      'Valor de compra (R$)',
+      'Data de aquisição',
+      'Observações',
+      'Vida útil estimada',
+    ]);
+  });
+
+  test('Excluir only appears with onDelete, below Salvar, red and without icon', async () => {
+    const without = await renderSheet(editProps());
+    expect(texts(without)).not.toContain('Excluir');
+
+    const onDelete = jest.fn();
+    const renderer = await renderSheet(editProps({ onDelete }));
+    const [save, remove] = renderer.root.findAllByType(Button);
+    expect(texts(renderer)).toEqual(
+      expect.arrayContaining(['Salvar', 'Excluir']),
+    );
+    expect(save.props.icon).toBeUndefined();
+    expect(remove.props.icon).toBeUndefined();
+    expect(remove.props.variant).toBe('secondary');
+    await act(async () => {
+      remove.props.onPress();
+    });
+    expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  test('Excluir is never on the create sheet', async () => {
+    const renderer = await renderSheet({ onDelete: () => {} });
+
+    expect(texts(renderer)).not.toContain('Excluir');
+  });
+
+  test('switching from view to edit keeps the sheet, brings the name field and Salvar', async () => {
     let renderer: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
       renderer = ReactTestRenderer.create(
-        <EquipmentFormSheet {...BASE} {...viewProps()} />,
+        <EquipmentFormSheet
+          {...BASE}
+          mode="view"
+          values={EDIT_VALUES}
+          usefulLifeViewText="10 anos"
+          texts={{ ...TEXTS, title: 'Vaporizador Matrx VIP 3000' }}
+        />,
       );
     });
-    expect(input(renderer!, TEXTS.labels.name).props.editable).toBe(false);
+    expect(
+      renderer!.root.findAll(
+        node => node.props?.accessibilityLabel === TEXTS.labels.name,
+      ),
+    ).toHaveLength(0);
+    expect(input(renderer!, TEXTS.labels.purchaseValue).props.editable).toBe(
+      false,
+    );
 
     await act(async () => {
       renderer.update(
         <EquipmentFormSheet
           {...BASE}
-          {...viewProps({
-            mode: 'edit',
-            texts: { ...TEXTS, title: 'Editar equipamento', confirm: 'Salvar' },
-            usefulLifeViewText: null,
-          })}
+          mode="edit"
+          values={EDIT_VALUES}
+          texts={{ ...TEXTS, title: 'Editar equipamento', confirm: 'Salvar' }}
         />,
       );
     });
 
     expect(input(renderer!, TEXTS.labels.name).props.editable).toBe(true);
+    expect(input(renderer!, TEXTS.labels.purchaseValue).props.editable).toBe(
+      true,
+    );
+    expect(texts(renderer!)).toContain('Editar equipamento');
     expect(texts(renderer!)).toContain('Salvar');
     expect(texts(renderer!)).not.toContain('Editar');
-    expect(renderer!.root.findByType(Button).props.icon).toBeUndefined();
     expect(texts(renderer!)).toContain(TEXTS.usefulLifeHint);
   });
 });

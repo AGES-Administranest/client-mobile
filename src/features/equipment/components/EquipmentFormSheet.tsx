@@ -60,7 +60,7 @@ type EquipmentFormSheetProps = {
   onBlur: (field: EquipmentFormField) => void;
   onStartEdit: () => void;
   onSubmit: () => void;
-  /** Sem ela o "Excluir" não aparece: a ação chega com a subtask de inativar. */
+  /** Sem ela o "Excluir" não aparece: a ação chega com a subtask de inativar. Só existe na edição, como em Clínicas. */
   onDelete?: () => void;
   onClose: () => void;
 };
@@ -148,7 +148,7 @@ export function EquipmentFormSheet({
               keyboardShouldPersistTaps="handled"
               contentContainerClassName="gap-4 pb-1"
             >
-              {field('name', { maxLength: NAME_MAX_LENGTH })}
+              {isView ? null : field('name', { maxLength: NAME_MAX_LENGTH })}
               {field('purchaseValue', { keyboardType: 'decimal-pad' })}
               {field('acquisitionDate', {
                 keyboardType: 'number-pad',
@@ -188,21 +188,34 @@ export function EquipmentFormSheet({
             ) : null}
 
             {isView ? (
+              <Button
+                shape="pill"
+                className="h-[49px] w-full"
+                onPress={onStartEdit}
+              >
+                <Text className="font-semibold text-label-secondary">
+                  {texts.startEdit}
+                </Text>
+              </Button>
+            ) : (
               <View className="gap-3">
                 <Button
+                  icon={mode === 'create' ? Check : undefined}
                   shape="pill"
                   className="h-[49px] w-full"
-                  onPress={onStartEdit}
+                  disabled={isSubmitting}
+                  onPress={onSubmit}
                 >
                   <Text className="font-semibold text-label-secondary">
-                    {texts.startEdit}
+                    {texts.confirm}
                   </Text>
                 </Button>
-                {onDelete ? (
+                {mode === 'edit' && onDelete ? (
                   <Button
                     variant="secondary"
                     shape="pill"
                     className="h-[49px] w-full"
+                    disabled={isSubmitting}
                     onPress={onDelete}
                   >
                     <Text className="font-semibold text-label-secondary">
@@ -211,18 +224,6 @@ export function EquipmentFormSheet({
                   </Button>
                 ) : null}
               </View>
-            ) : (
-              <Button
-                icon={mode === 'create' ? Check : undefined}
-                shape="pill"
-                className="h-[49px] w-full"
-                disabled={isSubmitting}
-                onPress={onSubmit}
-              >
-                <Text className="font-semibold text-label-secondary">
-                  {texts.confirm}
-                </Text>
-              </Button>
             )}
           </View>
         </Animated.View>

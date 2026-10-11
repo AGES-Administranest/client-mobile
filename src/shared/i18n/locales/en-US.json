@@ -117,8 +117,7 @@
     "form": {
       "title": {
         "create": "New equipment",
-        "edit": "Edit equipment",
-        "view": "Equipment details"
+        "edit": "Edit equipment"
       },
       "confirm": {
         "create": "Confirm",

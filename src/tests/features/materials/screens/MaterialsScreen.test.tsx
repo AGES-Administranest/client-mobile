@@ -222,50 +222,85 @@ test('"Adicionar equipamento" opens the form sheet in create mode', async () => 
   expect(getTexts(renderer)).toContain('Confirmar');
 });
 
-test('tapping an equipment card opens the form sheet read-only, with Editar and no Excluir', async () => {
+function sheetProps(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root.findByType(EquipmentFormSheet).props as {
+    visible: boolean;
+    mode: string;
+    texts: { title: string };
+    previewValue: string;
+  };
+}
+
+function hasNameField(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return (
+    renderer.root.findAll(
+      node =>
+        node.props?.accessibilityLabel === 'Nome do equipamento' &&
+        typeof node.props?.onChangeText === 'function',
+    ).length > 0
+  );
+}
+
+test('tapping an equipment card opens the details: name as the title, no name field, Editar only', async () => {
   const renderer = await openEquipmentTab();
 
   await pressText(renderer, 'Vaporizador Matrx VIP 3000');
 
+  expect(sheetProps(renderer).mode).toBe('view');
+  expect(sheetProps(renderer).texts.title).toBe('Vaporizador Matrx VIP 3000');
+  expect(hasNameField(renderer)).toBe(false);
   const texts = getTexts(renderer);
-  expect(texts).toContain('Detalhes do equipamento');
-  expect(texts).not.toContain('Editar equipamento');
   expect(texts).toContain('Editar');
   expect(texts).not.toContain('Salvar');
   expect(texts).not.toContain('Excluir');
-  const nameInput = renderer.root.find(
+  expect(texts).not.toContain('Editar equipamento');
+  const purchase = renderer.root.find(
     node =>
-      node.props?.accessibilityLabel === 'Nome do equipamento' &&
+      node.props?.accessibilityLabel === 'Valor de compra (R$)' &&
       node.props?.onChangeText,
   );
-  expect(nameInput.props.value).toBe('Vaporizador Matrx VIP 3000');
-  expect(nameInput.props.editable).toBe(false);
+  expect(purchase.props.editable).toBe(false);
 });
 
-test('Editar frees the fields and the button becomes Salvar', async () => {
+test('Editar frees the fields, brings the name back and the button becomes Salvar', async () => {
   const renderer = await openEquipmentTab();
   await pressText(renderer, 'Vaporizador Matrx VIP 3000');
 
   await pressText(renderer, 'Editar');
 
+  expect(sheetProps(renderer).mode).toBe('edit');
+  expect(sheetProps(renderer).texts.title).toBe('Editar equipamento');
   expect(getTexts(renderer)).toContain('Salvar');
-  expect(getTexts(renderer)).toContain('Editar equipamento');
-  expect(getTexts(renderer)).not.toContain('Detalhes do equipamento');
   expect(isSheetOpen(renderer)).toBe(true);
   const nameInput = renderer.root.find(
     node =>
       node.props?.accessibilityLabel === 'Nome do equipamento' &&
       node.props?.onChangeText,
   );
+  expect(nameInput.props.value).toBe('Vaporizador Matrx VIP 3000');
   expect(nameInput.props.editable).toBe(true);
 });
 
-test('editing and saving updates the equipment, refreshes the list and closes the sheet', async () => {
+test('Excluir does not show up in this PR, in view or in edit', async () => {
+  const renderer = await openEquipmentTab();
+  await pressText(renderer, 'Vaporizador Matrx VIP 3000');
+  expect(getTexts(renderer)).not.toContain('Excluir');
+
+  await pressText(renderer, 'Editar');
+
+  expect(getTexts(renderer)).not.toContain('Excluir');
+});
+
+test('saving an edit refreshes the list and goes back to the details, open, with the new values', async () => {
   equipmentListMock
     .mockReset()
     .mockResolvedValueOnce([EQUIPMENT_FIXTURE])
     .mockResolvedValueOnce([
-      { ...EQUIPMENT_FIXTURE, name: 'Vaporizador novo' },
+      {
+        ...EQUIPMENT_FIXTURE,
+        name: 'Vaporizador novo',
+        monthlyDepreciation: 12.5,
+      },
     ]);
   equipmentUpdateMock.mockResolvedValue(EQUIPMENT_FIXTURE);
   const renderer = await openEquipmentTab();
@@ -281,11 +316,51 @@ test('editing and saving updates the equipment, refreshes the list and closes th
     expect.objectContaining({ name: 'Vaporizador novo' }),
   );
   expect(equipmentListMock).toHaveBeenCalledTimes(2);
-  expect(isSheetOpen(renderer)).toBe(false);
-  expect(getTexts(renderer)).toContain('Vaporizador novo');
+  expect(isSheetOpen(renderer)).toBe(true);
+  expect(sheetProps(renderer).mode).toBe('view');
+  expect(sheetProps(renderer).texts.title).toBe('Vaporizador novo');
+  expect(sheetProps(renderer).previewValue.replace(/\u00a0/g, ' ')).toBe(
+    'R$ 12,50/mês',
+  );
+  expect(hasNameField(renderer)).toBe(false);
+  expect(getTexts(renderer)).toContain('Editar');
+  expect(getTexts(renderer)).not.toContain('Salvar');
 });
 
-test('a failed edit keeps the sheet open in edit mode with the data', async () => {
+test('closes the sheet when the saved equipment is no longer in the list', async () => {
+  equipmentListMock
+    .mockReset()
+    .mockResolvedValueOnce([EQUIPMENT_FIXTURE])
+    .mockResolvedValueOnce([]);
+  equipmentUpdateMock.mockResolvedValue(EQUIPMENT_FIXTURE);
+  const renderer = await openEquipmentTab();
+  await pressText(renderer, 'Vaporizador Matrx VIP 3000');
+  await pressText(renderer, 'Editar');
+  await typeInto(renderer, 'Nome do equipamento', 'Vaporizador novo');
+
+  await pressText(renderer, 'Salvar');
+
+  expect(isSheetOpen(renderer)).toBe(false);
+});
+
+test('closing the sheet in edit drops the changes: the card opens in the details again', async () => {
+  const renderer = await openEquipmentTab();
+  await pressText(renderer, 'Vaporizador Matrx VIP 3000');
+  await pressText(renderer, 'Editar');
+  await typeInto(renderer, 'Nome do equipamento', 'Vaporizador novo');
+
+  await act(async () => {
+    renderer.root.findByType(EquipmentFormSheet).props.onClose();
+  });
+  expect(isSheetOpen(renderer)).toBe(false);
+  await pressText(renderer, 'Vaporizador Matrx VIP 3000');
+
+  expect(sheetProps(renderer).mode).toBe('view');
+  expect(sheetProps(renderer).texts.title).toBe('Vaporizador Matrx VIP 3000');
+  expect(equipmentUpdateMock).not.toHaveBeenCalled();
+});
+
+test('a failed edit keeps the sheet in edit mode with the data and the message', async () => {
   equipmentUpdateMock.mockRejectedValue(new Error('network'));
   const renderer = await openEquipmentTab();
   await pressText(renderer, 'Vaporizador Matrx VIP 3000');
@@ -295,9 +370,16 @@ test('a failed edit keeps the sheet open in edit mode with the data', async () =
   await pressText(renderer, 'Salvar');
 
   expect(isSheetOpen(renderer)).toBe(true);
+  expect(sheetProps(renderer).mode).toBe('edit');
   expect(getTexts(renderer)).toContain(
     'Não foi possível salvar o equipamento.',
   );
+  const nameInput = renderer.root.find(
+    node =>
+      node.props?.accessibilityLabel === 'Nome do equipamento' &&
+      node.props?.onChangeText,
+  );
+  expect(nameInput.props.value).toBe('Vaporizador novo');
   expect(equipmentListMock).toHaveBeenCalledTimes(1);
 });
 

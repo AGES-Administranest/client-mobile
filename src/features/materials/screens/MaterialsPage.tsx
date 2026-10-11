@@ -1,5 +1,5 @@
 import { PackageSearch, Plus, Trash2 } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -43,24 +43,42 @@ import { useMaterialsScreen } from '../hooks/useMaterialsScreen';
 function EquipmentSegment() {
   const { t, locale } = useTranslation();
   const { equipments, summary, isLoading, error, refresh } = useEquipmentList();
-  const [formTarget, setFormTarget] = useState<EquipmentFormTarget>({
-    mode: 'create',
-  });
+  const [formRequest, setFormRequest] = useState<
+    { kind: 'create' } | { kind: 'view'; id: string }
+  >({ kind: 'create' });
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const handleSaved = useCallback(async () => {
-    await refresh();
-    setIsFormOpen(false);
-  }, [refresh]);
+  // O sheet aponta para o equipamento da lista, não para uma cópia guardada:
+  // depois de salvar, a lista nova traz o equipamento atualizado e o detalhe
+  // mostra os valores novos. Se ele sumiu da lista, o sheet fecha.
+  const selected =
+    formRequest.kind === 'view'
+      ? equipments.find(equipment => equipment.id === formRequest.id) ?? null
+      : null;
+  const formTarget = useMemo<EquipmentFormTarget>(
+    () =>
+      selected ? { mode: 'view', equipment: selected } : { mode: 'create' },
+    [selected],
+  );
+  const isFormVisible =
+    isFormOpen && (formRequest.kind === 'create' || selected !== null);
+
+  const handleSaved = useCallback(
+    async (savedMode: 'create' | 'edit') => {
+      await refresh();
+      if (savedMode === 'create') setIsFormOpen(false);
+    },
+    [refresh],
+  );
 
   const form = useEquipmentForm({
     target: formTarget,
-    visible: isFormOpen,
+    visible: isFormVisible,
     onSaved: handleSaved,
   });
 
-  function openForm(target: EquipmentFormTarget) {
-    setFormTarget(target);
+  function openForm(request: typeof formRequest) {
+    setFormRequest(request);
     setIsFormOpen(true);
   }
 
@@ -73,7 +91,14 @@ function EquipmentSegment() {
   ];
 
   const formTexts: EquipmentFormTexts = {
-    title: t(`equipment.form.title.${form.mode}`),
+    title:
+      form.mode === 'view'
+        ? form.values.name.trim()
+        : t(
+            form.mode === 'edit'
+              ? 'equipment.form.title.edit'
+              : 'equipment.form.title.create',
+          ),
     confirm: t(
       form.mode === 'edit'
         ? 'equipment.form.confirm.edit'
@@ -166,13 +191,13 @@ function EquipmentSegment() {
         retryLabel={t('common.retry')}
         addLabel={t('equipment.addButton')}
         onRetry={refresh}
-        onAddPress={() => openForm({ mode: 'create' })}
+        onAddPress={() => openForm({ kind: 'create' })}
         onEquipmentPress={(equipment: Equipment) =>
-          openForm({ mode: 'view', equipment })
+          openForm({ kind: 'view', id: equipment.id })
         }
       />
       <EquipmentFormSheet
-        visible={isFormOpen}
+        visible={isFormVisible}
         mode={form.mode}
         values={form.values}
         errors={formErrors}
