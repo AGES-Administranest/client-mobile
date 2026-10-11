@@ -2,6 +2,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
+import { equipmentService } from 'features/equipment/services/equipmentService';
 import { MaterialsScreen } from 'features/materials';
 import { fetchItems } from 'features/materials/services/itemService';
 import { I18nProvider } from 'shared/i18n';
@@ -13,6 +14,10 @@ jest.mock('features/materials/services/itemService', () => ({
   createItem: jest.fn(),
   updateItem: jest.fn(),
   deleteItem: jest.fn(),
+}));
+
+jest.mock('features/equipment/services/equipmentService', () => ({
+  equipmentService: { list: jest.fn(), summary: jest.fn() },
 }));
 
 // A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
@@ -42,10 +47,40 @@ const ACCOUNT: Account = {
 };
 
 const fetchItemsMock = fetchItems as jest.MockedFunction<typeof fetchItems>;
+const equipmentListMock = equipmentService.list as jest.MockedFunction<
+  typeof equipmentService.list
+>;
+const equipmentSummaryMock = equipmentService.summary as jest.MockedFunction<
+  typeof equipmentService.summary
+>;
 
 beforeEach(() => {
   fetchItemsMock.mockReset();
   fetchItemsMock.mockResolvedValue([]);
+  equipmentListMock.mockReset();
+  equipmentSummaryMock.mockReset();
+  equipmentListMock.mockResolvedValue([
+    {
+      id: 'eq-1',
+      supplierId: null,
+      name: 'Vaporizador Matrx VIP 3000',
+      purchaseValue: 8500,
+      salvageValue: 0,
+      acquisitionDate: '2022-03-01T00:00:00.000Z',
+      usefulLifeMonths: 120,
+      notes: null,
+      active: true,
+      monthlyDepreciation: 0,
+      currentValue: 0,
+      usefulLifeUsedPct: 100,
+      endOfLife: true,
+    },
+  ]);
+  equipmentSummaryMock.mockResolvedValue({
+    monthlyTotal: 0,
+    yearlyTotal: 0,
+    count: 1,
+  });
 });
 
 async function renderScreen() {
@@ -108,7 +143,7 @@ test('defaults to the supplies segment with only the "Todos" category and an emp
   expect(getTexts(renderer)).toContain('Nenhum item encontrado');
 });
 
-test('switching segment keeps the empty state', async () => {
+test('switching to equipment replaces the category filter with the equipment list', async () => {
   const renderer = await renderScreen();
 
   const segmentTabs = getSegmentTabs(renderer);
@@ -116,13 +151,12 @@ test('switching segment keeps the empty state', async () => {
     segmentTabs[1].props.onPress();
   });
 
-  const categoryPills = getCategoryPills(renderer);
-  expect(categoryPills).toHaveLength(1);
-  expect(categoryPills[0].props.accessibilityState).toEqual({
-    selected: true,
-  });
-
-  expect(getTexts(renderer)).toContain('Nenhum item encontrado');
+  expect(getCategoryPills(renderer)).toHaveLength(0);
+  const texts = getTexts(renderer);
+  expect(texts).toContain('Depreciação total/mês');
+  expect(texts).toContain('Vaporizador Matrx VIP 3000');
+  expect(texts).toContain('Fim da vida útil');
+  expect(texts).toContain('Adicionar equipamento');
 });
 
 test('a rejected session shows the session message instead of an empty list', async () => {
