@@ -38,6 +38,10 @@ export type UpdateEquipmentDto = Partial<
   Omit<CreateEquipmentDto, 'notes'> & { notes: string | null }
 >;
 
+export type EquipmentFormMode = 'create' | 'view' | 'edit';
+
+// O toque no card abre em `view`; só o "Editar" do sheet passa a `edit`, dentro
+// do próprio hook. Por isso o alvo nunca nasce em `edit`.
 export type EquipmentFormTarget =
   | { mode: 'create' }
-  | { mode: 'edit'; equipment: Equipment };
+  | { mode: 'view'; equipment: Equipment };
