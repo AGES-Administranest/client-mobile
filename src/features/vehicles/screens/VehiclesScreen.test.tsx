@@ -214,4 +214,73 @@ describe('VehiclesScreen', () => {
 
     expect(handleAdd).toHaveBeenCalledTimes(1);
   });
+
+  it('opens VehicleFormSheet in view mode when card is clicked without onSelectVehicle', async () => {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <SafeAreaProvider initialMetrics={METRICS}>
+          <I18nProvider>
+            <VehiclesScreen
+              visible={true}
+              onClose={jest.fn()}
+              vehicles={MOCK_VEHICLES}
+            />
+          </I18nProvider>
+        </SafeAreaProvider>,
+      );
+    });
+
+    const cardButton = renderer!.root.find(
+      node =>
+        node.props.accessibilityLabel?.startsWith('Fiat Strada 2021') &&
+        typeof node.props.onPress === 'function',
+    );
+
+    await act(async () => {
+      cardButton.props.onPress();
+    });
+
+    const texts = renderer!.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children);
+    const serialized = JSON.stringify(texts);
+    expect(serialized).toContain('Editar veículo');
+    expect(serialized).toContain('Desativar veículo');
+  });
+
+  it('opens VehicleFormSheet in create mode when add button is clicked without onAddVehicle', async () => {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <SafeAreaProvider initialMetrics={METRICS}>
+          <I18nProvider>
+            <VehiclesScreen
+              visible={true}
+              onClose={jest.fn()}
+              vehicles={MOCK_VEHICLES}
+            />
+          </I18nProvider>
+        </SafeAreaProvider>,
+      );
+    });
+
+    const addButton = renderer!.root.find(
+      node =>
+        node.props.accessibilityLabel === 'Adicionar veículo' &&
+        typeof node.props.onPress === 'function',
+    );
+
+    await act(async () => {
+      addButton.props.onPress();
+    });
+
+    const texts = renderer!.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children);
+    const serialized = JSON.stringify(texts);
+    expect(serialized).toContain('Informações');
+  });
 });

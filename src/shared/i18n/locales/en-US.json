@@ -953,6 +953,43 @@
       "ethanol": "Ethanol",
       "flex": "Flex",
       "diesel": "Diesel"
+    },
+    "form": {
+      "title": "Information",
+      "close": "Close",
+      "brand": "BRAND",
+      "brandPlaceholder": "e.g. Fiat, Honda...",
+      "model": "VEHICLE MODEL",
+      "modelPlaceholder": "e.g. Strada 2021, CG 160...",
+      "fuelType": "FUEL TYPE",
+      "avgConsumption": "AVERAGE CONSUMPTION (KM/L)",
+      "avgConsumptionPlaceholder": "e.g. 12.5",
+      "fuelPrice": "FUEL PRICE (R$/L)",
+      "fuelPricePlaceholder": "e.g. 5.89",
+      "estimatedCost": "Estimated cost per km",
+      "estimatedCostPreview": "R$ {{cost}}/km",
+      "submitAdd": "Add vehicle",
+      "submitEdit": "Edit vehicle",
+      "submitConfirm": "Confirm",
+      "inactivate": "Deactivate vehicle",
+      "delete": "Delete",
+      "confirmInactivateTitle": "Deactivate vehicle?",
+      "confirmInactivateMessage": "The vehicle will be deactivated and will not appear in new appointment calculations.",
+      "confirmInactivateButton": "Deactivate",
+      "cancel": "Cancel",
+      "errors": {
+        "brandRequired": "Brand is required",
+        "brandMaxLength": "Brand must be at most 60 characters",
+        "modelRequired": "Model is required",
+        "modelMaxLength": "Model must be at most 120 characters",
+        "fuelTypeInvalid": "Invalid fuel type",
+        "avgConsumptionRequired": "Average consumption is required",
+        "avgConsumptionInvalid": "Enter a valid consumption greater than zero (up to 100 km/L)",
+        "fuelPriceRequired": "Fuel price is required",
+        "fuelPriceInvalid": "Enter a valid price greater than zero (up to R$ 100/L)",
+        "submitFailed": "Unable to save vehicle. Please try again.",
+        "inactivateFailed": "Unable to deactivate vehicle. Please try again."
+      }
     }
   }
 }

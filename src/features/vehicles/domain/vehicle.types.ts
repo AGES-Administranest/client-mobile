@@ -12,3 +12,17 @@ export type Vehicle = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export type CreateVehicleDto = {
+  brand: string;
+  model: string;
+  fuelType: FuelType;
+  avgConsumptionKmL: number;
+  fuelPrice: number;
+};
+
+export type UpdateVehicleDto = Partial<CreateVehicleDto> & {
+  active?: boolean;
+};
+
+export type VehicleFormMode = 'create' | 'view' | 'edit';

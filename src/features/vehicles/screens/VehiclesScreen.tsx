@@ -1,10 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Car, Plus } from 'lucide-react-native';
+import { ArrowLeft, Car, Plus, Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from 'app/components/ui/button';
+import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -13,7 +14,12 @@ import { useTranslation } from 'shared/i18n';
 import { BackgroundPrimary } from 'theme/colors';
 
 import { VehicleCard } from '../components/VehicleCard';
-import type { Vehicle } from '../domain/vehicle.types';
+import {
+  VehicleFormSheet,
+  type VehicleFormTexts,
+} from '../components/VehicleFormSheet';
+import type { Vehicle, VehicleFormMode } from '../domain/vehicle.types';
+import { useVehicleForm } from '../hooks/useVehicleForm';
 import { fetchVehicles } from '../services/vehicleService';
 
 export type VehiclesScreenProps = {
@@ -46,6 +52,33 @@ export function VehiclesScreen({
 
   const [internalVehicles, setInternalVehicles] = useState<Vehicle[]>([]);
   const [, setIsLoading] = useState(false);
+
+  const [sheetVisible, setSheetVisible] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [sheetMode, setSheetMode] = useState<VehicleFormMode>('create');
+  const [confirmInactivateVisible, setConfirmInactivateVisible] =
+    useState(false);
+
+  const form = useVehicleForm({
+    vehicle: selectedVehicle,
+    mode: sheetMode,
+    token,
+    onSuccess: savedVehicle => {
+      if (sheetMode === 'create') {
+        setInternalVehicles(prev => [savedVehicle, ...prev]);
+      } else {
+        setInternalVehicles(prev =>
+          prev.map(v => (v.id === savedVehicle.id ? savedVehicle : v)),
+        );
+      }
+      setSheetVisible(false);
+    },
+    onInactivateSuccess: vehicleId => {
+      setInternalVehicles(prev => prev.filter(v => v.id !== vehicleId));
+      setConfirmInactivateVisible(false);
+      setSheetVisible(false);
+    },
+  });
 
   useEffect(() => {
     if (!visible) return;
@@ -87,6 +120,81 @@ export function VehiclesScreen({
     count === 1
       ? t('vehicles.counterSingular', { count })
       : t('vehicles.counterPlural', { count });
+
+  function handleOpenAdd() {
+    onAddVehicle?.();
+    setSelectedVehicle(null);
+    setSheetMode('create');
+    form.reset(null, 'create');
+    setSheetVisible(true);
+  }
+
+  function handleOpenView(vehicle: Vehicle) {
+    onSelectVehicle?.(vehicle);
+    setSelectedVehicle(vehicle);
+    setSheetMode('view');
+    form.reset(vehicle, 'view');
+    setSheetVisible(true);
+  }
+
+  function handleStartEdit() {
+    setSheetMode('edit');
+    form.setMode('edit');
+  }
+
+  const formTexts: VehicleFormTexts = {
+    title: t('vehicles.form.title'),
+    close: t('vehicles.form.close'),
+    labels: {
+      brand: t('vehicles.form.brand'),
+      model: t('vehicles.form.model'),
+      fuelType: t('vehicles.form.fuelType'),
+      avgConsumptionKmL: t('vehicles.form.avgConsumption'),
+      fuelPrice: t('vehicles.form.fuelPrice'),
+    },
+    placeholders: {
+      brand: t('vehicles.form.brandPlaceholder'),
+      model: t('vehicles.form.modelPlaceholder'),
+      avgConsumptionKmL: t('vehicles.form.avgConsumptionPlaceholder'),
+      fuelPrice: t('vehicles.form.fuelPricePlaceholder'),
+    },
+    fuelTypes: {
+      GASOLINE: t('vehicles.fuelTypes.gasoline'),
+      ETHANOL: t('vehicles.fuelTypes.ethanol'),
+      DIESEL: t('vehicles.fuelTypes.diesel'),
+      FLEX: t('vehicles.fuelTypes.flex'),
+    },
+    estimatedCostTitle: t('vehicles.form.estimatedCost'),
+    estimatedCostValue: t('vehicles.form.estimatedCostPreview', {
+      cost:
+        form.costPerKmEstimate !== null
+          ? form.costPerKmEstimate.toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          : '0,00',
+    }),
+    buttons: {
+      add: t('vehicles.form.submitAdd'),
+      edit: t('vehicles.form.submitEdit'),
+      confirm: t('vehicles.form.submitConfirm'),
+      inactivate: t('vehicles.form.inactivate'),
+      delete: t('vehicles.form.delete'),
+    },
+    errors: {
+      brandRequired: t('vehicles.form.errors.brandRequired'),
+      brandMaxLength: t('vehicles.form.errors.brandMaxLength'),
+      modelRequired: t('vehicles.form.errors.modelRequired'),
+      modelMaxLength: t('vehicles.form.errors.modelMaxLength'),
+      fuelTypeInvalid: t('vehicles.form.errors.fuelTypeInvalid'),
+      avgConsumptionRequired: t('vehicles.form.errors.avgConsumptionRequired'),
+      avgConsumptionInvalid: t('vehicles.form.errors.avgConsumptionInvalid'),
+      fuelPriceRequired: t('vehicles.form.errors.fuelPriceRequired'),
+      fuelPriceInvalid: t('vehicles.form.errors.fuelPriceInvalid'),
+      submitFailed: t('vehicles.form.errors.submitFailed'),
+      inactivateFailed: t('vehicles.form.errors.inactivateFailed'),
+    },
+  };
 
   return (
     <Modal
@@ -140,7 +248,7 @@ export function VehiclesScreen({
               <VehicleCard
                 key={vehicle.id}
                 vehicle={vehicle}
-                onPress={() => onSelectVehicle?.(vehicle)}
+                onPress={() => handleOpenView(vehicle)}
               />
             ))}
           </ScrollView>
@@ -155,7 +263,7 @@ export function VehiclesScreen({
             shape="pill"
             size="lg"
             className="h-[49px] w-full flex-row items-center justify-center gap-2 bg-button-primary active:opacity-90"
-            onPress={onAddVehicle}
+            onPress={handleOpenAdd}
             accessibilityRole="button"
             accessibilityLabel={t('vehicles.addVehicle')}
           >
@@ -165,6 +273,35 @@ export function VehiclesScreen({
             </Text>
           </Button>
         </View>
+
+        {/* Bottom Sheet de Formulário (Cadastro / Visualizar / Edição) */}
+        <VehicleFormSheet
+          visible={sheetVisible}
+          mode={sheetMode}
+          values={form.values}
+          errors={form.errors}
+          submitting={form.submitting}
+          submitError={form.submitError}
+          costPerKmEstimate={form.costPerKmEstimate}
+          texts={formTexts}
+          onChangeField={form.setFieldValue}
+          onStartEdit={handleStartEdit}
+          onSubmit={form.submit}
+          onInactivate={() => setConfirmInactivateVisible(true)}
+          onClose={() => setSheetVisible(false)}
+        />
+
+        {/* Diálogo de confirmação de inativação */}
+        <ConfirmSheet
+          visible={confirmInactivateVisible}
+          title={t('vehicles.form.confirmInactivateTitle')}
+          message={t('vehicles.form.confirmInactivateMessage')}
+          confirmLabel={t('vehicles.form.confirmInactivateButton')}
+          cancelLabel={t('vehicles.form.cancel')}
+          confirmIcon={Trash2}
+          onConfirm={form.inactivate}
+          onCancel={() => setConfirmInactivateVisible(false)}
+        />
       </View>
     </Modal>
   );

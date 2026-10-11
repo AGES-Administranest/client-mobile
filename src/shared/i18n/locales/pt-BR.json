@@ -953,6 +953,43 @@
       "ethanol": "Etanol",
       "flex": "Flex",
       "diesel": "Diesel"
+    },
+    "form": {
+      "title": "Informações",
+      "close": "Fechar",
+      "brand": "MARCA",
+      "brandPlaceholder": "Ex.: Fiat, Honda...",
+      "model": "MODELO DO VEÍCULO",
+      "modelPlaceholder": "Ex.: Strada 2021, CG 160...",
+      "fuelType": "TIPO DE COMBUSTÍVEL",
+      "avgConsumption": "CONSUMO MÉDIO (KM/L)",
+      "avgConsumptionPlaceholder": "Ex.: 12.5",
+      "fuelPrice": "PREÇO DO COMBUSTÍVEL (R$/L)",
+      "fuelPricePlaceholder": "Ex.: 5.89",
+      "estimatedCost": "Custo estimado por km",
+      "estimatedCostPreview": "R$ {{cost}}/km",
+      "submitAdd": "Adicionar veículo",
+      "submitEdit": "Editar veículo",
+      "submitConfirm": "Confirmar",
+      "inactivate": "Desativar veículo",
+      "delete": "Excluir",
+      "confirmInactivateTitle": "Desativar veículo?",
+      "confirmInactivateMessage": "O veículo será desativado e não aparecerá nos cálculos de novos atendimentos.",
+      "confirmInactivateButton": "Desativar",
+      "cancel": "Cancelar",
+      "errors": {
+        "brandRequired": "A marca é obrigatória",
+        "brandMaxLength": "A marca deve ter no máximo 60 caracteres",
+        "modelRequired": "O modelo é obrigatório",
+        "modelMaxLength": "O modelo deve ter no máximo 120 caracteres",
+        "fuelTypeInvalid": "Tipo de combustível inválido",
+        "avgConsumptionRequired": "O consumo médio é obrigatório",
+        "avgConsumptionInvalid": "Informe um consumo válido maior que zero (até 100 km/L)",
+        "fuelPriceRequired": "O preço do combustível é obrigatório",
+        "fuelPriceInvalid": "Informe um preço válido maior que zero (até R$ 100/L)",
+        "submitFailed": "Não foi possível salvar o veículo. Tente novamente.",
+        "inactivateFailed": "Não foi possível desativar o veículo. Tente novamente."
+      }
     }
   }
 }

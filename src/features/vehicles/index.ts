@@ -1,8 +1,35 @@
 export { VehicleCard } from './components/VehicleCard';
+export {
+  VehicleFormSheet,
+  type VehicleFormTexts,
+} from './components/VehicleFormSheet';
+export { calculateCostPerKm } from './domain/calculateCostPerKm';
 export { formatConsumption, formatCostPerKm } from './domain/formatCostPerKm';
-export type { FuelType, Vehicle } from './domain/vehicle.types';
+export {
+  isVehicleFormValid,
+  validateVehicleForm,
+  type VehicleFormErrors,
+  type VehicleFormValues,
+} from './domain/validateVehicleForm';
+export type {
+  CreateVehicleDto,
+  FuelType,
+  UpdateVehicleDto,
+  Vehicle,
+  VehicleFormMode,
+} from './domain/vehicle.types';
+export {
+  useVehicleForm,
+  type UseVehicleFormOptions,
+} from './hooks/useVehicleForm';
 export {
   VehiclesScreen,
   type VehiclesScreenProps,
 } from './screens/VehiclesScreen';
-export { fetchVehicles } from './services/vehicleService';
+export {
+  createVehicle,
+  fetchVehicles,
+  inactivateVehicle,
+  updateVehicle,
+  vehicleService,
+} from './services/vehicleService';
