@@ -71,10 +71,18 @@ function EquipmentSegment() {
     [refresh],
   );
 
+  // O formulário fecha na parte síncrona, antes do refresh, para o sheet não
+  // reabrir quando a confirmação sair.
+  const handleDeleted = useCallback(async () => {
+    setIsFormOpen(false);
+    await refresh();
+  }, [refresh]);
+
   const form = useEquipmentForm({
     target: formTarget,
     visible: isFormVisible,
     onSaved: handleSaved,
+    onDeleted: handleDeleted,
   });
 
   function openForm(request: typeof formRequest) {
@@ -105,7 +113,8 @@ function EquipmentSegment() {
         : 'equipment.form.confirm.create',
     ),
     startEdit: t('equipment.form.startEdit'),
-    delete: t('equipment.form.delete'),
+    cancel: t('equipment.form.cancel'),
+    delete: t('equipment.delete.button'),
     close: t('equipment.form.close'),
     labels: Object.fromEntries(
       formFields.map(field => [field, t(`equipment.form.labels.${field}`)]),
@@ -140,6 +149,7 @@ function EquipmentSegment() {
   const submitErrorText = {
     session: t('equipment.errorSession'),
     generic: t('equipment.form.errorSave'),
+    delete: t('equipment.delete.error'),
   }[form.submitError ?? 'generic'];
 
   const items = equipments.map(equipment => ({
@@ -197,7 +207,7 @@ function EquipmentSegment() {
         }
       />
       <EquipmentFormSheet
-        visible={isFormVisible}
+        visible={form.isSheetVisible}
         mode={form.mode}
         values={form.values}
         errors={formErrors}
@@ -226,8 +236,32 @@ function EquipmentSegment() {
         onChangeText={form.onChangeText}
         onBlur={form.onBlur}
         onStartEdit={form.startEdit}
+        onCancelEdit={form.cancelEdit}
         onSubmit={form.submit}
+        onDelete={form.requestDelete}
+        onClosed={form.onSheetClosed}
         onClose={() => setIsFormOpen(false)}
+      />
+      <ConfirmSheet
+        confirmIcon={Trash2}
+        visible={form.deleteStep === 'confirming'}
+        title={t('equipment.delete.confirmTitle')}
+        message={
+          form.submitError
+            ? submitErrorText
+            : t('equipment.delete.confirmMessage', {
+                name: selected?.name ?? '',
+              })
+        }
+        confirmLabel={t(
+          form.isDeleting
+            ? 'equipment.delete.confirming'
+            : 'equipment.delete.confirm',
+        )}
+        cancelLabel={t('equipment.delete.cancel')}
+        onConfirm={form.confirmDelete}
+        onCancel={form.cancelDelete}
+        onClosed={form.onConfirmationClosed}
       />
     </>
   );

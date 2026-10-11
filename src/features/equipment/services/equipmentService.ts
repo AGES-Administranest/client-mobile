@@ -37,4 +37,11 @@ export async function update(
   });
 }
 
-export const equipmentService = { list, summary, create, update };
+// O DELETE do backend só inativa (active=false) e responde 200 com o
+// equipamento; a lista e o total é que deixam de mostrá-lo, então o corpo da
+// resposta não serve para nada aqui.
+export async function deactivate(idToken: string, id: string): Promise<void> {
+  await apiClient.delete<Equipment>(`/equipment/${id}`, { token: idToken });
+}
+
+export const equipmentService = { list, summary, create, update, deactivate };
