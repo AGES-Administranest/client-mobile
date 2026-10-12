@@ -1,9 +1,9 @@
 import { ApiError, apiClient } from 'shared/services/apiClient';
 
 export type PricingSettings = {
-  monthlyNetIncomeGoal: number;
-  weeklyAvailableHours: number;
-  safetyMarginPercent: number;
+  monthlyIncomeGoal: number;
+  weeklyHours: number;
+  safetyMarginPct: number;
 };
 
 // Quem ainda não configurou pró-labore, margem e jornada recebe 404: não é

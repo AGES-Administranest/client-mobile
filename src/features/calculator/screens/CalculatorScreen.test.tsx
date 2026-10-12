@@ -2,6 +2,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
+import { fetchPricingSettings } from 'features/pricing';
 import { I18nProvider } from 'shared/i18n';
 
 import { CalculatorScreen } from './CalculatorScreen';
@@ -14,12 +15,16 @@ import {
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
+jest.mock('features/pricing/services/pricingSettingsService', () => ({
+  fetchPricingSettings: jest.fn(),
+}));
 jest.mock('../services/fixedCostsSummaryService', () => ({
   fetchFixedCostsSummary: jest.fn(),
   updateTransportCost: jest.fn(),
 }));
 
 const fetchSummary = fetchFixedCostsSummary as jest.Mock;
+const fetchSettings = fetchPricingSettings as jest.Mock;
 const updateTransport = updateTransportCost as jest.Mock;
 
 const METRICS = {
@@ -104,6 +109,7 @@ const nbsp = (value: string) => value.replace(' ', ' ');
 
 beforeEach(() => {
   fetchSummary.mockReset().mockResolvedValue(SUMMARY);
+  fetchSettings.mockReset().mockResolvedValue(null);
   updateTransport.mockReset();
 });
 
@@ -130,6 +136,30 @@ test('closes when the back button is pressed', async () => {
   await act(async () => back.props.onPress());
 
   expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+test('guides the setup before the calculation when there are no goals yet', async () => {
+  const { renderer } = await renderScreen();
+
+  const texts = textsOf(renderer).join(' ');
+
+  expect(texts).toContain('Para calcular o valor mínimo da sua hora');
+  expect(texts).toContain('Configurar');
+});
+
+test('drops the setup guide once the goals exist', async () => {
+  fetchSettings.mockResolvedValue({
+    monthlyIncomeGoal: 8000,
+    weeklyHours: 40,
+    safetyMarginPct: 10,
+  });
+
+  const { renderer } = await renderScreen();
+
+  const texts = textsOf(renderer).join(' ');
+
+  expect(texts).not.toContain('Para calcular o valor mínimo da sua hora');
+  expect(texts).toContain('Custos fixos mensais');
 });
 
 test('renders nothing while hidden', async () => {

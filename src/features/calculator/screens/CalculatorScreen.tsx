@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { PricingOnboardingSection } from 'features/pricing';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundPrimary } from 'theme/colors';
 
@@ -14,6 +15,11 @@ type CalculatorScreenProps = {
   visible: boolean;
   onClose: () => void;
 };
+
+// O formulário de metas e jornada chega pela branch
+// feat/us19-calculator-goal-form, que entra separada desta; o PR que for
+// mergeado por último liga o "Configurar" a ele.
+function openGoalForm() {}
 
 export function CalculatorScreen({ visible, onClose }: CalculatorScreenProps) {
   const { t } = useTranslation();
@@ -64,6 +70,7 @@ export function CalculatorScreen({ visible, onClose }: CalculatorScreenProps) {
           keyboardShouldPersistTaps="handled"
           contentContainerClassName="gap-[18px] px-5 pb-10 pt-2"
         >
+          <PricingOnboardingSection onConfigure={openGoalForm} />
           <FixedCostsSection />
         </ScrollView>
       </View>

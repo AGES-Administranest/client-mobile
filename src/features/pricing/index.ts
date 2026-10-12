@@ -1,4 +1,5 @@
 export { PricingOnboarding } from './components/PricingOnboarding';
+export { PricingOnboardingSection } from './screens/PricingOnboardingSection';
 export { usePricingSettings } from './hooks/usePricingSettings';
 export { fetchPricingSettings } from './services/pricingSettingsService';
 export type {

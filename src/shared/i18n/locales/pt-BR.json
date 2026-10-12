@@ -937,7 +937,9 @@
   "pricing": {
     "onboarding": {
       "message": "Para calcular o valor mínimo da sua hora, informe sua meta de renda líquida mensal, as horas disponíveis por semana e a margem de segurança. Com esses dados, a calculadora mostra o valor e o detalhamento.",
-      "configure": "Configurar"
+      "configure": "Configurar",
+      "loading": "Carregando suas metas",
+      "loadFailure": "Não foi possível carregar suas metas."
     }
   }
 }

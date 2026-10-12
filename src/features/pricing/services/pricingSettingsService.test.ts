@@ -4,9 +4,9 @@ import { fetchPricingSettings } from './pricingSettingsService';
 
 const ID_TOKEN = 'id-token';
 const SETTINGS = {
-  monthlyNetIncomeGoal: 8000,
-  weeklyAvailableHours: 40,
-  safetyMarginPercent: 10,
+  monthlyIncomeGoal: 8000,
+  weeklyHours: 40,
+  safetyMarginPct: 10,
 };
 
 const fetchMock = jest.fn();
