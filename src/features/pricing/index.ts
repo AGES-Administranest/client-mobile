@@ -3,6 +3,7 @@ export type {
   PricingSettingsFormProps,
   PricingSettingsFormTexts,
 } from './components/PricingSettingsForm';
+export { PricingGoalsSection } from './screens/PricingGoalsSection';
 export { usePricingSettingsForm } from './hooks/usePricingSettingsForm';
 export type { PricingSettingsFormState } from './hooks/usePricingSettingsForm';
 export type {
