@@ -129,3 +129,14 @@ test('locks the form while saving and shows the failure message', async () => {
   expect(saveButton().props.disabled).toBe(true);
   expect(input('Margem de segurança (%)').props.editable).toBe(false);
 });
+
+test('starts every empty field showing 0, as the Figma initial state', async () => {
+  const { input } = await render({
+    draft: { monthlyIncomeGoal: '', weeklyHours: '', safetyMarginPct: '' },
+  });
+
+  for (const label of Object.values(TEXTS.labels)) {
+    expect(input(label).props.value).toBe('');
+    expect(input(label).props.placeholder).toBe('0');
+  }
+});

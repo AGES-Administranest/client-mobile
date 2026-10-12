@@ -60,6 +60,7 @@ function PricingSettingsForm({
               onChangeText={value => onChangeField(field, value)}
               keyboardType="decimal-pad"
               inputMode="decimal"
+              placeholder="0"
               placeholderTextColor={LabelPlaceholder}
               selectionColor={LabelPrimary}
               editable={!isSaving}
