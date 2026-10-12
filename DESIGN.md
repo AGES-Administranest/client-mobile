@@ -80,6 +80,8 @@ Cross-referenced against what already exists in [`src/app/components/ui`](./src/
 
 **Stock entry (US10) compositions**, in `features/stockEntry/components` until a second feature needs them: `FullScreenModal` (slide-in `Modal` over the background gradient), `ScreenHeader` (back chevron + title), `NoticeBanner` (alert / warning / info, with an optional pill action), `FormField` (eyebrow label + `rounded-xl` input; read-only without `onChangeText`), `MenuOption` (icon circle, title, caption, chevron), `CatalogOption` (list row with hairline divider), `AttentionCounter`, `ReviewLineCard`, `EntryCard` (a pending entry: title, meta, total, a status pill — yellow (`details-tertiary`) when ready, lavender (`details-primary`) while processing, red outline when failed, gray outline otherwise — and text-link actions) and `SaveStatusBar` (the draft's autosave state, with a retry link when it fails).
 
+**Hourly-rate calculator (US19) compositions**, in `features/pricing/components`: `PricingSettingsForm` is the "Metas" card from the "Finanças – calculadora de horas" frame — a `rounded-2xl` `Card` with a section title and stacked `rounded-xl` numeric inputs. Unlike the default eyebrow, the Figma draws the section title and field labels in **black** (`text-label-primary`, semibold, uppercase, letter-spaced); a field's helper text sits right under it in muted `text-xs`. The frame has no save action, so a full-width pill "Salvar metas" closes the card.
+
 When implementing, follow this repo's existing pattern: base primitives live in `src/app/components/ui` (shared, shadcn-style, using `cva` + `cn()`); feature-specific compositions (like a `finance`-specific `StatCard` row) live in `src/features/<feature>/components`.
 
 ## 6. Screen anatomy (top → bottom)
