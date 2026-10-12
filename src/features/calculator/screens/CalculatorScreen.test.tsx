@@ -138,13 +138,17 @@ test('closes when the back button is pressed', async () => {
   expect(onClose).toHaveBeenCalledTimes(1);
 });
 
-test('guides the setup before the calculation when there are no goals yet', async () => {
+test('asks to fill in the fields below the fixed costs when there are no goals yet', async () => {
   const { renderer } = await renderScreen();
 
-  const texts = textsOf(renderer).join(' ');
+  const texts = textsOf(renderer);
+  const notice = 'Preencha os campos para que os valores sejam calculados';
 
-  expect(texts).toContain('Para calcular o valor mínimo da sua hora');
-  expect(texts).toContain('Configurar');
+  expect(texts).toContain(notice);
+  expect(texts.indexOf(notice)).toBeGreaterThan(
+    texts.indexOf('Total de custos fixos'),
+  );
+  expect(texts).not.toContain('Configurar');
 });
 
 test('drops the setup guide once the goals exist', async () => {
@@ -158,7 +162,7 @@ test('drops the setup guide once the goals exist', async () => {
 
   const texts = textsOf(renderer).join(' ');
 
-  expect(texts).not.toContain('Para calcular o valor mínimo da sua hora');
+  expect(texts).not.toContain('Preencha os campos');
   expect(texts).toContain('Custos fixos mensais');
 });
 

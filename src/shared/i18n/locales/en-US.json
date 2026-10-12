@@ -936,8 +936,7 @@
   },
   "pricing": {
     "onboarding": {
-      "message": "To calculate your minimum hourly rate, enter your monthly net income goal, your available hours per week and your safety margin. With that, the calculator shows the rate and its breakdown.",
-      "configure": "Set up",
+      "message": "Fill in the fields so the values can be calculated",
       "loading": "Loading your goals",
       "loadFailure": "Couldn't load your goals."
     }

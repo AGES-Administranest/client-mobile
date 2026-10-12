@@ -2,49 +2,32 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { PricingOnboarding } from 'features/pricing';
 
-const MESSAGE = 'Informe sua meta, jornada e margem para ver o cálculo.';
+const MESSAGE = 'Preencha os campos para que os valores sejam calculados';
 
-async function renderOnboarding(onConfigure = () => {}) {
-  let renderer: ReactTestRenderer.ReactTestRenderer;
+async function renderOnboarding() {
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
     renderer = ReactTestRenderer.create(
-      <PricingOnboarding
-        message={MESSAGE}
-        configureLabel="Configurar"
-        onConfigure={onConfigure}
-      />,
+      <PricingOnboarding message={MESSAGE} />,
     );
   });
-  return renderer!;
+  return renderer;
 }
 
-function textContents(renderer: ReactTestRenderer.ReactTestRenderer) {
-  return renderer.root
-    .findAllByType('Text' as never)
-    .map(node => JSON.stringify(node.props.children))
-    .join(' ');
-}
-
-test('explains what the data is for and offers to configure it', async () => {
+test('tells the user to fill in the fields before any value is shown', async () => {
   const renderer = await renderOnboarding();
 
-  const contents = textContents(renderer);
+  const texts = renderer.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children);
 
-  expect(contents).toContain(MESSAGE);
-  expect(contents).toContain('Configurar');
+  expect(texts).toEqual([MESSAGE]);
 });
 
-test('pressing "Configurar" asks the screen to open the goals form', async () => {
-  const onConfigure = jest.fn();
-  const renderer = await renderOnboarding(onConfigure);
+test('is a plain notice, with nothing to press', async () => {
+  const renderer = await renderOnboarding();
 
-  const button = renderer.root.findAll(
-    node => node.props?.role === 'button' && !!node.props.onPress,
-  )[0];
-
-  await act(async () => {
-    button.props.onPress();
-  });
-
-  expect(onConfigure).toHaveBeenCalledTimes(1);
+  expect(
+    renderer.root.findAll(node => typeof node.props?.onPress === 'function'),
+  ).toHaveLength(0);
 });

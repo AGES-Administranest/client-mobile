@@ -37,18 +37,18 @@ const SETTINGS = {
   safetyMarginPct: 10,
 };
 
-async function renderSection(onConfigure = jest.fn()) {
+async function renderSection() {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
         <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-          <PricingOnboardingSection onConfigure={onConfigure} />
+          <PricingOnboardingSection />
         </AuthProvider>
       </I18nProvider>,
     );
   });
-  return { renderer, onConfigure };
+  return renderer;
 }
 
 function textsIn(node: ReactTestRenderer.ReactTestInstance) {
@@ -76,25 +76,20 @@ beforeEach(() => {
   fetchSettings.mockReset();
 });
 
-test('explains the goals and offers "Configurar" when nothing is set up', async () => {
+test('asks to fill in the fields when nothing is set up', async () => {
   fetchSettings.mockResolvedValue(null);
 
-  const { renderer, onConfigure } = await renderSection();
+  const renderer = await renderSection();
 
-  expect(textsOf(renderer)).toContain(
-    'Para calcular o valor mínimo da sua hora',
+  expect(textsOf(renderer)).toBe(
+    'Preencha os campos para que os valores sejam calculados',
   );
-
-  await act(async () => {
-    pressableWithText(renderer, 'Configurar').props.onPress();
-  });
-  expect(onConfigure).toHaveBeenCalledTimes(1);
 });
 
 test('shows nothing once the goals are set up', async () => {
   fetchSettings.mockResolvedValue(SETTINGS);
 
-  const { renderer } = await renderSection();
+  const renderer = await renderSection();
 
   expect(renderer.toJSON()).toBeNull();
 });
@@ -104,15 +99,15 @@ test('offers a retry, not the setup guide, when loading fails', async () => {
     .mockRejectedValueOnce(new ApiError('boom', null, 500))
     .mockResolvedValueOnce(null);
 
-  const { renderer } = await renderSection();
+  const renderer = await renderSection();
 
   expect(textsOf(renderer)).toContain('Não foi possível carregar suas metas.');
-  expect(textsOf(renderer)).not.toContain('Configurar');
+  expect(textsOf(renderer)).not.toContain('Preencha os campos');
 
   await act(async () => {
     pressableWithText(renderer, 'Tentar novamente').props.onPress();
   });
 
   expect(fetchSettings).toHaveBeenCalledTimes(2);
-  expect(textsOf(renderer)).toContain('Configurar');
+  expect(textsOf(renderer)).toContain('Preencha os campos');
 });

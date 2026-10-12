@@ -16,11 +16,6 @@ type CalculatorScreenProps = {
   onClose: () => void;
 };
 
-// O formulário de metas e jornada chega pela branch
-// feat/us19-calculator-goal-form, que entra separada desta; o PR que for
-// mergeado por último liga o "Configurar" a ele.
-function openGoalForm() {}
-
 export function CalculatorScreen({ visible, onClose }: CalculatorScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -70,8 +65,8 @@ export function CalculatorScreen({ visible, onClose }: CalculatorScreenProps) {
           keyboardShouldPersistTaps="handled"
           contentContainerClassName="gap-[18px] px-5 pb-10 pt-2"
         >
-          <PricingOnboardingSection onConfigure={openGoalForm} />
           <FixedCostsSection />
+          <PricingOnboardingSection />
         </ScrollView>
       </View>
     </Modal>

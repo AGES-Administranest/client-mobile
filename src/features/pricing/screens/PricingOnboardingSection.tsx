@@ -6,13 +6,7 @@ import { useTranslation } from 'shared/i18n';
 import { PricingOnboarding } from '../components/PricingOnboarding';
 import { usePricingSettings } from '../hooks/usePricingSettings';
 
-type PricingOnboardingSectionProps = {
-  onConfigure: () => void;
-};
-
-export function PricingOnboardingSection({
-  onConfigure,
-}: PricingOnboardingSectionProps) {
+export function PricingOnboardingSection() {
   const { t } = useTranslation();
   const { state, reload } = usePricingSettings();
 
@@ -46,11 +40,5 @@ export function PricingOnboardingSection({
     return null;
   }
 
-  return (
-    <PricingOnboarding
-      message={t('pricing.onboarding.message')}
-      configureLabel={t('pricing.onboarding.configure')}
-      onConfigure={onConfigure}
-    />
-  );
+  return <PricingOnboarding message={t('pricing.onboarding.message')} />;
 }
