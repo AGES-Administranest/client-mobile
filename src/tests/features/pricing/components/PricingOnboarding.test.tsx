@@ -1,5 +1,6 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { EmptyState } from 'app/components/ui/empty-state';
 import { PricingOnboarding } from 'features/pricing';
 
 const MESSAGE = 'Preencha os campos para que os valores sejam calculados';
@@ -22,6 +23,14 @@ test('tells the user to fill in the fields before any value is shown', async () 
     .map(node => node.props.children);
 
   expect(texts).toEqual([MESSAGE]);
+});
+
+test('reuses the shared EmptyState, aligned to the start and without an icon', async () => {
+  const renderer = await renderOnboarding();
+
+  const emptyState = renderer.root.findByType(EmptyState);
+  expect(emptyState.props.align).toBe('start');
+  expect(emptyState.props.icon).toBeUndefined();
 });
 
 test('is a plain notice, with nothing to press', async () => {

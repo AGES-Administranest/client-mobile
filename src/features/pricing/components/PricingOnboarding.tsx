@@ -1,5 +1,5 @@
 import { Card } from 'app/components/ui/card';
-import { Text } from 'app/components/ui/text';
+import { EmptyState } from 'app/components/ui/empty-state';
 
 type PricingOnboardingProps = {
   message: string;
@@ -8,9 +8,7 @@ type PricingOnboardingProps = {
 export function PricingOnboarding({ message }: PricingOnboardingProps) {
   return (
     <Card className="px-5 py-6">
-      <Text className="text-[15px] leading-[22px] text-label-primary">
-        {message}
-      </Text>
+      <EmptyState align="start" message={message} />
     </Card>
   );
 }
