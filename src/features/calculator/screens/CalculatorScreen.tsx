@@ -5,7 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
-import { PricingGoalsSection } from 'features/pricing';
+import {
+  PricingGoalsSection,
+  PricingOnboardingSection,
+} from 'features/pricing';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundPrimary } from 'theme/colors';
 
@@ -67,6 +70,7 @@ export function CalculatorScreen({ visible, onClose }: CalculatorScreenProps) {
         >
           <PricingGoalsSection />
           <FixedCostsSection />
+          <PricingOnboardingSection />
         </ScrollView>
       </View>
     </Modal>

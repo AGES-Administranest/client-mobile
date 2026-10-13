@@ -935,6 +935,11 @@
     "greeting": "Hello, Dr. {{name}}"
   },
   "pricing": {
+    "onboarding": {
+      "message": "Fill in the fields so the values can be calculated",
+      "loading": "Loading your goals",
+      "loadFailure": "Couldn't load your goals."
+    },
     "goalForm": {
       "title": "Goals",
       "labels": {

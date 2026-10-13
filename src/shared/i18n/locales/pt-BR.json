@@ -935,6 +935,11 @@
     "greeting": "Olá, Dr. {{name}}"
   },
   "pricing": {
+    "onboarding": {
+      "message": "Preencha os campos para que os valores sejam calculados",
+      "loading": "Carregando suas metas",
+      "loadFailure": "Não foi possível carregar suas metas."
+    },
     "goalForm": {
       "title": "Metas",
       "labels": {
