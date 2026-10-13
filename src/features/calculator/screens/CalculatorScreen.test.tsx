@@ -166,6 +166,17 @@ test('drops the setup guide once the goals exist', async () => {
   expect(texts).toContain('Custos fixos mensais');
 });
 
+test('puts the goals card above the fixed costs', async () => {
+  const { renderer } = await renderScreen();
+
+  const texts = textsOf(renderer);
+
+  expect(texts).toContain('Metas');
+  expect(texts.indexOf('Metas')).toBeLessThan(
+    texts.indexOf('Custos fixos mensais'),
+  );
+});
+
 test('renders nothing while hidden', async () => {
   const { renderer } = await renderScreen(false);
 

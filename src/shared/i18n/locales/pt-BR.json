@@ -939,6 +939,29 @@
       "message": "Preencha os campos para que os valores sejam calculados",
       "loading": "Carregando suas metas",
       "loadFailure": "Não foi possível carregar suas metas."
+    },
+    "goalForm": {
+      "title": "Metas",
+      "labels": {
+        "monthlyIncomeGoal": "Meta de renda líquida mensal (R$)",
+        "weeklyHours": "Horas disponíveis por semana",
+        "safetyMarginPct": "Margem de segurança (%)"
+      },
+      "weeklyHoursHint": "Conte as horas em que você fica disponível para trabalhar, incluindo deslocamentos e períodos ociosos, não só as horas que você cobra.",
+      "save": "Salvar metas",
+      "saving": "Salvando…",
+      "errors": {
+        "required": "Preencha este campo",
+        "invalid": "Digite um número válido",
+        "tooManyDecimals": "Use no máximo 2 casas decimais",
+        "tooLarge": "O valor máximo é R$ 999.999.999.999,99",
+        "notPositive": "O valor deve ser maior que zero",
+        "tooHigh": "Uma semana tem no máximo 168 horas",
+        "outOfRange": "A margem deve ficar entre 0% e 100%"
+      },
+      "failures": {
+        "save": "Não foi possível salvar as metas. Tente novamente."
+      }
     }
   }
 }
