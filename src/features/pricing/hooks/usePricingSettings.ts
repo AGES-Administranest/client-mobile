@@ -14,6 +14,9 @@ export type PricingSettingsState =
 export type UsePricingSettings = {
   state: PricingSettingsState;
   reload: () => void;
+  // The goals form already has the saved values from the PUT, so it hands
+  // them over instead of asking the API again.
+  applySaved: (settings: PricingSettings) => void;
 };
 
 export function usePricingSettings(): UsePricingSettings {
@@ -25,6 +28,10 @@ export function usePricingSettings(): UsePricingSettings {
   const [version, setVersion] = useState(0);
 
   const reload = useCallback(() => setVersion(current => current + 1), []);
+  const applySaved = useCallback(
+    (settings: PricingSettings) => setState({ status: 'configured', settings }),
+    [],
+  );
 
   useEffect(() => {
     if (!idToken) {
@@ -53,5 +60,5 @@ export function usePricingSettings(): UsePricingSettings {
     };
   }, [idToken, version]);
 
-  return { state, reload };
+  return { state, reload, applySaved };
 }
