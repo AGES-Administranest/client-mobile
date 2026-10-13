@@ -933,5 +933,30 @@
   },
   "home": {
     "greeting": "Hello, Dr. {{name}}"
+  },
+  "pricing": {
+    "goalForm": {
+      "title": "Goals",
+      "labels": {
+        "monthlyIncomeGoal": "Monthly net income goal (R$)",
+        "weeklyHours": "Available hours per week",
+        "safetyMarginPct": "Safety margin (%)"
+      },
+      "weeklyHoursHint": "Count the hours you are available to work, including travel and idle time, not only the hours you bill.",
+      "save": "Save goals",
+      "saving": "Saving…",
+      "errors": {
+        "required": "Fill in this field",
+        "invalid": "Enter a valid number",
+        "tooManyDecimals": "Use at most 2 decimal places",
+        "tooLarge": "The maximum is R$ 999,999,999,999.99",
+        "notPositive": "The value must be greater than zero",
+        "tooHigh": "A week has at most 168 hours",
+        "outOfRange": "The margin must be between 0% and 100%"
+      },
+      "failures": {
+        "save": "Could not save your goals. Please try again."
+      }
+    }
   }
 }
