@@ -2,10 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 
-import {
-  fetchPricingSettings,
-  type PricingSettings,
-} from '../services/pricingSettingsService';
+import type { PricingSettings } from '../domain/pricing.types';
+import { fetchPricingSettings } from '../services/pricingSettingsService';
 
 export type PricingSettingsState =
   | { status: 'loading' }

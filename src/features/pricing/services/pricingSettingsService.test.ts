@@ -37,10 +37,21 @@ test('asks the API with the id token and returns the saved settings', async () =
   );
 });
 
-test('treats 404 as not configured yet, not as a failure', async () => {
+test('treats 404 PRICING_SETTINGS_NOT_FOUND as not configured yet, not as a failure', async () => {
   respondWith(404, { code: 'PRICING_SETTINGS_NOT_FOUND', message: 'x' });
 
   await expect(fetchPricingSettings(ID_TOKEN)).resolves.toBeNull();
+});
+
+test('rethrows a 404 without that code, such as a missing route', async () => {
+  respondWith(404, {
+    code: 'NOT_FOUND',
+    message: 'Cannot GET /pricing-settings',
+  });
+
+  await expect(fetchPricingSettings(ID_TOKEN)).rejects.toMatchObject({
+    status: 404,
+  });
 });
 
 test.each([400, 401, 500])('rethrows a %i as an ApiError', async status => {
