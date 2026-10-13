@@ -948,6 +948,8 @@
       "errors": {
         "required": "Fill in this field",
         "invalid": "Enter a valid number",
+        "tooManyDecimals": "Use at most 2 decimal places",
+        "tooLarge": "The maximum is R$ 999,999,999,999.99",
         "notPositive": "The value must be greater than zero",
         "tooHigh": "A week has at most 168 hours",
         "outOfRange": "The margin must be between 0% and 100%"

@@ -948,6 +948,8 @@
       "errors": {
         "required": "Preencha este campo",
         "invalid": "Digite um número válido",
+        "tooManyDecimals": "Use no máximo 2 casas decimais",
+        "tooLarge": "O valor máximo é R$ 999.999.999.999,99",
         "notPositive": "O valor deve ser maior que zero",
         "tooHigh": "Uma semana tem no máximo 168 horas",
         "outOfRange": "A margem deve ficar entre 0% e 100%"

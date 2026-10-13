@@ -13,10 +13,12 @@ export type PricingSettingsField = keyof PricingSettings;
 
 export type PricingSettingsDraft = Record<PricingSettingsField, string>;
 
+type NumberErrorCode = 'required' | 'invalid' | 'tooManyDecimals';
+
 type PricingSettingsErrorCodes = {
-  monthlyIncomeGoal: 'required' | 'invalid' | 'notPositive';
-  weeklyHours: 'required' | 'invalid' | 'notPositive' | 'tooHigh';
-  safetyMarginPct: 'required' | 'invalid' | 'outOfRange';
+  monthlyIncomeGoal: NumberErrorCode | 'notPositive' | 'tooLarge';
+  weeklyHours: NumberErrorCode | 'notPositive' | 'tooHigh';
+  safetyMarginPct: NumberErrorCode | 'outOfRange';
 };
 
 export type PricingSettingsErrors = {

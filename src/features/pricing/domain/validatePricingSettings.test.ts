@@ -32,6 +32,10 @@ describe('validatePricingSettings', () => {
     ['8000,5', 8000.5],
     ['8000.5', 8000.5],
     [' 8000 ', 8000],
+    ['8.000', 8000],
+    ['1.500.000', 1500000],
+    ['1.500.000,99', 1500000.99],
+    ['999.999.999.999,99', 999999999999.99],
   ])('reads the income goal "%s" as %d', (input, expected) => {
     const result = validatePricingSettings({
       ...VALID,
@@ -48,8 +52,13 @@ describe('validatePricingSettings', () => {
     ['   ', 'required'],
     ['abc', 'invalid'],
     ['1e3', 'invalid'],
+    ['8.00,5', 'invalid'],
+    ['8,000,5', 'invalid'],
+    ['8000,505', 'tooManyDecimals'],
+    ['8.000,505', 'tooManyDecimals'],
     ['0', 'notPositive'],
     ['-100', 'notPositive'],
+    ['1.000.000.000.000', 'tooLarge'],
   ])('rejects the income goal "%s" as %s', (input, code) => {
     expect(errorsFor({ monthlyIncomeGoal: input })).toEqual({
       monthlyIncomeGoal: code,
@@ -62,22 +71,28 @@ describe('validatePricingSettings', () => {
     ['0', 'notPositive'],
     ['0,0', 'notPositive'],
     ['-5', 'notPositive'],
+    ['37.555', 'tooHigh'], // read as the thousands separator: 37555
+    ['37.555', 'tooHigh'], // read as the thousands separator: 37555
     ['168,5', 'tooHigh'],
   ])('rejects the weekly hours "%s" as %s', (input, code) => {
     expect(errorsFor({ weeklyHours: input })).toEqual({ weeklyHours: code });
   });
 
-  it.each(['0,5', '168'])('accepts the weekly hours "%s"', input => {
-    expect(
-      validatePricingSettings({ ...VALID, weeklyHours: input }).valid,
-    ).toBe(true);
-  });
+  it.each(['0,5', '0.5', '37.5', '168'])(
+    'accepts the weekly hours "%s"',
+    input => {
+      expect(
+        validatePricingSettings({ ...VALID, weeklyHours: input }).valid,
+      ).toBe(true);
+    },
+  );
 
   it.each([
     ['', 'required'],
     ['%', 'invalid'],
     ['-1', 'outOfRange'],
     ['-0,5', 'outOfRange'],
+    ['12,345', 'tooManyDecimals'],
     ['100,5', 'outOfRange'],
     ['150', 'outOfRange'],
   ])('rejects the safety margin "%s" as %s', (input, code) => {
