@@ -1,5 +1,5 @@
 import { PackageSearch, Plus, Trash2 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -17,11 +17,15 @@ import { SegmentedControl } from 'app/components/ui/segmented-control';
 import { Text } from 'app/components/ui/text';
 import {
   clampPercent,
+  EquipmentFormSheet,
   EquipmentList,
   formatMonthYear,
+  useEquipmentForm,
   useEquipmentList,
   type Equipment,
+  type EquipmentFormField,
   type EquipmentFormTarget,
+  type EquipmentFormTexts,
 } from 'features/equipment';
 import { StockEntryFlow } from 'features/stockEntry';
 import { useTranslation } from 'shared/i18n';
@@ -39,8 +43,104 @@ import { useMaterialsScreen } from '../hooks/useMaterialsScreen';
 function EquipmentSegment() {
   const { t, locale } = useTranslation();
   const { equipments, summary, isLoading, error, refresh } = useEquipmentList();
-  // TODO: abrir EquipmentFormSheet (próxima task) a partir deste alvo.
-  const [, setFormTarget] = useState<EquipmentFormTarget | null>(null);
+  const [formRequest, setFormRequest] = useState<
+    { kind: 'create' } | { kind: 'view'; id: string }
+  >({ kind: 'create' });
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // O sheet aponta para o equipamento da lista, não para uma cópia guardada:
+  // depois de salvar, a lista nova traz o equipamento atualizado e o detalhe
+  // mostra os valores novos. Se ele sumiu da lista, o sheet fecha.
+  const selected =
+    formRequest.kind === 'view'
+      ? equipments.find(equipment => equipment.id === formRequest.id) ?? null
+      : null;
+  const formTarget = useMemo<EquipmentFormTarget>(
+    () =>
+      selected ? { mode: 'view', equipment: selected } : { mode: 'create' },
+    [selected],
+  );
+  const isFormVisible =
+    isFormOpen && (formRequest.kind === 'create' || selected !== null);
+
+  const handleSaved = useCallback(
+    async (savedMode: 'create' | 'edit') => {
+      await refresh();
+      if (savedMode === 'create') setIsFormOpen(false);
+    },
+    [refresh],
+  );
+
+  const form = useEquipmentForm({
+    target: formTarget,
+    visible: isFormVisible,
+    onSaved: handleSaved,
+  });
+
+  function openForm(request: typeof formRequest) {
+    setFormRequest(request);
+    setIsFormOpen(true);
+  }
+
+  const formFields: EquipmentFormField[] = [
+    'name',
+    'purchaseValue',
+    'acquisitionDate',
+    'usefulLifeYears',
+    'notes',
+  ];
+
+  const formTexts: EquipmentFormTexts = {
+    title:
+      form.mode === 'view'
+        ? form.values.name.trim()
+        : t(
+            form.mode === 'edit'
+              ? 'equipment.form.title.edit'
+              : 'equipment.form.title.create',
+          ),
+    confirm: t(
+      form.mode === 'edit'
+        ? 'equipment.form.confirm.edit'
+        : 'equipment.form.confirm.create',
+    ),
+    startEdit: t('equipment.form.startEdit'),
+    delete: t('equipment.form.delete'),
+    close: t('equipment.form.close'),
+    labels: Object.fromEntries(
+      formFields.map(field => [field, t(`equipment.form.labels.${field}`)]),
+    ) as EquipmentFormTexts['labels'],
+    placeholders: Object.fromEntries(
+      formFields.map(field => [
+        field,
+        t(`equipment.form.placeholders.${field}`),
+      ]),
+    ) as EquipmentFormTexts['placeholders'],
+    usefulLifeHint: t('equipment.form.usefulLifeHint'),
+  };
+
+  const formErrors = Object.fromEntries(
+    Object.entries(form.errors).map(([field, code]) => [
+      field,
+      t(`equipment.form.errors.${field}.${code}` as TranslationKey),
+    ]),
+  ) as Partial<Record<EquipmentFormField, string>>;
+
+  const usefulLifeViewText = form.viewUsefulLife
+    ? t(
+        form.viewUsefulLife.unit === 'months'
+          ? 'equipment.form.usefulLifeView.months'
+          : form.viewUsefulLife.value === 1
+          ? 'equipment.form.usefulLifeView.year'
+          : 'equipment.form.usefulLifeView.years',
+        { count: form.viewUsefulLife.value },
+      )
+    : null;
+
+  const submitErrorText = {
+    session: t('equipment.errorSession'),
+    generic: t('equipment.form.errorSave'),
+  }[form.submitError ?? 'generic'];
 
   const items = equipments.map(equipment => ({
     equipment,
@@ -62,39 +162,74 @@ function EquipmentSegment() {
   }));
 
   return (
-    <EquipmentList
-      items={items}
-      summary={
-        summary
-          ? {
-              label: t('equipment.summary.label'),
-              value: formatCurrency(summary.monthlyTotal, locale),
-              detail: t(
-                summary.count === 1
-                  ? 'equipment.summary.countSingular'
-                  : 'equipment.summary.countPlural',
-                {
-                  count: summary.count,
-                  annual: formatCurrency(summary.yearlyTotal, locale, {
-                    showCents: false,
-                  }),
-                },
-              ),
-            }
-          : null
-      }
-      isLoading={isLoading}
-      errorMessage={error ? t(error) : null}
-      loadingLabel={t('equipment.loading')}
-      emptyMessage={t('equipment.empty')}
-      retryLabel={t('common.retry')}
-      addLabel={t('equipment.addButton')}
-      onRetry={refresh}
-      onAddPress={() => setFormTarget({ mode: 'create' })}
-      onEquipmentPress={(equipment: Equipment) =>
-        setFormTarget({ mode: 'edit', equipment })
-      }
-    />
+    <>
+      <EquipmentList
+        items={items}
+        summary={
+          summary
+            ? {
+                label: t('equipment.summary.label'),
+                value: formatCurrency(summary.monthlyTotal, locale),
+                detail: t(
+                  summary.count === 1
+                    ? 'equipment.summary.countSingular'
+                    : 'equipment.summary.countPlural',
+                  {
+                    count: summary.count,
+                    annual: formatCurrency(summary.yearlyTotal, locale, {
+                      showCents: false,
+                    }),
+                  },
+                ),
+              }
+            : null
+        }
+        isLoading={isLoading}
+        errorMessage={error ? t(error) : null}
+        loadingLabel={t('equipment.loading')}
+        emptyMessage={t('equipment.empty')}
+        retryLabel={t('common.retry')}
+        addLabel={t('equipment.addButton')}
+        onRetry={refresh}
+        onAddPress={() => openForm({ kind: 'create' })}
+        onEquipmentPress={(equipment: Equipment) =>
+          openForm({ kind: 'view', id: equipment.id })
+        }
+      />
+      <EquipmentFormSheet
+        visible={isFormVisible}
+        mode={form.mode}
+        values={form.values}
+        errors={formErrors}
+        texts={formTexts}
+        usefulLifeNotice={
+          form.legacyLifeMonths !== null
+            ? t('equipment.form.usefulLifeLegacy', {
+                months: form.legacyLifeMonths,
+              })
+            : null
+        }
+        previewLabel={t('equipment.form.previewLabel')}
+        previewValue={
+          form.preview
+            ? t('equipment.form.previewValue', {
+                value: formatCurrency(form.preview.monthlyDepreciation, locale),
+              })
+            : t('equipment.form.previewUnavailable')
+        }
+        usefulLifeViewText={usefulLifeViewText}
+        previewNote={
+          form.preview?.lifeEnded ? t('equipment.form.previewLifeEnded') : null
+        }
+        submitErrorText={form.submitError ? submitErrorText : null}
+        isSubmitting={form.isSubmitting}
+        onChangeText={form.onChangeText}
+        onBlur={form.onBlur}
+        onStartEdit={form.startEdit}
+        onSubmit={form.submit}
+        onClose={() => setIsFormOpen(false)}
+      />
+    </>
   );
 }
 

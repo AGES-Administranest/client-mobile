@@ -113,6 +113,71 @@
       "since": "Desde {{date}} · Valor atual {{value}}",
       "lifeUsed": "{{percent}}% da vida útil utilizada",
       "endOfLife": "Fim da vida útil"
+    },
+    "form": {
+      "title": {
+        "create": "Novo equipamento",
+        "edit": "Editar equipamento"
+      },
+      "confirm": {
+        "create": "Confirmar",
+        "edit": "Salvar"
+      },
+      "close": "Fechar",
+      "labels": {
+        "name": "Nome do equipamento",
+        "purchaseValue": "Valor de compra (R$)",
+        "acquisitionDate": "Data de aquisição",
+        "usefulLifeYears": "Vida útil estimada",
+        "notes": "Observações"
+      },
+      "placeholders": {
+        "name": "Ex: Vaporizador Matrx VIP 3000",
+        "purchaseValue": "0,00",
+        "acquisitionDate": "DD/MM/AAAA",
+        "usefulLifeYears": "Ex.: 5 anos",
+        "notes": "Calibração, garantia, etc."
+      },
+      "usefulLifeHint": "Se não informar, consideramos 10 anos (10% ao ano)",
+      "usefulLifeLegacy": "Vida útil atual: {{months}} meses. Informe em anos para alterar",
+      "previewUnavailable": "—",
+      "previewLifeEnded": "Vida útil já encerrada",
+      "errorSave": "Não foi possível salvar o equipamento.",
+      "errors": {
+        "name": {
+          "required": "Informe o nome do equipamento.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+          "tooLong": "O nome pode ter no máximo 120 caracteres."
+        },
+        "purchaseValue": {
+          "required": "Informe o valor de compra.",
+          "invalidNumber": "Valor inválido. Use o formato 1.234,56.",
+          "mustBePositive": "O valor precisa ser maior que zero."
+        },
+        "acquisitionDate": {
+          "required": "Informe a data de aquisição.",
+          "invalidDate": "Data inválida. Use o formato DD/MM/AAAA.",
+          "futureDate": "A data de aquisição não pode ser futura."
+        },
+        "usefulLifeYears": {
+          "invalidNumber": "Informe um número de anos.",
+          "mustBeInteger": "Informe anos inteiros, sem casas decimais.",
+          "mustBePositive": "A vida útil precisa ser maior que zero.",
+          "tooLarge": "A vida útil pode ter no máximo 100 anos."
+        },
+        "notes": {
+          "tooLong": "As observações podem ter no máximo 1000 caracteres."
+        }
+      },
+      "previewLabel": "Depreciação estimada:",
+      "previewValue": "{{value}}/mês",
+      "startEdit": "Editar",
+      "delete": "Excluir",
+      "usefulLifeView": {
+        "year": "{{count}} ano",
+        "years": "{{count}} anos",
+        "months": "{{count}} meses"
+      }
     }
   },
   "stockEntry": {

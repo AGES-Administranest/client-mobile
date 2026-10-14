@@ -11,11 +11,11 @@ import {
 import { ActionButton } from 'app/components/ui';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { Icon } from 'app/components/ui/icon';
-import { formatDateInput } from 'app/components/ui/item-modal/domain/itemModal';
 import { Text } from 'app/components/ui/text';
 import { backendUnitLabel } from 'features/materials';
 import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
+import { formatDateInput } from 'shared/utils/inputMasks';
 
 import { LinkItemScreen } from './LinkItemScreen';
 import {

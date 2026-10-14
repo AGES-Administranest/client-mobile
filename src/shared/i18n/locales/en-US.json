@@ -113,6 +113,71 @@
       "since": "Since {{date}} · Current value {{value}}",
       "lifeUsed": "{{percent}}% of useful life used",
       "endOfLife": "End of useful life"
+    },
+    "form": {
+      "title": {
+        "create": "New equipment",
+        "edit": "Edit equipment"
+      },
+      "confirm": {
+        "create": "Confirm",
+        "edit": "Save"
+      },
+      "close": "Close",
+      "labels": {
+        "name": "Equipment name",
+        "purchaseValue": "Purchase value (R$)",
+        "acquisitionDate": "Acquisition date",
+        "usefulLifeYears": "Estimated useful life",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "name": "E.g. Matrx VIP 3000 vaporizer",
+        "purchaseValue": "0,00",
+        "acquisitionDate": "DD/MM/YYYY",
+        "usefulLifeYears": "E.g. 5 years",
+        "notes": "Calibration, warranty, etc."
+      },
+      "usefulLifeHint": "If left empty, we assume 10 years (10% per year)",
+      "usefulLifeLegacy": "Current useful life: {{months}} months. Enter years to change it",
+      "previewUnavailable": "—",
+      "previewLifeEnded": "Useful life already ended",
+      "errorSave": "Could not save the equipment.",
+      "errors": {
+        "name": {
+          "required": "Enter the equipment name.",
+          "tooShort": "The name needs at least 2 characters.",
+          "tooLong": "The name can have at most 120 characters."
+        },
+        "purchaseValue": {
+          "required": "Enter the purchase value.",
+          "invalidNumber": "Invalid value. Use the format 1.234,56.",
+          "mustBePositive": "The value must be greater than zero."
+        },
+        "acquisitionDate": {
+          "required": "Enter the acquisition date.",
+          "invalidDate": "Invalid date. Use the format DD/MM/YYYY.",
+          "futureDate": "The acquisition date cannot be in the future."
+        },
+        "usefulLifeYears": {
+          "invalidNumber": "Enter a number of years.",
+          "mustBeInteger": "Enter whole years, with no decimals.",
+          "mustBePositive": "The useful life must be greater than zero.",
+          "tooLarge": "The useful life can be at most 100 years."
+        },
+        "notes": {
+          "tooLong": "The notes can have at most 1000 characters."
+        }
+      },
+      "previewLabel": "Estimated depreciation:",
+      "previewValue": "{{value}}/month",
+      "startEdit": "Edit",
+      "delete": "Delete",
+      "usefulLifeView": {
+        "year": "{{count}} year",
+        "years": "{{count}} years",
+        "months": "{{count}} months"
+      }
     }
   },
   "stockEntry": {
