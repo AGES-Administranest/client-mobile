@@ -53,6 +53,7 @@ test('lists the categories of both types with the id token', async () => {
       name: 'Travel',
       nature: 'EXPENSE',
       defaultScope: 'PROFESSIONAL',
+      isDefault: true,
     },
   ];
   respond(200, categories);

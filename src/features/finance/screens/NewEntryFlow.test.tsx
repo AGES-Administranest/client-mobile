@@ -58,12 +58,14 @@ const CATEGORIES: FinancialCategory[] = [
     name: 'Travel',
     nature: 'EXPENSE',
     defaultScope: 'PROFESSIONAL',
+    isDefault: true,
   },
   {
     id: 'cat-supplies',
     name: 'Supplies',
     nature: 'EXPENSE',
     defaultScope: 'PROFESSIONAL',
+    isDefault: true,
   },
 ];
 

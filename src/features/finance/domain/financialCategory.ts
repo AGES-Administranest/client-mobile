@@ -1,4 +1,11 @@
-import type { EntryNature, FinancialCategory } from './financialEntry';
+import { normalizeForSearch } from 'shared/utils/search';
+
+import type {
+  CreateFinancialCategoryPayload,
+  EntryNature,
+  EntryScope,
+  FinancialCategory,
+} from './financialEntry';
 
 export type DefaultCategoryKey =
   | 'professionalFees'
@@ -8,9 +15,14 @@ export type DefaultCategoryKey =
   | 'fixedCosts'
   | 'other';
 
-// As categorias padrão chegam com o nome do seed, em inglês. O nome é o
-// que as identifica: os ids não são fixos em todo banco (os testes do
-// backend criam outros).
+export type LabeledCategory = FinancialCategory & { label: string };
+
+export type NewCategoryNameError = 'required' | 'tooLong' | 'duplicate';
+
+export const CATEGORY_NAME_MAX_LENGTH = 40;
+
+// O seed grava as padrão com nomes em inglês, e o nome é a única coisa que as
+// identifica: os ids mudam de um banco para outro.
 const DEFAULT_CATEGORY_KEYS: Record<string, DefaultCategoryKey> = {
   'Professional fees': 'professionalFees',
   Supplies: 'supplies',
@@ -20,7 +32,7 @@ const DEFAULT_CATEGORY_KEYS: Record<string, DefaultCategoryKey> = {
   Other: 'other',
 };
 
-const DEFAULT_ORDER: readonly DefaultCategoryKey[] = [
+const FIGMA_ORDER: readonly DefaultCategoryKey[] = [
   'professionalFees',
   'supplies',
   'travel',
@@ -28,31 +40,102 @@ const DEFAULT_ORDER: readonly DefaultCategoryKey[] = [
   'fixedCosts',
 ];
 
-/** Chave de tradução de uma categoria padrão; null para as criadas pelo usuário. */
+const USER_CATEGORIES_POSITION = FIGMA_ORDER.length;
+const OTHER_POSITION = FIGMA_ORDER.length + 1;
+
 export function defaultCategoryKey(
-  category: Pick<FinancialCategory, 'name'>,
+  category: Pick<FinancialCategory, 'name' | 'isDefault'>,
 ): DefaultCategoryKey | null {
-  return DEFAULT_CATEGORY_KEYS[category.name] ?? null;
+  return category.isDefault
+    ? DEFAULT_CATEGORY_KEYS[category.name] ?? null
+    : null;
 }
 
-function rank(category: FinancialCategory): number {
+function listPosition(category: FinancialCategory): number {
   const key = defaultCategoryKey(category);
   if (key === 'other') {
-    return DEFAULT_ORDER.length + 1;
+    return OTHER_POSITION;
   }
-  const index = key ? DEFAULT_ORDER.indexOf(key) : -1;
-  return index >= 0 ? index : DEFAULT_ORDER.length;
+  const figmaPosition = key ? FIGMA_ORDER.indexOf(key) : -1;
+  return figmaPosition >= 0 ? figmaPosition : USER_CATEGORIES_POSITION;
 }
 
-/**
- * As do tipo escolhido, na ordem do Figma: as padrão primeiro, depois as do
- * usuário em ordem alfabética e "Outros" por último. A API não ordena.
- */
 export function categoriesFor(
   nature: EntryNature,
   categories: readonly FinancialCategory[],
 ): FinancialCategory[] {
   return categories
     .filter(category => category.nature === nature)
-    .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name, 'pt-BR'));
+    .sort(
+      (a, b) =>
+        listPosition(a) - listPosition(b) ||
+        a.name.localeCompare(b.name, 'pt-BR'),
+    );
+}
+
+// Igual ao backend: sem espaços nas pontas e um só entre as palavras.
+function tidyCategoryName(name: string): string {
+  return name.trim().replace(/\s+/g, ' ');
+}
+
+function categoryNameKey(name: string): string {
+  return normalizeForSearch(tidyCategoryName(name));
+}
+
+export function filterCategories<Category extends LabeledCategory>(
+  categories: readonly Category[],
+  term: string,
+): Category[] {
+  const needle = categoryNameKey(term);
+  return categories.filter(category =>
+    categoryNameKey(category.label).includes(needle),
+  );
+}
+
+export function shouldOfferNewCategory(
+  term: string,
+  matches: readonly LabeledCategory[],
+): boolean {
+  return categoryNameKey(term) === '' || matches.length === 0;
+}
+
+export function findCategoryLabeled<Category extends LabeledCategory>(
+  categories: readonly Category[],
+  name: string,
+): Category | undefined {
+  const key = categoryNameKey(name);
+  return categories.find(category => categoryNameKey(category.label) === key);
+}
+
+// Conta como o MaxLength do backend, por caractere: um emoji vale um, não dois.
+const characterCount = (text: string) => Array.from(text).length;
+
+export function validateNewCategoryName(
+  name: string,
+  categories: readonly LabeledCategory[],
+): NewCategoryNameError | undefined {
+  const tidy = tidyCategoryName(name);
+  if (!tidy) {
+    return 'required';
+  }
+  if (characterCount(tidy) > CATEGORY_NAME_MAX_LENGTH) {
+    return 'tooLong';
+  }
+  return findCategoryLabeled(categories, tidy) ? 'duplicate' : undefined;
+}
+
+type NewCategory = {
+  id: string;
+  name: string;
+  nature: EntryNature;
+  scope: EntryScope;
+};
+
+export function toCreateCategoryPayload({
+  id,
+  name,
+  nature,
+  scope,
+}: NewCategory): CreateFinancialCategoryPayload {
+  return { id, name: tidyCategoryName(name), nature, defaultScope: scope };
 }

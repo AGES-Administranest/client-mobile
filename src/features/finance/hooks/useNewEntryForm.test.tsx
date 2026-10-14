@@ -53,7 +53,7 @@ const category = (
   name: string,
   nature: FinancialCategory['nature'],
   defaultScope: FinancialCategory['defaultScope'] = 'PROFESSIONAL',
-): FinancialCategory => ({ id, name, nature, defaultScope });
+): FinancialCategory => ({ id, name, nature, defaultScope, isDefault: true });
 
 const CATEGORIES: FinancialCategory[] = [
   category('cat-other-out', 'Other', 'EXPENSE'),

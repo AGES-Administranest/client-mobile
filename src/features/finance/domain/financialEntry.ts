@@ -14,6 +14,14 @@ export type FinancialCategory = {
   name: string;
   nature: EntryNature;
   defaultScope: EntryScope;
+  isDefault: boolean;
+};
+
+export type CreateFinancialCategoryPayload = {
+  id: string;
+  name: string;
+  nature: EntryNature;
+  defaultScope: EntryScope;
 };
 
 export type FinancialEntry = {
