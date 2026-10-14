@@ -106,6 +106,12 @@ function typeInto(
   return act(() => field.props.onChangeText(value));
 }
 
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+
+afterEach(() => {
+  mounted.splice(0).forEach(renderer => act(() => renderer.unmount()));
+});
+
 async function renderFlow() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
@@ -119,6 +125,7 @@ async function renderFlow() {
       </SafeAreaProvider>,
     );
   });
+  mounted.push(renderer!);
   return renderer!;
 }
 
@@ -382,4 +389,34 @@ test('the saved notice goes away when the next entry starts', async () => {
   await openOptions(renderer);
 
   expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
+});
+
+test('the saved notice goes away by itself after 3 seconds', async () => {
+  jest.useFakeTimers();
+  const elapse = (ms: number) =>
+    act(async () => {
+      jest.advanceTimersByTime(ms);
+    });
+  const renderer = await renderFlow();
+  try {
+    await openOptions(renderer);
+    await pressByText(renderer, 'Lançamento manual');
+    await elapse(1000);
+    await typeInto(renderer, 'Descrição', 'Combustível');
+    await typeInto(renderer, 'Valor (R$)', '18000');
+    await pressByText(renderer, 'Deslocamento');
+    await act(async () => {
+      renderer.root
+        .findByProps({ testID: 'finance-new-entry-save' })
+        .props.onPress();
+    });
+
+    await elapse(2999);
+    expect(textsOf(renderer)).toContain('Lançamento salvo.');
+
+    await elapse(1);
+    expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
+  } finally {
+    jest.useRealTimers();
+  }
 });
