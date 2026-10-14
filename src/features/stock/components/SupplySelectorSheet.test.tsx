@@ -1,3 +1,4 @@
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { SupplySelectorSheet } from './SupplySelectorSheet';
@@ -5,6 +6,11 @@ import {
   formatSupplyPrice,
   type SupplyOption,
 } from '../domain/supplySelection';
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 375, height: 812 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const PROPOFOL: SupplyOption = {
   id: 'item-1',
@@ -36,35 +42,37 @@ async function render({
 }: Overrides = {}) {
   await act(async () => {
     renderer = ReactTestRenderer.create(
-      <SupplySelectorSheet
-        visible
-        onClose={jest.fn()}
-        onConfirm={onConfirm}
-        term="propofol"
-        onTermChange={jest.fn()}
-        options={[PROPOFOL]}
-        isLoading={false}
-        hasError={false}
-        isTermTooShort={false}
-        selected={selected}
-        onSelect={jest.fn()}
-        quantity={quantity}
-        onQuantityChange={jest.fn()}
-        isOverBalance={isOverBalance}
-        canSubmit={canSubmit}
-        title="Adicionar insumo"
-        materialLabel="MATERIAL"
-        searchPlaceholder="Busque pelo nome do item"
-        quantityLabel="QUANTIDADE"
-        confirmLabel="Confirmar"
-        closeLabel="Fechar"
-        emptyMessage="Nenhum item encontrado."
-        errorMessage="Não foi possível buscar os itens."
-        loadingMessage="Buscando..."
-        termTooShortMessage="Digite ao menos 2 caracteres."
-        insufficientStockMessage={INSUFFICIENT}
-        formatPrice={option => formatSupplyPrice(option.price)}
-      />,
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <SupplySelectorSheet
+          visible
+          onClose={jest.fn()}
+          onConfirm={onConfirm}
+          term="propofol"
+          onTermChange={jest.fn()}
+          options={[PROPOFOL]}
+          isLoading={false}
+          hasError={false}
+          isTermTooShort={false}
+          selected={selected}
+          onSelect={jest.fn()}
+          quantity={quantity}
+          onQuantityChange={jest.fn()}
+          isOverBalance={isOverBalance}
+          canSubmit={canSubmit}
+          title="Adicionar insumo"
+          materialLabel="MATERIAL"
+          searchPlaceholder="Busque pelo nome do item"
+          quantityLabel="QUANTIDADE"
+          confirmLabel="Confirmar"
+          closeLabel="Fechar"
+          emptyMessage="Nenhum item encontrado."
+          errorMessage="Não foi possível buscar os itens."
+          loadingMessage="Buscando..."
+          termTooShortMessage="Digite ao menos 2 caracteres."
+          insufficientStockMessage={INSUFFICIENT}
+          formatPrice={option => formatSupplyPrice(option.price)}
+        />
+      </SafeAreaProvider>,
     );
   });
 
