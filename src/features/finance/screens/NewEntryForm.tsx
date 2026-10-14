@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useTranslation, type TranslationKey } from 'shared/i18n';
+import { useTranslation } from 'shared/i18n';
 
 import type { CategoriesState } from '../components/EntryFormFields';
 import { NewEntrySheet } from '../components/NewEntrySheet';
@@ -53,12 +53,19 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
           })),
         };
 
-  const fieldErrors = Object.fromEntries(
-    Object.entries(form.errors).map(([field, code]) => [
-      field,
-      t(`financialEntries.form.errors.${field}.${code}` as TranslationKey),
-    ]),
-  ) as Partial<Record<EntryField, string>>;
+  const { errors } = form;
+  const fieldErrors = {
+    description:
+      errors.description &&
+      t(`financialEntries.form.errors.description.${errors.description}`),
+    amount:
+      errors.amount &&
+      t(`financialEntries.form.errors.amount.${errors.amount}`),
+    date: errors.date && t(`financialEntries.form.errors.date.${errors.date}`),
+    categoryId:
+      errors.categoryId &&
+      t(`financialEntries.form.errors.categoryId.${errors.categoryId}`),
+  } satisfies Record<EntryField, string | undefined>;
 
   const selectCategory = (categoryId: string) => {
     const category = form.categories.find(c => c.id === categoryId);

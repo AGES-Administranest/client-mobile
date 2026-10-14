@@ -233,6 +233,26 @@ test('saving a filled form closes it and confirms the entry was saved', async ()
   expect(texts).toContain('Lançamento salvo.');
 });
 
+test('saving the empty form says what each field is missing', async () => {
+  const renderer = await renderFlow();
+  await openManualForm(renderer);
+
+  await act(async () => {
+    renderer.root
+      .findByProps({ testID: 'finance-new-entry-save' })
+      .props.onPress();
+  });
+
+  expect(createMock).not.toHaveBeenCalled();
+  expect(textsOf(renderer)).toEqual(
+    expect.arrayContaining([
+      'Informe uma descrição.',
+      'Informe o valor.',
+      'Selecione uma categoria.',
+    ]),
+  );
+});
+
 test('a failed save keeps the form open and says why', async () => {
   createMock.mockRejectedValueOnce(new TypeError('Network request failed'));
   const renderer = await renderFlow();
