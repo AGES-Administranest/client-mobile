@@ -1,15 +1,12 @@
-import { Plus } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services';
 import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
 
-import { OutputAdjustmentSheet } from './OutputAdjustmentSheet';
 import { MovementFilters } from '../../../app/components/ui/MovementFilters';
 import {
   MovementList,
@@ -30,15 +27,11 @@ import { useStockSyncState } from '../hooks/StockSyncContext';
 import { useMovementFilters } from '../hooks/useMovementFilters';
 import { useMovementHistory } from '../hooks/useMovementHistory';
 
-const SAVED_MESSAGE_DURATION_MS = 3000;
-
 type MovementHistoryScreenProps = {
-  savedMessageDurationMs?: number;
   searchDebounceMs?: number;
 };
 
 export function MovementHistoryScreen({
-  savedMessageDurationMs = SAVED_MESSAGE_DURATION_MS,
   searchDebounceMs,
 }: MovementHistoryScreenProps = {}) {
   const { t, locale } = useTranslation();
@@ -54,8 +47,6 @@ export function MovementHistoryScreen({
     useMovementHistory(filters, searchDebounceMs);
   const { syncedAt } = useStockSyncState();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
-  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   useEffect(() => onConnectionRestored(retry), [retry]);
 
@@ -66,27 +57,6 @@ export function MovementHistoryScreen({
 
     retry();
   }, [syncedAt, retry]);
-
-  useEffect(() => {
-    if (savedAt === null) {
-      return;
-    }
-
-    const timer = setTimeout(() => setSavedAt(null), savedMessageDurationMs);
-
-    return () => clearTimeout(timer);
-  }, [savedAt, savedMessageDurationMs]);
-
-  const openAdjustment = () => {
-    setSavedAt(null);
-    setIsAdjustmentOpen(true);
-  };
-
-  const finishAdjustment = () => {
-    setIsAdjustmentOpen(false);
-    setSavedAt(current => (current ?? 0) + 1);
-    retry();
-  };
 
   const periodLabel = (range: CalendarRange) => {
     if (range.from === null) {
@@ -146,23 +116,6 @@ export function MovementHistoryScreen({
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background-modal">
       <ScrollView contentContainerClassName="gap-4 px-4 py-4">
-        <Button
-          shape="pill"
-          icon={Plus}
-          onPress={openAdjustment}
-          className="h-12"
-        >
-          <Text>{t('stock.movementHistory.newEntry')}</Text>
-        </Button>
-
-        {savedAt !== null ? (
-          <View className="rounded-xl border border-details-tertiary bg-details-secondary p-3">
-            <Text className="text-sm text-label-primary">
-              {t('stock.movementHistory.savedMessage')}
-            </Text>
-          </View>
-        ) : null}
-
         <View className="gap-1">
           <Text variant="h4">{t('stock.movementHistory.title')}</Text>
           <Text variant="muted">{t('stock.movementHistory.description')}</Text>
@@ -215,12 +168,6 @@ export function MovementHistoryScreen({
           }
         />
       </ScrollView>
-
-      <OutputAdjustmentSheet
-        visible={isAdjustmentOpen}
-        onClose={() => setIsAdjustmentOpen(false)}
-        onSaved={finishAdjustment}
-      />
     </SafeAreaView>
   );
 }
