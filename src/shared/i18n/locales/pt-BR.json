@@ -591,8 +591,10 @@
     "options": {
       "title": "Novo lançamento",
       "description": "Envie a nota ou o pedido em PDF para lançar automaticamente, ou preencha à mão.",
+      "descriptionWithStockWriteOff": "Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque",
       "sendDocument": "Enviar documento (PDF)",
-      "manual": "Lançamento manual"
+      "manual": "Lançamento manual",
+      "stockWriteOff": "Baixa no estoque"
     },
     "documentSoon": {
       "title": "Envio de PDF em breve",
@@ -668,7 +670,8 @@
         "categories": "Não foi possível carregar as categorias."
       }
     },
-    "saved": "Lançamento salvo."
+    "saved": "Lançamento salvo.",
+    "stockWriteOffSaved": "Baixa registrada."
   },
   "tabbar": {
     "day": "Dia-Dia",
