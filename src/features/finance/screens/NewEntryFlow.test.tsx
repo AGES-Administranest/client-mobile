@@ -9,6 +9,7 @@ import {
   type AuthSession,
 } from 'features/auth';
 import { I18nProvider } from 'shared/i18n';
+import { RequestTimeoutError } from 'shared/services/apiClient';
 
 import { NewEntryFlow } from './NewEntryFlow';
 import type { FinancialCategory } from '../domain/financialEntry';
@@ -280,6 +281,33 @@ test('a failed save keeps the form open and says why', async () => {
     'Sem conexão. Tente de novo quando a internet voltar.',
   );
   expect(texts).not.toContain('Lançamento salvo.');
+});
+
+test('a save that gets no answer in time says so, and the form can be closed', async () => {
+  createMock.mockRejectedValueOnce(
+    new RequestTimeoutError('POST', '/financial-entries', 20000),
+  );
+  const renderer = await renderFlow();
+  await openManualForm(renderer);
+  await typeInto(renderer, 'Descrição', 'Combustível');
+  await typeInto(renderer, 'Valor (R$)', '18000');
+  await pressByText(renderer, 'Deslocamento');
+  await act(async () => {
+    renderer.root
+      .findByProps({ testID: 'finance-new-entry-save' })
+      .props.onPress();
+  });
+
+  expect(textsOf(renderer)).toContain(
+    'Sem conexão. Tente de novo quando a internet voltar.',
+  );
+  expect(textsOf(renderer)).toContain('Salvar');
+
+  await act(async () => {
+    renderer.root.findByProps({ accessibilityLabel: 'Fechar' }).props.onPress();
+  });
+
+  expect(textsOf(renderer)).not.toContain('Novo lançamento manual');
 });
 
 test('reopening the form starts a new, empty entry', async () => {

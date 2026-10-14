@@ -6,7 +6,7 @@ import {
   type Account,
   type AuthSession,
 } from 'features/auth';
-import { ApiError } from 'shared/services/apiClient';
+import { ApiError, RequestTimeoutError } from 'shared/services/apiClient';
 
 import { useNewEntryForm } from './useNewEntryForm';
 import type {
@@ -266,6 +266,25 @@ test('a retry after a lost connection sends the same id, so nothing is duplicate
   );
   expect(second).toBe(first);
   expect(current.failure).toBeNull();
+});
+
+test('a save that gets no answer in time can be retried with the same id', async () => {
+  await mount();
+  await fillValidExpense();
+  createMock.mockRejectedValueOnce(
+    new RequestTimeoutError('POST', '/financial-entries', 20000),
+  );
+
+  await submit();
+  expect(current.failure).toBe('financialEntries.form.failures.network');
+  expect(current.isSaving).toBe(false);
+  expect(current.canSubmit).toBe(true);
+
+  await expect(submit()).resolves.toEqual(CREATED);
+  const [first, second] = createMock.mock.calls.map(
+    ([, payload]) => payload.id,
+  );
+  expect(second).toBe(first);
 });
 
 test('a category the API refuses is cleared and the list is fetched again', async () => {

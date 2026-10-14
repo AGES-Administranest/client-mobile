@@ -8,6 +8,8 @@ import {
   type FinancialEntryResponse,
 } from '../domain/financialEntry';
 
+const SAVE_TIMEOUT_MS = 20000;
+
 /** Todas as ativas, dos dois tipos: o formulário troca de tipo sem buscar de novo. */
 export async function fetchFinancialCategories(
   idToken: string,
@@ -25,7 +27,7 @@ export async function createFinancialEntry(
   const response = await apiClient.post<FinancialEntryResponse>(
     '/financial-entries',
     payload,
-    { token: idToken },
+    { token: idToken, timeoutMs: SAVE_TIMEOUT_MS },
   );
   return toFinancialEntry(response);
 }

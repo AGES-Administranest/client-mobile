@@ -1,4 +1,4 @@
-import { ApiError } from 'shared/services/apiClient';
+import { ApiError, RequestTimeoutError } from 'shared/services/apiClient';
 
 import {
   createFinancialEntry,
@@ -98,4 +98,25 @@ test('keeps the backend error code so the form can explain it', async () => {
     status: 400,
     code: 'FINANCIAL_CATEGORY_INVALID',
   });
+});
+
+test('stops waiting for a save after 20 s, as a network failure the form can retry', async () => {
+  jest.useFakeTimers();
+  try {
+    fetchMock.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) =>
+          init.signal?.addEventListener('abort', () =>
+            reject(new Error('The operation was aborted.')),
+          ),
+        ),
+    );
+
+    const failure = createFinancialEntry(ID_TOKEN, PAYLOAD).catch(e => e);
+    jest.advanceTimersByTime(20000);
+
+    expect(await failure).toBeInstanceOf(RequestTimeoutError);
+  } finally {
+    jest.useRealTimers();
+  }
 });
