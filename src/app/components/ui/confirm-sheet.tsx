@@ -1,4 +1,5 @@
 import { Check, type LucideIcon, X } from 'lucide-react-native';
+import { useEffect, useRef } from 'react';
 import { Animated, Modal, Pressable, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -24,6 +25,12 @@ type ConfirmSheetProps = {
    * confirmar, para perguntas sem risco em que as duas respostas pesam igual.
    */
   cancelAppearance?: 'danger' | 'button';
+  /**
+   * Chamado quando o sheet terminou de fechar (fim da animação). Serve para
+   * abrir outro Modal em seguida: o iOS não mostra um segundo Modal enquanto o
+   * primeiro ainda está na tela.
+   */
+  onClosed?: () => void;
 };
 
 /**
@@ -44,8 +51,16 @@ function ConfirmSheet({
   confirmIcon = Check,
   cancelAppearance = 'danger',
   onCancel,
+  onClosed,
 }: ConfirmSheetProps) {
   const sheet = useSheetAnimation(visible, onCancel);
+  const wasRendered = useRef(sheet.isRendered);
+  const onClosedRef = useRef(onClosed);
+  onClosedRef.current = onClosed;
+  useEffect(() => {
+    if (wasRendered.current && !sheet.isRendered) onClosedRef.current?.();
+    wasRendered.current = sheet.isRendered;
+  }, [sheet.isRendered]);
 
   return (
     <Modal
