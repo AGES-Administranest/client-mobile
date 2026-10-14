@@ -11,7 +11,26 @@
   "calculator": {
     "title": "Calculadora de hora",
     "subtitle": "Descubra o valor mínimo que deve cobrar por hora trabalhada",
-    "back": "Voltar"
+    "back": "Voltar",
+    "fixedCosts": {
+      "title": "Custos fixos mensais",
+      "professional": "Despesas profissionais (mês)",
+      "personal": "Despesas pessoais (mês)",
+      "depreciation": "Depreciação de equipamentos",
+      "transport": "Custo de transporte/veículo",
+      "total": "Total de custos fixos",
+      "automatic": "automático · do app",
+      "transportField": "Transporte / Veículo (R$/mês)",
+      "transportHint": "Registre deslocamentos como despesa na aba Finanças",
+      "loading": "Carregando custos fixos...",
+      "errors": {
+        "required": "Informe o valor do transporte (use 0 se não houver).",
+        "notNumeric": "Digite apenas números.",
+        "negative": "O valor não pode ser negativo.",
+        "generic": "Não foi possível salvar. O valor anterior foi mantido.",
+        "session": "Sua sessão expirou. Entre novamente."
+      }
+    }
   },
   "inventory": {
     "alert": {
@@ -77,6 +96,89 @@
     "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
     "deleteConfirmTitle": "Excluir item",
     "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
+  },
+  "equipment": {
+    "loading": "Carregando equipamentos...",
+    "empty": "Nenhum equipamento cadastrado. Cadastre o primeiro para acompanhar a depreciação.",
+    "addButton": "Adicionar equipamento",
+    "errorLoad": "Não foi possível carregar os equipamentos.",
+    "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "summary": {
+      "label": "Depreciação total/mês",
+      "countSingular": "{{count}} equipamento · {{annual}}/ano",
+      "countPlural": "{{count}} equipamentos · {{annual}}/ano"
+    },
+    "card": {
+      "perMonth": "/mês",
+      "since": "Desde {{date}} · Valor atual {{value}}",
+      "lifeUsed": "{{percent}}% da vida útil utilizada",
+      "endOfLife": "Fim da vida útil"
+    },
+    "form": {
+      "title": {
+        "create": "Novo equipamento",
+        "edit": "Editar equipamento"
+      },
+      "confirm": {
+        "create": "Confirmar",
+        "edit": "Salvar"
+      },
+      "close": "Fechar",
+      "labels": {
+        "name": "Nome do equipamento",
+        "purchaseValue": "Valor de compra (R$)",
+        "acquisitionDate": "Data de aquisição",
+        "usefulLifeYears": "Vida útil estimada",
+        "notes": "Observações"
+      },
+      "placeholders": {
+        "name": "Ex: Vaporizador Matrx VIP 3000",
+        "purchaseValue": "0,00",
+        "acquisitionDate": "DD/MM/AAAA",
+        "usefulLifeYears": "Ex.: 5 anos",
+        "notes": "Calibração, garantia, etc."
+      },
+      "usefulLifeHint": "Se não informar, consideramos 10 anos (10% ao ano)",
+      "usefulLifeLegacy": "Vida útil atual: {{months}} meses. Informe em anos para alterar",
+      "previewUnavailable": "—",
+      "previewLifeEnded": "Vida útil já encerrada",
+      "errorSave": "Não foi possível salvar o equipamento.",
+      "errors": {
+        "name": {
+          "required": "Informe o nome do equipamento.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+          "tooLong": "O nome pode ter no máximo 120 caracteres."
+        },
+        "purchaseValue": {
+          "required": "Informe o valor de compra.",
+          "invalidNumber": "Valor inválido. Use o formato 1.234,56.",
+          "mustBePositive": "O valor precisa ser maior que zero."
+        },
+        "acquisitionDate": {
+          "required": "Informe a data de aquisição.",
+          "invalidDate": "Data inválida. Use o formato DD/MM/AAAA.",
+          "futureDate": "A data de aquisição não pode ser futura."
+        },
+        "usefulLifeYears": {
+          "invalidNumber": "Informe um número de anos.",
+          "mustBeInteger": "Informe anos inteiros, sem casas decimais.",
+          "mustBePositive": "A vida útil precisa ser maior que zero.",
+          "tooLarge": "A vida útil pode ter no máximo 100 anos."
+        },
+        "notes": {
+          "tooLong": "As observações podem ter no máximo 1000 caracteres."
+        }
+      },
+      "previewLabel": "Depreciação estimada:",
+      "previewValue": "{{value}}/mês",
+      "startEdit": "Editar",
+      "delete": "Excluir",
+      "usefulLifeView": {
+        "year": "{{count}} ano",
+        "years": "{{count}} anos",
+        "months": "{{count}} meses"
+      }
+    }
   },
   "stockEntry": {
     "trigger": "Entradas",
@@ -998,5 +1100,35 @@
   },
   "home": {
     "greeting": "Olá, Dr. {{name}}"
+  },
+  "pricing": {
+    "onboarding": {
+      "message": "Preencha os campos para que os valores sejam calculados",
+      "loading": "Carregando suas metas",
+      "loadFailure": "Não foi possível carregar suas metas."
+    },
+    "goalForm": {
+      "title": "Metas",
+      "labels": {
+        "monthlyIncomeGoal": "Meta de renda líquida mensal (R$)",
+        "weeklyHours": "Horas disponíveis por semana",
+        "safetyMarginPct": "Margem de segurança (%)"
+      },
+      "weeklyHoursHint": "Conte as horas em que você fica disponível para trabalhar, incluindo deslocamentos e períodos ociosos, não só as horas que você cobra.",
+      "save": "Salvar metas",
+      "saving": "Salvando…",
+      "errors": {
+        "required": "Preencha este campo",
+        "invalid": "Digite um número válido",
+        "tooManyDecimals": "Use no máximo 2 casas decimais",
+        "tooLarge": "O valor máximo é R$ 999.999.999.999,99",
+        "notPositive": "O valor deve ser maior que zero",
+        "tooHigh": "Uma semana tem no máximo 168 horas",
+        "outOfRange": "A margem deve ficar entre 0% e 100%"
+      },
+      "failures": {
+        "save": "Não foi possível salvar as metas. Tente novamente."
+      }
+    }
   }
 }

@@ -5,8 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import {
+  PricingGoalsSection,
+  PricingOnboardingSection,
+} from 'features/pricing';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundPrimary } from 'theme/colors';
+
+import { FixedCostsSection } from './FixedCostsSection';
 
 type CalculatorScreenProps = {
   visible: boolean;
@@ -58,7 +64,14 @@ export function CalculatorScreen({ visible, onClose }: CalculatorScreenProps) {
           </View>
         </View>
 
-        <ScrollView contentContainerClassName="gap-[18px] px-5 pb-10 pt-2" />
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerClassName="gap-[18px] px-5 pb-10 pt-2"
+        >
+          <PricingGoalsSection />
+          <FixedCostsSection />
+          <PricingOnboardingSection />
+        </ScrollView>
       </View>
     </Modal>
   );
