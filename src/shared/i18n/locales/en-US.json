@@ -679,6 +679,18 @@
         "categories": "Could not load the categories."
       }
     },
+    "categoryField": {
+      "placeholder": "Type the category name",
+      "add": "Add category",
+      "newPlaceholder": "Type the new category name",
+      "create": "Create category",
+      "noResults": "No categories found.",
+      "created": "Category created.",
+      "createFailed": "Could not create the category. Try again.",
+      "errors": {
+        "tooLong": "Use up to 40 characters."
+      }
+    },
     "saved": "Entry saved.",
     "stockWriteOffSaved": "Write-off saved."
   },

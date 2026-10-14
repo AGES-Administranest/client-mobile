@@ -679,6 +679,18 @@
         "categories": "Não foi possível carregar as categorias."
       }
     },
+    "categoryField": {
+      "placeholder": "Digite o nome da categoria",
+      "add": "Adicionar Categoria",
+      "newPlaceholder": "Digite o nome da nova categoria",
+      "create": "Criar categoria",
+      "noResults": "Nenhuma categoria encontrada.",
+      "created": "Categoria criada.",
+      "createFailed": "Não foi possível criar a categoria. Tente de novo.",
+      "errors": {
+        "tooLong": "Use até 40 caracteres."
+      }
+    },
     "saved": "Lançamento salvo.",
     "stockWriteOffSaved": "Baixa registrada."
   },
