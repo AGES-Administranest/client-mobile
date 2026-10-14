@@ -15,9 +15,18 @@ import type {
 } from 'app/components/ui/item-modal/item-modal';
 import { SegmentedControl } from 'app/components/ui/segmented-control';
 import { Text } from 'app/components/ui/text';
+import {
+  clampPercent,
+  EquipmentList,
+  formatMonthYear,
+  useEquipmentList,
+  type Equipment,
+  type EquipmentFormTarget,
+} from 'features/equipment';
 import { StockEntryFlow } from 'features/stockEntry';
 import { useTranslation } from 'shared/i18n';
 import type { TranslationKey } from 'shared/i18n/dictionary';
+import { formatCurrency } from 'shared/utils/currency';
 
 import {
   ALL_CATEGORIES,
@@ -26,6 +35,68 @@ import {
 } from '../domain/materialsFilter';
 import { materialsErrorKey } from '../hooks/materialsErrorKeys';
 import { useMaterialsScreen } from '../hooks/useMaterialsScreen';
+
+function EquipmentSegment() {
+  const { t, locale } = useTranslation();
+  const { equipments, summary, isLoading, error, refresh } = useEquipmentList();
+  // TODO: abrir EquipmentFormSheet (próxima task) a partir deste alvo.
+  const [, setFormTarget] = useState<EquipmentFormTarget | null>(null);
+
+  const items = equipments.map(equipment => ({
+    equipment,
+    monthlyValue: formatCurrency(equipment.monthlyDepreciation, locale),
+    monthlyUnitLabel: t('equipment.card.perMonth'),
+    sinceLabel: t('equipment.card.since', {
+      date: formatMonthYear(equipment.acquisitionDate, locale),
+      value: formatCurrency(equipment.currentValue, locale, {
+        showCents: false,
+      }),
+    }),
+    progressPercent: clampPercent(equipment.usefulLifeUsedPct),
+    progressLabel: t('equipment.card.lifeUsed', {
+      percent: Math.round(clampPercent(equipment.usefulLifeUsedPct)),
+    }),
+    endOfLifeLabel: equipment.endOfLife
+      ? t('equipment.card.endOfLife')
+      : undefined,
+  }));
+
+  return (
+    <EquipmentList
+      items={items}
+      summary={
+        summary
+          ? {
+              label: t('equipment.summary.label'),
+              value: formatCurrency(summary.monthlyTotal, locale),
+              detail: t(
+                summary.count === 1
+                  ? 'equipment.summary.countSingular'
+                  : 'equipment.summary.countPlural',
+                {
+                  count: summary.count,
+                  annual: formatCurrency(summary.yearlyTotal, locale, {
+                    showCents: false,
+                  }),
+                },
+              ),
+            }
+          : null
+      }
+      isLoading={isLoading}
+      errorMessage={error ? t(error) : null}
+      loadingLabel={t('equipment.loading')}
+      emptyMessage={t('equipment.empty')}
+      retryLabel={t('common.retry')}
+      addLabel={t('equipment.addButton')}
+      onRetry={refresh}
+      onAddPress={() => setFormTarget({ mode: 'create' })}
+      onEquipmentPress={(equipment: Equipment) =>
+        setFormTarget({ mode: 'edit', equipment })
+      }
+    />
+  );
+}
 
 export function MaterialsScreen() {
   const { t } = useTranslation();
@@ -119,55 +190,61 @@ export function MaterialsScreen() {
         value={segment}
         onValueChange={onSegmentChange}
       />
-      <CategoryFilter
-        bordered={false}
-        options={categoryOptions}
-        value={category}
-        onValueChange={onCategoryChange}
-      />
-      {(error || actionError) && (
-        <View className="rounded-xl bg-destructive/10 px-4 py-3">
-          <Text className="text-sm text-destructive">
-            {t((error ?? actionError) as TranslationKey)}
-          </Text>
-        </View>
-      )}
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="flex-grow gap-3"
-      >
-        {!isLoading && items.length === 0 && !error && (
-          <View className="flex-1 items-center justify-center">
-            <EmptyState
-              icon={PackageSearch}
-              message={t('materials.emptyFilter')}
-            />
-          </View>
-        )}
-        {items.map(item => (
-          <MaterialCard
-            key={item.id}
-            name={item.name}
-            category={item.category}
-            price={item.price}
-            unit={item.unit}
-            quantity={item.quantity}
-            minQuantity={item.minQuantity}
-            belowMinimum={item.belowMinimum}
-            onPress={() => openDetail(getStockItem(item.id))}
+      {segment === 'equipment' ? (
+        <EquipmentSegment />
+      ) : (
+        <>
+          <CategoryFilter
+            bordered={false}
+            options={categoryOptions}
+            value={category}
+            onValueChange={onCategoryChange}
           />
-        ))}
-      </ScrollView>
-      <StockEntryFlow onTypeItem={openCreate} />
-      <Button
-        shape="pill"
-        icon={Plus}
-        className="h-[49px] w-full mb-[16px]"
-        disabled={isSaving}
-        onPress={openCreate}
-      >
-        <Text>{t('materials.addButton')}</Text>
-      </Button>
+          {(error || actionError) && (
+            <View className="rounded-xl bg-destructive/10 px-4 py-3">
+              <Text className="text-sm text-destructive">
+                {t((error ?? actionError) as TranslationKey)}
+              </Text>
+            </View>
+          )}
+          <ScrollView
+            className="flex-1"
+            contentContainerClassName="flex-grow gap-3"
+          >
+            {!isLoading && items.length === 0 && !error && (
+              <View className="flex-1 items-center justify-center">
+                <EmptyState
+                  icon={PackageSearch}
+                  message={t('materials.emptyFilter')}
+                />
+              </View>
+            )}
+            {items.map(item => (
+              <MaterialCard
+                key={item.id}
+                name={item.name}
+                category={item.category}
+                price={item.price}
+                unit={item.unit}
+                quantity={item.quantity}
+                minQuantity={item.minQuantity}
+                belowMinimum={item.belowMinimum}
+                onPress={() => openDetail(getStockItem(item.id))}
+              />
+            ))}
+          </ScrollView>
+          <StockEntryFlow onTypeItem={openCreate} />
+          <Button
+            shape="pill"
+            icon={Plus}
+            className="h-[49px] w-full mb-[16px]"
+            disabled={isSaving}
+            onPress={openCreate}
+          >
+            <Text>{t('materials.addButton')}</Text>
+          </Button>
+        </>
+      )}
 
       <ItemModal
         mode={modalMode ?? 'create'}

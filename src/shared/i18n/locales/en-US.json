@@ -97,6 +97,24 @@
     "deleteConfirmTitle": "Delete item",
     "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
   },
+  "equipment": {
+    "loading": "Loading equipment...",
+    "empty": "No equipment registered. Register the first one to track depreciation.",
+    "addButton": "Add equipment",
+    "errorLoad": "Could not load the equipment.",
+    "errorSession": "Your session has expired. Sign out and sign in again.",
+    "summary": {
+      "label": "Total depreciation/month",
+      "countSingular": "{{count}} equipment · {{annual}}/year",
+      "countPlural": "{{count}} equipment · {{annual}}/year"
+    },
+    "card": {
+      "perMonth": "/month",
+      "since": "Since {{date}} · Current value {{value}}",
+      "lifeUsed": "{{percent}}% of useful life used",
+      "endOfLife": "End of useful life"
+    }
+  },
   "stockEntry": {
     "trigger": "Entries",
     "triggerWithCount": "Entries ({{count}})",

@@ -97,6 +97,24 @@
     "deleteConfirmTitle": "Excluir item",
     "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
   },
+  "equipment": {
+    "loading": "Carregando equipamentos...",
+    "empty": "Nenhum equipamento cadastrado. Cadastre o primeiro para acompanhar a depreciação.",
+    "addButton": "Adicionar equipamento",
+    "errorLoad": "Não foi possível carregar os equipamentos.",
+    "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "summary": {
+      "label": "Depreciação total/mês",
+      "countSingular": "{{count}} equipamento · {{annual}}/ano",
+      "countPlural": "{{count}} equipamentos · {{annual}}/ano"
+    },
+    "card": {
+      "perMonth": "/mês",
+      "since": "Desde {{date}} · Valor atual {{value}}",
+      "lifeUsed": "{{percent}}% da vida útil utilizada",
+      "endOfLife": "Fim da vida útil"
+    }
+  },
   "stockEntry": {
     "trigger": "Entradas",
     "triggerWithCount": "Entradas ({{count}})",
