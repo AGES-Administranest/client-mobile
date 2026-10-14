@@ -62,7 +62,7 @@ export function SearchSelect({
   onChangeText,
   onSelect,
 }: SearchSelectProps) {
-  const [focused, setFocused] = useState(false);
+  const [inUse, setInUse] = useState(false);
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -81,23 +81,28 @@ export function SearchSelect({
 
   function handleFocus(): void {
     cancelPendingClose();
-    setFocused(true);
+    setInUse(true);
+  }
+
+  function handleChangeText(next: string): void {
+    setInUse(true);
+    onChangeText(next);
   }
 
   function handleBlur(): void {
     blurTimeout.current = setTimeout(
-      () => setFocused(false),
+      () => setInUse(false),
       BLUR_CLOSE_DELAY_MS,
     );
   }
 
   function closeAndThen(action: () => void): void {
     cancelPendingClose();
-    setFocused(false);
+    setInUse(false);
     action();
   }
 
-  const visibleStatus = focused ? status : 'idle';
+  const visibleStatus = inUse ? status : 'idle';
   const listIsOpen = hasRowsToShow(visibleStatus, addOption !== undefined);
 
   return (
@@ -116,7 +121,7 @@ export function SearchSelect({
         placeholder={placeholder}
         placeholderTextColor={LabelPlaceholder}
         value={text}
-        onChangeText={onChangeText}
+        onChangeText={handleChangeText}
         onFocus={handleFocus}
         onBlur={handleBlur}
         autoCorrect={false}

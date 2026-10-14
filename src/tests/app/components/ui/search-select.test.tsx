@@ -124,6 +124,22 @@ test('picking a row selects that option and closes the list', async () => {
   });
 });
 
+test('typing again after a pick opens the list while the input keeps focus', async () => {
+  const { renderer } = await renderSelect();
+  await focus(renderer);
+  await act(async () => {
+    rows(renderer)[0].props.onPress();
+  });
+  expect(rows(renderer)).toHaveLength(0);
+
+  await act(async () => {
+    input(renderer).props.onChangeText('Imp');
+  });
+
+  expect(rowLabels(renderer)).toEqual(['Insumos', 'Impostos e taxas']);
+  expect(input(renderer).props.accessibilityState).toEqual({ expanded: true });
+});
+
 test('marks only the chosen option as selected', async () => {
   const { renderer } = await renderSelect({ selectedId: 'taxes' });
   await focus(renderer);
