@@ -2,11 +2,11 @@ import { Check } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { ActionButton } from 'app/components/ui';
+import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 
 import { EntryFormFields, type EntryFormTexts } from './EntryFormFields';
-import { EntrySheet } from './EntrySheet';
 
 type NewEntrySheetTexts = {
   title: string;
@@ -41,7 +41,7 @@ export function NewEntrySheet({
   ...fieldProps
 }: NewEntrySheetProps) {
   return (
-    <EntrySheet
+    <BottomSheet
       visible={visible}
       title={texts.title}
       closeLabel={texts.close}
@@ -67,6 +67,6 @@ export function NewEntrySheet({
       }
     >
       <EntryFormFields {...fieldProps} texts={texts.fields} />
-    </EntrySheet>
+    </BottomSheet>
   );
 }

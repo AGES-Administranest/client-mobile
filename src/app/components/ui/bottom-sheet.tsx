@@ -15,37 +15,35 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from 'app/components/ui/text';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
-// Faixa do fundo escurecido que continua aparecendo acima do sheet mais alto,
-// para ainda dar para fechar tocando fora.
-const SHEET_TOP_GAP = 8;
+const TAP_OUTSIDE_TO_CLOSE_GAP = 8;
 
 const styles = StyleSheet.create({
-  // Sem encolher, o teclado do iOS empurraria o topo do sheet para fora da
-  // tela em vez de deixar a lista de campos rolar.
-  sheet: { flexShrink: 1 },
+  shrinkAboveKeyboard: { flexShrink: 1 },
 });
 
-type EntrySheetProps = {
+type BottomSheetProps = {
   visible: boolean;
   title: string;
   closeLabel: string;
   onClose: () => void;
-  children: ReactNode;
+  /** iOS: abra o próximo sheet aqui, não no onClose. */
+  onClosed?: () => void;
   footer?: ReactNode;
+  children: ReactNode;
 };
 
-/** Mesmo esqueleto do sheet de clínicas: o formulário cabe sem rolagem, como no Figma. */
-export function EntrySheet({
+function BottomSheet({
   visible,
   title,
   closeLabel,
   onClose,
-  children,
+  onClosed,
   footer,
-}: EntrySheetProps) {
+  children,
+}: BottomSheetProps) {
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const sheet = useSheetAnimation(visible, onClose);
+  const sheet = useSheetAnimation(visible, onClose, onClosed);
 
   return (
     <Modal
@@ -53,10 +51,12 @@ export function EntrySheet({
       transparent
       animationType="none"
       onRequestClose={onClose}
+      aria-label={title}
     >
       <KeyboardAvoidingView
         className="flex-1 justify-end"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        onAccessibilityEscape={onClose}
       >
         <Animated.View
           style={[StyleSheet.absoluteFill, { opacity: sheet.progress }]}
@@ -74,9 +74,9 @@ export function EntrySheet({
         <Animated.View
           {...sheet.panHandlers}
           style={[
-            styles.sheet,
+            styles.shrinkAboveKeyboard,
             {
-              maxHeight: windowHeight - insets.top - SHEET_TOP_GAP,
+              maxHeight: windowHeight - insets.top - TAP_OUTSIDE_TO_CLOSE_GAP,
               ...sheet.sheetStyle,
             },
           ]}
@@ -93,7 +93,6 @@ export function EntrySheet({
 
             <View className="h-px bg-border-primary" />
 
-            {/* Só rola em tela pequena ou com o teclado aberto. */}
             <ScrollView
               keyboardShouldPersistTaps="handled"
               contentContainerClassName="gap-3.5 pb-1"
@@ -108,3 +107,6 @@ export function EntrySheet({
     </Modal>
   );
 }
+
+export { BottomSheet };
+export type { BottomSheetProps };
