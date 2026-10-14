@@ -1,5 +1,8 @@
-// fetch rejeita com TypeError quando não há rede; resposta HTTP de erro vira
-// ApiError. Só o primeiro caso pode esperar a conexão voltar.
+import { NetworkError } from 'shared/api';
+
+// Só a falha sem resposta pode esperar a conexão voltar; uma resposta HTTP de
+// erro vira ApiError. O apiClient entrega essa falha como NetworkError; o
+// TypeError é como o fetch da web a sinaliza.
 export function isNetworkError(error: unknown): boolean {
-  return error instanceof TypeError;
+  return error instanceof NetworkError || error instanceof TypeError;
 }

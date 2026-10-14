@@ -1,3 +1,5 @@
+import { NetworkError } from 'shared/api';
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 /**
@@ -41,7 +43,7 @@ async function request<T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetchFromApi(path, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -66,6 +68,24 @@ async function request<T>(
   }
 
   return response.json() as Promise<T>;
+}
+
+// O fetch só rejeita quando nenhuma resposta chegou: sem rede, servidor fora
+// do ar ou pedido cancelado. No celular ele é o expo/fetch, que rejeita com um
+// Error comum em vez do TypeError da web, então o tipo da falha é dado aqui.
+async function fetchFromApi(
+  path: string,
+  init: RequestInit & { method: string },
+): Promise<Response> {
+  try {
+    return await fetch(`${BASE_URL}${path}`, init);
+  } catch (cause) {
+    const reason = cause instanceof Error ? cause.message : String(cause);
+    throw new NetworkError(
+      `${init.method} ${path} did not reach the API: ${reason}`,
+      cause,
+    );
+  }
 }
 
 export const apiClient = {
