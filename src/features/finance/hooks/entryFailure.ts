@@ -20,7 +20,6 @@ export function isCategoryInvalidError(error: unknown): boolean {
   );
 }
 
-/** Sessão e rede contam como no salvar; o resto vira "não carregou as categorias". */
 export function toCategoriesFailureKey(error: unknown): TranslationKey {
   const key = toEntryFailureKey(error);
   return key === 'financialEntries.form.failures.session' ||

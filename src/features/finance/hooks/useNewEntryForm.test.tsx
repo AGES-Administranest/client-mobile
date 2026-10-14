@@ -145,7 +145,7 @@ describe('with the clock on 08/10/2026', () => {
     expect(current.draft.date).toBe('08/10/2026');
   });
 
-  test('reset brings the whole form back to its start, failure included', async () => {
+  test('starting a new entry brings the whole form back to its start, failure included', async () => {
     await mount();
     await fillValidExpense();
     await act(async () => current.setNature('INCOME'));
@@ -157,7 +157,7 @@ describe('with the clock on 08/10/2026', () => {
     await submit();
     expect(current.failure).not.toBeNull();
 
-    await act(async () => current.reset());
+    await act(async () => current.startNewEntry());
 
     expect(current.draft).toEqual({
       nature: 'EXPENSE',
@@ -308,12 +308,12 @@ test.each([
   expect(current.isSaving).toBe(false);
 });
 
-test('the next entry after a reset gets a new id', async () => {
+test('the next entry gets a new id', async () => {
   await mount();
   await fillValidExpense();
   await submit();
 
-  await act(async () => current.reset());
+  await act(async () => current.startNewEntry());
   await fillValidExpense();
   await submit();
 
@@ -342,7 +342,7 @@ test('two taps on save before the answer send a single request', async () => {
   expect(current.isSaving).toBe(false);
 });
 
-test('the answer of a save started before a reset does not touch the new form', async () => {
+test('the answer of a save started before a new entry does not touch it', async () => {
   await mount();
   await fillValidExpense();
   let fail: (error: unknown) => void = () => {};
@@ -353,7 +353,7 @@ test('the answer of a save started before a reset does not touch the new form', 
     current.submit();
   });
 
-  await act(async () => current.reset());
+  await act(async () => current.startNewEntry());
   await act(async () => current.chooseCategory(CATEGORIES[1]));
   await act(async () =>
     fail(new ApiError('Invalid category', 'FINANCIAL_CATEGORY_INVALID', 400)),

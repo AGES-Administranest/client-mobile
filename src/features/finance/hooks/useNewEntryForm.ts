@@ -38,22 +38,19 @@ export type CategoriesStatus = 'loading' | 'ready' | 'failed';
 
 export type NewEntryFormState = {
   draft: EntryDraft;
-  /** Vazio até a primeira tentativa de salvar; depois acompanha cada mudança. */
   errors: EntryDraftErrors;
   failure: TranslationKey | null;
   isSaving: boolean;
   canSubmit: boolean;
-  /** Só as do tipo escolhido, já ordenadas. */
   categories: FinancialCategory[];
   categoriesStatus: CategoriesStatus;
-  /** Por que a lista não veio: sessão, rede ou outro erro. */
   categoriesFailure: TranslationKey | null;
   setNature: (nature: EntryNature) => void;
   setField: (field: EntryTextField, value: string) => void;
   chooseCategory: (category: FinancialCategory) => void;
   setScope: (scope: EntryScope) => void;
   reloadCategories: () => void;
-  reset: () => void;
+  startNewEntry: () => void;
   submit: () => Promise<FinancialEntry | null>;
 };
 
@@ -63,7 +60,7 @@ export function useNewEntryForm(): NewEntryFormState {
   const [draft, setDraft] = useState<EntryDraft>(() =>
     createEmptyDraft(new Date()),
   );
-  const [submitted, setSubmitted] = useState(false);
+  const [hasTriedToSave, setHasTriedToSave] = useState(false);
   const [failure, setFailure] = useState<TranslationKey | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [allCategories, setAllCategories] = useState<FinancialCategory[]>([]);
@@ -76,8 +73,7 @@ export function useNewEntryForm(): NewEntryFormState {
   // resposta se perder, reenviar o mesmo id não duplica o lançamento.
   const entryId = useRef<string | null>(null);
   entryId.current ??= randomUUID();
-  // Cada reset começa um formulário novo: a resposta de um envio anterior
-  // não pode mais mexer nele.
+  // Um lançamento novo não pode receber a resposta de um envio anterior.
   const formGeneration = useRef(0);
   const isSending = useRef(false);
   const isMounted = useRef(true);
@@ -113,8 +109,8 @@ export function useNewEntryForm(): NewEntryFormState {
   }, [idToken, categoriesVersion]);
 
   const errors = useMemo(
-    () => (submitted ? validateEntryDraft(draft) : {}),
-    [submitted, draft],
+    () => (hasTriedToSave ? validateEntryDraft(draft) : {}),
+    [hasTriedToSave, draft],
   );
 
   const categories = useMemo(
@@ -145,12 +141,17 @@ export function useNewEntryForm(): NewEntryFormState {
     setCategoriesVersion(current => current + 1);
   }, []);
 
-  const reset = useCallback(() => {
+  const forgetRejectedCategory = useCallback(() => {
+    setDraft(current => ({ ...current, categoryId: null }));
+    reloadCategories();
+  }, [reloadCategories]);
+
+  const startNewEntry = useCallback(() => {
     formGeneration.current += 1;
     isSending.current = false;
     entryId.current = randomUUID();
     setDraft(createEmptyDraft(new Date()));
-    setSubmitted(false);
+    setHasTriedToSave(false);
     setFailure(null);
     setIsSaving(false);
   }, []);
@@ -160,7 +161,7 @@ export function useNewEntryForm(): NewEntryFormState {
     if (isSending.current) {
       return null;
     }
-    setSubmitted(true);
+    setHasTriedToSave(true);
     setFailure(null);
 
     if (!isEntryDraftValid(validateEntryDraft(draft))) {
@@ -179,12 +180,7 @@ export function useNewEntryForm(): NewEntryFormState {
       );
     } catch (error) {
       if (!isCurrent()) return null;
-      // Categoria desativada ou de outro tipo: some da escolha e a lista
-      // é buscada de novo.
-      if (isCategoryInvalidError(error)) {
-        setDraft(current => ({ ...current, categoryId: null }));
-        setCategoriesVersion(current => current + 1);
-      }
+      if (isCategoryInvalidError(error)) forgetRejectedCategory();
       setFailure(toEntryFailureKey(error));
       return null;
     } finally {
@@ -193,7 +189,7 @@ export function useNewEntryForm(): NewEntryFormState {
         setIsSaving(false);
       }
     }
-  }, [draft, idToken]);
+  }, [draft, idToken, forgetRejectedCategory]);
 
   return {
     draft,
@@ -209,7 +205,7 @@ export function useNewEntryForm(): NewEntryFormState {
     chooseCategory,
     setScope,
     reloadCategories,
-    reset,
+    startNewEntry,
     submit,
   };
 }

@@ -21,14 +21,13 @@ type NewEntryFormProps = {
 export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
   const { t } = useTranslation();
   const form = useNewEntryForm();
-  const { reset } = form;
+  const { startNewEntry } = form;
 
-  // Cada abertura é um lançamento novo: data de hoje, campos vazios e outro id.
   useEffect(() => {
     if (visible) {
-      reset();
+      startNewEntry();
     }
-  }, [visible, reset]);
+  }, [visible, startNewEntry]);
 
   const categoryLabel = (category: FinancialCategory) => {
     const key = defaultCategoryKey(category);
