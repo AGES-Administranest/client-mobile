@@ -20,12 +20,46 @@ export function isCategoryInvalidError(error: unknown): boolean {
   );
 }
 
-export function toCategoriesFailureKey(error: unknown): TranslationKey {
+export function duplicatedCategoryId(error: unknown): string | null {
+  if (
+    !(error instanceof ApiError) ||
+    error.code !== 'FINANCIAL_CATEGORY_DUPLICATED'
+  ) {
+    return null;
+  }
+  const id = error.details?.id;
+  return typeof id === 'string' ? id : null;
+}
+
+export function isCategoryIdConflictError(error: unknown): boolean {
+  return (
+    error instanceof ApiError && error.code === 'FINANCIAL_CATEGORY_ID_CONFLICT'
+  );
+}
+
+function sessionOrNetworkFailureKey(
+  error: unknown,
+  otherwise: TranslationKey,
+): TranslationKey {
   const key = toEntryFailureKey(error);
   return key === 'financialEntries.form.failures.session' ||
     key === 'financialEntries.form.failures.network'
     ? key
-    : 'financialEntries.form.failures.categories';
+    : otherwise;
+}
+
+export function toCategoriesFailureKey(error: unknown): TranslationKey {
+  return sessionOrNetworkFailureKey(
+    error,
+    'financialEntries.form.failures.categories',
+  );
+}
+
+export function toNewCategoryFailureKey(error: unknown): TranslationKey {
+  return sessionOrNetworkFailureKey(
+    error,
+    'financialEntries.categoryField.createFailed',
+  );
 }
 
 export function toEntryFailureKey(error: unknown): TranslationKey {

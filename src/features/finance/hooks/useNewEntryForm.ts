@@ -7,9 +7,12 @@ import type { TranslationKey } from 'shared/i18n';
 import {
   isCategoryInvalidError,
   requireToken,
-  toCategoriesFailureKey,
   toEntryFailureKey,
 } from './entryFailure';
+import {
+  useFinancialCategories,
+  type CategoriesStatus,
+} from './useFinancialCategories';
 import {
   changeNature,
   createEmptyDraft,
@@ -29,12 +32,7 @@ import type {
   FinancialCategory,
   FinancialEntry,
 } from '../domain/financialEntry';
-import {
-  createFinancialEntry,
-  fetchFinancialCategories,
-} from '../services/financialEntryService';
-
-export type CategoriesStatus = 'loading' | 'ready' | 'failed';
+import { createFinancialEntry } from '../services/financialEntryService';
 
 export type NewEntryFormState = {
   draft: EntryDraft;
@@ -48,6 +46,8 @@ export type NewEntryFormState = {
   setNature: (nature: EntryNature) => void;
   setField: (field: EntryTextField, value: string) => void;
   chooseCategory: (category: FinancialCategory) => void;
+  clearCategory: () => void;
+  addCategory: (category: FinancialCategory) => void;
   setScope: (scope: EntryScope) => void;
   reloadCategories: () => void;
   startNewEntry: () => void;
@@ -63,12 +63,13 @@ export function useNewEntryForm(): NewEntryFormState {
   const [hasTriedToSave, setHasTriedToSave] = useState(false);
   const [failure, setFailure] = useState<TranslationKey | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [allCategories, setAllCategories] = useState<FinancialCategory[]>([]);
-  const [categoriesStatus, setCategoriesStatus] =
-    useState<CategoriesStatus>('loading');
-  const [categoriesFailure, setCategoriesFailure] =
-    useState<TranslationKey | null>(null);
-  const [categoriesVersion, setCategoriesVersion] = useState(0);
+  const {
+    categories: allCategories,
+    status: categoriesStatus,
+    failure: categoriesFailure,
+    reload: reloadCategories,
+    add: addToCategories,
+  } = useFinancialCategories();
   // Gerado ao abrir o formulário (ADR-09) e mantido entre tentativas: se a
   // resposta se perder, reenviar o mesmo id não duplica o lançamento.
   const entryId = useRef<string | null>(null);
@@ -84,29 +85,6 @@ export function useNewEntryForm(): NewEntryFormState {
       isMounted.current = false;
     };
   }, []);
-
-  useEffect(() => {
-    let active = true;
-    setCategoriesStatus('loading');
-    setCategoriesFailure(null);
-
-    Promise.resolve()
-      .then(() => fetchFinancialCategories(requireToken(idToken)))
-      .then(loaded => {
-        if (!active) return;
-        setAllCategories(loaded);
-        setCategoriesStatus('ready');
-      })
-      .catch(error => {
-        if (!active) return;
-        setCategoriesStatus('failed');
-        setCategoriesFailure(toCategoriesFailureKey(error));
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [idToken, categoriesVersion]);
 
   const errors = useMemo(
     () => (hasTriedToSave ? validateEntryDraft(draft) : {}),
@@ -137,9 +115,19 @@ export function useNewEntryForm(): NewEntryFormState {
     setDraft(current => ({ ...current, scope }));
   }, []);
 
-  const reloadCategories = useCallback(() => {
-    setCategoriesVersion(current => current + 1);
+  const clearCategory = useCallback(() => {
+    setDraft(current =>
+      current.categoryId === null ? current : { ...current, categoryId: null },
+    );
   }, []);
+
+  const addCategory = useCallback(
+    (category: FinancialCategory) => {
+      addToCategories(category);
+      setDraft(current => selectCategory(current, category));
+    },
+    [addToCategories],
+  );
 
   const forgetRejectedCategory = useCallback(() => {
     setDraft(current => ({ ...current, categoryId: null }));
@@ -203,6 +191,8 @@ export function useNewEntryForm(): NewEntryFormState {
     setNature,
     setField,
     chooseCategory,
+    clearCategory,
+    addCategory,
     setScope,
     reloadCategories,
     startNewEntry,
