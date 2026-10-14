@@ -1,4 +1,4 @@
-import { maskAmountInput, parseAmountInput } from './amountInput';
+import { maskAmountInput, parseMaskedAmount } from './amountInput';
 
 describe('maskAmountInput', () => {
   it.each([
@@ -18,7 +18,7 @@ describe('maskAmountInput', () => {
   });
 });
 
-describe('parseAmountInput', () => {
+describe('parseMaskedAmount', () => {
   it.each([
     ['180,00', 180],
     ['0,05', 0.05],
@@ -26,13 +26,13 @@ describe('parseAmountInput', () => {
     ['1.000.000,00', 1000000],
     ['0,00', 0],
   ])('%p -> %p', (masked, value) => {
-    expect(parseAmountInput(masked)).toBe(value);
+    expect(parseMaskedAmount(masked)).toBe(value);
   });
 
   it.each(['', 'abc', '2.5', '12.50', '-5,00', '1234,56', '1,5', '1.23,45'])(
     'refuses %p',
     value => {
-      expect(parseAmountInput(value)).toBeNull();
+      expect(parseMaskedAmount(value)).toBeNull();
     },
   );
 });

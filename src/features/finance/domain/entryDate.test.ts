@@ -37,14 +37,16 @@ describe('parseEntryDate', () => {
     '00/08/2026',
     '10/13/2026',
     '9/8/2026',
-    // Fora dos anos que o extrato consulta: um dígito errado no ano.
-    '31/12/1999',
-    '08/10/1926',
-    '01/01/2101',
-    '08/10/2206',
   ])('refuses %p', value => {
     expect(parseEntryDate(value)).toBeNull();
   });
+
+  it.each(['31/12/1999', '08/10/1926', '01/01/2101', '08/10/2206'])(
+    'refuses %p, outside the years the statement queries (2000–2100)',
+    value => {
+      expect(parseEntryDate(value)).toBeNull();
+    },
+  );
 });
 
 test('sends the day at noon UTC so it stays in the same month in Brazil', () => {

@@ -1,9 +1,14 @@
-import { maskAmountInput, parseAmountInput } from './amountInput';
+import {
+  maskAmountInput,
+  parseMaskedAmount,
+  type MaskedAmount,
+} from './amountInput';
 import {
   formatEntryDate,
   maskDateInput,
   parseEntryDate,
   toAccrualDate,
+  type MaskedDate,
 } from './entryDate';
 import type {
   CreateFinancialEntryPayload,
@@ -15,10 +20,8 @@ import type {
 export type EntryDraft = {
   nature: EntryNature;
   description: string;
-  /** Como aparece no campo, com a máscara: "1.234,56". */
-  amount: string;
-  /** dd/mm/aaaa. */
-  date: string;
+  amount: MaskedAmount;
+  date: MaskedDate;
   categoryId: string | null;
   scope: EntryScope;
 };
@@ -51,13 +54,12 @@ export function createEmptyDraft(today: Date): EntryDraft {
   };
 }
 
-// Conta por caractere, como o MaxLength do backend: cortar por unidade UTF-16
-// partiria um emoji ao meio e salvaria um "�" no fim da descrição.
-const characters = (value: string) => Array.from(value);
+// Como o MaxLength do backend: cortar por .length partiria um emoji ao meio.
+const codePoints = (value: string) => Array.from(value);
 
 const TEXT_MASKS: Record<EntryTextField, (value: string) => string> = {
   description: value =>
-    characters(value).slice(0, DESCRIPTION_MAX_LENGTH).join(''),
+    codePoints(value).slice(0, DESCRIPTION_MAX_LENGTH).join(''),
   amount: maskAmountInput,
   date: maskDateInput,
 };
@@ -77,7 +79,6 @@ export function changeNature(
   return { ...draft, nature, categoryId: null };
 }
 
-/** O escopo vem sugerido pela categoria, mas continua editável. */
 export function selectCategory(
   draft: EntryDraft,
   category: FinancialCategory,
@@ -92,23 +93,23 @@ function validateDescription(
   if (!trimmed) {
     return 'required';
   }
-  return characters(trimmed).length > DESCRIPTION_MAX_LENGTH
+  return codePoints(trimmed).length > DESCRIPTION_MAX_LENGTH
     ? 'tooLong'
     : undefined;
 }
 
-function validateAmount(amount: string): EntryDraftErrors['amount'] {
+function validateAmount(amount: MaskedAmount): EntryDraftErrors['amount'] {
   if (!amount.trim()) {
     return 'required';
   }
-  const value = parseAmountInput(amount);
+  const value = parseMaskedAmount(amount);
   if (value === null) {
     return 'invalid';
   }
   return value > 0 ? undefined : 'notPositive';
 }
 
-function validateDate(date: string): EntryDraftErrors['date'] {
+function validateDate(date: MaskedDate): EntryDraftErrors['date'] {
   if (!date.trim()) {
     return 'required';
   }
@@ -131,12 +132,11 @@ export function isEntryDraftValid(errors: EntryDraftErrors): boolean {
   return Object.keys(errors).length === 0;
 }
 
-/** Só para rascunhos já validados: quem chama confere `isEntryDraftValid` antes. */
 export function toCreatePayload(
   draft: EntryDraft,
   id: string,
 ): CreateFinancialEntryPayload {
-  const amount = parseAmountInput(draft.amount);
+  const amount = parseMaskedAmount(draft.amount);
   const date = parseEntryDate(draft.date);
   if (amount === null || !date || !draft.categoryId) {
     throw new Error('toCreatePayload needs a valid draft');
