@@ -1,13 +1,13 @@
 import { Check, Pencil, Phone, Trash2 } from 'lucide-react-native';
 import { View } from 'react-native';
 
+import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { ButtonPrimary } from 'theme/colors';
 
 import { ClinicFields, type ClinicFieldTexts } from './ClinicFields';
-import { ClinicSheet } from './ClinicSheet';
 import type { ClinicDraft, ClinicField } from '../domain/clinicForm';
 
 type ClinicDetailSheetLabels = {
@@ -55,7 +55,7 @@ function ClinicDetailSheet({
   onClose,
 }: ClinicDetailSheetProps) {
   return (
-    <ClinicSheet
+    <BottomSheet
       visible={visible}
       title={title}
       closeLabel={closeLabel}
@@ -127,7 +127,7 @@ function ClinicDetailSheet({
         showName={editing}
         onChangeField={onChangeField}
       />
-    </ClinicSheet>
+    </BottomSheet>
   );
 }
 
