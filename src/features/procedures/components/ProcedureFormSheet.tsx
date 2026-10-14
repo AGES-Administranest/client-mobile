@@ -1,18 +1,8 @@
 import { Check, ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
 
+import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -22,7 +12,6 @@ import {
   type ClientOption,
   type ClientSearchStatus,
 } from 'features/clients';
-import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type {
@@ -31,8 +20,6 @@ import type {
   ProcedureTextField,
   Species,
 } from '../domain/procedure.types';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export type ProcedureFormTexts = {
   title: string;
@@ -90,234 +77,197 @@ export function ProcedureFormSheet({
     option => option.value === values.species,
   );
 
-  const sheet = useSheetAnimation(visible, onClose);
-
   return (
-    <Modal
-      visible={sheet.isRendered}
-      transparent
-      animationType="none"
-      onRequestClose={onClose}
-    >
-      <KeyboardAvoidingView
-        className="flex-1 justify-end"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Animated.View
-          style={[StyleSheet.absoluteFill, { opacity: sheet.progress }]}
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={texts.close}
-            onPress={onClose}
-            className="flex-1 bg-background-shade"
-          />
-        </Animated.View>
-
-        <Animated.View
-          {...sheet.panHandlers}
-          style={{
-            maxHeight: SCREEN_HEIGHT * 0.99,
-            ...sheet.sheetStyle,
-          }}
-        >
-          <View className="shrink gap-3 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
-            <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
-
-            <Text className="text-xl font-bold text-label-primary">
-              {texts.title}
+    <BottomSheet
+      visible={visible}
+      title={texts.title}
+      closeLabel={texts.close}
+      onClose={onClose}
+      footer={
+        <>
+          {submitFailed ? (
+            <Text className="text-sm text-alert-primary">
+              {submitErrorText}
             </Text>
+          ) : null}
 
-            <View className="h-px bg-details-primary" />
+          <Button
+            icon={Check}
+            shape="pill"
+            className="h-[49px] w-full"
+            disabled={submitting}
+            onPress={onSubmit}
+          >
+            <Text className="font-semibold text-label-secondary">
+              {texts.confirm}
+            </Text>
+          </Button>
+        </>
+      }
+    >
+      {/* Um bloco só: os campos, o ClientAutocomplete incluído, já trazem a
+          margem de baixo, e o gap do corpo do sheet somaria a ela. */}
+      <View>
+        <Field
+          label={texts.labels.patientName}
+          placeholder={texts.placeholders.patientName}
+          value={values.patientName}
+          error={texts.errors.patientName}
+          onChangeText={v => onChangeText('patientName', v)}
+        />
+        <Field
+          label={texts.labels.procedureName}
+          placeholder={texts.placeholders.procedureName}
+          value={values.procedureName}
+          error={texts.errors.procedureName}
+          onChangeText={v => onChangeText('procedureName', v)}
+        />
+        <ClientAutocomplete
+          label={texts.labels.clientId}
+          placeholder={texts.placeholders.clientId}
+          value={client.term}
+          error={texts.errors.clientId}
+          status={client.status}
+          options={client.options}
+          messages={texts.clientSearchMessages}
+          onChangeText={onChangeClientTerm}
+          onSelect={onSelectClient}
+        />
 
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerClassName="pb-1"
-            >
-              <Field
-                label={texts.labels.patientName}
-                placeholder={texts.placeholders.patientName}
-                value={values.patientName}
-                error={texts.errors.patientName}
-                onChangeText={v => onChangeText('patientName', v)}
-              />
-              <Field
-                label={texts.labels.procedureName}
-                placeholder={texts.placeholders.procedureName}
-                value={values.procedureName}
-                error={texts.errors.procedureName}
-                onChangeText={v => onChangeText('procedureName', v)}
-              />
-              <ClientAutocomplete
-                label={texts.labels.clientId}
-                placeholder={texts.placeholders.clientId}
-                value={client.term}
-                error={texts.errors.clientId}
-                status={client.status}
-                options={client.options}
-                messages={texts.clientSearchMessages}
-                onChangeText={onChangeClientTerm}
-                onSelect={onSelectClient}
-              />
-
-              <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <Field
-                    label={texts.labels.patientAgeYears}
-                    placeholder={texts.placeholders.patientAgeYears}
-                    value={values.patientAgeYears}
-                    error={texts.errors.patientAgeYears}
-                    keyboardType="number-pad"
-                    onChangeText={v => onChangeText('patientAgeYears', v)}
-                  />
-                </View>
-                <View className="flex-1">
-                  <Field
-                    label={texts.labels.weightKg}
-                    placeholder={texts.placeholders.weightKg}
-                    value={values.weightKg}
-                    error={texts.errors.weightKg}
-                    keyboardType="decimal-pad"
-                    onChangeText={v => onChangeText('weightKg', v)}
-                  />
-                </View>
-              </View>
-
-              <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <Field
-                    label={texts.labels.startTime}
-                    placeholder={texts.placeholders.startTime}
-                    value={values.startTime}
-                    error={texts.errors.startTime}
-                    keyboardType="number-pad"
-                    onChangeText={v => onChangeText('startTime', v)}
-                  />
-                </View>
-                <View className="flex-1">
-                  <Field
-                    label={texts.labels.endTime}
-                    placeholder={texts.placeholders.endTime}
-                    value={values.endTime}
-                    error={texts.errors.endTime}
-                    keyboardType="number-pad"
-                    onChangeText={v => onChangeText('endTime', v)}
-                  />
-                </View>
-              </View>
-
-              <Field
-                label={texts.labels.date}
-                placeholder={texts.placeholders.date}
-                value={values.date}
-                error={texts.errors.date}
-                keyboardType="number-pad"
-                onChangeText={v => onChangeText('date', v)}
-              />
-
-              <Field
-                label={texts.labels.amount}
-                placeholder={texts.placeholders.amount}
-                value={values.amount}
-                error={texts.errors.amount}
-                keyboardType="decimal-pad"
-                onChangeText={v => onChangeText('amount', v)}
-              />
-
-              <Field
-                label={texts.labels.notes}
-                placeholder={texts.placeholders.notes}
-                value={values.notes}
-                error={texts.errors.notes}
-                multiline
-                onChangeText={v => onChangeText('notes', v)}
-              />
-
-              <View className="z-10 mb-3">
-                <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
-                  {texts.labels.species}
-                </Text>
-                <Pressable
-                  onPress={() => setSpeciesOpen(open => !open)}
-                  accessibilityRole="button"
-                  className="flex-row items-center justify-between rounded-xl border border-border-primary bg-white px-4 py-2.5"
-                >
-                  <Text
-                    className={
-                      selectedSpecies
-                        ? 'text-[15px] text-label-primary'
-                        : 'text-[15px] text-label-tertiary'
-                    }
-                  >
-                    {selectedSpecies?.label ?? texts.placeholders.species}
-                  </Text>
-                  <Icon
-                    as={ChevronDown}
-                    className="size-4 text-label-tertiary"
-                  />
-                </Pressable>
-
-                {speciesOpen ? (
-                  <View className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
-                    {texts.speciesOptions.map((option, index) => (
-                      <Pressable
-                        key={option.value}
-                        accessibilityRole="button"
-                        onPress={() => {
-                          onChangeSpecies(option.value);
-                          setSpeciesOpen(false);
-                        }}
-                        className={
-                          index === 0
-                            ? 'px-4 py-3'
-                            : 'border-t border-border-primary px-4 py-3'
-                        }
-                      >
-                        <Text className="text-[15px] text-label-primary">
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                ) : null}
-              </View>
-
-              <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
-                {texts.labels.asaClassification}
-              </Text>
-              <View className="mb-4 flex-row gap-2">
-                {texts.asaOptions.map(option => (
-                  <Segment
-                    key={option}
-                    label={option}
-                    active={values.asaClassification === option}
-                    onPress={() => onChangeAsa(option)}
-                  />
-                ))}
-              </View>
-            </ScrollView>
-
-            {submitFailed ? (
-              <Text className="text-sm text-alert-primary">
-                {submitErrorText}
-              </Text>
-            ) : null}
-
-            <Button
-              icon={Check}
-              shape="pill"
-              className="h-[49px] w-full"
-              disabled={submitting}
-              onPress={onSubmit}
-            >
-              <Text className="font-semibold text-label-secondary">
-                {texts.confirm}
-              </Text>
-            </Button>
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <Field
+              label={texts.labels.patientAgeYears}
+              placeholder={texts.placeholders.patientAgeYears}
+              value={values.patientAgeYears}
+              error={texts.errors.patientAgeYears}
+              keyboardType="number-pad"
+              onChangeText={v => onChangeText('patientAgeYears', v)}
+            />
           </View>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
+          <View className="flex-1">
+            <Field
+              label={texts.labels.weightKg}
+              placeholder={texts.placeholders.weightKg}
+              value={values.weightKg}
+              error={texts.errors.weightKg}
+              keyboardType="decimal-pad"
+              onChangeText={v => onChangeText('weightKg', v)}
+            />
+          </View>
+        </View>
+
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <Field
+              label={texts.labels.startTime}
+              placeholder={texts.placeholders.startTime}
+              value={values.startTime}
+              error={texts.errors.startTime}
+              keyboardType="number-pad"
+              onChangeText={v => onChangeText('startTime', v)}
+            />
+          </View>
+          <View className="flex-1">
+            <Field
+              label={texts.labels.endTime}
+              placeholder={texts.placeholders.endTime}
+              value={values.endTime}
+              error={texts.errors.endTime}
+              keyboardType="number-pad"
+              onChangeText={v => onChangeText('endTime', v)}
+            />
+          </View>
+        </View>
+
+        <Field
+          label={texts.labels.date}
+          placeholder={texts.placeholders.date}
+          value={values.date}
+          error={texts.errors.date}
+          keyboardType="number-pad"
+          onChangeText={v => onChangeText('date', v)}
+        />
+
+        <Field
+          label={texts.labels.amount}
+          placeholder={texts.placeholders.amount}
+          value={values.amount}
+          error={texts.errors.amount}
+          keyboardType="decimal-pad"
+          onChangeText={v => onChangeText('amount', v)}
+        />
+
+        <Field
+          label={texts.labels.notes}
+          placeholder={texts.placeholders.notes}
+          value={values.notes}
+          error={texts.errors.notes}
+          multiline
+          onChangeText={v => onChangeText('notes', v)}
+        />
+
+        <View className="z-10 mb-3">
+          <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
+            {texts.labels.species}
+          </Text>
+          <Pressable
+            onPress={() => setSpeciesOpen(open => !open)}
+            accessibilityRole="button"
+            className="flex-row items-center justify-between rounded-xl border border-border-primary bg-white px-4 py-2.5"
+          >
+            <Text
+              className={
+                selectedSpecies
+                  ? 'text-[15px] text-label-primary'
+                  : 'text-[15px] text-label-tertiary'
+              }
+            >
+              {selectedSpecies?.label ?? texts.placeholders.species}
+            </Text>
+            <Icon as={ChevronDown} className="size-4 text-label-tertiary" />
+          </Pressable>
+
+          {speciesOpen ? (
+            <View className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
+              {texts.speciesOptions.map((option, index) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  onPress={() => {
+                    onChangeSpecies(option.value);
+                    setSpeciesOpen(false);
+                  }}
+                  className={
+                    index === 0
+                      ? 'px-4 py-3'
+                      : 'border-t border-border-primary px-4 py-3'
+                  }
+                >
+                  <Text className="text-[15px] text-label-primary">
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+        </View>
+
+        <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
+          {texts.labels.asaClassification}
+        </Text>
+        <View className="mb-4 flex-row gap-2">
+          {texts.asaOptions.map(option => (
+            <Segment
+              key={option}
+              label={option}
+              active={values.asaClassification === option}
+              onPress={() => onChangeAsa(option)}
+            />
+          ))}
+        </View>
+      </View>
+    </BottomSheet>
   );
 }
 
