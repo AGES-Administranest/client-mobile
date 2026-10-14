@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Animated } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
@@ -8,6 +9,7 @@ import {
   type Account,
   type AuthSession,
 } from 'features/auth';
+import { StockSyncProvider } from 'features/stock';
 import { I18nProvider } from 'shared/i18n';
 
 import { NewEntryFlow } from './NewEntryFlow';
@@ -24,6 +26,31 @@ jest.mock('../services/financialEntryService', () => ({
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
+
+jest.mock('features/stock/services/stockSyncService', () => ({
+  ...jest.requireActual('features/stock/services/stockSyncService'),
+  pushPendingMovements: jest.fn(async () => ({
+    applied: [],
+    duplicated: [],
+    balances: [],
+    needsAdjustment: [],
+  })),
+  pullStockMovements: jest.fn(async () => ({
+    movements: [],
+    balances: [],
+    cursor: 'cursor-1',
+    hasMore: false,
+    afterId: null,
+  })),
+}));
+
+const mockFetchAdjustableItems = jest.fn();
+
+jest.mock('features/stock/services/stockAdjustmentService', () => ({
+  ...jest.requireActual('features/stock/services/stockAdjustmentService'),
+  fetchAdjustableItems: (...args: unknown[]) =>
+    mockFetchAdjustableItems(...args),
+}));
 
 const createMock = createFinancialEntry as jest.MockedFunction<
   typeof createFinancialEntry
@@ -68,7 +95,19 @@ const CATEGORIES: FinancialCategory[] = [
 ];
 
 const OPTIONS_DESCRIPTION =
-  'Envie a nota ou o pedido em PDF para lançar automaticamente, ou preencha à mão.';
+  'Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque';
+
+const STOCK_WRITE_OFF_TITLE = 'Registro de ajuste de saída';
+
+const ADJUSTABLE_ITEMS = [
+  {
+    id: 'item-1',
+    name: 'Propofol 10mg/ml 20ml',
+    unit: 'ampoule',
+    availableQuantity: 8,
+    unitCost: 10,
+  },
+];
 
 function textsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
   return renderer.root
@@ -113,7 +152,9 @@ async function renderFlow() {
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-            <NewEntryFlow />
+            <StockSyncProvider>
+              <NewEntryFlow />
+            </StockSyncProvider>
           </AuthProvider>
         </I18nProvider>
       </SafeAreaProvider>,
@@ -137,7 +178,49 @@ async function openManualForm(renderer: ReactTestRenderer.ReactTestRenderer) {
   });
 }
 
-beforeEach(() => {
+async function fillStockWriteOff(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+) {
+  await act(async () => {
+    renderer.root.findByProps({ accessibilityLabel: 'Item' }).props.onPress();
+  });
+  await act(async () => {
+    renderer.root.findByProps({ testID: 'item-option-item-1' }).props.onPress();
+  });
+  await typeInto(renderer, 'Quantidade', '2');
+  await act(async () => {
+    renderer.root.findByProps({ accessibilityLabel: 'Perda' }).props.onPress();
+  });
+}
+
+// Segura as animações de saída, como num aparelho de verdade: no iOS um
+// Modal não aparece enquanto outro ainda está fechando.
+function holdExitAnimations() {
+  const leaving: (() => void)[] = [];
+  const timing = jest
+    .spyOn(Animated, 'timing')
+    .mockImplementation((value, config) => ({
+      start: callback => {
+        const finish = () => {
+          (value as Animated.Value).setValue(config.toValue as number);
+          callback?.({ finished: true });
+        };
+        if (config.toValue === 0) leaving.push(finish);
+        else finish();
+      },
+      stop: () => {},
+      reset: () => {},
+    }));
+  return {
+    finishLeaving: () =>
+      act(async () => leaving.splice(0).forEach(finish => finish())),
+    restore: () => timing.mockRestore(),
+  };
+}
+
+beforeEach(async () => {
+  await AsyncStorage.clear();
+  mockFetchAdjustableItems.mockReset().mockResolvedValue(ADJUSTABLE_ITEMS);
   fetchCategoriesMock.mockReset().mockResolvedValue(CATEGORIES);
   createMock.mockReset().mockImplementation(async (_token, payload) => ({
     ...payload,
@@ -153,7 +236,7 @@ test('shows only the new entry button until it is pressed', async () => {
   expect(textsOf(renderer)).toEqual(['Novo lançamento']);
 });
 
-test('opens the options sheet with the PDF and the manual choices', async () => {
+test('opens the options sheet with the PDF, the manual and the stock write-off choices', async () => {
   const renderer = await renderFlow();
 
   await openOptions(renderer);
@@ -163,6 +246,7 @@ test('opens the options sheet with the PDF and the manual choices', async () => 
       OPTIONS_DESCRIPTION,
       'Enviar documento (PDF)',
       'Lançamento manual',
+      'Baixa no estoque',
     ]),
   );
 });
@@ -294,23 +378,7 @@ test('reopening the form starts a new, empty entry', async () => {
 });
 
 test('the form opens only after the options sheet has finished leaving', async () => {
-  // Segura as animações de saída, como num aparelho de verdade: no iOS um
-  // Modal não aparece enquanto outro ainda está fechando.
-  const leaving: (() => void)[] = [];
-  const timing = jest
-    .spyOn(Animated, 'timing')
-    .mockImplementation((value, config) => ({
-      start: callback => {
-        const finish = () => {
-          (value as Animated.Value).setValue(config.toValue as number);
-          callback?.({ finished: true });
-        };
-        if (config.toValue === 0) leaving.push(finish);
-        else finish();
-      },
-      stop: () => {},
-      reset: () => {},
-    }));
+  const animations = holdExitAnimations();
   try {
     const renderer = await renderFlow();
     await openOptions(renderer);
@@ -319,10 +387,10 @@ test('the form opens only after the options sheet has finished leaving', async (
     expect(textsOf(renderer)).not.toContain('Novo lançamento manual');
     expect(fetchCategoriesMock).not.toHaveBeenCalled();
 
-    await act(async () => leaving.splice(0).forEach(finish => finish()));
+    await animations.finishLeaving();
     expect(textsOf(renderer)).toContain('Novo lançamento manual');
   } finally {
-    timing.mockRestore();
+    animations.restore();
   }
 });
 
@@ -382,4 +450,55 @@ test('the saved notice goes away when the next entry starts', async () => {
   await openOptions(renderer);
 
   expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
+});
+
+test('the stock write-off opens only after the options sheet has finished leaving, and only then loads the items', async () => {
+  const animations = holdExitAnimations();
+  try {
+    const renderer = await renderFlow();
+    await openOptions(renderer);
+    expect(mockFetchAdjustableItems).not.toHaveBeenCalled();
+
+    await pressByText(renderer, 'Baixa no estoque');
+    expect(textsOf(renderer)).not.toContain(STOCK_WRITE_OFF_TITLE);
+
+    await animations.finishLeaving();
+    expect(textsOf(renderer)).toContain(STOCK_WRITE_OFF_TITLE);
+    expect(mockFetchAdjustableItems).toHaveBeenCalledTimes(1);
+  } finally {
+    animations.restore();
+  }
+});
+
+test('saving a stock write-off closes the sheet and confirms it was registered', async () => {
+  const renderer = await renderFlow();
+  await openOptions(renderer);
+  await act(async () => {
+    await pressByText(renderer, 'Baixa no estoque');
+  });
+
+  await fillStockWriteOff(renderer);
+  await act(async () => {
+    await pressByText(renderer, 'Salvar');
+  });
+
+  const texts = textsOf(renderer);
+  expect(texts).not.toContain(STOCK_WRITE_OFF_TITLE);
+  expect(texts).toContain('Baixa registrada.');
+  expect(texts).not.toContain('Lançamento salvo.');
+  expect(createMock).not.toHaveBeenCalled();
+});
+
+test('closing the stock write-off without saving confirms nothing', async () => {
+  const renderer = await renderFlow();
+  await openOptions(renderer);
+  await act(async () => {
+    await pressByText(renderer, 'Baixa no estoque');
+  });
+
+  await act(async () => {
+    renderer.root.findByProps({ accessibilityLabel: 'Fechar' }).props.onPress();
+  });
+
+  expect(textsOf(renderer)).toEqual(['Novo lançamento']);
 });

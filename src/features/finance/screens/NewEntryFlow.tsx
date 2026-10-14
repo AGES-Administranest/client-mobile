@@ -1,14 +1,19 @@
-import { FileText, Pencil } from 'lucide-react-native';
+import { FileText, PackageMinus, Pencil } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
+import { OutputAdjustmentSheet } from 'features/stock';
 import { useTranslation } from 'shared/i18n';
 
 import { NewEntryForm } from './NewEntryForm';
 import { NewEntryButton } from '../components/NewEntryButton';
+
+type SavedMessageKey =
+  | 'financialEntries.saved'
+  | 'financialEntries.stockWriteOffSaved';
 
 export function NewEntryFlow() {
   const { t } = useTranslation();
@@ -17,7 +22,10 @@ export function NewEntryFlow() {
   // Continua montado depois de fechar, para a animação de saída rodar.
   const [formOpenedOnce, setFormOpenedOnce] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
-  const [savedVisible, setSavedVisible] = useState(false);
+  const [stockWriteOffOpenedOnce, setStockWriteOffOpenedOnce] = useState(false);
+  const [stockWriteOffVisible, setStockWriteOffVisible] = useState(false);
+  const [savedMessageKey, setSavedMessageKey] =
+    useState<SavedMessageKey | null>(null);
   // iOS: um Modal não abre enquanto outro fecha.
   const openAfterOptionsLeave = useRef<(() => void) | null>(null);
 
@@ -33,7 +41,7 @@ export function NewEntryFlow() {
   };
 
   const openOptions = () => {
-    setSavedVisible(false);
+    setSavedMessageKey(null);
     setOptionsVisible(true);
   };
 
@@ -44,7 +52,17 @@ export function NewEntryFlow() {
 
   const finishSaving = () => {
     setFormVisible(false);
-    setSavedVisible(true);
+    setSavedMessageKey('financialEntries.saved');
+  };
+
+  const openStockWriteOff = () => {
+    setStockWriteOffOpenedOnce(true);
+    setStockWriteOffVisible(true);
+  };
+
+  const finishStockWriteOff = () => {
+    setStockWriteOffVisible(false);
+    setSavedMessageKey('financialEntries.stockWriteOffSaved');
   };
 
   return (
@@ -54,10 +72,10 @@ export function NewEntryFlow() {
         onPress={openOptions}
       />
 
-      {savedVisible ? (
+      {savedMessageKey ? (
         <View className="rounded-xl border border-details-tertiary bg-details-secondary p-3">
           <Text className="text-sm text-label-primary">
-            {t('financialEntries.saved')}
+            {t(savedMessageKey)}
           </Text>
         </View>
       ) : null}
@@ -67,7 +85,7 @@ export function NewEntryFlow() {
         onClose={() => choose()}
         onClosed={openChosenSheet}
         title={t('financialEntries.options.title')}
-        description={t('financialEntries.options.description')}
+        description={t('financialEntries.options.descriptionWithStockWriteOff')}
         options={[
           {
             label: t('financialEntries.options.sendDocument'),
@@ -78,6 +96,11 @@ export function NewEntryFlow() {
             label: t('financialEntries.options.manual'),
             icon: Pencil,
             onPress: () => choose(openForm),
+          },
+          {
+            label: t('financialEntries.options.stockWriteOff'),
+            icon: PackageMinus,
+            onPress: () => choose(openStockWriteOff),
           },
         ]}
       />
@@ -97,6 +120,14 @@ export function NewEntryFlow() {
           visible={formVisible}
           onClose={() => setFormVisible(false)}
           onSaved={finishSaving}
+        />
+      ) : null}
+
+      {stockWriteOffOpenedOnce ? (
+        <OutputAdjustmentSheet
+          visible={stockWriteOffVisible}
+          onClose={() => setStockWriteOffVisible(false)}
+          onSaved={finishStockWriteOff}
         />
       ) : null}
     </View>

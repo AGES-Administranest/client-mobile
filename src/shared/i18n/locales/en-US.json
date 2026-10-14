@@ -590,7 +590,6 @@
     "newEntry": "New entry",
     "options": {
       "title": "New entry",
-      "description": "Upload the invoice or the purchase order as a PDF to record it automatically, or fill it in by hand.",
       "descriptionWithStockWriteOff": "Upload the invoice or order as a PDF, fill it in by hand or write off a stock item",
       "sendDocument": "Upload document (PDF)",
       "manual": "Manual entry",
