@@ -126,6 +126,7 @@ The Figma frame contains 5 states of the same screen — useful as the acceptanc
 - **Any "add" flow opens a bottom sheet**, never a full-screen navigation — consistent with this app having no stack navigator today (`src/app/App.tsx` currently only switches tabs), so a sheet/modal is the natural primitive to add rather than introducing new screens for CRUD-style flows.
 - **Negative monetary values are red** (`alert-primary`), positive/neutral bold values are black (`label-primary`) — don't invent a second "success green". The same red marks a blocking state (a stock entry line that cannot go into stock as it is); a state that only needs checking is yellow (`details-tertiary`).
 - **A review or detail that fills the screen** opens as a `Modal` with `animationType="slide"` and a back chevron (appointment detail, stock entry review), since there is no stack navigator. Adding or editing a record from inside it is still a bottom sheet.
+- **Errors reach screen readers.** A field error is also the field's `accessibilityHint` (on each option, for a field made of choice buttons), so it is read together with the field. A form-level failure, such as a save that did not go through, is spoken with `AccessibilityInfo.announceForAccessibility` when it appears — VoiceOver and TalkBack do not read new text on their own — and its box keeps `accessibilityLiveRegion="polite"` (Android) and `role="alert"` (web).
 
 ## 9. Open questions for a follow-up pass
 

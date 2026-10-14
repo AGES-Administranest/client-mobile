@@ -196,6 +196,23 @@ test('shows each field error right under its own field', async () => {
   ]);
 });
 
+test('ties each field error to its input, so a screen reader reads both together', async () => {
+  const { renderer } = await render({
+    fieldErrors: {
+      description: 'Informe uma descrição.',
+      categoryId: 'Selecione uma categoria.',
+    },
+  });
+
+  expect(input(renderer, 'Descrição').props.accessibilityHint).toBe(
+    'Informe uma descrição.',
+  );
+  expect(input(renderer, 'Valor (R$)').props.accessibilityHint).toBeUndefined();
+  expect(pressable(renderer, 'Insumos').props.accessibilityHint).toBe(
+    'Selecione uma categoria.',
+  );
+});
+
 test.each<[CategoriesState, string]>([
   [{ status: 'loading' }, 'Carregando categorias…'],
   [{ status: 'ready', options: [] }, 'Nenhuma categoria para esse tipo.'],
@@ -213,4 +230,17 @@ test('a failed category load says why and can be retried', async () => {
   expect(texts(renderer)).toContain('Sem conexão.');
   await act(() => pressable(renderer, 'Tentar de novo').props.onPress());
   expect(props.onRetryCategories).toHaveBeenCalledTimes(1);
+});
+
+test('the retry link is brown, like the other text links', async () => {
+  const { renderer } = await render({
+    categories: { status: 'failed', message: 'Sem conexão.' },
+  });
+
+  const link = renderer.root.find(
+    node =>
+      node.type === ('Text' as never) &&
+      node.props.children === 'Tentar de novo',
+  );
+  expect(link.props.className).toContain('text-label-quartenery');
 });
