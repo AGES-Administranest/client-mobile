@@ -81,8 +81,8 @@ function BottomSheet({
             },
           ]}
         >
-          <View className="shrink gap-4 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
-            <View className="h-1 w-10 self-center rounded-full bg-border-primary" />
+          <View className="shrink gap-4 rounded-t-[20px] bg-background-modal px-5 pb-8 pt-4">
+            <View className="h-1 w-9 self-center rounded-full bg-border-primary" />
 
             <Text
               accessibilityRole="header"
