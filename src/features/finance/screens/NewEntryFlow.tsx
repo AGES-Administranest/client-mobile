@@ -14,9 +14,8 @@ export function NewEntryFlow() {
   const { t } = useTranslation();
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [documentSoonVisible, setDocumentSoonVisible] = useState(false);
-  // O formulário só monta na primeira abertura (e as categorias só são
-  // buscadas aí); depois fica montado para a animação de saída rodar.
-  const [formMounted, setFormMounted] = useState(false);
+  // Continua montado depois de fechar, para a animação de saída rodar.
+  const [formOpenedOnce, setFormOpenedOnce] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [savedVisible, setSavedVisible] = useState(false);
   // iOS: um Modal não abre enquanto outro fecha.
@@ -39,7 +38,7 @@ export function NewEntryFlow() {
   };
 
   const openForm = () => {
-    setFormMounted(true);
+    setFormOpenedOnce(true);
     setFormVisible(true);
   };
 
@@ -93,7 +92,7 @@ export function NewEntryFlow() {
         onCancel={() => setDocumentSoonVisible(false)}
       />
 
-      {formMounted ? (
+      {formOpenedOnce ? (
         <NewEntryForm
           visible={formVisible}
           onClose={() => setFormVisible(false)}

@@ -67,8 +67,7 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
     }
   };
 
-  // Fechar no meio do envio deixaria a resposta cair num formulário fechado
-  // (ou reaberto, já com outro lançamento): o sheet espera o envio terminar.
+  // Fechado no meio do envio, o sheet não teria onde mostrar a resposta.
   const closeUnlessSaving = () => {
     if (!form.isSaving) {
       onClose();

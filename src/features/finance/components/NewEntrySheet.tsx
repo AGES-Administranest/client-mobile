@@ -22,7 +22,6 @@ type NewEntrySheetProps = Omit<
 > & {
   visible: boolean;
   texts: NewEntrySheetTexts;
-  /** Já traduzida: o que impediu o último envio. */
   failureMessage: string | null;
   isSaving: boolean;
   canSubmit: boolean;

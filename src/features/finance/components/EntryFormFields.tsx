@@ -32,7 +32,6 @@ export type EntryFormTexts = {
   };
 };
 
-/** Categoria já com o nome traduzido. */
 export type CategoryOption = { id: string; label: string };
 
 export type CategoriesState =
@@ -42,7 +41,6 @@ export type CategoriesState =
 
 type EntryFormFieldsProps = {
   draft: EntryDraft;
-  /** Mensagens já traduzidas, só dos campos com erro. */
   fieldErrors: Partial<Record<EntryField, string>>;
   texts: EntryFormTexts;
   categories: CategoriesState;
@@ -53,8 +51,6 @@ type EntryFormFieldsProps = {
   onRetryCategories: () => void;
 };
 
-// Como no Figma: opção não escolhida é um bloco branco com sombra, sem borda
-// (a borda fica só nos campos de texto).
 const UNSELECTED_TILE = 'bg-white shadow-[0px_5px_5px_rgba(0,0,0,0.1)]';
 
 function Label({ children }: { children: string }) {
@@ -217,10 +213,6 @@ function CategoryChoices({
   );
 }
 
-/**
- * Os campos do lançamento, sem o sheet em volta: o detalhe do lançamento
- * reaproveita no modo edição.
- */
 export function EntryFormFields({
   draft,
   fieldErrors,
