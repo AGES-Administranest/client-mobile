@@ -386,6 +386,29 @@ test.each([
   },
 );
 
+test('a new entry after a failed category load loads them again', async () => {
+  fetchCategoriesMock.mockRejectedValueOnce(
+    new TypeError('Network request failed'),
+  );
+  await mount();
+  expect(current.categoriesStatus).toBe('failed');
+
+  await act(async () => current.startNewEntry());
+
+  expect(fetchCategoriesMock).toHaveBeenCalledTimes(2);
+  expect(current.categoriesStatus).toBe('ready');
+  expect(current.categories).toHaveLength(3);
+});
+
+test('a new entry keeps the categories that already loaded', async () => {
+  await mount();
+
+  await act(async () => current.startNewEntry());
+
+  expect(fetchCategoriesMock).toHaveBeenCalledTimes(1);
+  expect(current.categoriesStatus).toBe('ready');
+});
+
 test('without a session nothing reaches the API and both loading and saving ask to sign in again', async () => {
   await mount(null);
 
