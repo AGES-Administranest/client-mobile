@@ -14,6 +14,11 @@ import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { Text } from 'app/components/ui/text';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { useTranslation, type TranslationKey } from 'shared/i18n';
+import {
+  digitsOnly,
+  formatCurrencyInput,
+  formatDateInput,
+} from 'shared/utils/inputMasks';
 
 import {
   validateItemForm,
@@ -21,10 +26,7 @@ import {
   type ItemFormField,
 } from './domain/itemForm';
 import {
-  digitsOnly,
   filterStockItems,
-  formatCurrency,
-  formatDateInput,
   formatExpiration,
   isPastDate,
   toDateInput,
@@ -437,7 +439,7 @@ function ItemModal({
                       value={unitCost}
                       editable={!isDetail}
                       onChangeText={text => {
-                        setUnitCost(formatCurrency(text));
+                        setUnitCost(formatCurrencyInput(text));
                         clearError('unitCost');
                       }}
                       keyboardType="numeric"

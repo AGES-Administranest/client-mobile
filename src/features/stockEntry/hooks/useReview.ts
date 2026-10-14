@@ -1,9 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
 
-import {
-  currencyToNumber,
-  formatCurrency,
-} from 'app/components/ui/item-modal/domain/itemModal';
 import type {
   ItemDraft,
   ItemPrefill,
@@ -16,6 +12,7 @@ import {
   toBackendUnit,
   type BackendItem,
 } from 'features/materials';
+import { currencyToNumber, formatCurrencyInput } from 'shared/utils/inputMasks';
 
 import {
   acceptComputedTotal as acceptComputedTotalOf,
@@ -190,7 +187,7 @@ function prefillFor(line: ReviewLine | undefined, name: string): ItemPrefill {
     name: name.trim() || line?.description || '',
     unitCost:
       line && line.unitValue !== null
-        ? formatCurrency(String(Math.round(line.unitValue * 100)))
+        ? formatCurrencyInput(String(Math.round(line.unitValue * 100)))
         : '',
     expiration: line?.expiry ?? '',
   };
