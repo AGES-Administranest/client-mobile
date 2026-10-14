@@ -172,6 +172,28 @@ describe('useVehicleForm', () => {
     expect(onInactivateSuccess).toHaveBeenCalledWith('v-1');
   });
 
+  it('does not report success when the API call to inactivate fails', async () => {
+    (vehicleService.inactivate as jest.Mock).mockRejectedValue(
+      new Error('401'),
+    );
+    const onInactivateSuccess = jest.fn();
+    const hook = renderVehicleFormHook({
+      vehicle: MOCK_VEHICLE,
+      token: '',
+      onInactivateSuccess,
+    });
+
+    let success = true;
+    await act(async () => {
+      success = await hook.current.inactivate();
+    });
+
+    expect(success).toBe(false);
+    expect(vehicleService.inactivate).toHaveBeenCalledWith('', 'v-1');
+    expect(onInactivateSuccess).not.toHaveBeenCalled();
+    expect(hook.current.submitError).toBe('inactivateFailed');
+  });
+
   it('reactivates vehicle successfully', async () => {
     (vehicleService.update as jest.Mock).mockResolvedValue({
       ...MOCK_VEHICLE,

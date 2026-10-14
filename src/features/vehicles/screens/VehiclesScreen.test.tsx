@@ -5,6 +5,7 @@ import { I18nProvider } from 'shared/i18n';
 
 import { VehiclesScreen } from './VehiclesScreen';
 import type { Vehicle } from '../domain/vehicle.types';
+import { vehicleService } from '../services/vehicleService';
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -348,6 +349,9 @@ describe('VehiclesScreen', () => {
   });
 
   it('confirms inactivation, closes sheets, and removes the vehicle from the list', async () => {
+    const inactivate = jest
+      .spyOn(vehicleService, 'inactivate')
+      .mockResolvedValue({ ...MOCK_VEHICLES[0], active: false });
     let renderer: ReactTestRenderer.ReactTestRenderer;
 
     await act(async () => {
@@ -417,10 +421,10 @@ describe('VehiclesScreen', () => {
       .findAllByType('Text' as never)
       .map(node => node.props.children);
     const serialized = JSON.stringify(texts);
+    expect(inactivate).toHaveBeenCalledWith(expect.any(String), 'v-1');
     expect(serialized).toContain('2 VEÍCULOS');
     expect(serialized).not.toContain('Fiat Strada 2021');
     expect(serialized).toContain('Honda CG 160');
     expect(serialized).toContain('Toyota Corolla');
   });
 });
-

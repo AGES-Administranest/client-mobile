@@ -20,7 +20,7 @@ describe('VehicleCard', () => {
 
     act(() => {
       renderer = ReactTestRenderer.create(
-        <VehicleCard vehicle={MOCK_VEHICLE} />,
+        <VehicleCard vehicle={MOCK_VEHICLE} deactivatedLabel="Desativado" />,
       );
     });
 
@@ -40,7 +40,11 @@ describe('VehicleCard', () => {
 
     act(() => {
       renderer = ReactTestRenderer.create(
-        <VehicleCard vehicle={MOCK_VEHICLE} onPress={handlePress} />,
+        <VehicleCard
+          vehicle={MOCK_VEHICLE}
+          deactivatedLabel="Desativado"
+          onPress={handlePress}
+        />,
       );
     });
 
@@ -68,7 +72,10 @@ describe('VehicleCard', () => {
 
     act(() => {
       renderer = ReactTestRenderer.create(
-        <VehicleCard vehicle={vehicleWithDuplicate} />,
+        <VehicleCard
+          vehicle={vehicleWithDuplicate}
+          deactivatedLabel="Desativado"
+        />,
       );
     });
 

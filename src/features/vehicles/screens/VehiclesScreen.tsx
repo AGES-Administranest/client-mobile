@@ -1,7 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Car, Plus, Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from 'app/components/ui/button';
@@ -225,7 +232,27 @@ export function VehiclesScreen({
         </View>
 
         {/* Conteúdo / Lista */}
-        {vehicleList.length === 0 ? (
+        {vehicleList.length === 0 && vehiclesHook.isLoading ? (
+          <View className="flex-1 items-center justify-center px-4">
+            <ActivityIndicator accessibilityLabel={t('common.loading')} />
+          </View>
+        ) : vehicleList.length === 0 && vehiclesHook.error ? (
+          <View className="flex-1 items-center justify-center gap-3 px-4">
+            <Text className="text-center text-sm text-label-secondary">
+              {t('vehicles.loadFailed')}
+            </Text>
+            <Button
+              variant="outline"
+              shape="pill"
+              onPress={() => {
+                vehiclesHook.refetch().catch(() => undefined);
+              }}
+              accessibilityRole="button"
+            >
+              <Text>{t('common.retry')}</Text>
+            </Button>
+          </View>
+        ) : vehicleList.length === 0 ? (
           <View className="flex-1 items-center justify-center px-4">
             <EmptyState icon={Car} message={t('vehicles.empty')} />
           </View>
