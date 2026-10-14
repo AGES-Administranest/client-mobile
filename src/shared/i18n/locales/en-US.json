@@ -1068,6 +1068,7 @@
       "endTime": "End",
       "confirm": "Reschedule",
       "dismiss": "Cancel",
+      "close": "Close",
       "done": "Appointment rescheduled.",
       "errors": {
         "CONFLICT": "You already have an appointment at this time.",

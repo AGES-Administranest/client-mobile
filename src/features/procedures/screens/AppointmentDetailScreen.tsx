@@ -761,6 +761,7 @@ function actionTexts(
       endTime: t('appointments.reschedule.endTime'),
       confirm: t('appointments.reschedule.confirm'),
       dismiss: t('appointments.reschedule.dismiss'),
+      close: t('appointments.reschedule.close'),
       done: t('appointments.reschedule.done'),
       errors: {
         CONFLICT: t('appointments.reschedule.errors.CONFLICT'),

@@ -1,18 +1,10 @@
 import { Check, X } from 'lucide-react-native';
-import {
-  Animated,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  TextInput,
-  View,
-} from 'react-native';
+import { TextInput, View } from 'react-native';
 
+import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
-import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type { RescheduleField, RescheduleValues } from '../domain/reschedule';
@@ -25,6 +17,7 @@ export type RescheduleAppointmentSheetTexts = {
   endTime: string;
   confirm: string;
   dismiss: string;
+  close: string;
 };
 
 type RescheduleAppointmentSheetProps = {
@@ -58,8 +51,6 @@ export function RescheduleAppointmentSheet({
   onConfirm,
   onClose,
 }: RescheduleAppointmentSheetProps) {
-  const sheet = useSheetAnimation(visible, onClose);
-
   const field = (name: RescheduleField, label: string) => (
     <View className="flex-1 gap-1">
       <Text className="text-xs font-semibold uppercase text-label-primary">
@@ -86,82 +77,55 @@ export function RescheduleAppointmentSheet({
   );
 
   return (
-    <Modal
-      visible={sheet.isRendered}
-      transparent
-      animationType="none"
-      onRequestClose={onClose}
-    >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        {/* style, não className: na web o NativeWind não aplica className em
-            Animated.View, e sem flex: 1 a folha subia para o topo. */}
-        <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
-          <Pressable
-            className="flex-1 justify-end bg-background-shade"
+    <BottomSheet
+      visible={visible}
+      title={texts.title}
+      closeLabel={texts.close}
+      onClose={onClose}
+      footer={
+        <>
+          <Button
+            shape="pill"
+            icon={Check}
+            className="h-[49px] w-full"
+            disabled={submitting}
+            accessibilityRole="button"
+            accessibilityLabel={texts.confirm}
+            accessibilityState={{
+              disabled: submitting,
+              busy: submitting,
+            }}
+            onPress={onConfirm}
+          >
+            <Text className="font-semibold">{texts.confirm}</Text>
+          </Button>
+          <Button
+            shape="pill"
+            variant="secondary"
+            icon={X}
+            className="h-[49px] w-full"
+            disabled={submitting}
+            accessibilityRole="button"
+            accessibilityLabel={texts.dismiss}
+            accessibilityState={{ disabled: submitting }}
             onPress={onClose}
           >
-            <Animated.View style={sheet.sheetStyle} {...sheet.panHandlers}>
-              <Pressable
-                className="gap-4 rounded-t-3xl bg-background-modal px-5 pb-10 pt-4"
-                onPress={e => e.stopPropagation()}
-              >
-                <View className="mb-2 h-1 w-10 self-center rounded-full bg-details-primary" />
+            <Text className="font-semibold">{texts.dismiss}</Text>
+          </Button>
+        </>
+      }
+    >
+      <Text className="text-[15px] text-label-primary">{texts.message}</Text>
 
-                <Text className="text-xl font-bold text-label-primary">
-                  {texts.title}
-                </Text>
-                <Text className="text-[15px] text-label-primary">
-                  {texts.message}
-                </Text>
+      {field('date', texts.date)}
+      <View className="flex-row gap-3">
+        {field('startTime', texts.startTime)}
+        {field('endTime', texts.endTime)}
+      </View>
 
-                {field('date', texts.date)}
-                <View className="flex-row gap-3">
-                  {field('startTime', texts.startTime)}
-                  {field('endTime', texts.endTime)}
-                </View>
-
-                {errorText ? (
-                  <Text className="text-xs text-alert-primary">
-                    {errorText}
-                  </Text>
-                ) : null}
-
-                <Button
-                  shape="pill"
-                  icon={Check}
-                  className="h-[49px] w-full"
-                  disabled={submitting}
-                  accessibilityRole="button"
-                  accessibilityLabel={texts.confirm}
-                  accessibilityState={{
-                    disabled: submitting,
-                    busy: submitting,
-                  }}
-                  onPress={onConfirm}
-                >
-                  <Text className="font-semibold">{texts.confirm}</Text>
-                </Button>
-                <Button
-                  shape="pill"
-                  variant="secondary"
-                  icon={X}
-                  className="h-[49px] w-full"
-                  disabled={submitting}
-                  accessibilityRole="button"
-                  accessibilityLabel={texts.dismiss}
-                  accessibilityState={{ disabled: submitting }}
-                  onPress={onClose}
-                >
-                  <Text className="font-semibold">{texts.dismiss}</Text>
-                </Button>
-              </Pressable>
-            </Animated.View>
-          </Pressable>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
+      {errorText ? (
+        <Text className="text-xs text-alert-primary">{errorText}</Text>
+      ) : null}
+    </BottomSheet>
   );
 }

@@ -50,6 +50,7 @@ const TEXTS = {
     endTime: 'Fim',
     confirm: 'Remarcar',
     dismiss: 'Cancelar',
+    close: 'Fechar',
     done: 'Atendimento remarcado.',
     errors: {
       CONFLICT: 'Você já possui um atendimento nesse horário.',
