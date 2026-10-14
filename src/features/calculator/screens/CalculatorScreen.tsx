@@ -8,6 +8,7 @@ import { Text } from 'app/components/ui/text';
 import {
   PricingGoalsSection,
   PricingOnboardingSection,
+  usePricingSettings,
 } from 'features/pricing';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundPrimary } from 'theme/colors';
@@ -68,11 +69,24 @@ export function CalculatorScreen({ visible, onClose }: CalculatorScreenProps) {
           keyboardShouldPersistTaps="handled"
           contentContainerClassName="gap-[18px] px-5 pb-10 pt-2"
         >
-          <PricingGoalsSection />
-          <FixedCostsSection />
-          <PricingOnboardingSection />
+          <CalculatorSections />
         </ScrollView>
       </View>
     </Modal>
+  );
+}
+
+// The goals form and the initial-state notice read the same settings: saving
+// the goals is what makes the notice go away. Lives inside the Modal so the
+// settings are only fetched while the calculator is open.
+function CalculatorSections() {
+  const pricing = usePricingSettings();
+
+  return (
+    <>
+      <PricingGoalsSection pricing={pricing} />
+      <FixedCostsSection />
+      <PricingOnboardingSection pricing={pricing} />
+    </>
   );
 }

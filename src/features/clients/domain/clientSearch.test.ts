@@ -2,7 +2,6 @@ import type { Client } from './client';
 import {
   filterClients,
   getClientSearchStatus,
-  normalizeForSearch,
   type ClientSearchSnapshot,
 } from './clientSearch';
 
@@ -28,18 +27,6 @@ function client(name: string, overrides: Partial<Client> = {}): Client {
     ...overrides,
   };
 }
-
-describe('normalizeForSearch', () => {
-  it.each([
-    ['Clínica', 'clinica'],
-    ['  ÁGUAS  ', 'aguas'],
-    ['São João', 'sao joao'],
-    ['Ação', 'acao'],
-    ['abc', 'abc'],
-  ])('%j → %j', (input, expected) => {
-    expect(normalizeForSearch(input)).toBe(expected);
-  });
-});
 
 describe('filterClients', () => {
   const list = [

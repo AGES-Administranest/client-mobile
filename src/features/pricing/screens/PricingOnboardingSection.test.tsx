@@ -5,6 +5,7 @@ import { I18nProvider } from 'shared/i18n';
 import { ApiError } from 'shared/services/apiClient';
 
 import { PricingOnboardingSection } from './PricingOnboardingSection';
+import { usePricingSettings } from '../hooks/usePricingSettings';
 import { fetchPricingSettings } from '../services/pricingSettingsService';
 
 jest.mock('../services/pricingSettingsService', () => ({
@@ -37,13 +38,17 @@ const SETTINGS = {
   safetyMarginPct: 10,
 };
 
+function Section() {
+  return <PricingOnboardingSection pricing={usePricingSettings()} />;
+}
+
 async function renderSection() {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
         <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-          <PricingOnboardingSection />
+          <Section />
         </AuthProvider>
       </I18nProvider>,
     );

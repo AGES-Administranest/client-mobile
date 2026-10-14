@@ -1,5 +1,6 @@
+import { normalizeForSearch } from 'shared/utils/search';
+
 import type { Client, ClientType, TaxIdType } from './client';
-import { normalizeForSearch } from './clientSearch';
 
 /** O corpo de um POST /client, como o formulário de clínica monta. */
 export type OfflineClientPayload = {
