@@ -901,6 +901,7 @@
       "title": "Cancellation reason",
       "reasonPlaceholder": "Briefly describe the reason",
       "confirm": "Confirm",
+      "close": "Close",
       "errors": {
         "REQUIRED": "Enter the cancellation reason.",
         "TOO_LONG": "The reason can have at most 2000 characters.",

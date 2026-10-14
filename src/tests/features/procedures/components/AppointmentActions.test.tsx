@@ -1,3 +1,4 @@
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import {
@@ -6,6 +7,8 @@ import {
   type AppointmentActionsReschedule,
 } from 'features/procedures/components/AppointmentActions';
 import type { AppointmentActionNotice } from 'features/procedures/domain/toCompletionOutcome';
+
+const INSETS = { top: 47, left: 0, right: 0, bottom: 34 };
 
 const TEXTS = {
   open: 'Atualizar status',
@@ -32,6 +35,7 @@ const TEXTS = {
     reasonPlaceholder: 'Descreva o motivo',
     confirm: 'Confirmar',
     dismiss: 'Cancelar',
+    close: 'Fechar',
     errors: {
       REQUIRED: 'Informe o motivo do cancelamento.',
       TOO_LONG: 'O motivo pode ter no máximo 2000 caracteres.',
@@ -110,17 +114,21 @@ async function render({
 } = {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
+    // Só o contexto, sem SafeAreaProvider: o provider põe uma view nativa na
+    // árvore, e o teste de "não renderiza nada" espera a árvore vazia.
     renderer = ReactTestRenderer.create(
-      <AppointmentActions
-        visible={visible}
-        submitting={submitting}
-        notice={notice}
-        justCanceled={justCanceled}
-        texts={TEXTS}
-        onComplete={onComplete}
-        cancellation={cancel}
-        reschedule={resched}
-      />,
+      <SafeAreaInsetsContext.Provider value={INSETS}>
+        <AppointmentActions
+          visible={visible}
+          submitting={submitting}
+          notice={notice}
+          justCanceled={justCanceled}
+          texts={TEXTS}
+          onComplete={onComplete}
+          cancellation={cancel}
+          reschedule={resched}
+        />
+      </SafeAreaInsetsContext.Provider>,
     );
   });
   return renderer!;

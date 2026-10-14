@@ -901,6 +901,7 @@
       "title": "Motivo do cancelamento",
       "reasonPlaceholder": "Escreva brevemente o motivo",
       "confirm": "Confirmar",
+      "close": "Fechar",
       "errors": {
         "REQUIRED": "Informe o motivo do cancelamento.",
         "TOO_LONG": "O motivo pode ter no máximo 2000 caracteres.",

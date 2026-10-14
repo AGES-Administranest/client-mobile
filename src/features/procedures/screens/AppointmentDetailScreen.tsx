@@ -745,6 +745,7 @@ function actionTexts(
       reasonPlaceholder: t('procedures.cancellation.reasonPlaceholder'),
       confirm: t('procedures.cancellation.confirm'),
       dismiss: t('appointments.notDone.dismiss'),
+      close: t('procedures.cancellation.close'),
       errors: {
         REQUIRED: t('procedures.cancellation.errors.REQUIRED'),
         TOO_LONG: t('procedures.cancellation.errors.TOO_LONG'),

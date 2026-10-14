@@ -1,7 +1,13 @@
 import { TextInput } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { CancelAppointmentSheet } from 'features/procedures/components/CancelAppointmentSheet';
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 375, height: 812 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const TEXTS = {
   title: 'Não realizado',
@@ -15,6 +21,7 @@ const TEXTS = {
   reasonPlaceholder: 'Descreva o motivo',
   confirm: 'Confirmar',
   dismiss: 'Voltar',
+  close: 'Fechar',
 };
 
 async function render(
@@ -35,7 +42,11 @@ async function render(
   };
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
-    renderer = ReactTestRenderer.create(<CancelAppointmentSheet {...props} />);
+    renderer = ReactTestRenderer.create(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <CancelAppointmentSheet {...props} />
+      </SafeAreaProvider>,
+    );
   });
   return { renderer: renderer!, props };
 }
