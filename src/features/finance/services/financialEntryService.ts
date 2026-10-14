@@ -2,6 +2,7 @@ import { apiClient } from 'shared/services/apiClient';
 
 import {
   toFinancialEntry,
+  type CreateFinancialCategoryPayload,
   type CreateFinancialEntryPayload,
   type FinancialCategory,
   type FinancialEntry,
@@ -13,6 +14,16 @@ export async function fetchFinancialCategories(
   idToken: string,
 ): Promise<FinancialCategory[]> {
   return apiClient.get<FinancialCategory[]>('/financial-categories', {
+    token: idToken,
+  });
+}
+
+/** Reenviar o mesmo id com os mesmos dados devolve a categoria já criada. */
+export async function createFinancialCategory(
+  idToken: string,
+  payload: CreateFinancialCategoryPayload,
+): Promise<FinancialCategory> {
+  return apiClient.post<FinancialCategory>('/financial-categories', payload, {
     token: idToken,
   });
 }

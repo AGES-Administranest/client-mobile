@@ -1,13 +1,20 @@
 import { ApiError } from 'shared/services/apiClient';
 
 import {
+  createFinancialCategory,
   createFinancialEntry,
   fetchFinancialCategories,
 } from './financialEntryService';
-import type { CreateFinancialEntryPayload } from '../domain/financialEntry';
+import type {
+  CreateFinancialCategoryPayload,
+  CreateFinancialEntryPayload,
+} from '../domain/financialEntry';
 
 // Contrato do backend (módulo financial, PR #50):
-//   - GET /financial-categories devolve {id, name, nature, defaultScope}
+//   - GET /financial-categories devolve {id, name, nature, defaultScope,
+//     isDefault}; POST /financial-categories recebe {id, name, nature,
+//     defaultScope}, pega o dono do token e responde 409 com details.id
+//     quando o nome já existe naquela natureza
 //   - POST /financial-entries recusa campos fora do DTO (400) e devolve o
 //     lançamento com o amount como Decimal serializado ("180")
 const ID_TOKEN = 'id-token';
@@ -20,6 +27,13 @@ const PAYLOAD: CreateFinancialEntryPayload = {
   accrualDate: '2026-08-09T12:00:00.000Z',
   categoryId: 'cat-travel',
   scope: 'PROFESSIONAL',
+};
+
+const NEW_CATEGORY: CreateFinancialCategoryPayload = {
+  id: '3b8f5d2e-1c4a-4e7b-9a60-2f1d8c7e5b43',
+  name: 'Comida',
+  nature: 'EXPENSE',
+  defaultScope: 'PERSONAL',
 };
 
 const fetchMock = jest.fn();
@@ -98,5 +112,38 @@ test('keeps the backend error code so the form can explain it', async () => {
   expect(error).toMatchObject({
     status: 400,
     code: 'FINANCIAL_CATEGORY_INVALID',
+  });
+});
+
+test('creates a category with exactly the DTO fields and the id token, never a user id', async () => {
+  respond(201, { ...NEW_CATEGORY, isDefault: false });
+
+  await expect(
+    createFinancialCategory(ID_TOKEN, NEW_CATEGORY),
+  ).resolves.toEqual({ ...NEW_CATEGORY, isDefault: false });
+
+  const { url, init, headers } = lastRequest();
+  expect(init.method).toBe('POST');
+  expect(url.pathname).toBe('/financial-categories');
+  expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
+  expect(JSON.parse(init.body as string)).toEqual(NEW_CATEGORY);
+});
+
+test('keeps the id of the category that already has the name', async () => {
+  respond(409, {
+    code: 'FINANCIAL_CATEGORY_DUPLICATED',
+    message: 'A category with this name already exists',
+    details: { id: 'cat-food' },
+  });
+
+  const error = await createFinancialCategory(ID_TOKEN, NEW_CATEGORY).catch(
+    e => e,
+  );
+
+  expect(error).toBeInstanceOf(ApiError);
+  expect(error).toMatchObject({
+    status: 409,
+    code: 'FINANCIAL_CATEGORY_DUPLICATED',
+    details: { id: 'cat-food' },
   });
 });
