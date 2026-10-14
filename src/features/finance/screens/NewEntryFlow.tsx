@@ -19,19 +19,18 @@ export function NewEntryFlow() {
   const [formMounted, setFormMounted] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [savedVisible, setSavedVisible] = useState(false);
-  // A folha seguinte só abre depois que a de opções termina de sair: no iOS
-  // um Modal não aparece enquanto outro ainda está fechando.
-  const nextAction = useRef<(() => void) | null>(null);
+  // iOS: um Modal não abre enquanto outro fecha.
+  const openAfterOptionsLeave = useRef<(() => void) | null>(null);
 
-  const choose = (action?: () => void) => {
-    nextAction.current = action ?? null;
+  const choose = (openNext?: () => void) => {
+    openAfterOptionsLeave.current = openNext ?? null;
     setOptionsVisible(false);
   };
 
-  const runNextAction = () => {
-    const action = nextAction.current;
-    nextAction.current = null;
-    action?.();
+  const openChosenSheet = () => {
+    const open = openAfterOptionsLeave.current;
+    openAfterOptionsLeave.current = null;
+    open?.();
   };
 
   const openOptions = () => {
@@ -67,7 +66,7 @@ export function NewEntryFlow() {
       <OptionsModal
         visible={optionsVisible}
         onClose={() => choose()}
-        onClosed={runNextAction}
+        onClosed={openChosenSheet}
         title={t('financialEntries.options.title')}
         description={t('financialEntries.options.description')}
         options={[

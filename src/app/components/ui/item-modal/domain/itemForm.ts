@@ -3,9 +3,10 @@ import { z } from 'zod';
 import {
   currencyToNumber,
   digitsOnly,
-  isPastDate,
   parseDateInput,
-} from './itemModal';
+} from 'shared/utils/inputMasks';
+
+import { isPastDate } from './itemModal';
 
 export type ItemFormValues = {
   name: string;
