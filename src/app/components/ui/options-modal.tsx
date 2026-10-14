@@ -18,11 +18,9 @@ type OptionsModalProps = {
   visible: boolean;
   onClose: () => void;
   options: readonly OptionModalItem[];
-  /** Já traduzido. Sem ele, o sheet mostra só as opções. */
   title?: string;
-  /** Já traduzida. Explica a diferença entre as opções, abaixo do título. */
   description?: string;
-  /** Depois que a saída termina: é a hora de abrir outra folha (ver useSheetAnimation). */
+  /** iOS: abra o próximo sheet aqui, não no onClose. */
   onClosed?: () => void;
   className?: string;
 };
