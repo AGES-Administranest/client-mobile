@@ -951,6 +951,7 @@
         "title": "Appointment amount",
         "placeholder": "0.00",
         "confirm": "Save",
+        "close": "Close",
         "errors": {
           "REQUIRED": "Enter the amount.",
           "INVALID_NUMBER": "Enter a valid amount, like 350.00.",

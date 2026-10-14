@@ -600,6 +600,7 @@ export function AppointmentDetailScreen({
           title: t('procedures.detail.amountSheet.title'),
           placeholder: t('procedures.detail.amountSheet.placeholder'),
           confirm: t('procedures.detail.amountSheet.confirm'),
+          close: t('procedures.detail.amountSheet.close'),
         }}
         onChangeValue={value => {
           setAmountText(value);

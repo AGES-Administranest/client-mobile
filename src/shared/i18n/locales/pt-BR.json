@@ -951,6 +951,7 @@
         "title": "Valor do atendimento",
         "placeholder": "0,00",
         "confirm": "Salvar",
+        "close": "Fechar",
         "errors": {
           "REQUIRED": "Informe o valor.",
           "INVALID_NUMBER": "Informe um valor válido, como 350,00.",
