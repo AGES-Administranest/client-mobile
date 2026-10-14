@@ -13,9 +13,15 @@ type VehicleCardProps = {
   vehicle: Vehicle;
   onPress?: () => void;
   className?: string;
+  deactivatedLabel?: string;
 };
 
-export function VehicleCard({ vehicle, onPress, className }: VehicleCardProps) {
+export function VehicleCard({
+  vehicle,
+  onPress,
+  className,
+  deactivatedLabel = 'Desativado',
+}: VehicleCardProps) {
   const title = vehicle.model
     .toLowerCase()
     .startsWith(vehicle.brand.toLowerCase())
@@ -58,6 +64,13 @@ export function VehicleCard({ vehicle, onPress, className }: VehicleCardProps) {
                 </Text>
               ) : null}
             </View>
+            {!vehicle.active ? (
+              <View className="mt-2 self-start rounded-md bg-[#F9DEDC] px-2 py-0.5">
+                <Text className="text-[11px] font-semibold text-[#8C1D18]">
+                  {deactivatedLabel}
+                </Text>
+              </View>
+            ) : null}
           </View>
           <Icon as={ChevronRight} size={18} className="text-label-tertiary" />
         </View>

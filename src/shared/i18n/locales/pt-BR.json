@@ -934,6 +934,36 @@
   "home": {
     "greeting": "Olá, Dr. {{name}}"
   },
+  "pricing": {
+    "onboarding": {
+      "message": "Preencha os campos para que os valores sejam calculados",
+      "loading": "Carregando suas metas",
+      "loadFailure": "Não foi possível carregar suas metas."
+    },
+    "goalForm": {
+      "title": "Metas",
+      "labels": {
+        "monthlyIncomeGoal": "Meta de renda líquida mensal (R$)",
+        "weeklyHours": "Horas disponíveis por semana",
+        "safetyMarginPct": "Margem de segurança (%)"
+      },
+      "weeklyHoursHint": "Conte as horas em que você fica disponível para trabalhar, incluindo deslocamentos e períodos ociosos, não só as horas que você cobra.",
+      "save": "Salvar metas",
+      "saving": "Salvando…",
+      "errors": {
+        "required": "Preencha este campo",
+        "invalid": "Digite um número válido",
+        "tooManyDecimals": "Use no máximo 2 casas decimais",
+        "tooLarge": "O valor máximo é R$ 999.999.999.999,99",
+        "notPositive": "O valor deve ser maior que zero",
+        "tooHigh": "Uma semana tem no máximo 168 horas",
+        "outOfRange": "A margem deve ficar entre 0% e 100%"
+      },
+      "failures": {
+        "save": "Não foi possível salvar as metas. Tente novamente."
+      }
+    }
+  },
   "vehicles": {
     "title": "Veículos",
     "counter": "{{count}} VEÍCULOS",
@@ -971,11 +1001,11 @@
       "submitAdd": "Adicionar veículo",
       "submitEdit": "Editar veículo",
       "submitConfirm": "Confirmar",
-      "inactivate": "Desativar veículo",
+      "inactivate": "Inativar",
       "delete": "Excluir",
-      "confirmInactivateTitle": "Desativar veículo?",
-      "confirmInactivateMessage": "O veículo será desativado e não aparecerá nos cálculos de novos atendimentos.",
-      "confirmInactivateButton": "Desativar",
+      "confirmInactivateTitle": "Inativar veículo?",
+      "confirmInactivateMessage": "Tem certeza que deseja inativar esse veículo? Os deslocamentos já registrados com ele serão mantidos com o custo original.",
+      "confirmInactivateButton": "Inativar",
       "cancel": "Cancelar",
       "errors": {
         "brandRequired": "A marca é obrigatória",
@@ -988,8 +1018,10 @@
         "fuelPriceRequired": "O preço do combustível é obrigatório",
         "fuelPriceInvalid": "Informe um preço válido maior que zero (até R$ 100/L)",
         "submitFailed": "Não foi possível salvar o veículo. Tente novamente.",
-        "inactivateFailed": "Não foi possível desativar o veículo. Tente novamente."
-      }
+        "inactivateFailed": "Não foi possível inativar o veículo. Tente novamente."
+      },
+      "reactivate": "Reativar veículo",
+      "deactivated": "Desativado"
     }
   }
 }

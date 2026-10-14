@@ -247,7 +247,7 @@ describe('VehiclesScreen', () => {
       .map(node => node.props.children);
     const serialized = JSON.stringify(texts);
     expect(serialized).toContain('Editar veículo');
-    expect(serialized).toContain('Desativar veículo');
+    expect(serialized).not.toContain('Inativar');
   });
 
   it('opens VehicleFormSheet in create mode when add button is clicked without onAddVehicle', async () => {
@@ -283,4 +283,144 @@ describe('VehiclesScreen', () => {
     const serialized = JSON.stringify(texts);
     expect(serialized).toContain('Informações');
   });
+
+  it('opens confirmation modal when Inativar is clicked', async () => {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <SafeAreaProvider initialMetrics={METRICS}>
+          <I18nProvider>
+            <VehiclesScreen
+              visible={true}
+              onClose={jest.fn()}
+              vehicles={MOCK_VEHICLES}
+            />
+          </I18nProvider>
+        </SafeAreaProvider>,
+      );
+    });
+
+    const cardButton = renderer!.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node =>
+        Boolean(node.props.accessibilityLabel?.startsWith('Fiat Strada 2021')),
+      );
+
+    await act(async () => {
+      cardButton!.props.onPress();
+    });
+
+    const editButton = renderer!.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node => {
+        const rendered = JSON.stringify(
+          node.findAllByType('Text' as never).map(t => t.props.children),
+        );
+        return rendered.includes('Editar veículo');
+      });
+
+    await act(async () => {
+      editButton!.props.onPress();
+    });
+
+    const inactivateButton = renderer!.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node => {
+        const rendered = JSON.stringify(
+          node.findAllByType('Text' as never).map(t => t.props.children),
+        );
+        return rendered.includes('Inativar');
+      });
+
+    await act(async () => {
+      inactivateButton!.props.onPress();
+    });
+
+    const texts = renderer!.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children);
+    const serialized = JSON.stringify(texts);
+    expect(serialized).toContain('Inativar veículo?');
+    expect(serialized).toContain(
+      'Tem certeza que deseja inativar esse veículo? Os deslocamentos já registrados com ele serão mantidos com o custo original.',
+    );
+  });
+
+  it('confirms inactivation, closes sheets, and removes the vehicle from the list', async () => {
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <SafeAreaProvider initialMetrics={METRICS}>
+          <I18nProvider>
+            <VehiclesScreen
+              visible={true}
+              onClose={jest.fn()}
+              vehicles={MOCK_VEHICLES}
+            />
+          </I18nProvider>
+        </SafeAreaProvider>,
+      );
+    });
+
+    const cardButton = renderer!.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node =>
+        Boolean(node.props.accessibilityLabel?.startsWith('Fiat Strada 2021')),
+      );
+
+    await act(async () => {
+      cardButton!.props.onPress();
+    });
+
+    const editButton = renderer!.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node => {
+        const rendered = JSON.stringify(
+          node.findAllByType('Text' as never).map(t => t.props.children),
+        );
+        return rendered.includes('Editar veículo');
+      });
+
+    await act(async () => {
+      editButton!.props.onPress();
+    });
+
+    const inactivateButton = renderer!.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node => {
+        const rendered = JSON.stringify(
+          node.findAllByType('Text' as never).map(t => t.props.children),
+        );
+        return rendered.includes('Inativar');
+      });
+
+    await act(async () => {
+      inactivateButton!.props.onPress();
+    });
+
+    const confirmButton = renderer!.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node => {
+        const rendered = JSON.stringify(
+          node.findAllByType('Text' as never).map(t => t.props.children),
+        );
+        return rendered.includes('Inativar') && node.props.role === 'button';
+      });
+
+    await act(async () => {
+      await confirmButton!.props.onPress();
+    });
+
+    const texts = renderer!.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children);
+    const serialized = JSON.stringify(texts);
+    expect(serialized).toContain('2 VEÍCULOS');
+    expect(serialized).not.toContain('Fiat Strada 2021');
+    expect(serialized).toContain('Honda CG 160');
+    expect(serialized).toContain('Toyota Corolla');
+  });
 });
+

@@ -80,4 +80,23 @@ describe('VehicleCard', () => {
     expect(serialized).toContain('Honda CG 160');
     expect(serialized).not.toContain('Honda Honda CG 160');
   });
+
+  it('renders deactivated badge when vehicle is inactive', () => {
+    const inactiveVehicle: Vehicle = {
+      ...MOCK_VEHICLE,
+      active: false,
+    };
+
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = ReactTestRenderer.create(
+        <VehicleCard vehicle={inactiveVehicle} deactivatedLabel="Desativado" />,
+      );
+    });
+
+    const texts = renderer!.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children);
+    expect(JSON.stringify(texts)).toContain('Desativado');
+  });
 });

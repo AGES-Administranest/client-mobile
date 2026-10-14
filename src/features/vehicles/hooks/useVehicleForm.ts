@@ -150,11 +150,31 @@ export function useVehicleForm(options: UseVehicleFormOptions = {}) {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      await vehicleService.inactivate(token, vehicle.id);
+      if (token) {
+        await vehicleService.inactivate(token, vehicle.id);
+      }
       onInactivateSuccess?.(vehicle.id);
       return true;
     } catch {
       setSubmitError('inactivateFailed');
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function reactivate(): Promise<boolean> {
+    if (!vehicle?.id) return false;
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const updated = await vehicleService.update(token, vehicle.id, {
+        active: true,
+      });
+      onSuccess?.(updated);
+      return true;
+    } catch {
+      setSubmitError('submitFailed');
       return false;
     } finally {
       setSubmitting(false);
@@ -172,6 +192,7 @@ export function useVehicleForm(options: UseVehicleFormOptions = {}) {
     costPerKmEstimate,
     submit,
     inactivate,
+    reactivate,
     reset,
   };
 }

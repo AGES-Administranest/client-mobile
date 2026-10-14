@@ -23,6 +23,11 @@ export {
   type UseVehicleFormOptions,
 } from './hooks/useVehicleForm';
 export {
+  useVehicles,
+  type UseVehiclesOptions,
+  type UseVehiclesResult,
+} from './hooks/useVehicles';
+export {
   VehiclesScreen,
   type VehiclesScreenProps,
 } from './screens/VehiclesScreen';

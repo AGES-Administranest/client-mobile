@@ -52,7 +52,6 @@ export type VehicleFormTexts = {
     edit: string;
     confirm: string;
     inactivate: string;
-    delete: string;
   };
   errors: Partial<
     Record<VehicleFormErrorCode | 'submitFailed' | 'inactivateFailed', string>
@@ -257,31 +256,17 @@ export function VehicleFormSheet({
                 </Text>
               </Button>
             ) : mode === 'view' ? (
-              <View className="gap-2.5">
-                <Button
-                  shape="pill"
-                  icon={Pencil}
-                  className="h-[49px] w-full"
-                  disabled={submitting}
-                  onPress={onStartEdit}
-                >
-                  <Text className="font-semibold text-label-secondary">
-                    {texts.buttons.edit}
-                  </Text>
-                </Button>
-                <Button
-                  shape="pill"
-                  variant="secondary"
-                  icon={Trash2}
-                  className="h-[49px] w-full bg-button-secondary"
-                  disabled={submitting}
-                  onPress={onInactivate}
-                >
-                  <Text className="font-semibold text-label-secondary">
-                    {texts.buttons.inactivate}
-                  </Text>
-                </Button>
-              </View>
+              <Button
+                shape="pill"
+                icon={Pencil}
+                className="h-[49px] w-full"
+                disabled={submitting}
+                onPress={onStartEdit}
+              >
+                <Text className="font-semibold text-label-secondary">
+                  {texts.buttons.edit}
+                </Text>
+              </Button>
             ) : (
               <View className="gap-2.5">
                 <Button
@@ -304,7 +289,7 @@ export function VehicleFormSheet({
                   onPress={onInactivate}
                 >
                   <Text className="font-semibold text-label-secondary">
-                    {texts.buttons.delete}
+                    {texts.buttons.inactivate}
                   </Text>
                 </Button>
               </View>

@@ -20,7 +20,7 @@ import {
 } from '../components/VehicleFormSheet';
 import type { Vehicle, VehicleFormMode } from '../domain/vehicle.types';
 import { useVehicleForm } from '../hooks/useVehicleForm';
-import { fetchVehicles } from '../services/vehicleService';
+import { useVehicles } from '../hooks/useVehicles';
 
 export type VehiclesScreenProps = {
   visible: boolean;
@@ -50,8 +50,14 @@ export function VehiclesScreen({
   const insets = useSafeAreaInsets();
   const token = useSessionToken();
 
-  const [internalVehicles, setInternalVehicles] = useState<Vehicle[]>([]);
-  const [, setIsLoading] = useState(false);
+  const vehiclesHook = useVehicles({
+    token,
+    autoFetch: visible && initialVehicles === undefined,
+  });
+
+  const [internalVehicles, setInternalVehicles] = useState<Vehicle[]>(
+    initialVehicles ?? [],
+  );
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -66,8 +72,12 @@ export function VehiclesScreen({
     onSuccess: savedVehicle => {
       if (sheetMode === 'create') {
         setInternalVehicles(prev => [savedVehicle, ...prev]);
+        vehiclesHook.setVehicles(prev => [savedVehicle, ...prev]);
       } else {
         setInternalVehicles(prev =>
+          prev.map(v => (v.id === savedVehicle.id ? savedVehicle : v)),
+        );
+        vehiclesHook.setVehicles(prev =>
           prev.map(v => (v.id === savedVehicle.id ? savedVehicle : v)),
         );
       }
@@ -75,45 +85,19 @@ export function VehiclesScreen({
     },
     onInactivateSuccess: vehicleId => {
       setInternalVehicles(prev => prev.filter(v => v.id !== vehicleId));
+      vehiclesHook.setVehicles(prev => prev.filter(v => v.id !== vehicleId));
       setConfirmInactivateVisible(false);
       setSheetVisible(false);
     },
   });
 
   useEffect(() => {
-    if (!visible) return;
-
-    if (initialVehicles !== undefined) {
-      setInternalVehicles(initialVehicles);
-      return;
+    if (initialVehicles === undefined) {
+      setInternalVehicles(vehiclesHook.vehicles);
     }
+  }, [initialVehicles, vehiclesHook.vehicles]);
 
-    if (!token) return;
-
-    let mounted = true;
-    setIsLoading(true);
-
-    fetchVehicles(token)
-      .then(data => {
-        if (mounted) {
-          setInternalVehicles(data);
-        }
-      })
-      .catch(() => {
-        // Falhas de rede mantêm a lista atual
-      })
-      .finally(() => {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [visible, initialVehicles, token]);
-
-  const vehicleList = initialVehicles ?? internalVehicles;
+  const vehicleList = internalVehicles;
   const count = vehicleList.length;
 
   const counterText =
@@ -179,7 +163,6 @@ export function VehiclesScreen({
       edit: t('vehicles.form.submitEdit'),
       confirm: t('vehicles.form.submitConfirm'),
       inactivate: t('vehicles.form.inactivate'),
-      delete: t('vehicles.form.delete'),
     },
     errors: {
       brandRequired: t('vehicles.form.errors.brandRequired'),
@@ -195,6 +178,14 @@ export function VehiclesScreen({
       inactivateFailed: t('vehicles.form.errors.inactivateFailed'),
     },
   };
+
+  async function handleConfirmInactivate() {
+    const success = await form.inactivate();
+    if (success) {
+      setConfirmInactivateVisible(false);
+      setSheetVisible(false);
+    }
+  }
 
   return (
     <Modal
@@ -248,6 +239,7 @@ export function VehiclesScreen({
               <VehicleCard
                 key={vehicle.id}
                 vehicle={vehicle}
+                deactivatedLabel={t('vehicles.form.deactivated')}
                 onPress={() => handleOpenView(vehicle)}
               />
             ))}
@@ -276,7 +268,7 @@ export function VehiclesScreen({
 
         {/* Bottom Sheet de Formulário (Cadastro / Visualizar / Edição) */}
         <VehicleFormSheet
-          visible={sheetVisible}
+          visible={sheetVisible && !confirmInactivateVisible}
           mode={sheetMode}
           values={form.values}
           errors={form.errors}
@@ -295,11 +287,15 @@ export function VehiclesScreen({
         <ConfirmSheet
           visible={confirmInactivateVisible}
           title={t('vehicles.form.confirmInactivateTitle')}
-          message={t('vehicles.form.confirmInactivateMessage')}
+          message={
+            form.submitError === 'inactivateFailed'
+              ? t('vehicles.form.errors.inactivateFailed')
+              : t('vehicles.form.confirmInactivateMessage')
+          }
           confirmLabel={t('vehicles.form.confirmInactivateButton')}
           cancelLabel={t('vehicles.form.cancel')}
           confirmIcon={Trash2}
-          onConfirm={form.inactivate}
+          onConfirm={handleConfirmInactivate}
           onCancel={() => setConfirmInactivateVisible(false)}
         />
       </View>

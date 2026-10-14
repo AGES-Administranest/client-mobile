@@ -31,8 +31,7 @@ const MOCK_TEXTS: VehicleFormTexts = {
     add: 'Adicionar veículo',
     edit: 'Editar veículo',
     confirm: 'Confirmar',
-    inactivate: 'Desativar veículo',
-    delete: 'Excluir',
+    inactivate: 'Inativar',
   },
   errors: {
     brandRequired: 'A marca é obrigatória',
@@ -74,9 +73,8 @@ describe('VehicleFormSheet', () => {
     expect(root.findByProps({ children: 'Adicionar veículo' })).toBeTruthy();
   });
 
-  it('renders in view mode with edit and inactivate buttons', () => {
+  it('renders in view mode with edit button and without inactivate button', () => {
     const onStartEdit = jest.fn();
-    const onInactivate = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
 
     act(() => {
@@ -90,7 +88,7 @@ describe('VehicleFormSheet', () => {
           onChangeField={jest.fn()}
           onStartEdit={onStartEdit}
           onSubmit={jest.fn()}
-          onInactivate={onInactivate}
+          onInactivate={jest.fn()}
           onClose={jest.fn()}
         />,
       );
@@ -98,11 +96,11 @@ describe('VehicleFormSheet', () => {
 
     const root = renderer.root;
     expect(root.findByProps({ children: 'Editar veículo' })).toBeTruthy();
-    expect(root.findByProps({ children: 'Desativar veículo' })).toBeTruthy();
+    expect(root.findAllByProps({ children: 'Inativar' })).toHaveLength(0);
     expect(root.findByProps({ children: 'R$ 0,47/km' })).toBeTruthy();
   });
 
-  it('renders in edit mode with confirm and delete buttons', () => {
+  it('renders in edit mode with confirm and inactivate buttons', () => {
     const onSubmit = jest.fn();
     const onInactivate = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
@@ -125,7 +123,7 @@ describe('VehicleFormSheet', () => {
 
     const root = renderer.root;
     expect(root.findByProps({ children: 'Confirmar' })).toBeTruthy();
-    expect(root.findByProps({ children: 'Excluir' })).toBeTruthy();
+    expect(root.findByProps({ children: 'Inativar' })).toBeTruthy();
   });
 
   it('displays field errors when provided', () => {

@@ -171,4 +171,31 @@ describe('useVehicleForm', () => {
     expect(vehicleService.inactivate).toHaveBeenCalledWith('tok', 'v-1');
     expect(onInactivateSuccess).toHaveBeenCalledWith('v-1');
   });
+
+  it('reactivates vehicle successfully', async () => {
+    (vehicleService.update as jest.Mock).mockResolvedValue({
+      ...MOCK_VEHICLE,
+      active: true,
+    });
+    const onSuccess = jest.fn();
+    const hook = renderVehicleFormHook({
+      vehicle: { ...MOCK_VEHICLE, active: false },
+      token: 'tok',
+      onSuccess,
+    });
+
+    let success = false;
+    await act(async () => {
+      success = await hook.current.reactivate();
+    });
+
+    expect(success).toBe(true);
+    expect(vehicleService.update).toHaveBeenCalledWith('tok', 'v-1', {
+      active: true,
+    });
+    expect(onSuccess).toHaveBeenCalledWith({
+      ...MOCK_VEHICLE,
+      active: true,
+    });
+  });
 });

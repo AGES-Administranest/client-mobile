@@ -934,6 +934,36 @@
   "home": {
     "greeting": "Hello, Dr. {{name}}"
   },
+  "pricing": {
+    "onboarding": {
+      "message": "Fill in the fields so the values can be calculated",
+      "loading": "Loading your goals",
+      "loadFailure": "Couldn't load your goals."
+    },
+    "goalForm": {
+      "title": "Goals",
+      "labels": {
+        "monthlyIncomeGoal": "Monthly net income goal (R$)",
+        "weeklyHours": "Available hours per week",
+        "safetyMarginPct": "Safety margin (%)"
+      },
+      "weeklyHoursHint": "Count the hours you are available to work, including travel and idle time, not only the hours you bill.",
+      "save": "Save goals",
+      "saving": "Saving…",
+      "errors": {
+        "required": "Fill in this field",
+        "invalid": "Enter a valid number",
+        "tooManyDecimals": "Use at most 2 decimal places",
+        "tooLarge": "The maximum is R$ 999,999,999,999.99",
+        "notPositive": "The value must be greater than zero",
+        "tooHigh": "A week has at most 168 hours",
+        "outOfRange": "The margin must be between 0% and 100%"
+      },
+      "failures": {
+        "save": "Could not save your goals. Please try again."
+      }
+    }
+  },
   "vehicles": {
     "title": "Vehicles",
     "counter": "{{count}} VEHICLES",
@@ -971,10 +1001,10 @@
       "submitAdd": "Add vehicle",
       "submitEdit": "Edit vehicle",
       "submitConfirm": "Confirm",
-      "inactivate": "Deactivate vehicle",
+      "inactivate": "Deactivate",
       "delete": "Delete",
       "confirmInactivateTitle": "Deactivate vehicle?",
-      "confirmInactivateMessage": "The vehicle will be deactivated and will not appear in new appointment calculations.",
+      "confirmInactivateMessage": "Are you sure you want to deactivate this vehicle? Trips already registered with it will be preserved with their original cost.",
       "confirmInactivateButton": "Deactivate",
       "cancel": "Cancel",
       "errors": {
@@ -989,7 +1019,9 @@
         "fuelPriceInvalid": "Enter a valid price greater than zero (up to R$ 100/L)",
         "submitFailed": "Unable to save vehicle. Please try again.",
         "inactivateFailed": "Unable to deactivate vehicle. Please try again."
-      }
+      },
+      "reactivate": "Reactivate vehicle",
+      "deactivated": "Deactivated"
     }
   }
 }
