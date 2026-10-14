@@ -98,3 +98,31 @@ describe('validateVehicleForm', () => {
     expect(errors).toEqual({});
   });
 });
+
+describe('validateVehicleForm decimal input', () => {
+  it.each([
+    ['12,5', '5,899'],
+    ['12.50', '5.89'],
+    ['8', '6'],
+  ])('accepts consumption %s and price %s', (avgConsumptionKmL, fuelPrice) => {
+    expect(
+      validateVehicleForm({ ...VALID_FORM, avgConsumptionKmL, fuelPrice }),
+    ).toEqual({});
+  });
+
+  it.each(['12,555', '12abc', '1.2.3', '-3', '0'])(
+    'rejects consumption %s',
+    avgConsumptionKmL => {
+      expect(
+        validateVehicleForm({ ...VALID_FORM, avgConsumptionKmL })
+          .avgConsumptionKmL,
+      ).toBe('avgConsumptionInvalid');
+    },
+  );
+
+  it.each(['5,8999', '5x', '0', '100.001'])('rejects price %s', fuelPrice => {
+    expect(validateVehicleForm({ ...VALID_FORM, fuelPrice }).fuelPrice).toBe(
+      'fuelPriceInvalid',
+    );
+  });
+});

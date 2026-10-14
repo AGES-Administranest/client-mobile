@@ -4,17 +4,13 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
-jest.mock(
-  'expo-network',
-  () => ({
-    addNetworkStateListener: jest.fn(() => ({ remove: jest.fn() })),
-    getNetworkStateAsync: jest.fn(async () => ({
-      isConnected: true,
-      isInternetReachable: true,
-    })),
-  }),
-  { virtual: true },
-);
+jest.mock('expo-network', () => ({
+  addNetworkStateListener: jest.fn(() => ({ remove: jest.fn() })),
+  getNetworkStateAsync: jest.fn(async () => ({
+    isConnected: true,
+    isInternetReachable: true,
+  })),
+}));
 
 jest.mock('expo-crypto', () => {
   let counter = 0;

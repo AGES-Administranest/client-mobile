@@ -150,9 +150,7 @@ export function useVehicleForm(options: UseVehicleFormOptions = {}) {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      if (token) {
-        await vehicleService.inactivate(token, vehicle.id);
-      }
+      await vehicleService.inactivate(token, vehicle.id);
       onInactivateSuccess?.(vehicle.id);
       return true;
     } catch {

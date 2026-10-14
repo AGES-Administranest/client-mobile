@@ -4,6 +4,24 @@ export const BRAND_MAX_LENGTH = 60;
 export const MODEL_MAX_LENGTH = 120;
 export const MAX_AVG_CONSUMPTION_KM_L = 100;
 export const MAX_FUEL_PRICE = 100;
+// Same precision the API accepts (backend `@IsNumber({ maxDecimalPlaces })`).
+export const AVG_CONSUMPTION_DECIMAL_PLACES = 2;
+export const FUEL_PRICE_DECIMAL_PLACES = 3;
+
+/**
+ * Parses "12,5" or "12.5" into a number. Anything that is not a plain decimal
+ * ("12abc", "1.2.3", "-3") gives null, so it is never sent half-read.
+ */
+export function parseDecimalInput(
+  raw: string | null | undefined,
+  maxDecimalPlaces: number,
+): number | null {
+  const value = raw?.trim().replace(',', '.') ?? '';
+  const match = /^\d+(?:\.(\d+))?$/.exec(value);
+  if (!match) return null;
+  if ((match[1]?.length ?? 0) > maxDecimalPlaces) return null;
+  return Number(value);
+}
 
 export const FUEL_TYPES: readonly FuelType[] = [
   'GASOLINE',
@@ -66,31 +84,30 @@ export function validateVehicleForm(
     errors.fuelType = 'fuelTypeInvalid';
   }
 
-  const rawConsumption =
-    values.avgConsumptionKmL?.trim().replace(',', '.') ?? '';
-  if (!rawConsumption) {
+  if (!values.avgConsumptionKmL?.trim()) {
     errors.avgConsumptionKmL = 'avgConsumptionRequired';
   } else {
-    const consumptionNum = parseFloat(rawConsumption);
+    const consumption = parseDecimalInput(
+      values.avgConsumptionKmL,
+      AVG_CONSUMPTION_DECIMAL_PLACES,
+    );
     if (
-      !Number.isFinite(consumptionNum) ||
-      consumptionNum <= 0 ||
-      consumptionNum > MAX_AVG_CONSUMPTION_KM_L
+      consumption === null ||
+      consumption <= 0 ||
+      consumption > MAX_AVG_CONSUMPTION_KM_L
     ) {
       errors.avgConsumptionKmL = 'avgConsumptionInvalid';
     }
   }
 
-  const rawFuelPrice = values.fuelPrice?.trim().replace(',', '.') ?? '';
-  if (!rawFuelPrice) {
+  if (!values.fuelPrice?.trim()) {
     errors.fuelPrice = 'fuelPriceRequired';
   } else {
-    const priceNum = parseFloat(rawFuelPrice);
-    if (
-      !Number.isFinite(priceNum) ||
-      priceNum <= 0 ||
-      priceNum > MAX_FUEL_PRICE
-    ) {
+    const price = parseDecimalInput(
+      values.fuelPrice,
+      FUEL_PRICE_DECIMAL_PLACES,
+    );
+    if (price === null || price <= 0 || price > MAX_FUEL_PRICE) {
       errors.fuelPrice = 'fuelPriceInvalid';
     }
   }
