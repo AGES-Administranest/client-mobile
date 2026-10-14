@@ -1,0 +1,95 @@
+import { useEffect } from 'react';
+
+import { OutputAdjustmentModal } from 'app/components/ui/OutputAdjustmentModal';
+import { useTranslation } from 'shared/i18n';
+
+import { ADJUSTMENT_REASONS } from '../domain/outputAdjustment';
+import { useStockSyncState } from '../hooks/StockSyncContext';
+import { useOutputAdjustment } from '../hooks/useOutputAdjustment';
+
+type OutputAdjustmentSheetProps = {
+  visible: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+};
+
+export function OutputAdjustmentSheet({
+  visible,
+  onClose,
+  onSaved,
+}: OutputAdjustmentSheetProps) {
+  const { t } = useTranslation();
+  const { sync } = useStockSyncState();
+  const adjustment = useOutputAdjustment();
+  const { reset } = adjustment;
+
+  useEffect(() => {
+    if (visible) {
+      reset();
+    }
+  }, [visible, reset]);
+
+  const reasonLabels = Object.fromEntries(
+    ADJUSTMENT_REASONS.map(reason => [
+      reason,
+      t(`stock.outputAdjustment.reasons.${reason}`),
+    ]),
+  ) as Record<(typeof ADJUSTMENT_REASONS)[number], string>;
+
+  const errorMessages = {
+    required: t('stock.outputAdjustment.errors.required'),
+    mustBePositive: t('stock.outputAdjustment.errors.mustBePositive'),
+  };
+
+  const failureMessage = adjustment.failure
+    ? t(
+        `stock.outputAdjustment.errors.${adjustment.failure.code}` as
+          | 'stock.outputAdjustment.errors.QUEUE_WRITE_FAILED'
+          | 'stock.outputAdjustment.errors.INSUFFICIENT_STOCK'
+          | 'stock.outputAdjustment.errors.NO_ACCOUNT'
+          | 'stock.outputAdjustment.errors.NO_UNIT_COST',
+        adjustment.failure.params,
+      )
+    : null;
+
+  const submitAdjustment = async () => {
+    const saved = await adjustment.submit();
+
+    if (saved) {
+      onSaved();
+      sync();
+    }
+  };
+
+  return (
+    <OutputAdjustmentModal
+      visible={visible}
+      onClose={onClose}
+      onSubmit={submitAdjustment}
+      draft={adjustment.draft}
+      items={adjustment.items}
+      errors={adjustment.errors}
+      isSaving={adjustment.isSaving}
+      needsWrittenReason={adjustment.needsWrittenReason}
+      onItemChange={adjustment.setItemId}
+      onQuantityChange={adjustment.setQuantity}
+      onReasonChange={adjustment.setReason}
+      onOtherReasonChange={adjustment.setOtherReason}
+      title={t('stock.outputAdjustment.title')}
+      itemLabel={t('stock.outputAdjustment.itemLabel')}
+      itemPlaceholder={t('stock.outputAdjustment.itemPlaceholder')}
+      quantityLabel={t('stock.outputAdjustment.quantityLabel')}
+      quantityPlaceholder={t('stock.outputAdjustment.quantityPlaceholder')}
+      reasonLabel={t('stock.outputAdjustment.reasonLabel')}
+      otherReasonLabel={t('stock.outputAdjustment.otherReasonLabel')}
+      otherReasonPlaceholder={t(
+        'stock.outputAdjustment.otherReasonPlaceholder',
+      )}
+      saveLabel={t('stock.outputAdjustment.save')}
+      closeLabel={t('stock.outputAdjustment.close')}
+      failureMessage={failureMessage}
+      reasonLabels={reasonLabels}
+      errorMessages={errorMessages}
+    />
+  );
+}

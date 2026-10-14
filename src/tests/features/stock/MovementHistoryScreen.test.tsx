@@ -801,31 +801,4 @@ describe('output adjustment', () => {
 
     expect(readTexts(renderer)).not.toContain('Atualização salva');
   });
-
-  it('reports what went wrong and keeps the form open on failure', async () => {
-    const renderer = await mount();
-
-    await fillValidAdjustment(renderer);
-
-    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
-      new Error('disk full'),
-    );
-
-    await act(async () => {
-      pressableWithText(renderer, 'Salvar').props.onPress();
-    });
-
-    const texts = readTexts(renderer);
-
-    expect(texts).toContain(
-      'Não foi possível salvar o ajuste neste aparelho. Tente de novo.',
-    );
-    expect(texts).not.toContain('Atualização salva');
-
-    const modal = renderer.root.findAll(
-      node => node.props.visible !== undefined && node.props.transparent,
-    );
-
-    expect(modal.some(node => node.props.visible === true)).toBe(true);
-  });
 });

@@ -9,19 +9,18 @@ import { useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services';
 import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
 
+import { OutputAdjustmentSheet } from './OutputAdjustmentSheet';
 import { MovementFilters } from '../../../app/components/ui/MovementFilters';
 import {
   MovementList,
   type MovementListItem,
 } from '../../../app/components/ui/MovementList';
-import { OutputAdjustmentModal } from '../../../app/components/ui/OutputAdjustmentModal';
 import {
   formatCalendarDate,
   formatMovementDate,
   formatQuantity,
   formatSignedValue,
 } from '../domain/formatMovement';
-import { ADJUSTMENT_REASONS } from '../domain/outputAdjustment';
 import {
   getMovementAppointment,
   getMovementOriginKey,
@@ -30,7 +29,6 @@ import {
 import { useStockSyncState } from '../hooks/StockSyncContext';
 import { useMovementFilters } from '../hooks/useMovementFilters';
 import { useMovementHistory } from '../hooks/useMovementHistory';
-import { useOutputAdjustment } from '../hooks/useOutputAdjustment';
 
 const SAVED_MESSAGE_DURATION_MS = 3000;
 
@@ -54,11 +52,10 @@ export function MovementHistoryScreen({
   } = useMovementFilters();
   const { movements, pendingIds, isLoading, hasError, retry } =
     useMovementHistory(filters, searchDebounceMs);
-  const { sync, syncedAt } = useStockSyncState();
+  const { syncedAt } = useStockSyncState();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const adjustment = useOutputAdjustment();
 
   useEffect(() => onConnectionRestored(retry), [retry]);
 
@@ -80,44 +77,15 @@ export function MovementHistoryScreen({
     return () => clearTimeout(timer);
   }, [savedAt, savedMessageDurationMs]);
 
-  const reasonLabels = Object.fromEntries(
-    ADJUSTMENT_REASONS.map(reason => [
-      reason,
-      t(`stock.outputAdjustment.reasons.${reason}`),
-    ]),
-  ) as Record<(typeof ADJUSTMENT_REASONS)[number], string>;
-
-  const errorMessages = {
-    required: t('stock.outputAdjustment.errors.required'),
-    mustBePositive: t('stock.outputAdjustment.errors.mustBePositive'),
-  };
-
-  const failureMessage = adjustment.failure
-    ? t(
-        `stock.outputAdjustment.errors.${adjustment.failure.code}` as
-          | 'stock.outputAdjustment.errors.QUEUE_WRITE_FAILED'
-          | 'stock.outputAdjustment.errors.INSUFFICIENT_STOCK'
-          | 'stock.outputAdjustment.errors.NO_ACCOUNT'
-          | 'stock.outputAdjustment.errors.NO_UNIT_COST',
-        adjustment.failure.params,
-      )
-    : null;
-
   const openAdjustment = () => {
-    adjustment.reset();
     setSavedAt(null);
     setIsAdjustmentOpen(true);
   };
 
-  const submitAdjustment = async () => {
-    const saved = await adjustment.submit();
-
-    if (saved) {
-      setIsAdjustmentOpen(false);
-      setSavedAt(current => (current ?? 0) + 1);
-      retry();
-      sync();
-    }
+  const finishAdjustment = () => {
+    setIsAdjustmentOpen(false);
+    setSavedAt(current => (current ?? 0) + 1);
+    retry();
   };
 
   const periodLabel = (range: CalendarRange) => {
@@ -248,34 +216,10 @@ export function MovementHistoryScreen({
         />
       </ScrollView>
 
-      <OutputAdjustmentModal
+      <OutputAdjustmentSheet
         visible={isAdjustmentOpen}
         onClose={() => setIsAdjustmentOpen(false)}
-        onSubmit={submitAdjustment}
-        draft={adjustment.draft}
-        items={adjustment.items}
-        errors={adjustment.errors}
-        isSaving={adjustment.isSaving}
-        needsWrittenReason={adjustment.needsWrittenReason}
-        onItemChange={adjustment.setItemId}
-        onQuantityChange={adjustment.setQuantity}
-        onReasonChange={adjustment.setReason}
-        onOtherReasonChange={adjustment.setOtherReason}
-        title={t('stock.outputAdjustment.title')}
-        itemLabel={t('stock.outputAdjustment.itemLabel')}
-        itemPlaceholder={t('stock.outputAdjustment.itemPlaceholder')}
-        quantityLabel={t('stock.outputAdjustment.quantityLabel')}
-        quantityPlaceholder={t('stock.outputAdjustment.quantityPlaceholder')}
-        reasonLabel={t('stock.outputAdjustment.reasonLabel')}
-        otherReasonLabel={t('stock.outputAdjustment.otherReasonLabel')}
-        otherReasonPlaceholder={t(
-          'stock.outputAdjustment.otherReasonPlaceholder',
-        )}
-        saveLabel={t('stock.outputAdjustment.save')}
-        closeLabel={t('stock.outputAdjustment.close')}
-        failureMessage={failureMessage}
-        reasonLabels={reasonLabels}
-        errorMessages={errorMessages}
+        onSaved={finishAdjustment}
       />
     </SafeAreaView>
   );
