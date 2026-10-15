@@ -1,4 +1,4 @@
-import { Animated } from 'react-native';
+import { AccessibilityInfo, Animated } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
@@ -239,6 +239,32 @@ test('saving a filled form closes it and confirms the entry was saved', async ()
   const texts = textsOf(renderer);
   expect(texts).not.toContain('Novo lançamento manual');
   expect(texts).toContain('Lançamento salvo.');
+});
+
+test('a screen reader hears that the entry was saved, since the notice goes away', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
+  try {
+    const renderer = await renderFlow();
+    await openManualForm(renderer);
+    await typeInto(renderer, 'Descrição', 'Combustível');
+    await typeInto(renderer, 'Valor (R$)', '18000');
+    await pressByText(renderer, 'Deslocamento');
+    await act(async () => {
+      renderer.root
+        .findByProps({ testID: 'finance-new-entry-save' })
+        .props.onPress();
+    });
+
+    expect(announce).toHaveBeenCalledWith('Lançamento salvo.');
+    const notice = renderer.root.find(
+      node => typeof node.type === 'string' && node.props.role === 'status',
+    );
+    expect(notice.props.accessibilityLiveRegion).toBe('polite');
+  } finally {
+    announce.mockRestore();
+  }
 });
 
 test('saving the empty form says what each field is missing', async () => {
