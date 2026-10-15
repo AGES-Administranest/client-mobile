@@ -252,6 +252,7 @@
       "invoiceNumber": "INVOICE NO.",
       "date": "DATE",
       "datePlaceholder": "dd/mm/yyyy",
+      "invalidDate": "Enter a valid date (dd/mm/yyyy).",
       "total": "INVOICE TOTAL",
       "linesSum": "Sum of lines: {{sum}}",
       "linesSumDifference": "Sum of lines: {{sum}} · {{difference}} off",
@@ -292,14 +293,16 @@
           "shortName": "The invoice description has {{count}} letters. Too short to identify the item.",
           "unlinked": "No item in your stock was recognized in this description.",
           "noQuantity": "The quantity is not on the invoice. Nothing would go into stock like this.",
-          "noUnitValue": "The unit price is not on the invoice. Without it there is no line total."
+          "noUnitValue": "The unit price is not on the invoice. Without it there is no line total.",
+          "invalidExpiry": "Expiry must be a real date, in dd/mm/yyyy."
         },
         "fixes": {
           "mismatch": "Use {{computed}}",
           "shortName": "Link to an item",
           "unlinked": "Link to an item",
           "noQuantity": "Fill in quantity",
-          "noUnitValue": "Fill in unit price"
+          "noUnitValue": "Fill in unit price",
+          "invalidExpiry": "Fix expiry"
         }
       },
       "save": {
@@ -706,7 +709,8 @@
       "required": "This field is required.",
       "invalidEmail": "Enter a valid e-mail.",
       "passwordMismatch": "Passwords do not match.",
-      "termsRequired": "Accept the terms to continue."
+      "termsRequired": "Accept the terms to continue.",
+      "invalidCode": "The code must have 6 digits."
     },
     "errors": {
       "invalidCredentials": "Incorrect e-mail or password.",
@@ -801,7 +805,8 @@
       "INVALID_TIME": "Invalid time",
       "IN_THE_PAST": "Pick a future date and time",
       "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
-      "SELECT_CLIENT": "Pick a clinic from the list"
+      "SELECT_CLIENT": "Pick a clinic from the list",
+      "TOO_LONG": "At most 2000 characters"
     },
     "clientSearch": {
       "loading": "Searching…",
@@ -875,6 +880,8 @@
         "errors": {
           "REQUIRED": "Enter the amount.",
           "INVALID_NUMBER": "Enter a valid amount, like 350.00.",
+          "MUST_BE_POSITIVE": "The amount must be greater than zero.",
+          "MAX_2_DECIMALS": "Use at most 2 decimal places.",
           "FAILED": "Could not save the amount. Try again."
         }
       },

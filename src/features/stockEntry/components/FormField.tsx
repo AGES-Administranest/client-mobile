@@ -12,6 +12,7 @@ type FormFieldProps = {
   keyboardType?: KeyboardTypeOptions;
   maxLength?: number;
   className?: string;
+  error?: string;
 };
 
 /** Without `onChangeText` the value is shown in the same box, read-only. */
@@ -23,6 +24,7 @@ export function FormField({
   keyboardType,
   maxLength,
   className,
+  error,
 }: FormFieldProps) {
   return (
     <View className={cn('gap-1', className)}>
@@ -39,10 +41,14 @@ export function FormField({
         keyboardType={keyboardType}
         maxLength={maxLength}
         className={cn(
-          'rounded-xl border border-border-primary px-3 py-2.5 text-sm text-label-primary',
+          'rounded-xl border px-3 py-2.5 text-sm text-label-primary',
+          error ? 'border-alert-primary' : 'border-border-primary',
           onChangeText ? 'bg-white' : 'bg-details-primary',
         )}
       />
+      {error ? (
+        <Text className="text-xs text-alert-primary">{error}</Text>
+      ) : null}
     </View>
   );
 }

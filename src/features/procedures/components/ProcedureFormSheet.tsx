@@ -44,6 +44,7 @@ export type ProcedureFormTexts = {
   asaOptions: AsaClassification[];
   errors: Partial<Record<keyof ProcedureFormValues, string>>;
   clientSearchMessages: ClientAutocompleteMessages;
+  notesMaxLength: number;
 };
 
 export type ProcedureClientField = {
@@ -230,6 +231,7 @@ export function ProcedureFormSheet({
                 value={values.notes}
                 error={texts.errors.notes}
                 multiline
+                maxLength={texts.notesMaxLength}
                 onChangeText={v => onChangeText('notes', v)}
               />
 
@@ -329,6 +331,7 @@ type FieldProps = {
   error?: string;
   keyboardType?: 'default' | 'number-pad' | 'decimal-pad';
   multiline?: boolean;
+  maxLength?: number;
 };
 
 function Field({
@@ -339,6 +342,7 @@ function Field({
   error,
   keyboardType = 'default',
   multiline = false,
+  maxLength,
 }: FieldProps) {
   return (
     <View className="mb-3">
@@ -356,6 +360,7 @@ function Field({
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
+        maxLength={maxLength}
         multiline={multiline}
         numberOfLines={multiline ? 4 : undefined}
         textAlignVertical={multiline ? 'top' : undefined}

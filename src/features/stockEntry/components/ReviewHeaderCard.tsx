@@ -19,6 +19,7 @@ type ReviewHeaderCardProps = {
   invoiceNumber: string;
   invoiceNumberMaxLength: number;
   orderDate: string;
+  orderDateError?: string;
   total: string;
   sumLabel: string;
   sumOff: boolean;
@@ -34,6 +35,7 @@ export function ReviewHeaderCard({
   invoiceNumber,
   invoiceNumberMaxLength,
   orderDate,
+  orderDateError,
   total,
   sumLabel,
   sumOff,
@@ -63,6 +65,7 @@ export function ReviewHeaderCard({
           value={orderDate}
           placeholder={labels.datePlaceholder}
           keyboardType="number-pad"
+          error={orderDateError}
           onChangeText={onChangeOrderDate}
         />
       </View>

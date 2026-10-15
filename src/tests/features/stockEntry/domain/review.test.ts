@@ -164,6 +164,9 @@ describe('lineIssue', () => {
     ['no quantity', { quantity: null }, 'noQuantity'],
     ['a zero quantity', { quantity: 0 }, 'noQuantity'],
     ['no unit value', { unitValue: null }, 'noUnitValue'],
+    ['an incomplete expiry', { expiry: '31/12' }, 'invalidExpiry'],
+    ['an impossible expiry', { expiry: '31/02/2026' }, 'invalidExpiry'],
+    ['a complete real expiry', { expiry: '31/12/2026' }, null],
     [
       'a mismatch on an unlinked line',
       { link: null, printedTotal: 460 },

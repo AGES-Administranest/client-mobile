@@ -8,6 +8,8 @@ import {
   parseMaskedTime,
 } from './parseProcedureDateTime';
 import type { ProcedureErrors, ProcedureFormValues } from './procedure.types';
+import { validateAmountInput } from './validateAmount';
+import { CANCELLATION_REASON_MAX_LENGTH } from './validateCancellationReason';
 
 export function validateProcedureForm(
   values: ProcedureFormValues,
@@ -105,17 +107,13 @@ export function validateProcedureForm(
     }
   }
 
-  if (values.amount.trim() === '') {
-    errors.amount = 'REQUIRED';
-  } else {
-    const amount = parseDecimal(values.amount);
-    if (amount === null) {
-      errors.amount = 'INVALID_NUMBER';
-    } else if (amount <= 0) {
-      errors.amount = 'MUST_BE_POSITIVE';
-    } else if (decimalPlaces(values.amount) > 2) {
-      errors.amount = 'MAX_2_DECIMALS';
-    }
+  const amountError = validateAmountInput(values.amount);
+  if (amountError) {
+    errors.amount = amountError;
+  }
+
+  if (values.notes.trim().length > CANCELLATION_REASON_MAX_LENGTH) {
+    errors.notes = 'TOO_LONG';
   }
 
   return errors;

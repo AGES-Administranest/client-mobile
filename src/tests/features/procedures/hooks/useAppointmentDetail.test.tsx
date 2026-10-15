@@ -293,7 +293,9 @@ describe('saveAmount', () => {
   it.each([
     ['', 'REQUIRED'],
     ['abc', 'INVALID_NUMBER'],
-    ['-5', 'INVALID_NUMBER'],
+    ['-5', 'MUST_BE_POSITIVE'],
+    ['0', 'MUST_BE_POSITIVE'],
+    ['10,555', 'MAX_2_DECIMALS'],
   ])('rejects %p without calling the API', async (text, expected) => {
     const result = await mountHook();
 
