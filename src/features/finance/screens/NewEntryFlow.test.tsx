@@ -14,11 +14,13 @@ import { RequestTimeoutError } from 'shared/services/apiClient';
 import { NewEntryFlow } from './NewEntryFlow';
 import type { FinancialCategory } from '../domain/financialEntry';
 import {
+  createFinancialCategory,
   createFinancialEntry,
   fetchFinancialCategories,
 } from '../services/financialEntryService';
 
 jest.mock('../services/financialEntryService', () => ({
+  createFinancialCategory: jest.fn(),
   createFinancialEntry: jest.fn(),
   fetchFinancialCategories: jest.fn(),
 }));
@@ -31,6 +33,9 @@ const createMock = createFinancialEntry as jest.MockedFunction<
 >;
 const fetchCategoriesMock = fetchFinancialCategories as jest.MockedFunction<
   typeof fetchFinancialCategories
+>;
+const createCategoryMock = createFinancialCategory as jest.MockedFunction<
+  typeof createFinancialCategory
 >;
 
 const METRICS = {
@@ -140,6 +145,22 @@ async function openOptions(renderer: ReactTestRenderer.ReactTestRenderer) {
   });
 }
 
+function categoryCombobox(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root.find(
+    node =>
+      node.props.accessibilityRole === 'combobox' &&
+      typeof node.props.onFocus === 'function',
+  );
+}
+
+async function chooseCategory(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  label: string,
+) {
+  await act(async () => categoryCombobox(renderer).props.onFocus());
+  await pressByText(renderer, label);
+}
+
 async function openManualForm(renderer: ReactTestRenderer.ReactTestRenderer) {
   await openOptions(renderer);
   await act(async () => {
@@ -205,14 +226,13 @@ test('the manual choice opens the form, and only then loads the categories', asy
 
   const texts = textsOf(renderer);
   expect(texts).not.toContain(OPTIONS_DESCRIPTION);
-  expect(texts).toEqual(
-    expect.arrayContaining([
-      'Novo lançamento manual',
-      'Deslocamento',
-      'Insumos',
-    ]),
-  );
+  expect(texts).toContain('Novo lançamento manual');
   expect(fetchCategoriesMock).toHaveBeenCalledTimes(1);
+
+  await act(async () => categoryCombobox(renderer).props.onFocus());
+  expect(textsOf(renderer)).toEqual(
+    expect.arrayContaining(['Deslocamento', 'Insumos', 'Adicionar Categoria']),
+  );
 });
 
 test('saving a filled form closes it and confirms the entry was saved', async () => {
@@ -221,7 +241,7 @@ test('saving a filled form closes it and confirms the entry was saved', async ()
 
   await typeInto(renderer, 'Descrição', 'Combustível');
   await typeInto(renderer, 'Valor (R$)', '18000');
-  await pressByText(renderer, 'Deslocamento');
+  await chooseCategory(renderer, 'Deslocamento');
   await act(async () => {
     renderer.root
       .findByProps({ testID: 'finance-new-entry-save' })
@@ -241,6 +261,62 @@ test('saving a filled form closes it and confirms the entry was saved', async ()
   const texts = textsOf(renderer);
   expect(texts).not.toContain('Novo lançamento manual');
   expect(texts).toContain('Lançamento salvo.');
+});
+
+test('a category typed, created on the spot and saved goes into the entry', async () => {
+  createCategoryMock.mockImplementation(async (_token, payload) => ({
+    id: payload.id,
+    name: payload.name,
+    nature: payload.nature,
+    defaultScope: payload.defaultScope,
+    isDefault: false,
+  }));
+  const renderer = await renderFlow();
+  await openManualForm(renderer);
+  await typeInto(renderer, 'Descrição', 'Almoço com cliente');
+  await typeInto(renderer, 'Valor (R$)', '4500');
+
+  await act(async () => categoryCombobox(renderer).props.onFocus());
+  await act(async () => categoryCombobox(renderer).props.onChangeText('Comi'));
+  expect(textsOf(renderer)).not.toContain('Deslocamento');
+  await pressByText(renderer, 'Adicionar Categoria');
+  await typeInto(renderer, 'Digite o nome da nova categoria', 'Comida');
+  await act(async () => {
+    renderer.root
+      .find(
+        node =>
+          node.props.accessibilityLabel === 'Criar categoria' &&
+          typeof node.props.onPress === 'function',
+      )
+      .props.onPress();
+  });
+
+  expect(createCategoryMock).toHaveBeenCalledWith(
+    'id-token',
+    expect.objectContaining({
+      name: 'Comida',
+      nature: 'EXPENSE',
+      defaultScope: 'PROFESSIONAL',
+    }),
+  );
+  const [, createdCategory] = createCategoryMock.mock.calls[0];
+  expect(categoryCombobox(renderer).props.value).toBe('Comida');
+
+  await act(async () => {
+    renderer.root
+      .findByProps({ testID: 'finance-new-entry-save' })
+      .props.onPress();
+  });
+
+  expect(createMock).toHaveBeenCalledWith(
+    'id-token',
+    expect.objectContaining({
+      description: 'Almoço com cliente',
+      amount: 45,
+      categoryId: createdCategory.id,
+    }),
+  );
+  expect(textsOf(renderer)).toContain('Lançamento salvo.');
 });
 
 test('saving the empty form says what each field is missing', async () => {
@@ -270,7 +346,7 @@ test('a failed save keeps the form open and says why', async () => {
 
   await typeInto(renderer, 'Descrição', 'Combustível');
   await typeInto(renderer, 'Valor (R$)', '18000');
-  await pressByText(renderer, 'Deslocamento');
+  await chooseCategory(renderer, 'Deslocamento');
   await act(async () => {
     renderer.root
       .findByProps({ testID: 'finance-new-entry-save' })
@@ -293,7 +369,7 @@ test('a save that gets no answer in time says so, and the form can be closed', a
   await openManualForm(renderer);
   await typeInto(renderer, 'Descrição', 'Combustível');
   await typeInto(renderer, 'Valor (R$)', '18000');
-  await pressByText(renderer, 'Deslocamento');
+  await chooseCategory(renderer, 'Deslocamento');
   await act(async () => {
     renderer.root
       .findByProps({ testID: 'finance-new-entry-save' })
@@ -374,7 +450,7 @@ test('the form cannot be closed while it is saving', async () => {
   await openManualForm(renderer);
   await typeInto(renderer, 'Descrição', 'Combustível');
   await typeInto(renderer, 'Valor (R$)', '18000');
-  await pressByText(renderer, 'Deslocamento');
+  await chooseCategory(renderer, 'Deslocamento');
   await act(async () => {
     renderer.root
       .findByProps({ testID: 'finance-new-entry-save' })
@@ -408,7 +484,7 @@ test('the saved notice goes away when the next entry starts', async () => {
   await openManualForm(renderer);
   await typeInto(renderer, 'Descrição', 'Combustível');
   await typeInto(renderer, 'Valor (R$)', '18000');
-  await pressByText(renderer, 'Deslocamento');
+  await chooseCategory(renderer, 'Deslocamento');
   await act(async () => {
     renderer.root
       .findByProps({ testID: 'finance-new-entry-save' })
@@ -434,7 +510,7 @@ test('the saved notice goes away by itself after 3 seconds', async () => {
     await elapse(1000);
     await typeInto(renderer, 'Descrição', 'Combustível');
     await typeInto(renderer, 'Valor (R$)', '18000');
-    await pressByText(renderer, 'Deslocamento');
+    await chooseCategory(renderer, 'Deslocamento');
     await act(async () => {
       renderer.root
         .findByProps({ testID: 'finance-new-entry-save' })

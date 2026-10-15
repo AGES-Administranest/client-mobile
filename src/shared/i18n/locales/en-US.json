@@ -641,8 +641,7 @@
       "category": {
         "label": "Category",
         "loading": "Loading categories…",
-        "retry": "Try again",
-        "empty": "No categories for this type."
+        "retry": "Try again"
       },
       "scope": {
         "label": "Scope",

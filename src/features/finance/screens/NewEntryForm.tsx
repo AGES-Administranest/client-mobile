@@ -1,15 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { useTranslation } from 'shared/i18n';
 
-import type { CategoriesState } from '../components/EntryFormFields';
+import type { CategoryFieldState } from '../components/CategoryField';
 import { NewEntrySheet } from '../components/NewEntrySheet';
 import type { EntryField } from '../domain/entryForm';
-import { defaultCategoryKey } from '../domain/financialCategory';
-import type {
-  FinancialCategory,
-  FinancialEntry,
-} from '../domain/financialEntry';
+import {
+  defaultCategoryKey,
+  type LabeledCategory,
+} from '../domain/financialCategory';
+import type { FinancialEntry } from '../domain/financialEntry';
+import { useCategoryPicker } from '../hooks/useCategoryPicker';
 import { useNewEntryForm } from '../hooks/useNewEntryForm';
 
 type NewEntryFormProps = {
@@ -21,37 +22,70 @@ type NewEntryFormProps = {
 export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
   const { t } = useTranslation();
   const form = useNewEntryForm();
+  const labeledCategories = useMemo<LabeledCategory[]>(
+    () =>
+      form.categories.map(category => {
+        const key = defaultCategoryKey(category);
+        return {
+          ...category,
+          label: key ? t(`financialEntries.categories.${key}`) : category.name,
+        };
+      }),
+    [form.categories, t],
+  );
+  const picker = useCategoryPicker({
+    categories: labeledCategories,
+    nature: form.draft.nature,
+    scope: form.draft.scope,
+    selectedId: form.draft.categoryId,
+    onChoose: form.chooseCategory,
+    onUnchoose: form.clearCategory,
+    onCreate: form.addCategory,
+  });
   const { startNewEntry } = form;
+  const { reset: resetPicker } = picker;
 
   useEffect(() => {
     if (visible) {
       startNewEntry();
+      resetPicker();
     }
-  }, [visible, startNewEntry]);
+  }, [visible, startNewEntry, resetPicker]);
 
-  const categoryLabel = (category: FinancialCategory) => {
-    const key = defaultCategoryKey(category);
-    return key ? t(`financialEntries.categories.${key}`) : category.name;
-  };
-
-  const categories: CategoriesState =
-    form.categoriesStatus === 'loading'
-      ? { status: 'loading' }
-      : form.categoriesStatus === 'failed'
-      ? {
-          status: 'failed',
-          message: t(
+  const { newCategory } = picker;
+  const category: CategoryFieldState = {
+    status: form.categoriesStatus,
+    loadFailure:
+      form.categoriesStatus === 'failed'
+        ? t(
             form.categoriesFailure ??
               'financialEntries.form.failures.categories',
-          ),
-        }
-      : {
-          status: 'ready',
-          options: form.categories.map(category => ({
-            id: category.id,
-            label: categoryLabel(category),
-          })),
-        };
+          )
+        : null,
+    text: picker.text,
+    options: picker.options,
+    selectedId: form.draft.categoryId,
+    offersNewCategory: picker.offersNewCategory,
+    hasNoMatch: picker.hasNoMatch,
+    wasJustCreated: picker.wasJustCreated,
+    newCategory: newCategory && {
+      name: newCategory.name,
+      error:
+        newCategory.error &&
+        t(`financialEntries.categoryField.errors.${newCategory.error}`),
+      failure: newCategory.failure && t(newCategory.failure),
+      canCreate: newCategory.canCreate,
+      isSaving: newCategory.isSaving,
+    },
+    onChangeText: picker.changeText,
+    onSelect: picker.choose,
+    onRetry: form.reloadCategories,
+    onStartNewCategory: picker.startNewCategory,
+    onChangeNewName: picker.changeNewName,
+    onCreate: () => {
+      picker.createNewCategory();
+    },
+  };
 
   const { errors } = form;
   const fieldErrors = {
@@ -66,13 +100,6 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
       errors.categoryId &&
       t(`financialEntries.form.errors.categoryId.${errors.categoryId}`),
   } satisfies Record<EntryField, string | undefined>;
-
-  const selectCategory = (categoryId: string) => {
-    const category = form.categories.find(c => c.id === categoryId);
-    if (category) {
-      form.chooseCategory(category);
-    }
-  };
 
   // Fechado no meio do envio, o sheet não teria onde mostrar a resposta.
   const closeUnlessSaving = () => {
@@ -116,9 +143,14 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
           },
           category: {
             label: t('financialEntries.form.category.label'),
+            placeholder: t('financialEntries.categoryField.placeholder'),
             loading: t('financialEntries.form.category.loading'),
             retry: t('financialEntries.form.category.retry'),
-            empty: t('financialEntries.form.category.empty'),
+            noResults: t('financialEntries.categoryField.noResults'),
+            created: t('financialEntries.categoryField.created'),
+            add: t('financialEntries.categoryField.add'),
+            newPlaceholder: t('financialEntries.categoryField.newPlaceholder'),
+            create: t('financialEntries.categoryField.create'),
           },
           scope: {
             label: t('financialEntries.form.scope.label'),
@@ -130,15 +162,13 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
       }}
       draft={form.draft}
       fieldErrors={fieldErrors}
-      categories={categories}
+      category={category}
       failureMessage={form.failure ? t(form.failure) : null}
       isSaving={form.isSaving}
       canSubmit={form.canSubmit}
       onChangeNature={form.setNature}
       onChangeField={form.setField}
-      onSelectCategory={selectCategory}
       onChangeScope={form.setScope}
-      onRetryCategories={form.reloadCategories}
       onSubmit={save}
       onClose={closeUnlessSaving}
     />
