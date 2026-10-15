@@ -461,6 +461,7 @@
       "close": "Fechar",
       "itemLabel": "Item",
       "itemPlaceholder": "Selecione o item",
+      "noItems": "Nenhum item com estoque para dar baixa.",
       "quantityLabel": "Quantidade",
       "quantityPlaceholder": "0",
       "reasonLabel": "Motivo",

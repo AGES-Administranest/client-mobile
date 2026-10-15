@@ -461,6 +461,7 @@
       "close": "Close",
       "itemLabel": "Item",
       "itemPlaceholder": "Select the item",
+      "noItems": "No items in stock to write off.",
       "quantityLabel": "Quantity",
       "quantityPlaceholder": "0",
       "reasonLabel": "Reason",
