@@ -14,7 +14,8 @@ export type FinancialCategory = {
   name: string;
   nature: EntryNature;
   defaultScope: EntryScope;
-  isDefault: boolean;
+  // Opcional enquanto a API sem isDefault ainda estiver no ar.
+  isDefault?: boolean;
 };
 
 export type CreateFinancialCategoryPayload = {

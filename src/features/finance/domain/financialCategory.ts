@@ -46,9 +46,9 @@ const OTHER_POSITION = FIGMA_ORDER.length + 1;
 export function defaultCategoryKey(
   category: Pick<FinancialCategory, 'name' | 'isDefault'>,
 ): DefaultCategoryKey | null {
-  return category.isDefault
-    ? DEFAULT_CATEGORY_KEYS[category.name] ?? null
-    : null;
+  return category.isDefault === false
+    ? null
+    : DEFAULT_CATEGORY_KEYS[category.name] ?? null;
 }
 
 function listPosition(category: FinancialCategory): number {

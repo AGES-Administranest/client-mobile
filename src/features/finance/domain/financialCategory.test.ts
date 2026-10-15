@@ -74,6 +74,16 @@ describe('defaultCategoryKey', () => {
     expect(defaultCategoryKey({ name, isDefault: true })).toBe(key);
   });
 
+  it.each([
+    ['Travel', 'travel'],
+    ['Aluguel', null],
+  ])(
+    'still translates %p as %p when the API sends no isDefault',
+    (name, key) => {
+      expect(defaultCategoryKey({ name })).toBe(key);
+    },
+  );
+
   it.each(['Other', 'Supplies', 'Travel'])(
     'keeps the name of a user category called %p',
     name => {
