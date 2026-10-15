@@ -3,14 +3,20 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import type { StockMovement } from 'features/stock/domain/stockMovement';
-import { StockSyncProvider } from 'features/stock/hooks/StockSyncContext';
+import {
+  StockSyncProvider,
+  useStockSyncState,
+} from 'features/stock/hooks/StockSyncContext';
 import { MovementHistoryScreen } from 'features/stock/screens/MovementHistoryScreen';
 import {
   addPendingMovement,
   loadPendingMovements,
 } from 'features/stock/services/pendingMovementsRepository';
 import { fetchStockMovements } from 'features/stock/services/stockMovementService';
-import { pullStockMovements } from 'features/stock/services/stockSyncService';
+import {
+  pullStockMovements,
+  pushPendingMovements,
+} from 'features/stock/services/stockSyncService';
 import { I18nProvider } from 'shared/i18n';
 import { toCalendarDate } from 'shared/utils/calendar';
 
@@ -433,6 +439,54 @@ test('refreshes the history once a stock sync brings changes', async () => {
   await wait(50);
 
   expect(readTexts(renderer)).toContain('Seringa 60ml (cx 30un)');
+});
+
+test('refreshes the history when a movement is left waiting in the queue', async () => {
+  const pushMock = pushPendingMovements as jest.MockedFunction<
+    typeof pushPendingMovements
+  >;
+  let syncNow: () => Promise<void> = async () => {};
+  function SyncTrigger() {
+    syncNow = useStockSyncState().sync;
+    return null;
+  }
+  fetchMock.mockResolvedValue([]);
+  await act(async () => {
+    mounted.push(
+      ReactTestRenderer.create(
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <StockSyncProvider>
+              <MovementHistoryScreen searchDebounceMs={SEARCH_DEBOUNCE_MS} />
+              <SyncTrigger />
+            </StockSyncProvider>
+          </AuthProvider>
+        </I18nProvider>,
+      ),
+    );
+  });
+  await wait(50);
+  const callsBefore = fetchMock.mock.calls.length;
+
+  await addPendingMovement(USER, {
+    id: 'queued-write-off',
+    itemId: 'item-1',
+    itemName: 'Dipirona',
+    unit: 'unit',
+    type: 'outbound',
+    source: 'manualAdjustment',
+    quantity: 2,
+    unitCost: 5,
+    occurredAt: '2026-09-10T08:00:00.000Z',
+    notes: null,
+  });
+  pushMock.mockRejectedValueOnce(new Error('network down'));
+  await act(async () => {
+    await syncNow();
+  });
+  await wait(50);
+
+  expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBefore);
 });
 
 describe('filters', () => {

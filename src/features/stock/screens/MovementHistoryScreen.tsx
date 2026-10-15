@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -45,7 +45,8 @@ export function MovementHistoryScreen({
   } = useMovementFilters();
   const { movements, pendingIds, isLoading, hasError, retry } =
     useMovementHistory(filters, searchDebounceMs);
-  const { syncedAt } = useStockSyncState();
+  const { syncedAt, pendingCount } = useStockSyncState();
+  const queuedBefore = useRef(pendingCount);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   useEffect(() => onConnectionRestored(retry), [retry]);
@@ -57,6 +58,15 @@ export function MovementHistoryScreen({
 
     retry();
   }, [syncedAt, retry]);
+
+  // Uma baixa que fica na fila (sem rede, ou recusada no envio) não muda o
+  // syncedAt; recarregar quando a fila cresce a mostra na hora como pendente.
+  useEffect(() => {
+    if (pendingCount > queuedBefore.current) {
+      retry();
+    }
+    queuedBefore.current = pendingCount;
+  }, [pendingCount, retry]);
 
   const periodLabel = (range: CalendarRange) => {
     if (range.from === null) {
