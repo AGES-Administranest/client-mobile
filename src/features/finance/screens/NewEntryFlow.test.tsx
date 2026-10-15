@@ -1,4 +1,4 @@
-import { Animated } from 'react-native';
+import { AccessibilityInfo, Animated } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
@@ -319,7 +319,36 @@ test('a category typed, created on the spot and saved goes into the entry', asyn
   expect(textsOf(renderer)).toContain('Lançamento salvo.');
 });
 
-test('saving the empty form says what each field is missing', async () => {
+test('a screen reader hears that the entry was saved, since the notice goes away', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
+  try {
+    const renderer = await renderFlow();
+    await openManualForm(renderer);
+    await typeInto(renderer, 'Descrição', 'Combustível');
+    await typeInto(renderer, 'Valor (R$)', '18000');
+    await chooseCategory(renderer, 'Deslocamento');
+    await act(async () => {
+      renderer.root
+        .findByProps({ testID: 'finance-new-entry-save' })
+        .props.onPress();
+    });
+
+    expect(announce).toHaveBeenCalledWith('Lançamento salvo.');
+    const notice = renderer.root.find(
+      node => typeof node.type === 'string' && node.props.role === 'status',
+    );
+    expect(notice.props.accessibilityLiveRegion).toBe('polite');
+  } finally {
+    announce.mockRestore();
+  }
+});
+
+test('saving the empty form says what each field is missing, and a screen reader hears the first one', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
   const renderer = await renderFlow();
   await openManualForm(renderer);
 
@@ -329,6 +358,8 @@ test('saving the empty form says what each field is missing', async () => {
       .props.onPress();
   });
 
+  expect(announce).toHaveBeenCalledWith('Informe uma descrição.');
+  announce.mockRestore();
   expect(createMock).not.toHaveBeenCalled();
   expect(textsOf(renderer)).toEqual(
     expect.arrayContaining([

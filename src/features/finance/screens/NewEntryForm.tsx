@@ -1,10 +1,15 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { AccessibilityInfo } from 'react-native';
 
 import { useTranslation } from 'shared/i18n';
 
 import type { CategoryFieldState } from '../components/CategoryField';
 import { NewEntrySheet } from '../components/NewEntrySheet';
-import type { EntryField } from '../domain/entryForm';
+import {
+  isEntryDraftValid,
+  validateEntryDraft,
+  type EntryField,
+} from '../domain/entryForm';
 import {
   defaultCategoryKey,
   type LabeledCategory,
@@ -100,6 +105,21 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
       errors.categoryId &&
       t(`financialEntries.form.errors.categoryId.${errors.categoryId}`),
   } satisfies Record<EntryField, string | undefined>;
+  const firstFieldError =
+    fieldErrors.description ??
+    fieldErrors.amount ??
+    fieldErrors.date ??
+    fieldErrors.categoryId;
+
+  // Recusado, o Salvar só fica desabilitado: o leitor de tela precisa ouvir o
+  // motivo, que de outro modo só aparece na dica de cada campo.
+  const announceRefusal = useRef(false);
+  useEffect(() => {
+    if (announceRefusal.current && firstFieldError) {
+      announceRefusal.current = false;
+      AccessibilityInfo.announceForAccessibility(firstFieldError);
+    }
+  }, [firstFieldError]);
 
   // Fechado no meio do envio, o sheet não teria onde mostrar a resposta.
   const closeUnlessSaving = () => {
@@ -109,6 +129,9 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
   };
 
   const save = async () => {
+    announceRefusal.current = !isEntryDraftValid(
+      validateEntryDraft(form.draft),
+    );
     const entry = await form.submit();
     if (entry) {
       onSaved(entry);
