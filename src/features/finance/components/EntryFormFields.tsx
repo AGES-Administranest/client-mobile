@@ -130,6 +130,7 @@ function EntryInput({
         <TextInput
           {...inputProps}
           accessibilityLabel={label}
+          accessibilityHint={error}
           placeholderTextColor={LabelPlaceholder}
           selectionColor={LabelPrimary}
           // min-w-0: na web o input tem largura mínima própria e empurraria o
@@ -154,12 +155,14 @@ function EntryInput({
 function CategoryChoices({
   state,
   selectedId,
+  error,
   texts,
   onSelect,
   onRetry,
 }: {
   state: CategoriesState;
   selectedId: string | null;
+  error?: string;
   texts: EntryFormTexts['category'];
   onSelect: (id: string) => void;
   onRetry: () => void;
@@ -172,7 +175,7 @@ function CategoryChoices({
       <View className="flex-row flex-wrap items-center gap-x-2 gap-y-1">
         <Text className="text-sm text-alert-primary">{state.message}</Text>
         <Pressable accessibilityRole="button" onPress={onRetry} hitSlop={8}>
-          <Text className="text-sm font-semibold text-label-primary underline">
+          <Text className="text-sm font-semibold text-label-quartenery underline">
             {texts.retry}
           </Text>
         </Pressable>
@@ -191,6 +194,7 @@ function CategoryChoices({
             key={option.id}
             accessibilityRole="button"
             accessibilityState={{ selected }}
+            accessibilityHint={error}
             onPress={() => onSelect(option.id)}
             className={cn(
               'h-11 w-[31.5%] items-center justify-center rounded-[10px] px-0.5',
@@ -283,6 +287,7 @@ export function EntryFormFields({
         <CategoryChoices
           state={categories}
           selectedId={draft.categoryId}
+          error={fieldErrors.categoryId}
           texts={texts.category}
           onSelect={onSelectCategory}
           onRetry={onRetryCategories}

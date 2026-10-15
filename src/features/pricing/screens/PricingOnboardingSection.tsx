@@ -4,11 +4,17 @@ import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
 import { PricingOnboarding } from '../components/PricingOnboarding';
-import { usePricingSettings } from '../hooks/usePricingSettings';
+import type { UsePricingSettings } from '../hooks/usePricingSettings';
 
-export function PricingOnboardingSection() {
+type PricingOnboardingSectionProps = {
+  pricing: UsePricingSettings;
+};
+
+export function PricingOnboardingSection({
+  pricing,
+}: PricingOnboardingSectionProps) {
   const { t } = useTranslation();
-  const { state, reload } = usePricingSettings();
+  const { state, reload } = pricing;
 
   if (state.status === 'loading') {
     return (

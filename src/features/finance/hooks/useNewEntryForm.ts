@@ -6,6 +6,7 @@ import type { TranslationKey } from 'shared/i18n';
 
 import {
   isCategoryInvalidError,
+  isEntryNotFoundError,
   requireToken,
   toCategoriesFailureKey,
   toEntryFailureKey,
@@ -69,6 +70,7 @@ export function useNewEntryForm(): NewEntryFormState {
   const [categoriesFailure, setCategoriesFailure] =
     useState<TranslationKey | null>(null);
   const [categoriesVersion, setCategoriesVersion] = useState(0);
+  const lastCategoriesLoadFailed = useRef(false);
   // Gerado ao abrir o formulário (ADR-09) e mantido entre tentativas: se a
   // resposta se perder, reenviar o mesmo id não duplica o lançamento.
   const entryId = useRef<string | null>(null);
@@ -94,11 +96,13 @@ export function useNewEntryForm(): NewEntryFormState {
       .then(() => fetchFinancialCategories(requireToken(idToken)))
       .then(loaded => {
         if (!active) return;
+        lastCategoriesLoadFailed.current = false;
         setAllCategories(loaded);
         setCategoriesStatus('ready');
       })
       .catch(error => {
         if (!active) return;
+        lastCategoriesLoadFailed.current = true;
         setCategoriesStatus('failed');
         setCategoriesFailure(toCategoriesFailureKey(error));
       });
@@ -154,7 +158,10 @@ export function useNewEntryForm(): NewEntryFormState {
     setHasTriedToSave(false);
     setFailure(null);
     setIsSaving(false);
-  }, []);
+    if (lastCategoriesLoadFailed.current) {
+      reloadCategories();
+    }
+  }, [reloadCategories]);
 
   const submit = useCallback(async () => {
     // Dois toques antes do próximo render não podem mandar dois POSTs.
@@ -181,6 +188,9 @@ export function useNewEntryForm(): NewEntryFormState {
     } catch (error) {
       if (!isCurrent()) return null;
       if (isCategoryInvalidError(error)) forgetRejectedCategory();
+      // O id ficou preso a um lançamento apagado ou de outra conta: tentar de
+      // novo com ele daria o mesmo erro para sempre.
+      if (isEntryNotFoundError(error)) entryId.current = randomUUID();
       setFailure(toEntryFailureKey(error));
       return null;
     } finally {

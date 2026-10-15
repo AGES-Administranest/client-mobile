@@ -1,4 +1,4 @@
-import { Animated } from 'react-native';
+import { AccessibilityInfo, Animated } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
@@ -9,6 +9,7 @@ import {
   type AuthSession,
 } from 'features/auth';
 import { I18nProvider } from 'shared/i18n';
+import { RequestTimeoutError } from 'shared/services/apiClient';
 
 import { NewEntryFlow } from './NewEntryFlow';
 import type { FinancialCategory } from '../domain/financialEntry';
@@ -106,6 +107,12 @@ function typeInto(
   return act(() => field.props.onChangeText(value));
 }
 
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+
+afterEach(() => {
+  mounted.splice(0).forEach(renderer => act(() => renderer.unmount()));
+});
+
 async function renderFlow() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
@@ -119,6 +126,7 @@ async function renderFlow() {
       </SafeAreaProvider>,
     );
   });
+  mounted.push(renderer!);
   return renderer!;
 }
 
@@ -233,7 +241,36 @@ test('saving a filled form closes it and confirms the entry was saved', async ()
   expect(texts).toContain('Lançamento salvo.');
 });
 
-test('saving the empty form says what each field is missing', async () => {
+test('a screen reader hears that the entry was saved, since the notice goes away', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
+  try {
+    const renderer = await renderFlow();
+    await openManualForm(renderer);
+    await typeInto(renderer, 'Descrição', 'Combustível');
+    await typeInto(renderer, 'Valor (R$)', '18000');
+    await pressByText(renderer, 'Deslocamento');
+    await act(async () => {
+      renderer.root
+        .findByProps({ testID: 'finance-new-entry-save' })
+        .props.onPress();
+    });
+
+    expect(announce).toHaveBeenCalledWith('Lançamento salvo.');
+    const notice = renderer.root.find(
+      node => typeof node.type === 'string' && node.props.role === 'status',
+    );
+    expect(notice.props.accessibilityLiveRegion).toBe('polite');
+  } finally {
+    announce.mockRestore();
+  }
+});
+
+test('saving the empty form says what each field is missing, and a screen reader hears the first one', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
   const renderer = await renderFlow();
   await openManualForm(renderer);
 
@@ -243,6 +280,8 @@ test('saving the empty form says what each field is missing', async () => {
       .props.onPress();
   });
 
+  expect(announce).toHaveBeenCalledWith('Informe uma descrição.');
+  announce.mockRestore();
   expect(createMock).not.toHaveBeenCalled();
   expect(textsOf(renderer)).toEqual(
     expect.arrayContaining([
@@ -273,6 +312,33 @@ test('a failed save keeps the form open and says why', async () => {
     'Sem conexão. Tente de novo quando a internet voltar.',
   );
   expect(texts).not.toContain('Lançamento salvo.');
+});
+
+test('a save that gets no answer in time says so, and the form can be closed', async () => {
+  createMock.mockRejectedValueOnce(
+    new RequestTimeoutError('POST', '/financial-entries', 20000),
+  );
+  const renderer = await renderFlow();
+  await openManualForm(renderer);
+  await typeInto(renderer, 'Descrição', 'Combustível');
+  await typeInto(renderer, 'Valor (R$)', '18000');
+  await pressByText(renderer, 'Deslocamento');
+  await act(async () => {
+    renderer.root
+      .findByProps({ testID: 'finance-new-entry-save' })
+      .props.onPress();
+  });
+
+  expect(textsOf(renderer)).toContain(
+    'Sem conexão. Tente de novo quando a internet voltar.',
+  );
+  expect(textsOf(renderer)).toContain('Salvar');
+
+  await act(async () => {
+    renderer.root.findByProps({ accessibilityLabel: 'Fechar' }).props.onPress();
+  });
+
+  expect(textsOf(renderer)).not.toContain('Novo lançamento manual');
 });
 
 test('reopening the form starts a new, empty entry', async () => {
@@ -382,4 +448,34 @@ test('the saved notice goes away when the next entry starts', async () => {
   await openOptions(renderer);
 
   expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
+});
+
+test('the saved notice goes away by itself after 3 seconds', async () => {
+  jest.useFakeTimers();
+  const elapse = (ms: number) =>
+    act(async () => {
+      jest.advanceTimersByTime(ms);
+    });
+  const renderer = await renderFlow();
+  try {
+    await openOptions(renderer);
+    await pressByText(renderer, 'Lançamento manual');
+    await elapse(1000);
+    await typeInto(renderer, 'Descrição', 'Combustível');
+    await typeInto(renderer, 'Valor (R$)', '18000');
+    await pressByText(renderer, 'Deslocamento');
+    await act(async () => {
+      renderer.root
+        .findByProps({ testID: 'finance-new-entry-save' })
+        .props.onPress();
+    });
+
+    await elapse(2999);
+    expect(textsOf(renderer)).toContain('Lançamento salvo.');
+
+    await elapse(1);
+    expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
+  } finally {
+    jest.useRealTimers();
+  }
 });

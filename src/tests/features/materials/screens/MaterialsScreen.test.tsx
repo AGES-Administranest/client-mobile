@@ -1,6 +1,7 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { EquipmentFormSheet } from 'features/equipment';
 import { equipmentService } from 'features/equipment/services/equipmentService';
@@ -23,6 +24,7 @@ jest.mock('features/equipment/services/equipmentService', () => ({
     summary: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    deactivate: jest.fn(),
   },
 }));
 
@@ -62,6 +64,10 @@ const equipmentCreateMock = equipmentService.create as jest.MockedFunction<
 const equipmentUpdateMock = equipmentService.update as jest.MockedFunction<
   typeof equipmentService.update
 >;
+const equipmentDeactivateMock =
+  equipmentService.deactivate as jest.MockedFunction<
+    typeof equipmentService.deactivate
+  >;
 const equipmentSummaryMock = equipmentService.summary as jest.MockedFunction<
   typeof equipmentService.summary
 >;
@@ -89,6 +95,8 @@ beforeEach(() => {
   equipmentSummaryMock.mockReset();
   equipmentCreateMock.mockReset();
   equipmentUpdateMock.mockReset();
+  equipmentDeactivateMock.mockReset();
+  equipmentDeactivateMock.mockResolvedValue(undefined);
   equipmentListMock.mockResolvedValue([EQUIPMENT_FIXTURE]);
   equipmentSummaryMock.mockResolvedValue({
     monthlyTotal: 0,
@@ -241,7 +249,7 @@ function hasNameField(renderer: ReactTestRenderer.ReactTestRenderer) {
   );
 }
 
-test('tapping an equipment card opens the details: name as the title, no name field, Editar only', async () => {
+test('tapping an equipment card opens the details: name as the title, no name field, Editar and Excluir', async () => {
   const renderer = await openEquipmentTab();
 
   await pressText(renderer, 'Vaporizador Matrx VIP 3000');
@@ -251,8 +259,9 @@ test('tapping an equipment card opens the details: name as the title, no name fi
   expect(hasNameField(renderer)).toBe(false);
   const texts = getTexts(renderer);
   expect(texts).toContain('Editar');
+  expect(texts).toContain('Excluir');
   expect(texts).not.toContain('Salvar');
-  expect(texts).not.toContain('Excluir');
+  expect(texts).not.toContain('Cancelar');
   expect(texts).not.toContain('Editar equipamento');
   const purchase = renderer.root.find(
     node =>
@@ -281,14 +290,260 @@ test('Editar frees the fields, brings the name back and the button becomes Salva
   expect(nameInput.props.editable).toBe(true);
 });
 
-test('Excluir does not show up in this PR, in view or in edit', async () => {
-  const renderer = await openEquipmentTab();
+function confirmSheet(renderer: ReactTestRenderer.ReactTestRenderer) {
+  // A tela também tem o ConfirmSheet da exclusão de insumo.
+  const sheet = renderer.root
+    .findAllByType(ConfirmSheet)
+    .find(node => node.props.title === 'Excluir equipamento?');
+  return sheet!.props as {
+    visible: boolean;
+    title: string;
+    message: string;
+    confirmLabel: string;
+    cancelLabel: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+  };
+}
+
+async function openEditing(renderer: ReactTestRenderer.ReactTestRenderer) {
   await pressText(renderer, 'Vaporizador Matrx VIP 3000');
+  await pressText(renderer, 'Editar');
+}
+
+async function openDetails(renderer: ReactTestRenderer.ReactTestRenderer) {
+  await pressText(renderer, 'Vaporizador Matrx VIP 3000');
+}
+
+// Nos testes a animação de fechar termina na hora, então "o sheet fechou"
+// (onClosed) já aconteceu quando o act termina.
+function pressDelete(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return act(async () => {
+    renderer.root.findByType(EquipmentFormSheet).props.onDelete();
+  });
+}
+
+function confirmDelete(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return act(async () => {
+    confirmSheet(renderer).onConfirm();
+  });
+}
+
+function cancelDelete(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return act(async () => {
+    confirmSheet(renderer).onCancel();
+  });
+}
+
+test('Excluir shows up only in the details; edit has Salvar and Cancelar; create has neither', async () => {
+  const renderer = await openEquipmentTab();
+
+  await pressText(renderer, 'Adicionar equipamento');
   expect(getTexts(renderer)).not.toContain('Excluir');
+  expect(getTexts(renderer)).not.toContain('Cancelar');
+  await act(async () => {
+    renderer.root.findByType(EquipmentFormSheet).props.onClose();
+  });
+
+  await openDetails(renderer);
+  expect(getTexts(renderer)).toContain('Excluir');
+  expect(getTexts(renderer)).toContain('Editar');
 
   await pressText(renderer, 'Editar');
-
   expect(getTexts(renderer)).not.toContain('Excluir');
+  expect(getTexts(renderer)).toContain('Salvar');
+  expect(getTexts(renderer)).toContain('Cancelar');
+});
+
+test('Cancelar in the edit drops the changes and goes back to the details, open, without the API', async () => {
+  const renderer = await openEquipmentTab();
+  await openEditing(renderer);
+  await typeInto(renderer, 'Nome do equipamento', 'Vaporizador novo');
+
+  await act(async () => {
+    renderer.root.findByType(EquipmentFormSheet).props.onCancelEdit();
+  });
+
+  expect(isSheetOpen(renderer)).toBe(true);
+  expect(sheetProps(renderer).mode).toBe('view');
+  expect(sheetProps(renderer).texts.title).toBe('Vaporizador Matrx VIP 3000');
+  expect(hasNameField(renderer)).toBe(false);
+  expect(equipmentUpdateMock).not.toHaveBeenCalled();
+});
+
+test('Excluir closes the sheet and opens the confirmation with the equipment name, never both', async () => {
+  const renderer = await openEquipmentTab();
+  await openDetails(renderer);
+  expect(confirmSheet(renderer).visible).toBe(false);
+
+  await pressDelete(renderer);
+
+  expect(isSheetOpen(renderer)).toBe(false);
+  expect(confirmSheet(renderer).visible).toBe(true);
+  expect(confirmSheet(renderer).title).toBe('Excluir equipamento?');
+  expect(confirmSheet(renderer).message).toBe(
+    '“Vaporizador Matrx VIP 3000” deixa de aparecer na lista e não entra mais na depreciação total.',
+  );
+  expect(confirmSheet(renderer).confirmLabel).toBe('Excluir');
+  expect(confirmSheet(renderer).cancelLabel).toBe('Cancelar');
+});
+
+test('Cancelar in the confirmation closes it and reopens the same equipment in the details, without the API', async () => {
+  const renderer = await openEquipmentTab();
+  await openDetails(renderer);
+  await pressDelete(renderer);
+
+  await cancelDelete(renderer);
+
+  expect(confirmSheet(renderer).visible).toBe(false);
+  expect(isSheetOpen(renderer)).toBe(true);
+  expect(sheetProps(renderer).mode).toBe('view');
+  expect(sheetProps(renderer).texts.title).toBe('Vaporizador Matrx VIP 3000');
+  expect(equipmentDeactivateMock).not.toHaveBeenCalled();
+});
+
+test('the confirm button reads Excluindo… during the call and the confirmation stays open', async () => {
+  let finish: () => void = () => {};
+  equipmentDeactivateMock.mockReturnValue(
+    new Promise<void>(resolve => {
+      finish = resolve;
+    }),
+  );
+  const renderer = await openEquipmentTab();
+  await openDetails(renderer);
+  await pressDelete(renderer);
+
+  let pending: Promise<void>;
+  await act(async () => {
+    pending = Promise.resolve(confirmSheet(renderer).onConfirm());
+  });
+
+  expect(confirmSheet(renderer).visible).toBe(true);
+  expect(confirmSheet(renderer).confirmLabel).toBe('Excluindo…');
+  expect(isSheetOpen(renderer)).toBe(false);
+
+  await act(async () => {
+    confirmSheet(renderer).onConfirm();
+    finish();
+    await pending;
+  });
+  expect(equipmentDeactivateMock).toHaveBeenCalledTimes(1);
+});
+
+test('confirming deactivates the equipment, refreshes the list and the total, and does not reopen the sheet', async () => {
+  const other = {
+    ...EQUIPMENT_FIXTURE,
+    id: 'eq-2',
+    name: 'Bomba de infusão',
+    monthlyDepreciation: 100,
+    endOfLife: false,
+    usefulLifeUsedPct: 40,
+  };
+  equipmentListMock
+    .mockReset()
+    .mockResolvedValueOnce([EQUIPMENT_FIXTURE, other])
+    .mockResolvedValueOnce([other]);
+  equipmentSummaryMock
+    .mockReset()
+    .mockResolvedValueOnce({ monthlyTotal: 150, yearlyTotal: 1800, count: 2 })
+    .mockResolvedValueOnce({ monthlyTotal: 100, yearlyTotal: 1200, count: 1 });
+  const renderer = await openEquipmentTab();
+  expect(getTexts(renderer)).toContain('2 equipamentos');
+  await openDetails(renderer);
+  await pressDelete(renderer);
+
+  await confirmDelete(renderer);
+
+  expect(equipmentDeactivateMock).toHaveBeenCalledWith('id-token', 'eq-1');
+  expect(equipmentListMock).toHaveBeenCalledTimes(2);
+  expect(equipmentSummaryMock).toHaveBeenCalledTimes(2);
+  expect(confirmSheet(renderer).visible).toBe(false);
+  expect(isSheetOpen(renderer)).toBe(false);
+  const texts = getTexts(renderer);
+  expect(texts).not.toContain('Vaporizador Matrx VIP 3000');
+  expect(texts).toContain('Bomba de infusão');
+  expect(texts).toContain('1 equipamento');
+});
+
+test('deactivating the last equipment shows the empty state with the add button', async () => {
+  equipmentListMock
+    .mockReset()
+    .mockResolvedValueOnce([EQUIPMENT_FIXTURE])
+    .mockResolvedValueOnce([]);
+  equipmentSummaryMock
+    .mockReset()
+    .mockResolvedValueOnce({ monthlyTotal: 0, yearlyTotal: 0, count: 1 })
+    .mockResolvedValueOnce({ monthlyTotal: 0, yearlyTotal: 0, count: 0 });
+  const renderer = await openEquipmentTab();
+  await openDetails(renderer);
+  await pressDelete(renderer);
+
+  await confirmDelete(renderer);
+
+  expect(isSheetOpen(renderer)).toBe(false);
+  expect(confirmSheet(renderer).visible).toBe(false);
+  expect(getTexts(renderer)).toContain(
+    'Nenhum equipamento cadastrado. Cadastre o primeiro para acompanhar a depreciação.',
+  );
+  expect(getTexts(renderer)).toContain('Adicionar equipamento');
+});
+
+test('a 404 on deactivate is not an error: the list refreshes and nothing reopens', async () => {
+  const { ApiError } = jest.requireActual<
+    typeof import('shared/services/apiClient')
+  >('shared/services/apiClient');
+  equipmentDeactivateMock.mockRejectedValue(
+    new ApiError('not found', 'EQUIPMENT_NOT_FOUND', 404),
+  );
+  equipmentListMock
+    .mockReset()
+    .mockResolvedValueOnce([EQUIPMENT_FIXTURE])
+    .mockResolvedValueOnce([]);
+  const renderer = await openEquipmentTab();
+  await openDetails(renderer);
+  await pressDelete(renderer);
+
+  await confirmDelete(renderer);
+
+  expect(equipmentListMock).toHaveBeenCalledTimes(2);
+  expect(isSheetOpen(renderer)).toBe(false);
+  expect(confirmSheet(renderer).visible).toBe(false);
+  expect(getTexts(renderer)).not.toContain('Não foi possível excluir');
+});
+
+test('a failed deactivate keeps the confirmation open with the message, the button back, and the equipment in the list', async () => {
+  equipmentDeactivateMock.mockRejectedValue(new Error('network'));
+  const renderer = await openEquipmentTab();
+  await openDetails(renderer);
+  await pressDelete(renderer);
+
+  await confirmDelete(renderer);
+
+  expect(confirmSheet(renderer).visible).toBe(true);
+  expect(confirmSheet(renderer).message).toBe(
+    'Não foi possível excluir o equipamento. Tente novamente.',
+  );
+  expect(confirmSheet(renderer).confirmLabel).toBe('Excluir');
+  expect(isSheetOpen(renderer)).toBe(false);
+  expect(equipmentListMock).toHaveBeenCalledTimes(1);
+  expect(getTexts(renderer)).toContain('Vaporizador Matrx VIP 3000');
+});
+
+test('after a failed deactivate, Cancelar reopens the details and trying again works', async () => {
+  equipmentDeactivateMock.mockRejectedValueOnce(new Error('network'));
+  const renderer = await openEquipmentTab();
+  await openDetails(renderer);
+  await pressDelete(renderer);
+  await confirmDelete(renderer);
+
+  await cancelDelete(renderer);
+
+  expect(isSheetOpen(renderer)).toBe(true);
+  expect(sheetProps(renderer).mode).toBe('view');
+  await pressDelete(renderer);
+  expect(confirmSheet(renderer).message).toContain('deixa de aparecer');
+  await confirmDelete(renderer);
+  expect(equipmentDeactivateMock).toHaveBeenCalledTimes(2);
 });
 
 test('saving an edit refreshes the list and goes back to the details, open, with the new values', async () => {

@@ -1,6 +1,6 @@
 import { FileText, Pencil } from 'lucide-react-native';
-import { useRef, useState } from 'react';
-import { View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, View } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { OptionsModal } from 'app/components/ui/options-modal';
@@ -9,6 +9,8 @@ import { useTranslation } from 'shared/i18n';
 
 import { NewEntryForm } from './NewEntryForm';
 import { NewEntryButton } from '../components/NewEntryButton';
+
+const SAVED_MESSAGE_DURATION_MS = 3000;
 
 export function NewEntryFlow() {
   const { t } = useTranslation();
@@ -20,6 +22,21 @@ export function NewEntryFlow() {
   const [savedVisible, setSavedVisible] = useState(false);
   // iOS: um Modal não abre enquanto outro fecha.
   const openAfterOptionsLeave = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (!savedVisible) {
+      return;
+    }
+
+    // Some em 3 s: sem o anúncio, quem usa leitor de tela nunca chega a ouvir.
+    AccessibilityInfo.announceForAccessibility(t('financialEntries.saved'));
+    const timer = setTimeout(
+      () => setSavedVisible(false),
+      SAVED_MESSAGE_DURATION_MS,
+    );
+
+    return () => clearTimeout(timer);
+  }, [savedVisible, t]);
 
   const choose = (openNext?: () => void) => {
     openAfterOptionsLeave.current = openNext ?? null;
@@ -55,7 +72,11 @@ export function NewEntryFlow() {
       />
 
       {savedVisible ? (
-        <View className="rounded-xl border border-details-tertiary bg-details-secondary p-3">
+        <View
+          role="status"
+          accessibilityLiveRegion="polite"
+          className="rounded-xl border border-details-tertiary bg-details-secondary p-3"
+        >
           <Text className="text-sm text-label-primary">
             {t('financialEntries.saved')}
           </Text>

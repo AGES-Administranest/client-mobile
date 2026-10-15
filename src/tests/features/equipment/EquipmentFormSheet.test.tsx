@@ -1,6 +1,8 @@
+import { Check, Pencil, Trash2, X } from 'lucide-react-native';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { Button } from 'app/components/ui/button';
+import { Icon } from 'app/components/ui/icon';
 import {
   EquipmentFormSheet,
   type EquipmentFormTexts,
@@ -11,6 +13,7 @@ const TEXTS: EquipmentFormTexts = {
   title: 'Novo equipamento',
   confirm: 'Confirmar',
   startEdit: 'Editar',
+  cancel: 'Cancelar',
   delete: 'Excluir',
   close: 'Fechar',
   labels: {
@@ -52,6 +55,7 @@ const BASE = {
   onChangeText: () => {},
   onBlur: () => {},
   onStartEdit: () => {},
+  onCancelEdit: () => {},
   onSubmit: () => {},
   onClose: () => {},
 };
@@ -141,15 +145,21 @@ test('the edit mode shows its own title and button', async () => {
   expect(texts(renderer)).not.toContain('Novo equipamento');
 });
 
-test('the ✓ icon is on the create button and not on the edit button', async () => {
-  const create = await renderSheet();
-  const edit = await renderSheet({
-    mode: 'edit',
-    texts: { ...TEXTS, confirm: 'Salvar' },
+function iconsOf(button: ReactTestRenderer.ReactTestInstance) {
+  return button.findAllByType(Icon).map(node => node.props.as);
+}
+
+test('the create sheet has only the ✓ Confirmar button, no Cancelar and no Excluir', async () => {
+  const renderer = await renderSheet({
+    onDelete: () => {},
+    onCancelEdit: () => {},
   });
 
-  expect(create.root.findByType(Button).props.icon).toBeDefined();
-  expect(edit.root.findByType(Button).props.icon).toBeUndefined();
+  const buttons = renderer.root.findAllByType(Button);
+  expect(buttons).toHaveLength(1);
+  expect(iconsOf(buttons[0])).toEqual([Check]);
+  expect(texts(renderer)).not.toContain('Cancelar');
+  expect(texts(renderer)).not.toContain('Excluir');
 });
 
 test('notes is a single-line input with the same style as the others', async () => {
@@ -160,24 +170,6 @@ test('notes is a single-line input with the same style as the others', async () 
   expect(notes.props.multiline).toBeFalsy();
   expect(notes.props.maxLength).toBe(1000);
   expect(notes.props.className).toBe(name.props.className);
-});
-
-test('has no delete or inactivate button', async () => {
-  const renderer = await renderSheet();
-  const buttons = renderer.root.findAll(
-    node =>
-      (node.props?.role === 'button' ||
-        node.props?.accessibilityRole === 'button') &&
-      typeof node.props?.onPress === 'function',
-  );
-
-  const labels = buttons.map(node =>
-    node
-      .findAllByType('Text' as never)
-      .map(text => text.props.children)
-      .join(''),
-  );
-  expect(labels.join('|')).not.toMatch(/exclu|inativ|delete|remov/i);
 });
 
 test('shows the error below its field', async () => {
@@ -362,16 +354,34 @@ describe('view mode', () => {
     expect(viewClass).not.toMatch(/opacity/);
   });
 
-  test('has only the Editar button, without icon, and never Excluir', async () => {
-    const renderer = await renderSheet(viewProps({ onDelete: () => {} }));
+  test('has Editar with the pencil and, with onDelete, Excluir in red with the trash below it', async () => {
+    const without = await renderSheet(viewProps());
+    expect(texts(without)).toContain('Editar');
+    expect(texts(without)).not.toContain('Excluir');
+    expect(without.root.findAllByType(Button)).toHaveLength(1);
 
-    expect(texts(renderer)).toContain('Editar');
-    expect(texts(renderer)).not.toContain('Confirmar');
+    const renderer = await renderSheet(viewProps({ onDelete: () => {} }));
+    const [edit, remove] = renderer.root.findAllByType(Button);
+    expect(texts(renderer)).toEqual(
+      expect.arrayContaining(['Editar', 'Excluir']),
+    );
+    expect(iconsOf(edit)).toEqual([Pencil]);
+    expect(iconsOf(remove)).toEqual([Trash2]);
+    expect(remove.props.variant).toBe('secondary');
     expect(texts(renderer)).not.toContain('Salvar');
-    expect(texts(renderer)).not.toContain('Excluir');
-    const buttons = renderer.root.findAllByType(Button);
-    expect(buttons).toHaveLength(1);
-    expect(buttons[0].props.icon).toBeUndefined();
+    expect(texts(renderer)).not.toContain('Cancelar');
+    expect(texts(renderer)).not.toContain('Confirmar');
+  });
+
+  test('Excluir calls onDelete', async () => {
+    const onDelete = jest.fn();
+    const renderer = await renderSheet(viewProps({ onDelete }));
+
+    await act(async () => {
+      renderer.root.findAllByType(Button)[1].props.onPress();
+    });
+
+    expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
   test('Editar calls onStartEdit', async () => {
@@ -461,29 +471,71 @@ describe('edit mode', () => {
     ]);
   });
 
-  test('Excluir only appears with onDelete, below Salvar, red and without icon', async () => {
-    const without = await renderSheet(editProps());
-    expect(texts(without)).not.toContain('Excluir');
+  test('has Salvar with the check and, below it, Cancelar with the X, and never Excluir', async () => {
+    const renderer = await renderSheet(editProps({ onDelete: () => {} }));
 
-    const onDelete = jest.fn();
-    const renderer = await renderSheet(editProps({ onDelete }));
-    const [save, remove] = renderer.root.findAllByType(Button);
+    const [save, cancel] = renderer.root.findAllByType(Button);
+    expect(renderer.root.findAllByType(Button)).toHaveLength(2);
     expect(texts(renderer)).toEqual(
-      expect.arrayContaining(['Salvar', 'Excluir']),
+      expect.arrayContaining(['Salvar', 'Cancelar']),
     );
-    expect(save.props.icon).toBeUndefined();
-    expect(remove.props.icon).toBeUndefined();
-    expect(remove.props.variant).toBe('secondary');
-    await act(async () => {
-      remove.props.onPress();
-    });
-    expect(onDelete).toHaveBeenCalledTimes(1);
+    expect(texts(renderer)).not.toContain('Excluir');
+    expect(texts(renderer)).not.toContain('Editar');
+    expect(iconsOf(save)).toEqual([Check]);
+    expect(iconsOf(cancel)).toEqual([X]);
+    expect(cancel.props.variant).toBeUndefined();
   });
 
-  test('Excluir is never on the create sheet', async () => {
-    const renderer = await renderSheet({ onDelete: () => {} });
+  test('Cancelar calls onCancelEdit and Salvar calls onSubmit', async () => {
+    const onCancelEdit = jest.fn();
+    const onSubmit = jest.fn();
+    const renderer = await renderSheet(editProps({ onCancelEdit, onSubmit }));
+    const [save, cancel] = renderer.root.findAllByType(Button);
 
-    expect(texts(renderer)).not.toContain('Excluir');
+    await act(async () => {
+      cancel.props.onPress();
+      save.props.onPress();
+    });
+
+    expect(onCancelEdit).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  test('Salvar and Cancelar are disabled while saving and enabled otherwise', async () => {
+    const saving = await renderSheet(editProps({ isSubmitting: true }));
+    const [save, cancel] = saving.root.findAllByType(Button);
+    expect(save.props.disabled).toBe(true);
+    expect(cancel.props.disabled).toBe(true);
+
+    const idle = await renderSheet(editProps());
+    const [idleSave, idleCancel] = idle.root.findAllByType(Button);
+    expect(idleSave.props.disabled).toBeFalsy();
+    expect(idleCancel.props.disabled).toBeFalsy();
+  });
+
+  test('calls onClosed once the sheet finished closing, and not while it is open', async () => {
+    const onClosed = jest.fn();
+    let renderer: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <EquipmentFormSheet {...BASE} {...editProps()} onClosed={onClosed} />,
+      );
+    });
+    expect(onClosed).not.toHaveBeenCalled();
+
+    await act(async () => {
+      renderer.update(
+        <EquipmentFormSheet
+          {...BASE}
+          {...editProps()}
+          visible={false}
+          onClosed={onClosed}
+        />,
+      );
+    });
+
+    // Nos testes a animação termina na hora, como no useSheetAnimation.test.
+    expect(onClosed).toHaveBeenCalledTimes(1);
   });
 
   test('switching from view to edit keeps the sheet, brings the name field and Salvar', async () => {

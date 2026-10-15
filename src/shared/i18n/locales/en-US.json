@@ -172,12 +172,21 @@
       "previewLabel": "Estimated depreciation:",
       "previewValue": "{{value}}/month",
       "startEdit": "Edit",
-      "delete": "Delete",
       "usefulLifeView": {
         "year": "{{count}} year",
         "years": "{{count}} years",
         "months": "{{count}} months"
-      }
+      },
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "button": "Delete",
+      "confirmTitle": "Delete equipment?",
+      "confirmMessage": "“{{name}}” will no longer appear in the list and will not count towards the total depreciation.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "error": "Could not delete the equipment. Try again.",
+      "confirming": "Deleting…"
     }
   },
   "stockEntry": {
@@ -664,7 +673,6 @@
       "failures": {
         "session": "Your session has expired. Sign out and sign in again.",
         "categoryInvalid": "This category is no longer available. Choose another one.",
-        "idConflict": "This entry has already been saved. Check the statement.",
         "network": "No connection. Try again when you are back online.",
         "unknown": "Could not save the entry. Try again.",
         "categories": "Could not load the categories."

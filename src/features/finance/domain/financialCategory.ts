@@ -28,7 +28,6 @@ const DEFAULT_ORDER: readonly DefaultCategoryKey[] = [
   'fixedCosts',
 ];
 
-/** Chave de tradução de uma categoria padrão; null para as criadas pelo usuário. */
 export function defaultCategoryKey(
   category: Pick<FinancialCategory, 'name'>,
 ): DefaultCategoryKey | null {
