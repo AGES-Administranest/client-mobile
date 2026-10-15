@@ -43,11 +43,7 @@ export function OutputAdjustmentSheet({
 
   const failureMessage = adjustment.failure
     ? t(
-        `stock.outputAdjustment.errors.${adjustment.failure.code}` as
-          | 'stock.outputAdjustment.errors.QUEUE_WRITE_FAILED'
-          | 'stock.outputAdjustment.errors.INSUFFICIENT_STOCK'
-          | 'stock.outputAdjustment.errors.NO_ACCOUNT'
-          | 'stock.outputAdjustment.errors.NO_UNIT_COST',
+        `stock.outputAdjustment.errors.${adjustment.failure.code}`,
         adjustment.failure.params,
       )
     : null;

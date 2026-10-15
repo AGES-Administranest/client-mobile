@@ -23,7 +23,11 @@ import {
 } from '../services/stockAdjustmentService';
 
 export type AdjustmentFailure = {
-  code: string;
+  code:
+    | 'NO_ACCOUNT'
+    | 'INSUFFICIENT_STOCK'
+    | 'NO_UNIT_COST'
+    | 'QUEUE_WRITE_FAILED';
   params: Record<string, string | number>;
 };
 
