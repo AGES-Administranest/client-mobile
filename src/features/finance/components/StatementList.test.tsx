@@ -16,6 +16,7 @@ const TEXTS: StatementTexts = {
   loadingMore: 'Carregando mais lançamentos…',
   automatic: 'automático',
   retry: 'Tentar novamente',
+  loadMoreFailure: 'Não foi possível carregar mais lançamentos.',
   empty: {
     title: 'Nenhum lançamento neste mês',
     description: 'Registre uma entrada ou saída para acompanhar o seu saldo.',
@@ -175,4 +176,25 @@ test('shows a spinner under the rows while the next page loads', async () => {
   const spinner = renderer.root.findByType(ActivityIndicator);
   expect(spinner.props.accessibilityLabel).toBe(TEXTS.loadingMore);
   expect(textsOf(renderer)).toContain('Orquiectomia – Mel');
+});
+
+test('a failed next page keeps the rows and offers a retry under them', async () => {
+  const onRetryLoadMore = jest.fn();
+  const { renderer, props } = await render({
+    loadMoreFailed: true,
+    onRetryLoadMore,
+  });
+
+  expect(textsOf(renderer)).toEqual(
+    expect.arrayContaining([
+      'Orquiectomia – Mel',
+      TEXTS.loadMoreFailure,
+      'Tentar novamente',
+    ]),
+  );
+
+  await act(async () => buttons(renderer)[0].props.onPress());
+
+  expect(onRetryLoadMore).toHaveBeenCalledTimes(1);
+  expect(props.onRetry).not.toHaveBeenCalled();
 });

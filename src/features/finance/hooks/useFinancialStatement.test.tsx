@@ -167,7 +167,7 @@ test('loadMore does nothing on the last page, and only once while a page is on i
   expect(fetchEntriesMock).toHaveBeenCalledTimes(2);
 });
 
-test('a failed next page keeps the list, and the next loadMore tries again', async () => {
+test('a failed next page keeps the list and waits for a retry instead of asking again on every scroll', async () => {
   fetchEntriesMock
     .mockResolvedValueOnce(page('p1'))
     .mockRejectedValueOnce(new ApiError('down', null, 500))
@@ -178,11 +178,17 @@ test('a failed next page keeps the list, and the next loadMore tries again', asy
 
   expect(ids()).toHaveLength(STATEMENT_PAGE_SIZE);
   expect(current.status).toBe('ready');
-  expect(current.hasMore).toBe(true);
+  expect(current.loadMoreFailed).toBe(true);
 
   await act(async () => current.loadMore());
+  await act(async () => current.loadMore());
+  expect(fetchEntriesMock).toHaveBeenCalledTimes(2);
 
+  await act(async () => current.retryLoadMore());
+
+  expect(fetchEntriesMock).toHaveBeenCalledTimes(3);
   expect(ids()).toContain('p2-0');
+  expect(current.loadMoreFailed).toBe(false);
 });
 
 test('changing the scope loads page 1 again and ignores the late answer of the old filter', async () => {

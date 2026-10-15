@@ -108,11 +108,15 @@ export function FinanceScreen() {
                 items={items}
                 status={statement.status}
                 isLoadingMore={statement.isLoadingMore}
+                loadMoreFailed={statement.loadMoreFailed}
                 texts={{
                   loading: t('financialEntries.statement.loading'),
                   loadingMore: t('financialEntries.statement.loadingMore'),
                   automatic: t('financialEntries.statement.automatic'),
                   retry: t('financialEntries.statement.retry'),
+                  loadMoreFailure: t(
+                    'financialEntries.statement.loadMoreFailure',
+                  ),
                   empty: {
                     title: t('financialEntries.statement.empty.title'),
                     description: t(
@@ -124,6 +128,7 @@ export function FinanceScreen() {
                 failureMessage={statement.failure ? t(statement.failure) : null}
                 noResultsMessage={noResultsMessage}
                 onRetry={statement.reload}
+                onRetryLoadMore={statement.retryLoadMore}
                 onCreatePress={openOptions}
               />
             </View>

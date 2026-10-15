@@ -704,7 +704,8 @@
         "network": "Sem conexão. Tente de novo quando a internet voltar.",
         "unknown": "Não foi possível carregar os lançamentos."
       },
-      "retry": "Tentar novamente"
+      "retry": "Tentar novamente",
+      "loadMoreFailure": "Não foi possível carregar mais lançamentos."
     }
   },
   "tabbar": {

@@ -20,7 +20,9 @@ export type FinancialStatementState = {
   failure: TranslationKey | null;
   hasMore: boolean;
   isLoadingMore: boolean;
+  loadMoreFailed: boolean;
   loadMore: () => void;
+  retryLoadMore: () => void;
   reload: () => void;
 };
 
@@ -36,17 +38,24 @@ export function useFinancialStatement(
   const [failure, setFailure] = useState<TranslationKey | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const [version, setVersion] = useState(0);
   const loadedPages = useRef(0);
   // Cada troca de filtro começa uma nova geração: a resposta de um pedido da
   // geração anterior não pode entrar na lista atual.
   const generation = useRef(0);
   const isFetchingMore = useRef(false);
+  // Sem isso, depois de uma falha cada evento de rolagem mandaria outro pedido
+  // que também falharia: a próxima página só volta a ser pedida no "Tentar
+  // novamente" ou numa nova busca.
+  const nextPageFailed = useRef(false);
 
   useEffect(() => {
     generation.current += 1;
     const current = generation.current;
     isFetchingMore.current = false;
+    nextPageFailed.current = false;
+    setLoadMoreFailed(false);
     setStatus('loading');
     setFailure(null);
     setIsLoadingMore(false);
@@ -80,7 +89,12 @@ export function useFinancialStatement(
   }, [idToken, month, year, scope, version]);
 
   const loadMore = useCallback(() => {
-    if (status !== 'ready' || !hasMore || isFetchingMore.current) {
+    if (
+      status !== 'ready' ||
+      !hasMore ||
+      isFetchingMore.current ||
+      nextPageFailed.current
+    ) {
       return;
     }
     const current = generation.current;
@@ -103,8 +117,9 @@ export function useFinancialStatement(
         setHasMore(!isLastStatementPage(page));
       })
       .catch(() => {
-        // A página seguinte falhou: a lista continua, e a próxima rolagem
-        // tenta de novo.
+        if (current !== generation.current) return;
+        nextPageFailed.current = true;
+        setLoadMoreFailed(true);
       })
       .finally(() => {
         if (current !== generation.current) return;
@@ -113,7 +128,23 @@ export function useFinancialStatement(
       });
   }, [status, hasMore, idToken, month, year, scope]);
 
+  const retryLoadMore = useCallback(() => {
+    nextPageFailed.current = false;
+    setLoadMoreFailed(false);
+    loadMore();
+  }, [loadMore]);
+
   const reload = useCallback(() => setVersion(v => v + 1), []);
 
-  return { entries, status, failure, hasMore, isLoadingMore, loadMore, reload };
+  return {
+    entries,
+    status,
+    failure,
+    hasMore,
+    isLoadingMore,
+    loadMoreFailed,
+    loadMore,
+    retryLoadMore,
+    reload,
+  };
 }

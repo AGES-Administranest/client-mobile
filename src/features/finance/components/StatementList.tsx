@@ -31,6 +31,7 @@ export type StatementTexts = {
   loadingMore: string;
   automatic: string;
   retry: string;
+  loadMoreFailure: string;
   empty: { title: string; description: string; action: string };
 };
 
@@ -40,10 +41,12 @@ type StatementListProps = {
   items: readonly StatementItem[];
   status: StatementStatus;
   isLoadingMore: boolean;
+  loadMoreFailed?: boolean;
   texts: StatementTexts;
   failureMessage: string | null;
   noResultsMessage: string | null;
   onRetry: () => void;
+  onRetryLoadMore?: () => void;
   onCreatePress: () => void;
   onItemPress?: (id: string) => void;
   className?: string;
@@ -57,10 +60,12 @@ export function StatementList({
   items,
   status,
   isLoadingMore,
+  loadMoreFailed = false,
   texts,
   failureMessage,
   noResultsMessage,
   onRetry,
+  onRetryLoadMore,
   onCreatePress,
   onItemPress,
   className,
@@ -132,7 +137,9 @@ export function StatementList({
           key={item.id}
           item={item}
           automaticLabel={texts.automatic}
-          isLast={index === items.length - 1 && !isLoadingMore}
+          isLast={
+            index === items.length - 1 && !isLoadingMore && !loadMoreFailed
+          }
           onPress={onItemPress ? () => onItemPress(item.id) : undefined}
         />
       ))}
@@ -141,6 +148,22 @@ export function StatementList({
           accessibilityLabel={texts.loadingMore}
           className="py-3"
         />
+      ) : null}
+      {loadMoreFailed && !isLoadingMore ? (
+        <View role="alert" className="items-center gap-2 px-4 py-3">
+          <Text className="text-center text-[13px] leading-[19.5px] text-label-placeholder">
+            {texts.loadMoreFailure}
+          </Text>
+          <Button
+            shape="pill"
+            size="sm"
+            onPress={onRetryLoadMore}
+            className="h-8 gap-1.5 px-3.5"
+          >
+            <Icon as={RotateCw} size={14} />
+            <Text className="text-xs font-semibold">{texts.retry}</Text>
+          </Button>
+        </View>
       ) : null}
     </View>
   );

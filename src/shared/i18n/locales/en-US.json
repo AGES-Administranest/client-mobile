@@ -704,7 +704,8 @@
         "network": "No connection. Try again when you are back online.",
         "unknown": "Could not load the entries."
       },
-      "retry": "Try again"
+      "retry": "Try again",
+      "loadMoreFailure": "Couldn't load more entries."
     }
   },
   "tabbar": {
