@@ -75,11 +75,11 @@ export function ItemPicker({
           )}
         >
           {options.length === 0 && emptyMessage ? (
-            <Text className="border-t border-border-primary px-4 py-3 text-sm text-label-tertiary">
+            <Text className="px-4 py-3 text-sm text-label-tertiary">
               {emptyMessage}
             </Text>
           ) : null}
-          {options.map(option => {
+          {options.map((option, index) => {
             const isSelected = option.id === selectedId;
             return (
               <Pressable
@@ -89,7 +89,8 @@ export function ItemPicker({
                 accessibilityState={{ selected: isSelected }}
                 onPress={() => choose(option.id)}
                 className={cn(
-                  'flex-row items-center gap-3 border-t border-border-primary px-4 py-3',
+                  'flex-row items-center gap-3 px-4 py-3',
+                  index > 0 && 'border-t border-border-primary',
                   isSelected && 'bg-details-primary',
                 )}
               >
