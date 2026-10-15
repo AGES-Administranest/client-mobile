@@ -11,6 +11,7 @@ import {
 } from 'features/auth';
 import { StockSyncProvider } from 'features/stock';
 import { I18nProvider } from 'shared/i18n';
+import { RequestTimeoutError } from 'shared/services/apiClient';
 
 import { NewEntryFlow } from './NewEntryFlow';
 import type { FinancialCategory } from '../domain/financialEntry';
@@ -145,6 +146,12 @@ function typeInto(
   return act(() => field.props.onChangeText(value));
 }
 
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+
+afterEach(() => {
+  mounted.splice(0).forEach(renderer => act(() => renderer.unmount()));
+});
+
 async function renderFlow() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
@@ -160,6 +167,7 @@ async function renderFlow() {
       </SafeAreaProvider>,
     );
   });
+  mounted.push(renderer!);
   return renderer!;
 }
 
@@ -359,6 +367,33 @@ test('a failed save keeps the form open and says why', async () => {
   expect(texts).not.toContain('Lançamento salvo.');
 });
 
+test('a save that gets no answer in time says so, and the form can be closed', async () => {
+  createMock.mockRejectedValueOnce(
+    new RequestTimeoutError('POST', '/financial-entries', 20000),
+  );
+  const renderer = await renderFlow();
+  await openManualForm(renderer);
+  await typeInto(renderer, 'Descrição', 'Combustível');
+  await typeInto(renderer, 'Valor (R$)', '18000');
+  await pressByText(renderer, 'Deslocamento');
+  await act(async () => {
+    renderer.root
+      .findByProps({ testID: 'finance-new-entry-save' })
+      .props.onPress();
+  });
+
+  expect(textsOf(renderer)).toContain(
+    'Sem conexão. Tente de novo quando a internet voltar.',
+  );
+  expect(textsOf(renderer)).toContain('Salvar');
+
+  await act(async () => {
+    renderer.root.findByProps({ accessibilityLabel: 'Fechar' }).props.onPress();
+  });
+
+  expect(textsOf(renderer)).not.toContain('Novo lançamento manual');
+});
+
 test('reopening the form starts a new, empty entry', async () => {
   const renderer = await renderFlow();
   await openManualForm(renderer);
@@ -501,4 +536,60 @@ test('closing the stock write-off without saving confirms nothing', async () => 
   });
 
   expect(textsOf(renderer)).toEqual(['Novo lançamento']);
+});
+
+test('the saved notice goes away by itself after 3 seconds', async () => {
+  jest.useFakeTimers();
+  const elapse = (ms: number) =>
+    act(async () => {
+      jest.advanceTimersByTime(ms);
+    });
+  const renderer = await renderFlow();
+  try {
+    await openOptions(renderer);
+    await pressByText(renderer, 'Lançamento manual');
+    await elapse(1000);
+    await typeInto(renderer, 'Descrição', 'Combustível');
+    await typeInto(renderer, 'Valor (R$)', '18000');
+    await pressByText(renderer, 'Deslocamento');
+    await act(async () => {
+      renderer.root
+        .findByProps({ testID: 'finance-new-entry-save' })
+        .props.onPress();
+    });
+
+    await elapse(2999);
+    expect(textsOf(renderer)).toContain('Lançamento salvo.');
+
+    await elapse(1);
+    expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
+test('the stock write-off notice goes away by itself after 3 seconds', async () => {
+  jest.useFakeTimers();
+  const elapse = (ms: number) =>
+    act(async () => {
+      jest.advanceTimersByTime(ms);
+    });
+  const renderer = await renderFlow();
+  try {
+    await openOptions(renderer);
+    await pressByText(renderer, 'Baixa no estoque');
+    await elapse(1000);
+    await fillStockWriteOff(renderer);
+    await act(async () => {
+      await pressByText(renderer, 'Salvar');
+    });
+
+    await elapse(2999);
+    expect(textsOf(renderer)).toContain('Baixa registrada.');
+
+    await elapse(1);
+    expect(textsOf(renderer)).not.toContain('Baixa registrada.');
+  } finally {
+    jest.useRealTimers();
+  }
 });

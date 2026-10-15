@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react-native';
-import { View } from 'react-native';
+import { useEffect } from 'react';
+import { AccessibilityInfo, View } from 'react-native';
 
 import { ActionButton } from 'app/components/ui';
 import { BottomSheet } from 'app/components/ui/bottom-sheet';
@@ -39,6 +40,13 @@ export function NewEntrySheet({
   onClose,
   ...fieldProps
 }: NewEntrySheetProps) {
+  // Um aviso que aparece não é lido sozinho pelo VoiceOver nem pelo TalkBack.
+  useEffect(() => {
+    if (failureMessage) {
+      AccessibilityInfo.announceForAccessibility(failureMessage);
+    }
+  }, [failureMessage]);
+
   return (
     <BottomSheet
       visible={visible}
@@ -48,7 +56,11 @@ export function NewEntrySheet({
       footer={
         <>
           {failureMessage ? (
-            <View className="rounded-xl border border-alert-primary bg-white p-3">
+            <View
+              role="alert"
+              accessibilityLiveRegion="polite"
+              className="rounded-xl border border-alert-primary bg-white p-3"
+            >
               <Text className="text-sm text-alert-primary">
                 {failureMessage}
               </Text>

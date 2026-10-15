@@ -661,7 +661,6 @@
       "failures": {
         "session": "Your session has expired. Sign out and sign in again.",
         "categoryInvalid": "This category is no longer available. Choose another one.",
-        "idConflict": "This entry has already been saved. Check the statement.",
         "network": "No connection. Try again when you are back online.",
         "unknown": "Could not save the entry. Try again.",
         "categories": "Could not load the categories."

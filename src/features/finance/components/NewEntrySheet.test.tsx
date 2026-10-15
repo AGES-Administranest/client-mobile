@@ -1,3 +1,4 @@
+import { AccessibilityInfo } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
@@ -108,6 +109,32 @@ test('shows why the last save failed', async () => {
   expect(textsOf(renderer)).toContain(
     'Sem conexão. Tente de novo quando a internet voltar.',
   );
+});
+
+test('announces a save failure once, and marks it as an alert', async () => {
+  const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+  announce.mockClear();
+  const { renderer, props } = await render();
+  const showFailure = (failureMessage: string) =>
+    act(() => {
+      renderer.update(
+        <SafeAreaProvider initialMetrics={METRICS}>
+          <NewEntrySheet {...props} failureMessage={failureMessage} />
+        </SafeAreaProvider>,
+      );
+    });
+
+  expect(announce).not.toHaveBeenCalled();
+
+  await showFailure('Sem conexão. Tente de novo quando a internet voltar.');
+  await showFailure('Sem conexão. Tente de novo quando a internet voltar.');
+
+  expect(announce).toHaveBeenCalledTimes(1);
+  expect(announce).toHaveBeenCalledWith(
+    'Sem conexão. Tente de novo quando a internet voltar.',
+  );
+  const alert = renderer.root.find(node => node.props.role === 'alert');
+  expect(alert.props.accessibilityLiveRegion).toBe('polite');
 });
 
 test('closes from the dimmed backdrop', async () => {

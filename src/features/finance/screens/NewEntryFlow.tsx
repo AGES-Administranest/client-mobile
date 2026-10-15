@@ -1,5 +1,5 @@
 import { FileText, PackageMinus, Pencil } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
@@ -10,6 +10,8 @@ import { useTranslation } from 'shared/i18n';
 
 import { NewEntryForm } from './NewEntryForm';
 import { NewEntryButton } from '../components/NewEntryButton';
+
+const SAVED_MESSAGE_DURATION_MS = 3000;
 
 type SavedMessageKey =
   | 'financialEntries.saved'
@@ -28,6 +30,19 @@ export function NewEntryFlow() {
     useState<SavedMessageKey | null>(null);
   // iOS: um Modal não abre enquanto outro fecha.
   const openAfterOptionsLeave = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (!savedMessageKey) {
+      return;
+    }
+
+    const timer = setTimeout(
+      () => setSavedMessageKey(null),
+      SAVED_MESSAGE_DURATION_MS,
+    );
+
+    return () => clearTimeout(timer);
+  }, [savedMessageKey]);
 
   const choose = (openNext?: () => void) => {
     openAfterOptionsLeave.current = openNext ?? null;
