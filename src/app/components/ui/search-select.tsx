@@ -63,6 +63,7 @@ export function SearchSelect({
   onSelect,
 }: SearchSelectProps) {
   const [inUse, setInUse] = useState(false);
+  const inputRef = useRef<TextInput>(null);
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -99,6 +100,9 @@ export function SearchSelect({
   function closeAndThen(action: () => void): void {
     cancelPendingClose();
     setInUse(false);
+    // Dentro de um ScrollView com keyboardShouldPersistTaps, o input continua
+    // focado depois do toque na linha, e tocar nele de novo não reabriria a lista.
+    inputRef.current?.blur();
     action();
   }
 
@@ -111,6 +115,7 @@ export function SearchSelect({
         {label}
       </Text>
       <TextInput
+        ref={inputRef}
         accessibilityLabel={label}
         accessibilityRole="combobox"
         accessibilityState={{ expanded: listIsOpen }}

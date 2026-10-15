@@ -140,6 +140,21 @@ test('typing again after a pick opens the list while the input keeps focus', asy
   expect(input(renderer).props.accessibilityState).toEqual({ expanded: true });
 });
 
+test('a pick lets go of the input, so tapping the field again reopens the list', async () => {
+  const { renderer } = await renderSelect();
+  await focus(renderer);
+  const blur = jest.spyOn(input(renderer).instance, 'blur');
+  blur.mockClear();
+
+  await act(async () => {
+    rows(renderer)[0].props.onPress();
+  });
+
+  expect(blur).toHaveBeenCalledTimes(1);
+  await focus(renderer);
+  expect(rowLabels(renderer)).toEqual(['Insumos', 'Impostos e taxas']);
+});
+
 test('marks only the chosen option as selected', async () => {
   const { renderer } = await renderSelect({ selectedId: 'taxes' });
   await focus(renderer);
