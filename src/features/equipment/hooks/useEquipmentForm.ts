@@ -38,13 +38,24 @@ import { equipmentService } from '../services/equipmentService';
 
 const MAX_USEFUL_LIFE_DIGITS = 3;
 
-export type EquipmentSubmitError = 'session' | 'generic';
+export type EquipmentSubmitError = 'session' | 'generic' | 'delete';
+
+// A exclusão passa por quatro passos para nunca haver dois Modal na tela: o
+// sheet fecha, só então a confirmação abre, e ao cancelar o sheet só reabre
+// depois de a confirmação fechar.
+export type EquipmentDeleteStep =
+  | 'idle'
+  | 'closingSheet'
+  | 'confirming'
+  | 'closingConfirmation';
 
 type UseEquipmentFormOptions = {
   target: EquipmentFormTarget;
   visible: boolean;
   /** Só depois de salvar com sucesso. Quem chama atualiza a lista; o cadastro fecha o sheet, e a edição volta ao detalhe com o equipamento novo. */
   onSaved: (savedMode: 'create' | 'edit') => void | Promise<void>;
+  /** Só depois de excluir; quem chama fecha o formulário (o sheet não reabre) e atualiza a lista. */
+  onDeleted: () => void | Promise<void>;
   /** AAAA-MM-DD, o dia local. Existe para o teste fixar o relógio. */
   today?: () => string;
 };
@@ -60,11 +71,22 @@ type EquipmentFormState = {
   /** Só em `view`: o campo de anos não consegue mostrar meses quebrados, então a leitura mostra a unidade certa. */
   viewUsefulLife: UsefulLifeDisplay | null;
   isSubmitting: boolean;
+  /** O sheet some enquanto a exclusão está em andamento: use este no lugar de `visible`. */
+  isSheetVisible: boolean;
+  deleteStep: EquipmentDeleteStep;
+  /** A confirmação continua aberta durante a chamada. */
+  isDeleting: boolean;
   submitError: EquipmentSubmitError | null;
   onChangeText: (field: EquipmentFormField, text: string) => void;
   onBlur: (field: EquipmentFormField) => void;
   startEdit: () => void;
   submit: () => Promise<void>;
+  cancelEdit: () => void;
+  requestDelete: () => void;
+  onSheetClosed: () => void;
+  cancelDelete: () => void;
+  onConfirmationClosed: () => void;
+  confirmDelete: () => Promise<void>;
 };
 
 function localTodayIso(): string {
@@ -97,6 +119,7 @@ export function useEquipmentForm({
   target,
   visible,
   onSaved,
+  onDeleted,
   today = localTodayIso,
 }: UseEquipmentFormOptions): EquipmentFormState {
   const { session } = useAuth();
@@ -108,11 +131,14 @@ export function useEquipmentForm({
   >({});
   const [attempted, setAttempted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<EquipmentDeleteStep>('idle');
+  const [isDeleting, setIsDeleting] = useState(false);
   const [submitError, setSubmitError] = useState<EquipmentSubmitError | null>(
     null,
   );
   const isMounted = useRef(true);
   const isSubmittingRef = useRef(false);
+  const isDeletingRef = useRef(false);
 
   useEffect(() => {
     isMounted.current = true;
@@ -130,6 +156,7 @@ export function useEquipmentForm({
     setTouched({});
     setAttempted(false);
     setSubmitError(null);
+    setDeleteStep('idle');
   }, [visible, target]);
 
   const initial = useMemo(() => initialValues(target), [target]);
@@ -197,7 +224,9 @@ export function useEquipmentForm({
   }, []);
 
   const submit = useCallback(async () => {
-    if (mode === 'view' || isSubmittingRef.current) return;
+    if (mode === 'view' || isSubmittingRef.current || isDeletingRef.current) {
+      return;
+    }
 
     const { errors: found, normalized } = validateEquipmentForm(
       values,
@@ -258,6 +287,85 @@ export function useEquipmentForm({
     onSaved,
   ]);
 
+  const cancelEdit = useCallback(() => {
+    if (mode !== 'edit' || isSubmittingRef.current) return;
+    setMode('view');
+    setValues(initialValues(target));
+    setTouched({});
+    setAttempted(false);
+    setSubmitError(null);
+  }, [mode, target]);
+
+  const requestDelete = useCallback(() => {
+    if (mode === 'view') {
+      setDeleteStep(step => (step === 'idle' ? 'closingSheet' : step));
+    }
+  }, [mode]);
+
+  const onSheetClosed = useCallback(() => {
+    setDeleteStep(step => (step === 'closingSheet' ? 'confirming' : step));
+  }, []);
+
+  const cancelDelete = useCallback(() => {
+    if (isDeletingRef.current) return;
+    setSubmitError(null);
+    setDeleteStep(step =>
+      step === 'confirming' ? 'closingConfirmation' : step,
+    );
+  }, []);
+
+  const onConfirmationClosed = useCallback(() => {
+    setDeleteStep(step => (step === 'closingConfirmation' ? 'idle' : step));
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (
+      deleteStep !== 'confirming' ||
+      mode !== 'view' ||
+      !equipment ||
+      isDeletingRef.current
+    ) {
+      return;
+    }
+
+    isDeletingRef.current = true;
+    setIsDeleting(true);
+    setSubmitError(null);
+    try {
+      if (!idToken) {
+        throw new ApiError('No active session', 'UNAUTHENTICATED', 401);
+      }
+      await equipmentService.deactivate(idToken, equipment.id);
+    } catch (error) {
+      // Já não existe (outra aba, outro aparelho): o resultado que a pessoa
+      // queria é o mesmo, então segue como sucesso e a lista nova decide.
+      const alreadyGone =
+        error instanceof ApiError && error.code === 'EQUIPMENT_NOT_FOUND';
+      if (!alreadyGone) {
+        if (isMounted.current) {
+          setSubmitError(
+            error instanceof ApiError && error.status === 401
+              ? 'session'
+              : 'delete',
+          );
+        }
+        isDeletingRef.current = false;
+        if (isMounted.current) setIsDeleting(false);
+        return;
+      }
+    }
+
+    isDeletingRef.current = false;
+    if (isMounted.current) {
+      setIsDeleting(false);
+      // `onDeleted` fecha o formulário na parte síncrona; só então a
+      // confirmação sai, para o sheet não reabrir.
+    }
+    const done = onDeleted();
+    if (isMounted.current) setDeleteStep('idle');
+    await done;
+  }, [deleteStep, mode, equipment, idToken, onDeleted]);
+
   return {
     mode,
     values,
@@ -269,10 +377,19 @@ export function useEquipmentForm({
         ? usefulLifeDisplay(equipment.usefulLifeMonths)
         : null,
     isSubmitting,
+    isSheetVisible: visible && deleteStep === 'idle',
+    deleteStep,
+    isDeleting,
     submitError,
     onChangeText,
     onBlur,
     startEdit,
     submit,
+    cancelEdit,
+    requestDelete,
+    onSheetClosed,
+    cancelDelete,
+    onConfirmationClosed,
+    confirmDelete,
   };
 }

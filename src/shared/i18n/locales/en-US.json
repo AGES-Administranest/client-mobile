@@ -172,12 +172,21 @@
       "previewLabel": "Estimated depreciation:",
       "previewValue": "{{value}}/month",
       "startEdit": "Edit",
-      "delete": "Delete",
       "usefulLifeView": {
         "year": "{{count}} year",
         "years": "{{count}} years",
         "months": "{{count}} months"
-      }
+      },
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "button": "Delete",
+      "confirmTitle": "Delete equipment?",
+      "confirmMessage": "“{{name}}” will no longer appear in the list and will not count towards the total depreciation.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "error": "Could not delete the equipment. Try again.",
+      "confirming": "Deleting…"
     }
   },
   "stockEntry": {

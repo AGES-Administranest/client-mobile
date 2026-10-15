@@ -10,7 +10,11 @@ import { equipmentService } from 'features/equipment/services/equipmentService';
 import { ApiError } from 'shared/services/apiClient';
 
 jest.mock('features/equipment/services/equipmentService', () => ({
-  equipmentService: { create: jest.fn(), update: jest.fn() },
+  equipmentService: {
+    create: jest.fn(),
+    update: jest.fn(),
+    deactivate: jest.fn(),
+  },
 }));
 // A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
@@ -19,6 +23,7 @@ jest.mock('features/auth/services/accountApi', () => ({}));
 
 const createMock = equipmentService.create as jest.Mock;
 const updateMock = equipmentService.update as jest.Mock;
+const deactivateMock = equipmentService.deactivate as jest.Mock;
 
 const SESSION = {
   idToken: 'id-token',
@@ -62,6 +67,7 @@ async function renderForm({
   target = CREATE,
   session = SESSION as typeof SESSION | null,
   onSaved = jest.fn(),
+  onDeleted = jest.fn(),
   startInView = false,
 } = {}) {
   const latest = { current: null as unknown as HookState };
@@ -71,6 +77,7 @@ async function renderForm({
       target: props.target,
       visible: props.visible,
       onSaved,
+      onDeleted,
       today: () => TODAY,
     });
     return null;
@@ -99,7 +106,7 @@ async function renderForm({
     props.visible = true;
     await act(async () => renderer.update(tree()));
   }
-  return { state: latest, onSaved, reopen };
+  return { state: latest, onSaved, onDeleted, reopen };
 }
 
 async function fill(
@@ -124,6 +131,8 @@ const VALID = {
 beforeEach(() => {
   createMock.mockReset();
   updateMock.mockReset();
+  deactivateMock.mockReset();
+  deactivateMock.mockResolvedValue(undefined);
   createMock.mockResolvedValue(EQUIPMENT);
   updateMock.mockResolvedValue(EQUIPMENT);
 });
@@ -618,5 +627,364 @@ describe('failures', () => {
     expect(createMock).toHaveBeenCalledTimes(1);
     expect(onSaved).toHaveBeenCalledTimes(1);
     expect(state.current.isSubmitting).toBe(false);
+  });
+});
+
+describe('cancel edit', () => {
+  const VIEW: EquipmentFormTarget = { mode: 'view', equipment: EQUIPMENT };
+
+  it('drops the edits and goes back to the details with the original values, without the API', async () => {
+    const { state, onSaved } = await renderForm({ target: VIEW });
+    await fill(state, { name: 'Novo nome', notes: 'outra nota' });
+    expect(state.current.mode).toBe('edit');
+
+    await act(async () => state.current.cancelEdit());
+
+    expect(state.current.mode).toBe('view');
+    expect(state.current.values.name).toBe('Vaporizador Matrx VIP 3000');
+    expect(state.current.values.notes).toBe('Calibração anual');
+    expect(state.current.submitError).toBeNull();
+    expect(updateMock).not.toHaveBeenCalled();
+    expect(onSaved).not.toHaveBeenCalled();
+  });
+
+  it('drops a failed save message too', async () => {
+    updateMock.mockRejectedValue(new Error('network'));
+    const { state } = await renderForm({ target: VIEW });
+    await fill(state, { name: 'Novo nome' });
+    await act(async () => {
+      await state.current.submit();
+    });
+    expect(state.current.submitError).toBe('generic');
+
+    await act(async () => state.current.cancelEdit());
+
+    expect(state.current.submitError).toBeNull();
+    expect(state.current.mode).toBe('view');
+  });
+
+  it('does nothing outside the edit mode', async () => {
+    const create = await renderForm();
+    await fill(create.state, { name: 'Bomba' });
+    await act(async () => create.state.current.cancelEdit());
+    expect(create.state.current.mode).toBe('create');
+    expect(create.state.current.values.name).toBe('Bomba');
+
+    const view = await renderForm({ target: VIEW, startInView: true });
+    await act(async () => view.state.current.cancelEdit());
+    expect(view.state.current.mode).toBe('view');
+  });
+
+  it('is ignored while the save is running', async () => {
+    let finish: () => void = () => {};
+    updateMock.mockReturnValue(
+      new Promise<void>(resolve => {
+        finish = () => resolve();
+      }),
+    );
+    const { state } = await renderForm({ target: VIEW });
+    await fill(state, { name: 'Novo nome' });
+    let pending: Promise<void>;
+    await act(async () => {
+      pending = state.current.submit();
+    });
+
+    await act(async () => state.current.cancelEdit());
+    expect(state.current.mode).toBe('edit');
+
+    await act(async () => {
+      finish();
+      await pending;
+    });
+  });
+});
+
+describe('delete', () => {
+  const VIEW: EquipmentFormTarget = { mode: 'view', equipment: EQUIPMENT };
+
+  async function openConfirmation() {
+    const rendered = await renderForm({ target: VIEW, startInView: true });
+    await act(async () => rendered.state.current.requestDelete());
+    await act(async () => rendered.state.current.onSheetClosed());
+    return rendered;
+  }
+
+  it('can only be requested from the details', async () => {
+    const create = await renderForm();
+    await act(async () => create.state.current.requestDelete());
+    expect(create.state.current.deleteStep).toBe('idle');
+
+    const edit = await renderForm({ target: VIEW });
+    await act(async () => edit.state.current.requestDelete());
+    expect(edit.state.current.deleteStep).toBe('idle');
+
+    const view = await renderForm({ target: VIEW, startInView: true });
+    await act(async () => view.state.current.requestDelete());
+    expect(view.state.current.deleteStep).toBe('closingSheet');
+  });
+
+  it('hides the sheet first and only opens the confirmation after the sheet reports it closed', async () => {
+    const { state } = await renderForm({ target: VIEW, startInView: true });
+    expect(state.current.isSheetVisible).toBe(true);
+
+    await act(async () => state.current.requestDelete());
+    expect(state.current.isSheetVisible).toBe(false);
+    expect(state.current.deleteStep).toBe('closingSheet');
+
+    await act(async () => state.current.onSheetClosed());
+    expect(state.current.deleteStep).toBe('confirming');
+    expect(state.current.isSheetVisible).toBe(false);
+  });
+
+  it('never has the sheet and the confirmation on screen together', async () => {
+    const { state } = await renderForm({ target: VIEW, startInView: true });
+    const seen: Array<[boolean, boolean]> = [];
+    const record = () =>
+      seen.push([
+        state.current.isSheetVisible,
+        state.current.deleteStep === 'confirming',
+      ]);
+
+    record();
+    await act(async () => state.current.requestDelete());
+    record();
+    await act(async () => state.current.onSheetClosed());
+    record();
+    await act(async () => state.current.cancelDelete());
+    record();
+    await act(async () => state.current.onConfirmationClosed());
+    record();
+
+    expect(
+      seen.every(([sheet, confirmation]) => !(sheet && confirmation)),
+    ).toBe(true);
+    expect(seen[seen.length - 1]).toEqual([true, false]);
+  });
+
+  it('a sheet that closes by itself does not open the confirmation', async () => {
+    const { state } = await renderForm({ target: VIEW, startInView: true });
+
+    await act(async () => state.current.onSheetClosed());
+
+    expect(state.current.deleteStep).toBe('idle');
+  });
+
+  it('cancel closes the confirmation, then the details come back with the original values, without the API', async () => {
+    const { state, onDeleted } = await openConfirmation();
+
+    await act(async () => state.current.cancelDelete());
+    expect(state.current.deleteStep).toBe('closingConfirmation');
+    expect(state.current.isSheetVisible).toBe(false);
+
+    await act(async () => state.current.onConfirmationClosed());
+    expect(state.current.deleteStep).toBe('idle');
+    expect(state.current.isSheetVisible).toBe(true);
+    expect(state.current.mode).toBe('view');
+    expect(state.current.values.name).toBe('Vaporizador Matrx VIP 3000');
+    expect(deactivateMock).not.toHaveBeenCalled();
+    expect(onDeleted).not.toHaveBeenCalled();
+  });
+
+  it('confirm deactivates the equipment and calls onDeleted', async () => {
+    const { state, onDeleted } = await openConfirmation();
+
+    await act(async () => {
+      await state.current.confirmDelete();
+    });
+
+    expect(deactivateMock).toHaveBeenCalledWith('id-token', 'eq-1');
+    expect(onDeleted).toHaveBeenCalledTimes(1);
+    expect(state.current.isDeleting).toBe(false);
+    expect(state.current.submitError).toBeNull();
+    expect(state.current.deleteStep).toBe('idle');
+  });
+
+  it('keeps the confirmation open and is deleting while the call runs', async () => {
+    let finish: () => void = () => {};
+    deactivateMock.mockReturnValue(
+      new Promise<void>(resolve => {
+        finish = resolve;
+      }),
+    );
+    const { state, onDeleted } = await openConfirmation();
+
+    let pending: Promise<void>;
+    await act(async () => {
+      pending = state.current.confirmDelete();
+    });
+
+    expect(state.current.deleteStep).toBe('confirming');
+    expect(state.current.isDeleting).toBe(true);
+    expect(onDeleted).not.toHaveBeenCalled();
+
+    await act(async () => {
+      finish();
+      await pending;
+    });
+    expect(state.current.isDeleting).toBe(false);
+    expect(state.current.deleteStep).toBe('idle');
+    expect(onDeleted).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a second confirm while the first runs', async () => {
+    let finish: () => void = () => {};
+    deactivateMock.mockReturnValue(
+      new Promise<void>(resolve => {
+        finish = resolve;
+      }),
+    );
+    const { state, onDeleted } = await openConfirmation();
+
+    let first: Promise<void>;
+    await act(async () => {
+      first = state.current.confirmDelete();
+      state.current.confirmDelete();
+    });
+    expect(deactivateMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      finish();
+      await first;
+    });
+    expect(deactivateMock).toHaveBeenCalledTimes(1);
+    expect(onDeleted).toHaveBeenCalledTimes(1);
+  });
+
+  it('cannot be cancelled while the call runs', async () => {
+    let finish: () => void = () => {};
+    deactivateMock.mockReturnValue(
+      new Promise<void>(resolve => {
+        finish = resolve;
+      }),
+    );
+    const { state } = await openConfirmation();
+    let pending: Promise<void>;
+    await act(async () => {
+      pending = state.current.confirmDelete();
+    });
+
+    await act(async () => state.current.cancelDelete());
+
+    expect(state.current.deleteStep).toBe('confirming');
+    await act(async () => {
+      finish();
+      await pending;
+    });
+  });
+
+  it('a 404 EQUIPMENT_NOT_FOUND counts as deleted: no error, onDeleted runs', async () => {
+    deactivateMock.mockRejectedValue(
+      new ApiError('not found', 'EQUIPMENT_NOT_FOUND', 404),
+    );
+    const { state, onDeleted } = await openConfirmation();
+
+    await act(async () => {
+      await state.current.confirmDelete();
+    });
+
+    expect(state.current.submitError).toBeNull();
+    expect(onDeleted).toHaveBeenCalledTimes(1);
+    expect(state.current.deleteStep).toBe('idle');
+  });
+
+  it('a generic error keeps the confirmation open with the message, and the button back', async () => {
+    deactivateMock.mockRejectedValue(new Error('network'));
+    const { state, onDeleted } = await openConfirmation();
+
+    await act(async () => {
+      await state.current.confirmDelete();
+    });
+
+    expect(state.current.submitError).toBe('delete');
+    expect(state.current.deleteStep).toBe('confirming');
+    expect(state.current.isDeleting).toBe(false);
+    expect(onDeleted).not.toHaveBeenCalled();
+  });
+
+  it('a 401 reports the session error and keeps the confirmation', async () => {
+    deactivateMock.mockRejectedValue(
+      new ApiError('Token expired', 'TOKEN_EXPIRED', 401),
+    );
+    const { state, onDeleted } = await openConfirmation();
+
+    await act(async () => {
+      await state.current.confirmDelete();
+    });
+
+    expect(state.current.submitError).toBe('session');
+    expect(state.current.deleteStep).toBe('confirming');
+    expect(onDeleted).not.toHaveBeenCalled();
+  });
+
+  it('without a token it reports the session error and does not call the service', async () => {
+    const rendered = await renderForm({
+      target: VIEW,
+      session: null,
+      startInView: true,
+    });
+    await act(async () => rendered.state.current.requestDelete());
+    await act(async () => rendered.state.current.onSheetClosed());
+
+    await act(async () => {
+      await rendered.state.current.confirmDelete();
+    });
+
+    expect(deactivateMock).not.toHaveBeenCalled();
+    expect(rendered.state.current.submitError).toBe('session');
+    expect(rendered.onDeleted).not.toHaveBeenCalled();
+  });
+
+  it('can try again after a failure', async () => {
+    deactivateMock.mockRejectedValueOnce(new Error('network'));
+    const { state, onDeleted } = await openConfirmation();
+    await act(async () => {
+      await state.current.confirmDelete();
+    });
+    expect(state.current.submitError).toBe('delete');
+
+    await act(async () => {
+      await state.current.confirmDelete();
+    });
+
+    expect(deactivateMock).toHaveBeenCalledTimes(2);
+    expect(state.current.submitError).toBeNull();
+    expect(onDeleted).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancelling after a failure clears the message', async () => {
+    deactivateMock.mockRejectedValue(new Error('network'));
+    const { state } = await openConfirmation();
+    await act(async () => {
+      await state.current.confirmDelete();
+    });
+
+    await act(async () => state.current.cancelDelete());
+
+    expect(state.current.submitError).toBeNull();
+  });
+
+  it('closing the sheet drops a pending delete flow', async () => {
+    const { state, reopen } = await renderForm({
+      target: VIEW,
+      startInView: true,
+    });
+    await act(async () => state.current.requestDelete());
+    expect(state.current.deleteStep).toBe('closingSheet');
+
+    await reopen({ target: VIEW });
+
+    expect(state.current.deleteStep).toBe('idle');
+    expect(state.current.mode).toBe('view');
+  });
+
+  it('does not confirm before the confirmation is open', async () => {
+    const { state } = await renderForm({ target: VIEW, startInView: true });
+    await act(async () => state.current.requestDelete());
+
+    await act(async () => {
+      await state.current.confirmDelete();
+    });
+
+    expect(deactivateMock).not.toHaveBeenCalled();
   });
 });
