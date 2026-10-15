@@ -1,4 +1,5 @@
-import { Check } from 'lucide-react-native';
+import { Check, Pencil, Trash2, X } from 'lucide-react-native';
+import { useEffect, useRef } from 'react';
 import {
   Animated,
   Dimensions,
@@ -13,6 +14,7 @@ import {
 } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPlaceholder } from 'theme/colors';
@@ -34,6 +36,7 @@ export type EquipmentFormTexts = {
   title: string;
   confirm: string;
   startEdit: string;
+  cancel: string;
   delete: string;
   close: string;
   labels: Record<EquipmentFormField, string>;
@@ -59,9 +62,13 @@ type EquipmentFormSheetProps = {
   onChangeText: (field: EquipmentFormField, text: string) => void;
   onBlur: (field: EquipmentFormField) => void;
   onStartEdit: () => void;
+  /** Descarta a edição e volta ao detalhe; não fecha o sheet nem chama a API. */
+  onCancelEdit: () => void;
   onSubmit: () => void;
-  /** Sem ela o "Excluir" não aparece: a ação chega com a subtask de inativar. Só existe na edição, como em Clínicas. */
+  /** Sem ela o "Excluir" não aparece. Só existe no detalhe. */
   onDelete?: () => void;
+  /** O sheet terminou de fechar: só então a confirmação de exclusão pode abrir, porque o iOS não mostra um segundo Modal com o primeiro ainda na tela. */
+  onClosed?: () => void;
   onClose: () => void;
 };
 
@@ -81,11 +88,20 @@ export function EquipmentFormSheet({
   onChangeText,
   onBlur,
   onStartEdit,
+  onCancelEdit,
   onSubmit,
   onDelete,
+  onClosed,
   onClose,
 }: EquipmentFormSheetProps) {
   const sheet = useSheetAnimation(visible, onClose);
+  const wasRendered = useRef(sheet.isRendered);
+  const onClosedRef = useRef(onClosed);
+  onClosedRef.current = onClosed;
+  useEffect(() => {
+    if (wasRendered.current && !sheet.isRendered) onClosedRef.current?.();
+    wasRendered.current = sheet.isRendered;
+  }, [sheet.isRendered]);
   const isView = mode === 'view';
 
   function field(
@@ -188,42 +204,68 @@ export function EquipmentFormSheet({
             ) : null}
 
             {isView ? (
-              <Button
-                shape="pill"
-                className="h-[49px] w-full"
-                onPress={onStartEdit}
-              >
-                <Text className="font-semibold text-label-secondary">
-                  {texts.startEdit}
-                </Text>
-              </Button>
-            ) : (
               <View className="gap-3">
                 <Button
-                  icon={mode === 'create' ? Check : undefined}
                   shape="pill"
                   className="h-[49px] w-full"
-                  disabled={isSubmitting}
-                  onPress={onSubmit}
+                  onPress={onStartEdit}
                 >
+                  <Icon as={Pencil} className="size-5" />
                   <Text className="font-semibold text-label-secondary">
-                    {texts.confirm}
+                    {texts.startEdit}
                   </Text>
                 </Button>
-                {mode === 'edit' && onDelete ? (
+                {onDelete ? (
                   <Button
                     variant="secondary"
                     shape="pill"
                     className="h-[49px] w-full"
-                    disabled={isSubmitting}
                     onPress={onDelete}
                   >
+                    <Icon as={Trash2} className="size-5" />
                     <Text className="font-semibold text-label-secondary">
                       {texts.delete}
                     </Text>
                   </Button>
                 ) : null}
               </View>
+            ) : mode === 'edit' ? (
+              <View className="gap-3">
+                <Button
+                  shape="pill"
+                  className="h-[49px] w-full"
+                  disabled={isSubmitting}
+                  onPress={onSubmit}
+                >
+                  <Icon as={Check} className="size-5" />
+                  <Text className="font-semibold text-label-secondary">
+                    {texts.confirm}
+                  </Text>
+                </Button>
+                <Button
+                  shape="pill"
+                  className="h-[49px] w-full"
+                  disabled={isSubmitting}
+                  onPress={onCancelEdit}
+                >
+                  <Icon as={X} className="size-5" />
+                  <Text className="font-semibold text-label-secondary">
+                    {texts.cancel}
+                  </Text>
+                </Button>
+              </View>
+            ) : (
+              <Button
+                icon={Check}
+                shape="pill"
+                className="h-[49px] w-full"
+                disabled={isSubmitting}
+                onPress={onSubmit}
+              >
+                <Text className="font-semibold text-label-secondary">
+                  {texts.confirm}
+                </Text>
+              </Button>
             )}
           </View>
         </Animated.View>

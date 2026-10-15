@@ -1,17 +1,19 @@
+import { apiClient } from 'shared/services/apiClient';
+
 import type {
   PricingSettings,
   SavePricingSettingsDto,
 } from '../domain/pricing.types';
 
 export const pricingService = {
-  // Stand-in until the backend exposes the pricing settings route (only the
-  // `PricingSettings` model exists there so far). The real call keeps this
-  // signature: `apiClient.put<PricingSettings>('/pricing-settings', dto,
-  // { token: idToken })`.
+  // Creates the goals on the first call and overwrites them after that; the
+  // backend answers with the saved values, so there is nothing to read again.
   saveSettings(
     idToken: string,
     dto: SavePricingSettingsDto,
   ): Promise<PricingSettings> {
-    return Promise.resolve({ ...dto });
+    return apiClient.put<PricingSettings>('/pricing-settings', dto, {
+      token: idToken,
+    });
   },
 };

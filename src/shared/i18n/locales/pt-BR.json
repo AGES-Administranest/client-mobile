@@ -172,12 +172,21 @@
       "previewLabel": "Depreciação estimada:",
       "previewValue": "{{value}}/mês",
       "startEdit": "Editar",
-      "delete": "Excluir",
       "usefulLifeView": {
         "year": "{{count}} ano",
         "years": "{{count}} anos",
         "months": "{{count}} meses"
-      }
+      },
+      "cancel": "Cancelar"
+    },
+    "delete": {
+      "button": "Excluir",
+      "confirmTitle": "Excluir equipamento?",
+      "confirmMessage": "“{{name}}” deixa de aparecer na lista e não entra mais na depreciação total.",
+      "confirm": "Excluir",
+      "cancel": "Cancelar",
+      "error": "Não foi possível excluir o equipamento. Tente novamente.",
+      "confirming": "Excluindo…"
     }
   },
   "stockEntry": {

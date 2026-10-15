@@ -109,6 +109,61 @@ describe('update', () => {
   });
 });
 
+describe('deactivate', () => {
+  test('is DELETE /equipment/:id with the token and no body', async () => {
+    await equipmentService.deactivate(ID_TOKEN, 'eq-1');
+
+    const { path, method, headers, body } = lastRequest();
+    expect(method).toBe('DELETE');
+    expect(path).toBe('/equipment/eq-1');
+    expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
+    expect(body).toBeUndefined();
+  });
+
+  test('resolves to nothing, whatever the API answers', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'eq-1', active: false }),
+    });
+
+    await expect(
+      equipmentService.deactivate(ID_TOKEN, 'eq-1'),
+    ).resolves.toBeUndefined();
+  });
+
+  test('a missing equipment rejects with the API code and status', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({
+        message: 'Equipment eq-1 not found',
+        code: 'EQUIPMENT_NOT_FOUND',
+      }),
+    });
+
+    await expect(
+      equipmentService.deactivate(ID_TOKEN, 'eq-1'),
+    ).rejects.toMatchObject({ status: 404, code: 'EQUIPMENT_NOT_FOUND' });
+  });
+
+  test('a 401 rejects and a network failure propagates', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: 'Token expired', code: 'TOKEN_EXPIRED' }),
+    });
+    await expect(
+      equipmentService.deactivate(ID_TOKEN, 'eq-1'),
+    ).rejects.toMatchObject({ status: 401, code: 'TOKEN_EXPIRED' });
+
+    fetchMock.mockRejectedValueOnce(new Error('network down'));
+    await expect(equipmentService.deactivate(ID_TOKEN, 'eq-1')).rejects.toThrow(
+      'network down',
+    );
+  });
+});
+
 describe('API errors', () => {
   test('a 401 rejects with the API code and status, never a resolved value', async () => {
     fetchMock.mockResolvedValue({
