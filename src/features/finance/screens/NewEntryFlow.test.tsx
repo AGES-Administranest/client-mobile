@@ -267,7 +267,10 @@ test('a screen reader hears that the entry was saved, since the notice goes away
   }
 });
 
-test('saving the empty form says what each field is missing', async () => {
+test('saving the empty form says what each field is missing, and a screen reader hears the first one', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
   const renderer = await renderFlow();
   await openManualForm(renderer);
 
@@ -277,6 +280,8 @@ test('saving the empty form says what each field is missing', async () => {
       .props.onPress();
   });
 
+  expect(announce).toHaveBeenCalledWith('Informe uma descrição.');
+  announce.mockRestore();
   expect(createMock).not.toHaveBeenCalled();
   expect(textsOf(renderer)).toEqual(
     expect.arrayContaining([
