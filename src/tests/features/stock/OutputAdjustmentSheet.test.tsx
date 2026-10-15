@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AccessibilityInfo } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
@@ -78,19 +79,26 @@ const QUEUE_WRITE_FAILED =
 const onClose = jest.fn();
 const onSaved = jest.fn();
 
+const METRICS = {
+  frame: { x: 0, y: 0, width: 375, height: 812 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
+
 function sheetWith(visible: boolean) {
   return (
-    <I18nProvider>
-      <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-        <StockSyncProvider>
-          <OutputAdjustmentSheet
-            visible={visible}
-            onClose={onClose}
-            onSaved={onSaved}
-          />
-        </StockSyncProvider>
-      </AuthProvider>
-    </I18nProvider>
+    <SafeAreaProvider initialMetrics={METRICS}>
+      <I18nProvider>
+        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+          <StockSyncProvider>
+            <OutputAdjustmentSheet
+              visible={visible}
+              onClose={onClose}
+              onSaved={onSaved}
+            />
+          </StockSyncProvider>
+        </AuthProvider>
+      </I18nProvider>
+    </SafeAreaProvider>
   );
 }
 
