@@ -252,6 +252,7 @@
       "invoiceNumber": "Nº DA NOTA",
       "date": "DATA",
       "datePlaceholder": "dd/mm/aaaa",
+      "invalidDate": "Informe uma data válida (dd/mm/aaaa).",
       "total": "VALOR TOTAL DA NOTA",
       "linesSum": "Soma das linhas: {{sum}}",
       "linesSumDifference": "Soma das linhas: {{sum}} · diferença de {{difference}}",
@@ -292,14 +293,16 @@
           "shortName": "A descrição da nota tem {{count}} letras. Curta demais para identificar o item.",
           "unlinked": "Nenhum item do seu estoque foi reconhecido nesta descrição.",
           "noQuantity": "A quantidade não veio na nota. Nada entraria no estoque assim.",
-          "noUnitValue": "O valor unitário não veio na nota. Sem ele não há total da linha."
+          "noUnitValue": "O valor unitário não veio na nota. Sem ele não há total da linha.",
+          "invalidExpiry": "A validade precisa ser uma data real, no formato dd/mm/aaaa."
         },
         "fixes": {
           "mismatch": "Usar {{computed}}",
           "shortName": "Vincular a um item",
           "unlinked": "Vincular a um item",
           "noQuantity": "Informar quantidade",
-          "noUnitValue": "Informar valor unitário"
+          "noUnitValue": "Informar valor unitário",
+          "invalidExpiry": "Corrigir validade"
         }
       },
       "save": {
@@ -706,7 +709,8 @@
       "required": "Campo obrigatório.",
       "invalidEmail": "Informe um e-mail válido.",
       "passwordMismatch": "As senhas não coincidem.",
-      "termsRequired": "Aceite os termos para continuar."
+      "termsRequired": "Aceite os termos para continuar.",
+      "invalidCode": "O código deve ter 6 dígitos."
     },
     "errors": {
       "invalidCredentials": "E-mail ou senha incorretos.",
@@ -801,7 +805,8 @@
       "INVALID_TIME": "Hora inválida",
       "IN_THE_PAST": "Escolha uma data e horário futuros",
       "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
-      "SELECT_CLIENT": "Escolha uma clínica da lista"
+      "SELECT_CLIENT": "Escolha uma clínica da lista",
+      "TOO_LONG": "Máximo de 2000 caracteres"
     },
     "clientSearch": {
       "loading": "Buscando…",
@@ -875,6 +880,8 @@
         "errors": {
           "REQUIRED": "Informe o valor.",
           "INVALID_NUMBER": "Informe um valor válido, como 350,00.",
+          "MUST_BE_POSITIVE": "O valor deve ser maior que zero.",
+          "MAX_2_DECIMALS": "Use no máximo 2 casas decimais.",
           "FAILED": "Não foi possível salvar o valor. Tente novamente."
         }
       },

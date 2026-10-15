@@ -1,3 +1,4 @@
+import { CANCELLATION_REASON_MAX_LENGTH } from './validateCancellationReason';
 import { validateProcedureForm } from './validateProcedureForm';
 import { validProcedureForm as valid } from './validProcedureForm.fixture';
 
@@ -169,6 +170,15 @@ describe('validateProcedureForm', () => {
     expect(validateProcedureForm({ ...valid, amount: 'abc' }).amount).toBe(
       'INVALID_NUMBER',
     );
+  });
+
+  it('rejeita observações além do limite do backend', () => {
+    expect(
+      validateProcedureForm({
+        ...valid,
+        notes: 'x'.repeat(CANCELLATION_REASON_MAX_LENGTH + 1),
+      }).notes,
+    ).toBe('TOO_LONG');
   });
 
   it('idade negativa é inválida', () => {

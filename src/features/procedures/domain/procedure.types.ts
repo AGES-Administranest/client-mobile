@@ -53,7 +53,8 @@ export type FieldErrorCode =
   | 'REQUIRED_FOR_SCHEDULE'
   | 'SELECT_CLIENT'
   | 'INVALID_DATE'
-  | 'INVALID_TIME';
+  | 'INVALID_TIME'
+  | 'TOO_LONG';
 
 export type ProcedureErrors = Partial<
   Record<keyof ProcedureFormValues, FieldErrorCode>

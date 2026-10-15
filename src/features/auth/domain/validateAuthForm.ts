@@ -2,7 +2,8 @@ export type AuthFieldError =
   | 'required'
   | 'invalidEmail'
   | 'passwordMismatch'
-  | 'termsRequired';
+  | 'termsRequired'
+  | 'invalidCode';
 
 export type LoginForm = {
   email: string;
@@ -57,8 +58,19 @@ export function validateSignUpForm(form: SignUpForm): FormErrors<SignUpForm> {
   return errors;
 }
 
+export const CONFIRMATION_CODE_LENGTH = 6;
+
 export function validateConfirmationCode(code: string): AuthFieldError | null {
-  return code.trim() ? null : 'required';
+  const trimmed = code.trim();
+  if (!trimmed) {
+    return 'required';
+  }
+
+  return /^\d{6}$/.test(trimmed) ? null : 'invalidCode';
+}
+
+export function maskConfirmationCode(value: string): string {
+  return value.replace(/\D/g, '').slice(0, CONFIRMATION_CODE_LENGTH);
 }
 
 export function hasErrors(errors: object): boolean {

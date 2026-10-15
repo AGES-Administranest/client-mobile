@@ -38,6 +38,7 @@ import { ReviewHeaderCard } from '../components/ReviewHeaderCard';
 import { ReviewLineCard } from '../components/ReviewLineCard';
 import { SaveStatusBar } from '../components/SaveStatusBar';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { isAcceptableReviewDate } from '../domain/dates';
 import { MAX_DRAFT_TEXT_LENGTH } from '../domain/draft';
 import {
   linesNeedingAttention,
@@ -89,6 +90,7 @@ export function ReviewScreen({
     unlinked: state.openLinking,
     noQuantity: state.editLine,
     noUnitValue: state.editLine,
+    invalidExpiry: state.editLine,
   };
 
   /** Leaves at once when everything is saved; asks when something is not. */
@@ -195,6 +197,11 @@ export function ReviewScreen({
             invoiceNumber={header.invoiceNumber}
             invoiceNumberMaxLength={MAX_DRAFT_TEXT_LENGTH}
             orderDate={header.orderDate}
+            orderDateError={
+              isAcceptableReviewDate(header.orderDate)
+                ? undefined
+                : t('stockEntry.review.invalidDate')
+            }
             total={moneyInput(header.totalAmount)}
             sumLabel={sum.label}
             sumOff={sum.isOff}
