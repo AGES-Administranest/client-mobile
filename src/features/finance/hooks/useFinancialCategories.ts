@@ -52,7 +52,11 @@ export function useFinancialCategories(): FinancialCategoriesState {
     };
   }, [idToken, version]);
 
+  // O campo de categoria remonta quando o formulário reabre: se ainda visse a
+  // falha antiga, a anunciaria de novo antes da nova busca começar.
   const reload = useCallback(() => {
+    setStatus('loading');
+    setFailure(null);
     setVersion(current => current + 1);
   }, []);
 

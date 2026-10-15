@@ -447,6 +447,37 @@ test('reopening the form starts a new, empty entry, category field included', as
   ).toHaveLength(0);
 });
 
+test('reopening the form after the categories failed to load does not announce that failure again', async () => {
+  fetchCategoriesMock.mockRejectedValueOnce(
+    new TypeError('Network request failed'),
+  );
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
+  try {
+    const renderer = await renderFlow();
+    await openManualForm(renderer);
+    expect(announce).toHaveBeenCalledWith(
+      'Sem conexão. Tente de novo quando a internet voltar.',
+    );
+
+    await act(async () => {
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Fechar' })
+        .props.onPress();
+    });
+    announce.mockClear();
+    await openManualForm(renderer);
+
+    expect(fetchCategoriesMock).toHaveBeenCalledTimes(2);
+    expect(announce).not.toHaveBeenCalledWith(
+      'Sem conexão. Tente de novo quando a internet voltar.',
+    );
+  } finally {
+    announce.mockRestore();
+  }
+});
+
 test('the form opens only after the options sheet has finished leaving', async () => {
   // Segura as animações de saída, como num aparelho de verdade: no iOS um
   // Modal não aparece enquanto outro ainda está fechando.
