@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react-native';
+import { Plus, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
@@ -40,6 +40,8 @@ type SearchSelectProps = {
   options: readonly SearchSelectOption[];
   messages: SearchSelectMessages;
   addOption?: SearchSelectAddOption;
+  trailingIcon?: LucideIcon;
+  className?: string;
   onChangeText: (text: string) => void;
   onSelect: (option: SearchSelectOption) => void;
 };
@@ -59,6 +61,8 @@ export function SearchSelect({
   options,
   messages,
   addOption,
+  trailingIcon,
+  className,
   onChangeText,
   onSelect,
 }: SearchSelectProps) {
@@ -106,26 +110,42 @@ export function SearchSelect({
   const listIsOpen = hasRowsToShow(visibleStatus, addOption !== undefined);
 
   return (
-    <View className="mb-3">
+    <View className={cn('mb-3', className)}>
       <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
         {label}
       </Text>
-      <TextInput
-        accessibilityLabel={label}
-        accessibilityRole="combobox"
-        accessibilityState={{ expanded: listIsOpen }}
+      <View
         className={cn(
-          'rounded-xl border bg-white px-4 py-2.5 text-[15px] text-label-primary',
+          'flex-row items-center rounded-xl border bg-white px-4',
           error ? 'border-alert-primary' : 'border-border-primary',
         )}
-        placeholder={placeholder}
-        placeholderTextColor={LabelPlaceholder}
-        value={text}
-        onChangeText={handleChangeText}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        autoCorrect={false}
-      />
+      >
+        <TextInput
+          accessibilityLabel={label}
+          accessibilityHint={error}
+          accessibilityRole="combobox"
+          accessibilityState={{ expanded: listIsOpen }}
+          // min-w-0: na web o input tem largura mínima própria e empurraria o
+          // ícone para fora do campo.
+          className="min-w-0 flex-1 py-2.5 text-[15px] text-label-primary"
+          placeholder={placeholder}
+          placeholderTextColor={LabelPlaceholder}
+          value={text}
+          onChangeText={handleChangeText}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          autoCorrect={false}
+        />
+        {trailingIcon ? (
+          <View
+            className="ml-2 shrink-0"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          >
+            <Icon as={trailingIcon} size={16} className="text-label-tertiary" />
+          </View>
+        ) : null}
+      </View>
       {error ? (
         <Text className="mt-1 text-xs text-alert-primary">{error}</Text>
       ) : null}

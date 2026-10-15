@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react-native';
 import type { ComponentProps } from 'react';
 import { TextInput } from 'react-native';
 import ReactTestRenderer, {
@@ -178,13 +179,53 @@ test('shows nothing under the input while idle, even when focused', async () => 
   );
 });
 
-test('the error replaces the border colour and shows under the input', async () => {
+function fieldBorder(renderer: Renderer): string {
+  const field = renderer.root.find(
+    node =>
+      typeof node.type === 'string' &&
+      typeof node.props.className === 'string' &&
+      node.props.className.includes('rounded-xl border') &&
+      node.findAll(child => child.type === TextInput).length > 0,
+  );
+  return field.props.className as string;
+}
+
+test('the error replaces the border colour, shows under the input and is read with it', async () => {
   const { renderer } = await renderSelect({
     error: 'Selecione uma categoria.',
   });
 
-  expect(input(renderer).props.className).toContain('border-alert-primary');
+  expect(fieldBorder(renderer)).toContain('border-alert-primary');
   expect(hasText(renderer, 'Selecione uma categoria.')).toBe(true);
+  expect(input(renderer).props.accessibilityHint).toBe(
+    'Selecione uma categoria.',
+  );
+});
+
+test('a trailing icon sits inside the field, hidden from screen readers', async () => {
+  const { renderer: plain } = await renderSelect();
+  expect(
+    plain.root.findAll(node => node.props.as === ChevronDown),
+  ).toHaveLength(0);
+
+  const { renderer } = await renderSelect({ trailingIcon: ChevronDown });
+  const [icon] = renderer.root.findAll(node => node.props.as === ChevronDown);
+  expect(icon).toBeDefined();
+  expect(fieldBorder(renderer)).toContain('border-border-primary');
+  const wrapper = renderer.root.find(
+    node =>
+      node.props.importantForAccessibility === 'no-hide-descendants' &&
+      node.findAll(child => child.props.as === ChevronDown).length > 0,
+  );
+  expect(wrapper.props.accessibilityElementsHidden).toBe(true);
+});
+
+test('the caller can change the spacing around the field', async () => {
+  const { renderer } = await renderSelect({ className: 'mb-0' });
+
+  expect(
+    renderer.root.findAll(node => node.props.className === 'mb-0'),
+  ).not.toHaveLength(0);
 });
 
 describe('add option', () => {
