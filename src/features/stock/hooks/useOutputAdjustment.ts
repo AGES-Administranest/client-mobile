@@ -77,7 +77,9 @@ export function useOutputAdjustment(): OutputAdjustmentState {
         }
       })
       .catch(() => {
-        if (isMounted) {
+        // Uma busca que falha (sem rede, por exemplo) mantém a lista que já
+        // veio: a baixa vai para a fila offline e só precisa do item e do custo.
+        if (isMounted && !idToken) {
           setItems([]);
         }
       });

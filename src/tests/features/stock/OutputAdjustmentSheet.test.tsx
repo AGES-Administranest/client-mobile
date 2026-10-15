@@ -271,6 +271,43 @@ test('loads the items once per opening, so an item added meanwhile shows up', as
   const renderer = await mountOpen();
   expect(fetchItems).toHaveBeenCalledTimes(1);
 
+  fetchItems.mockResolvedValueOnce([
+    {
+      id: 'item-1',
+      name: 'Propofol 10mg/ml 20ml',
+      unit: 'ampoule',
+      availableQuantity: 8,
+      unitCost: 10,
+    },
+    {
+      id: 'item-2',
+      name: 'Dipirona 500mg/ml',
+      unit: 'ampoule',
+      availableQuantity: 3,
+      unitCost: 2,
+    },
+  ]);
+  await act(async () => {
+    renderer.update(sheetWith(false));
+  });
+  await act(async () => {
+    renderer.update(sheetWith(true));
+  });
+  await act(async () => {
+    byLabel(renderer, 'Item').props.onPress();
+  });
+
+  expect(fetchItems).toHaveBeenCalledTimes(2);
+  expect(readTexts(renderer)).toContain('Dipirona 500mg/ml');
+});
+
+test('keeps the items it already has when loading them again fails', async () => {
+  const fetchItems = jest.requireMock(
+    'features/stock/services/stockAdjustmentService',
+  ).fetchAdjustableItems as jest.Mock;
+  const renderer = await mountOpen();
+
+  fetchItems.mockRejectedValueOnce(new Error('fetch failed: offline'));
   await act(async () => {
     renderer.update(sheetWith(false));
   });
@@ -278,7 +315,13 @@ test('loads the items once per opening, so an item added meanwhile shows up', as
     renderer.update(sheetWith(true));
   });
 
-  expect(fetchItems).toHaveBeenCalledTimes(2);
+  await fillValidAdjustment(renderer);
+  await save(renderer);
+
+  expect(onSaved).toHaveBeenCalledTimes(1);
+  expect(await loadPendingMovements(USER)).toEqual([
+    expect.objectContaining({ itemId: 'item-1', quantity: 2 }),
+  ]);
 });
 
 test('lists each item with how much of it is in stock', async () => {
