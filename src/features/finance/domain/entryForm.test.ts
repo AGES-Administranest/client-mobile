@@ -16,6 +16,7 @@ const TRAVEL: FinancialCategory = {
   name: 'Travel',
   nature: 'EXPENSE',
   defaultScope: 'PROFESSIONAL',
+  isDefault: true,
 };
 
 const VALID: EntryDraft = {

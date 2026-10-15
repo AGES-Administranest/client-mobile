@@ -641,8 +641,7 @@
       "category": {
         "label": "Categoria",
         "loading": "Carregando categorias…",
-        "retry": "Tentar de novo",
-        "empty": "Nenhuma categoria para esse tipo."
+        "retry": "Tentar de novo"
       },
       "scope": {
         "label": "Escopo",
@@ -676,6 +675,18 @@
         "network": "Sem conexão. Tente de novo quando a internet voltar.",
         "unknown": "Não foi possível salvar o lançamento. Tente novamente.",
         "categories": "Não foi possível carregar as categorias."
+      }
+    },
+    "categoryField": {
+      "placeholder": "Digite o nome da categoria",
+      "add": "Adicionar Categoria",
+      "newPlaceholder": "Digite o nome da nova categoria",
+      "create": "Criar categoria",
+      "noResults": "Nenhuma categoria encontrada.",
+      "created": "Categoria criada.",
+      "createFailed": "Não foi possível criar a categoria. Tente de novo.",
+      "errors": {
+        "tooLong": "Use até 40 caracteres."
       }
     },
     "saved": "Lançamento salvo.",

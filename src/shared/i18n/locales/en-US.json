@@ -641,8 +641,7 @@
       "category": {
         "label": "Category",
         "loading": "Loading categories…",
-        "retry": "Try again",
-        "empty": "No categories for this type."
+        "retry": "Try again"
       },
       "scope": {
         "label": "Scope",
@@ -676,6 +675,18 @@
         "network": "No connection. Try again when you are back online.",
         "unknown": "Could not save the entry. Try again.",
         "categories": "Could not load the categories."
+      }
+    },
+    "categoryField": {
+      "placeholder": "Type the category name",
+      "add": "Add category",
+      "newPlaceholder": "Type the new category name",
+      "create": "Create category",
+      "noResults": "No categories found.",
+      "created": "Category created.",
+      "createFailed": "Could not create the category. Try again.",
+      "errors": {
+        "tooLong": "Use up to 40 characters."
       }
     },
     "saved": "Entry saved.",
