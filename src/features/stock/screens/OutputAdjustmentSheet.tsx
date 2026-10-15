@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { AccessibilityInfo } from 'react-native';
 
 import { OutputAdjustmentModal } from 'app/components/ui/OutputAdjustmentModal';
 import { useTranslation } from 'shared/i18n';
@@ -55,6 +56,13 @@ export function OutputAdjustmentSheet({
         adjustment.failure.params,
       )
     : null;
+
+  // Um aviso que aparece não é lido sozinho pelo VoiceOver nem pelo TalkBack.
+  useEffect(() => {
+    if (failureMessage) {
+      AccessibilityInfo.announceForAccessibility(failureMessage);
+    }
+  }, [failureMessage]);
 
   const submitAdjustment = async () => {
     const saved = await adjustment.submit();

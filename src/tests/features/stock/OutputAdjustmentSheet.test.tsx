@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AccessibilityInfo } from 'react-native';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
@@ -206,7 +207,10 @@ test('queues the write-off, reports it saved and syncs the stock', async () => {
   ]);
 });
 
-test('reports what went wrong and keeps the form open on failure', async () => {
+test('reports what went wrong, out loud too, and keeps the form open on failure', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
   const renderer = await mountOpen();
 
   await fillValidAdjustment(renderer);
@@ -218,6 +222,8 @@ test('reports what went wrong and keeps the form open on failure', async () => {
   await save(renderer);
 
   expect(readTexts(renderer)).toContain(QUEUE_WRITE_FAILED);
+  expect(announce).toHaveBeenCalledWith(QUEUE_WRITE_FAILED);
+  announce.mockRestore();
   expect(onSaved).not.toHaveBeenCalled();
   expect(onClose).not.toHaveBeenCalled();
 
