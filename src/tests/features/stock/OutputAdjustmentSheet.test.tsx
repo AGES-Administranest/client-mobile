@@ -281,6 +281,17 @@ test('loads the items once per opening, so an item added meanwhile shows up', as
   expect(fetchItems).toHaveBeenCalledTimes(2);
 });
 
+test('lists each item with how much of it is in stock', async () => {
+  const renderer = await mountOpen();
+
+  await act(async () => {
+    byLabel(renderer, 'Item').props.onPress();
+  });
+
+  expect(readTexts(renderer)).toContain('Propofol 10mg/ml 20ml');
+  expect(readTexts(renderer)).toContain('8 ampolas');
+});
+
 test('asks its owner to close it from the close button', async () => {
   const renderer = await mountOpen();
 

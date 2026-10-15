@@ -5,6 +5,7 @@ import { OutputAdjustmentModal } from 'app/components/ui/OutputAdjustmentModal';
 import { useTranslation } from 'shared/i18n';
 
 import { ADJUSTMENT_REASONS } from '../domain/outputAdjustment';
+import { unitPluralFormFor } from '../domain/stockMovement';
 import { useStockSyncState } from '../hooks/StockSyncContext';
 import { useOutputAdjustment } from '../hooks/useOutputAdjustment';
 
@@ -19,7 +20,7 @@ export function OutputAdjustmentSheet({
   onClose,
   onSaved,
 }: OutputAdjustmentSheetProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { sync } = useStockSyncState();
   const adjustment = useOutputAdjustment();
   const { reset, reloadItems } = adjustment;
@@ -102,6 +103,19 @@ export function OutputAdjustmentSheet({
       failureMessage={failureMessage}
       reasonLabels={reasonLabels}
       errorMessages={errorMessages}
+      itemCaption={item =>
+        t('stock.movementHistory.quantity', {
+          quantity: item.availableQuantity.toLocaleString(locale, {
+            maximumFractionDigits: 3,
+          }),
+          unit: t(
+            `stock.movementHistory.units.${item.unit}.${unitPluralFormFor(
+              item.availableQuantity,
+            )}`,
+          ),
+        })
+      }
+      noItemsMessage={t('stock.outputAdjustment.noItems')}
     />
   );
 }
