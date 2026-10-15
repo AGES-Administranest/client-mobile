@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
@@ -66,6 +67,11 @@ jest.mock('features/stock/services/stockAdjustmentService', () => {
     ),
   };
 });
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 375, height: 812 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const fetchMock = fetchStockMovements as jest.MockedFunction<
   typeof fetchStockMovements
@@ -213,16 +219,18 @@ async function mount(props: { savedMessageDurationMs?: number } = {}) {
 
   await act(async () => {
     renderer = ReactTestRenderer.create(
-      <I18nProvider>
-        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-          <StockSyncProvider>
-            <MovementHistoryScreen
-              searchDebounceMs={SEARCH_DEBOUNCE_MS}
-              {...props}
-            />
-          </StockSyncProvider>
-        </AuthProvider>
-      </I18nProvider>,
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <StockSyncProvider>
+              <MovementHistoryScreen
+                searchDebounceMs={SEARCH_DEBOUNCE_MS}
+                {...props}
+              />
+            </StockSyncProvider>
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
     );
   });
 

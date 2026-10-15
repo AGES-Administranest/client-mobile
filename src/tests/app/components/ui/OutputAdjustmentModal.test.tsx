@@ -1,3 +1,4 @@
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { OutputAdjustmentModal } from '../../../../app/components/ui/OutputAdjustmentModal';
@@ -8,6 +9,11 @@ import {
   type OutputAdjustmentErrors,
 } from '../../../../features/stock/domain/outputAdjustment';
 import type { AdjustableItem } from '../../../../features/stock/services/stockAdjustmentService';
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 375, height: 812 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const ITEMS: AdjustableItem[] = [
   {
@@ -42,6 +48,7 @@ type Overrides = {
   draft?: Partial<OutputAdjustmentDraft>;
   errors?: OutputAdjustmentErrors;
   needsWrittenReason?: boolean;
+  isSaving?: boolean;
   failureMessage?: string | null;
   handlers?: Partial<{
     onSubmit: () => void;
@@ -57,6 +64,7 @@ async function render({
   draft = {},
   errors = {},
   needsWrittenReason = false,
+  isSaving = false,
   failureMessage = null,
   handlers = {},
 }: Overrides = {}) {
@@ -74,28 +82,30 @@ async function render({
 
   await act(() => {
     renderer = ReactTestRenderer.create(
-      <OutputAdjustmentModal
-        visible
-        draft={{ ...EMPTY_OUTPUT_ADJUSTMENT, ...draft }}
-        items={ITEMS}
-        errors={errors}
-        isSaving={false}
-        needsWrittenReason={needsWrittenReason}
-        failureMessage={failureMessage}
-        title="Registro de ajuste de saída"
-        itemLabel="Item"
-        itemPlaceholder="Selecione o item"
-        quantityLabel="Quantidade"
-        quantityPlaceholder="0"
-        reasonLabel="Motivo"
-        otherReasonLabel="Descreva o motivo"
-        otherReasonPlaceholder="Escreva o que aconteceu"
-        saveLabel="Salvar"
-        closeLabel="Fechar"
-        reasonLabels={REASON_LABELS}
-        errorMessages={ERROR_MESSAGES}
-        {...spies}
-      />,
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <OutputAdjustmentModal
+          visible
+          draft={{ ...EMPTY_OUTPUT_ADJUSTMENT, ...draft }}
+          items={ITEMS}
+          errors={errors}
+          isSaving={isSaving}
+          needsWrittenReason={needsWrittenReason}
+          failureMessage={failureMessage}
+          title="Registro de ajuste de saída"
+          itemLabel="Item"
+          itemPlaceholder="Selecione o item"
+          quantityLabel="Quantidade"
+          quantityPlaceholder="0"
+          reasonLabel="Motivo"
+          otherReasonLabel="Descreva o motivo"
+          otherReasonPlaceholder="Escreva o que aconteceu"
+          saveLabel="Salvar"
+          closeLabel="Fechar"
+          reasonLabels={REASON_LABELS}
+          errorMessages={ERROR_MESSAGES}
+          {...spies}
+        />
+      </SafeAreaProvider>,
     );
   });
 
@@ -118,6 +128,38 @@ function byLabel(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
         typeof node.props.onChangeText === 'function'),
   );
 }
+
+function saveButton(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root
+    .findAll(
+      node =>
+        node.props.role === 'button' &&
+        typeof node.props.onPress === 'function',
+    )
+    .find(node =>
+      node
+        .findAllByType('Text' as never)
+        .some(label => label.props.children === 'Salvar'),
+    )!;
+}
+
+function stringTexts(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children)
+    .filter(child => typeof child === 'string');
+}
+
+test('opens with the title as the sheet header', async () => {
+  const { renderer } = await render();
+
+  const headers = renderer.root
+    .findAllByType('Text' as never)
+    .filter(node => node.props.accessibilityRole === 'header')
+    .map(node => node.props.children);
+
+  expect(headers).toEqual(['Registro de ajuste de saída']);
+});
 
 test('lists the registered items in the dropdown', async () => {
   const { renderer, spies } = await render();
@@ -229,17 +271,28 @@ test('shows the validation message of each field', async () => {
   expect(texts).toContain('A quantidade deve ser maior que zero');
 });
 
-test('shows the failure returned by the save', async () => {
+test('shows the failure returned by the save right above Salvar', async () => {
   const { renderer } = await render({
     failureMessage: 'Quantidade maior que o saldo disponível (8).',
   });
 
-  expect(textsOf(renderer)).toContain(
+  expect(stringTexts(renderer).slice(-2)).toEqual([
     'Quantidade maior que o saldo disponível (8).',
-  );
+    'Salvar',
+  ]);
 });
 
-test('submits and closes through the header button', async () => {
+test('submits through Salvar', async () => {
+  const { renderer, spies } = await render();
+
+  await act(() => {
+    saveButton(renderer).props.onPress();
+  });
+
+  expect(spies.onSubmit).toHaveBeenCalledTimes(1);
+});
+
+test('closes through the backdrop', async () => {
   const { renderer, spies } = await render();
 
   await act(() => {
@@ -247,22 +300,10 @@ test('submits and closes through the header button', async () => {
   });
 
   expect(spies.onClose).toHaveBeenCalledTimes(1);
+});
 
-  const saveButton = renderer.root
-    .findAll(
-      node =>
-        node.props.role === 'button' &&
-        typeof node.props.onPress === 'function',
-    )
-    .find(node =>
-      node
-        .findAllByType('Text' as never)
-        .some(label => label.props.children === 'Salvar'),
-    )!;
+test('locks Salvar while saving', async () => {
+  const { renderer } = await render({ isSaving: true });
 
-  await act(() => {
-    saveButton.props.onPress();
-  });
-
-  expect(spies.onSubmit).toHaveBeenCalledTimes(1);
+  expect(saveButton(renderer).props.disabled).toBe(true);
 });
