@@ -454,15 +454,14 @@
           "other": "un"
         }
       },
-      "quantity": "{{quantity}} {{unit}}",
-      "newEntry": "Novo lançamento",
-      "savedMessage": "Atualização salva"
+      "quantity": "{{quantity}} {{unit}}"
     },
     "outputAdjustment": {
       "title": "Registro de ajuste de saída",
       "close": "Fechar",
       "itemLabel": "Item",
       "itemPlaceholder": "Selecione o item",
+      "noItems": "Nenhum item com estoque para dar baixa.",
       "quantityLabel": "Quantidade",
       "quantityPlaceholder": "0",
       "reasonLabel": "Motivo",
@@ -599,7 +598,6 @@
     "newEntry": "Novo lançamento",
     "options": {
       "title": "Novo lançamento",
-      "description": "Envie a nota ou o pedido em PDF para lançar automaticamente, ou preencha à mão.",
       "descriptionWithStockWriteOff": "Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque",
       "sendDocument": "Enviar documento (PDF)",
       "manual": "Lançamento manual",

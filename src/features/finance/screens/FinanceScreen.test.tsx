@@ -31,16 +31,12 @@ jest.mock('features/stock/services/stockSyncService', () => ({
   })),
 }));
 
-jest.mock('features/stock/services/stockAdjustmentService', () => {
-  const actual = jest.requireActual(
-    'features/stock/services/stockAdjustmentService',
-  );
+const mockFetchAdjustableItems = jest.fn(() => Promise.resolve([]));
 
-  return {
-    ...actual,
-    fetchAdjustableItems: jest.fn(() => Promise.resolve([])),
-  };
-});
+jest.mock('features/stock/services/stockAdjustmentService', () => ({
+  ...jest.requireActual('features/stock/services/stockAdjustmentService'),
+  fetchAdjustableItems: () => mockFetchAdjustableItems(),
+}));
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -62,7 +58,11 @@ const ACCOUNT: Account = {
   termsVersion: TERMS_VERSION,
 };
 
-test('mounts the stock movement history', async () => {
+beforeEach(() => {
+  mockFetchAdjustableItems.mockClear();
+});
+
+async function renderFinanceScreen() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
@@ -79,42 +79,45 @@ test('mounts the stock movement history', async () => {
     );
   });
 
-  const texts = renderer!.root
+  return renderer!;
+}
+
+test('mounts the stock movement history', async () => {
+  const renderer = await renderFinanceScreen();
+
+  const texts = renderer.root
     .findAllByType('Text' as never)
     .map(node => node.props.children);
 
   expect(JSON.stringify(texts)).toContain('Histórico de movimentações');
   expect(
-    renderer!.root.findAllByProps({ testID: 'finance-new-entry-button' }),
+    renderer.root.findAllByProps({ testID: 'finance-new-entry-button' }),
   ).not.toHaveLength(0);
 });
 
-test('opens the calculator from the header icon', async () => {
-  let renderer: ReactTestRenderer.ReactTestRenderer;
+test('has a single new entry button, and opening the tab loads no stock items', async () => {
+  const renderer = await renderFinanceScreen();
 
-  await act(async () => {
-    renderer = ReactTestRenderer.create(
-      <SafeAreaProvider initialMetrics={METRICS}>
-        <I18nProvider>
-          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-            <StockSyncProvider>
-              <FinanceScreen />
-            </StockSyncProvider>
-          </AuthProvider>
-        </I18nProvider>
-      </SafeAreaProvider>,
-    );
-  });
+  const texts = renderer.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children);
+
+  expect(texts.filter(text => text === 'Novo lançamento')).toHaveLength(1);
+  expect(mockFetchAdjustableItems).not.toHaveBeenCalled();
+});
+
+test('opens the calculator from the header icon', async () => {
+  const renderer = await renderFinanceScreen();
 
   const textsOf = () =>
-    renderer!.root
+    renderer.root
       .findAllByType('Text' as never)
       .map(node => node.props.children);
 
   expect(textsOf()).toContain('Finanças');
   expect(textsOf()).not.toContain('Calculadora de hora');
 
-  const open = renderer!.root.find(
+  const open = renderer.root.find(
     node =>
       node.props.accessibilityLabel === 'Abrir calculadora de hora' &&
       typeof node.props.onPress === 'function',
@@ -124,7 +127,7 @@ test('opens the calculator from the header icon', async () => {
 
   expect(textsOf()).toContain('Calculadora de hora');
 
-  const back = renderer!.root.find(
+  const back = renderer.root.find(
     node =>
       node.props.accessibilityLabel === 'Voltar' &&
       typeof node.props.onPress === 'function',
