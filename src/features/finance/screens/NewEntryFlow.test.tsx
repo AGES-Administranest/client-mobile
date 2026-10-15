@@ -419,10 +419,13 @@ test('a save that gets no answer in time says so, and the form can be closed', a
   expect(textsOf(renderer)).not.toContain('Novo lançamento manual');
 });
 
-test('reopening the form starts a new, empty entry', async () => {
+test('reopening the form starts a new, empty entry, category field included', async () => {
   const renderer = await renderFlow();
   await openManualForm(renderer);
   await typeInto(renderer, 'Descrição', 'Rascunho que não foi salvo');
+  await act(async () => categoryCombobox(renderer).props.onFocus());
+  await act(async () => categoryCombobox(renderer).props.onChangeText('Comi'));
+  await pressByText(renderer, 'Adicionar Categoria');
 
   await act(async () => {
     renderer.root.findByProps({ accessibilityLabel: 'Fechar' }).props.onPress();
@@ -435,6 +438,13 @@ test('reopening the form starts a new, empty entry', async () => {
       typeof node.props.onChangeText === 'function',
   );
   expect(description.props.value).toBe('');
+  expect(categoryCombobox(renderer).props.value).toBe('');
+  expect(
+    renderer.root.findAll(
+      node =>
+        node.props.accessibilityLabel === 'Digite o nome da nova categoria',
+    ),
+  ).toHaveLength(0);
 });
 
 test('the form opens only after the options sheet has finished leaving', async () => {
