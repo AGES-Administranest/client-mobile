@@ -6,7 +6,13 @@ import {
   Receipt,
   RotateCw,
 } from 'lucide-react-native';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { useEffect } from 'react';
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  Pressable,
+  View,
+} from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { EmptyState } from 'app/components/ui/empty-state';
@@ -24,6 +30,7 @@ export type StatementItem = {
   category: string;
   amount: string;
   isAutomatic: boolean;
+  accessibilityLabel: string;
 };
 
 export type StatementTexts = {
@@ -70,6 +77,14 @@ export function StatementList({
   onItemPress,
   className,
 }: StatementListProps) {
+  // O VoiceOver não lê sozinho a caixa de erro que aparece; role e live region
+  // só resolvem no Android.
+  useEffect(() => {
+    if (status === 'failed' && failureMessage) {
+      AccessibilityInfo.announceForAccessibility(failureMessage);
+    }
+  }, [status, failureMessage]);
+
   if (status === 'loading') {
     return <Skeleton label={texts.loading} className={className} />;
   }
@@ -184,6 +199,8 @@ function StatementRow({
 }: StatementRowProps) {
   const content = (
     <View
+      accessible={!onPress}
+      accessibilityLabel={onPress ? undefined : item.accessibilityLabel}
       className={cn(
         'flex-row items-center gap-3 px-4 py-[13px]',
         !isLast && 'border-b border-details-primary',
@@ -240,7 +257,11 @@ function StatementRow({
   }
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button">
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={item.accessibilityLabel}
+    >
       {content}
     </Pressable>
   );

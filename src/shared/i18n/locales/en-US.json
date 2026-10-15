@@ -688,6 +688,7 @@
       },
       "scopeFilterLabel": "Filter entries by scope",
       "automatic": "automatic",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
       "loading": "Loading entries…",
       "loadingMore": "Loading more entries…",
       "empty": {

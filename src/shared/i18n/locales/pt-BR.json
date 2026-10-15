@@ -688,6 +688,7 @@
       },
       "scopeFilterLabel": "Filtrar lançamentos por escopo",
       "automatic": "automático",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
       "loading": "Carregando lançamentos…",
       "loadingMore": "Carregando mais lançamentos…",
       "empty": {

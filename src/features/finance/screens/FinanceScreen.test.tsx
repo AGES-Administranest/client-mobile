@@ -328,6 +328,20 @@ describe('month statement', () => {
     );
     expect(texts.join(' ').replace(/\u00a0/g, ' ')).toContain('+R$ 620');
     expect(texts.join(' ').replace(/\u00a0/g, ' ')).toContain('–R$ 180');
+    const labels = renderer.root
+      .findAll(
+        node =>
+          node.props.accessible === true && !!node.props.accessibilityLabel,
+      )
+      .map(node =>
+        String(node.props.accessibilityLabel).replace(/\u00a0/g, ' '),
+      );
+    expect(labels).toEqual(
+      expect.arrayContaining([
+        'Entrada: Orquiectomia – Mel, +R$ 620, 17 ago, Honorários, automático',
+        'Saída: Combustível, –R$ 180, 09 ago, Deslocamento',
+      ]),
+    );
   });
 
   test('a scope chip reloads the statement with that scope, and an empty answer says so', async () => {

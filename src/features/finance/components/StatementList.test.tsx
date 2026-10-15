@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react-native';
-import { ActivityIndicator } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator } from 'react-native';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { Icon } from 'app/components/ui/icon';
@@ -33,6 +33,8 @@ const ITEMS: StatementItem[] = [
     category: 'Honorários',
     amount: '+R$ 620',
     isAutomatic: true,
+    accessibilityLabel:
+      'Entrada: Orquiectomia – Mel, +R$ 620, 17 ago, Honorários, automático',
   },
   {
     id: 'entry-2',
@@ -42,6 +44,8 @@ const ITEMS: StatementItem[] = [
     category: 'Insumos',
     amount: '–R$ 145',
     isAutomatic: false,
+    accessibilityLabel:
+      'Saída: Seringa 60ml (cx 30un), –R$ 145, 16 ago, Insumos',
   },
 ];
 
@@ -197,4 +201,40 @@ test('a failed next page keeps the rows and offers a retry under them', async ()
 
   expect(onRetryLoadMore).toHaveBeenCalledTimes(1);
   expect(props.onRetry).not.toHaveBeenCalled();
+});
+
+test('each row tells a screen reader whether it is an income or an expense', async () => {
+  const { renderer } = await render();
+
+  const labels = renderer.root
+    .findAll(
+      node => node.props.accessible === true && !!node.props.accessibilityLabel,
+    )
+    .map(node => node.props.accessibilityLabel);
+
+  expect(labels).toEqual(
+    expect.arrayContaining([
+      'Entrada: Orquiectomia – Mel, +R$ 620, 17 ago, Honorários, automático',
+      'Saída: Seringa 60ml (cx 30un), –R$ 145, 16 ago, Insumos',
+    ]),
+  );
+});
+
+test('a load failure is announced, since VoiceOver does not read the box by itself', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
+  try {
+    await render({
+      status: 'failed',
+      items: [],
+      failureMessage: 'Não foi possível carregar os lançamentos.',
+    });
+
+    expect(announce).toHaveBeenCalledWith(
+      'Não foi possível carregar os lançamentos.',
+    );
+  } finally {
+    announce.mockRestore();
+  }
 });

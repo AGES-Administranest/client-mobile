@@ -48,15 +48,36 @@ export function FinanceScreen() {
     return key ? t(`financialEntries.categories.${key}`) : category.name;
   };
 
-  const items: StatementItem[] = statement.entries.map(entry => ({
-    id: entry.id,
-    nature: entry.nature,
-    description: entry.description,
-    date: formatStatementDate(entry.accrualDate, locale),
-    category: categoryLabel(entry.category),
-    amount: formatSignedAmount(entry, locale),
-    isAutomatic: isAutomaticEntry(entry),
-  }));
+  const items: StatementItem[] = statement.entries.map(entry => {
+    const date = formatStatementDate(entry.accrualDate, locale);
+    const category = categoryLabel(entry.category);
+    const amount = formatSignedAmount(entry, locale);
+    const isAutomatic = isAutomaticEntry(entry);
+    const label = t('financialEntries.statement.rowLabel', {
+      nature: t(
+        entry.nature === 'INCOME'
+          ? 'financialEntries.form.nature.income'
+          : 'financialEntries.form.nature.expense',
+      ),
+      description: entry.description,
+      amount,
+      date,
+      category,
+    });
+
+    return {
+      id: entry.id,
+      nature: entry.nature,
+      description: entry.description,
+      date,
+      category,
+      amount,
+      isAutomatic,
+      accessibilityLabel: isAutomatic
+        ? `${label}, ${t('financialEntries.statement.automatic')}`
+        : label,
+    };
+  });
 
   const scopeOptions = STATEMENT_SCOPES.map(value => ({
     value,
