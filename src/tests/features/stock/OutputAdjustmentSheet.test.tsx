@@ -249,6 +249,24 @@ test('starts empty every time it opens', async () => {
   expect(readTexts(renderer)).not.toContain(QUEUE_WRITE_FAILED);
 });
 
+test('loads the items once per opening, so an item added meanwhile shows up', async () => {
+  const fetchItems = jest.requireMock(
+    'features/stock/services/stockAdjustmentService',
+  ).fetchAdjustableItems as jest.Mock;
+  fetchItems.mockClear();
+  const renderer = await mountOpen();
+  expect(fetchItems).toHaveBeenCalledTimes(1);
+
+  await act(async () => {
+    renderer.update(sheetWith(false));
+  });
+  await act(async () => {
+    renderer.update(sheetWith(true));
+  });
+
+  expect(fetchItems).toHaveBeenCalledTimes(2);
+});
+
 test('asks its owner to close it from the close button', async () => {
   const renderer = await mountOpen();
 

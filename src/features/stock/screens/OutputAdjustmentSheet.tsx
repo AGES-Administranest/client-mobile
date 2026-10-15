@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { OutputAdjustmentModal } from 'app/components/ui/OutputAdjustmentModal';
 import { useTranslation } from 'shared/i18n';
@@ -21,13 +21,21 @@ export function OutputAdjustmentSheet({
   const { t } = useTranslation();
   const { sync } = useStockSyncState();
   const adjustment = useOutputAdjustment();
-  const { reset } = adjustment;
+  const { reset, reloadItems } = adjustment;
+  const openedBefore = useRef(false);
 
   useEffect(() => {
-    if (visible) {
-      reset();
+    if (!visible) {
+      return;
     }
-  }, [visible, reset]);
+    reset();
+    // Fica montado depois da primeira abertura: um item cadastrado desde então
+    // só aparece na lista se ela for buscada de novo.
+    if (openedBefore.current) {
+      reloadItems();
+    }
+    openedBefore.current = true;
+  }, [visible, reset, reloadItems]);
 
   const reasonLabels = Object.fromEntries(
     ADJUSTMENT_REASONS.map(reason => [

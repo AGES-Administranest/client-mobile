@@ -43,6 +43,7 @@ type OutputAdjustmentState = {
   setReason: (reason: AdjustmentReason) => void;
   setOtherReason: (otherReason: string) => void;
   reset: () => void;
+  reloadItems: () => void;
   submit: () => Promise<boolean>;
 };
 
@@ -64,6 +65,7 @@ export function useOutputAdjustment(): OutputAdjustmentState {
   const [errors, setErrors] = useState<OutputAdjustmentErrors>({});
   const [failure, setFailure] = useState<AdjustmentFailure | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [itemsVersion, setItemsVersion] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -83,7 +85,11 @@ export function useOutputAdjustment(): OutputAdjustmentState {
     return () => {
       isMounted = false;
     };
-  }, [idToken]);
+  }, [idToken, itemsVersion]);
+
+  const reloadItems = useCallback(() => {
+    setItemsVersion(current => current + 1);
+  }, []);
 
   const setItemId = useCallback(
     (itemId: string) => setDraft(current => ({ ...current, itemId })),
@@ -191,6 +197,7 @@ export function useOutputAdjustment(): OutputAdjustmentState {
     setReason,
     setOtherReason,
     reset,
+    reloadItems,
     submit,
   };
 }
