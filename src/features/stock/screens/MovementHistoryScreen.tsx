@@ -59,8 +59,8 @@ export function MovementHistoryScreen({
     retry();
   }, [syncedAt, retry]);
 
-  // Uma baixa que fica na fila (sem rede, ou recusada no envio) não muda o
-  // syncedAt; recarregar quando a fila cresce a mostra na hora como pendente.
+  // Uma baixa recusada no envio fica na fila e não muda o syncedAt; recarregar
+  // quando a fila cresce a mostra na hora como pendente.
   useEffect(() => {
     if (pendingCount > queuedBefore.current) {
       retry();
