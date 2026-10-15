@@ -1,4 +1,6 @@
+import { NetworkError } from 'shared/api';
 import { ApiError, apiClient } from 'shared/services/apiClient';
+import { isNetworkError } from 'shared/utils/network';
 
 const fetchMock = jest.fn();
 
@@ -13,6 +15,12 @@ function respondWith(status: number, body: unknown) {
     status,
     json: async () => body,
   });
+}
+
+// O DOMException não existe nos tipos do React Native; o que importa aqui é o
+// name, que é como a web distingue abort e timeout.
+function namedError(name: string): Error {
+  return Object.assign(new Error(name), { name });
 }
 
 async function captureError(): Promise<ApiError> {
@@ -70,5 +78,39 @@ describe('ApiError', () => {
     const error = new ApiError('No active session', 'UNAUTHENTICATED', 401);
 
     expect(error.details).toBeNull();
+  });
+});
+
+describe('falha sem resposta', () => {
+  it.each([
+    [
+      'expo/fetch sem conexão no celular',
+      new Error('fetch failed: The Internet connection appears to be offline.'),
+    ],
+    [
+      'expo/fetch cancelado',
+      new Error('fetch failed: The operation was aborted.'),
+    ],
+    ['fetch da web', new TypeError('Failed to fetch')],
+    ['pedido abortado na web', namedError('AbortError')],
+    ['tempo esgotado na web', namedError('TimeoutError')],
+  ])('%s vira NetworkError', async (_label, failure) => {
+    fetchMock.mockRejectedValue(failure);
+
+    const error = await captureError();
+
+    expect(error).toBeInstanceOf(NetworkError);
+    expect(error).toHaveProperty('cause', failure);
+    expect(error.message).toContain(failure.message);
+    expect(isNetworkError(error)).toBe(true);
+  });
+
+  test('uma resposta de erro continua sendo ApiError, não falha de rede', async () => {
+    respondWith(503, { code: 'UNAVAILABLE', message: 'Service unavailable' });
+
+    const error = await captureError();
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(isNetworkError(error)).toBe(false);
   });
 });
