@@ -243,6 +243,21 @@ test('the caller can change the spacing around the field', async () => {
   ).not.toHaveLength(0);
 });
 
+test('tapping the trailing icon focuses the field and opens the list', async () => {
+  const { renderer } = await renderSelect({ trailingIcon: ChevronDown });
+  const focusInput = jest.spyOn(input(renderer).instance, 'focus');
+  focusInput.mockClear();
+
+  await act(async () => {
+    renderer.root
+      .findByProps({ testID: 'search-select-trailing-icon' })
+      .props.onPress();
+  });
+
+  expect(focusInput).toHaveBeenCalledTimes(1);
+  expect(rowLabels(renderer)).toEqual(['Insumos', 'Impostos e taxas']);
+});
+
 describe('add option', () => {
   const addLabel = 'Adicionar Categoria';
 

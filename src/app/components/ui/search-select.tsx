@@ -101,6 +101,11 @@ export function SearchSelect({
     );
   }
 
+  function openFromIcon(): void {
+    inputRef.current?.focus();
+    handleFocus();
+  }
+
   function closeAndThen(action: () => void): void {
     cancelPendingClose();
     setInUse(false);
@@ -142,13 +147,17 @@ export function SearchSelect({
           autoCorrect={false}
         />
         {trailingIcon ? (
-          <View
-            className="ml-2 shrink-0"
+          <Pressable
+            testID="search-select-trailing-icon"
+            accessible={false}
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
+            hitSlop={12}
+            onPress={openFromIcon}
+            className="ml-2 shrink-0"
           >
             <Icon as={trailingIcon} size={16} className="text-label-tertiary" />
-          </View>
+          </Pressable>
         ) : null}
       </View>
       {error ? (
