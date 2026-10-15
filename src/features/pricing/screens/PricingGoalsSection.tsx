@@ -1,13 +1,45 @@
 import { useTranslation } from 'shared/i18n';
 
 import { PricingSettingsForm } from '../components/PricingSettingsForm';
-import type { PricingSettingsField } from '../domain/pricing.types';
+import type {
+  PricingSettings,
+  PricingSettingsField,
+} from '../domain/pricing.types';
 import { PRICING_SETTINGS_FIELDS } from '../domain/validatePricingSettings';
+import type { UsePricingSettings } from '../hooks/usePricingSettings';
 import { usePricingSettingsForm } from '../hooks/usePricingSettingsForm';
 
-export function PricingGoalsSection() {
+type PricingGoalsSectionProps = {
+  pricing: UsePricingSettings;
+};
+
+// Waits for the saved goals before mounting the form, so it opens filled in.
+// While loading or after a failure the onboarding section below the fixed
+// costs shows the spinner or the retry, and an empty form here could
+// overwrite goals that were only not loaded.
+export function PricingGoalsSection({ pricing }: PricingGoalsSectionProps) {
+  const { state, applySaved } = pricing;
+
+  if (state.status === 'loading' || state.status === 'error') {
+    return null;
+  }
+
+  return (
+    <PricingGoalsForm
+      initialSettings={state.status === 'configured' ? state.settings : null}
+      onSaved={applySaved}
+    />
+  );
+}
+
+type PricingGoalsFormProps = {
+  initialSettings: PricingSettings | null;
+  onSaved: (settings: PricingSettings) => void;
+};
+
+function PricingGoalsForm({ initialSettings, onSaved }: PricingGoalsFormProps) {
   const { t } = useTranslation();
-  const form = usePricingSettingsForm();
+  const form = usePricingSettingsForm({ initialSettings, onSaved });
 
   const fieldErrors: Partial<Record<PricingSettingsField, string>> = {};
   for (const field of PRICING_SETTINGS_FIELDS) {

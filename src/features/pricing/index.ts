@@ -14,6 +14,7 @@ export type {
 export { usePricingSettingsForm } from './hooks/usePricingSettingsForm';
 export type { PricingSettingsFormState } from './hooks/usePricingSettingsForm';
 export { fetchPricingSettings } from './services/pricingSettingsService';
+export { pricingService } from './services/pricingService';
 export type {
   PricingSettings,
   PricingSettingsErrors,
