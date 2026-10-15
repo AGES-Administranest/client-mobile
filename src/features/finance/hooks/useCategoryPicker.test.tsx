@@ -350,6 +350,23 @@ test('the next new category gets a new id', async () => {
   expect(second.id).not.toBe(first.id);
 });
 
+test('leaving the row while a create is unanswered gives the next one a new id', async () => {
+  createMock.mockImplementationOnce(() => new Promise(() => {}));
+  await mount();
+  await startNewCategory('Comida');
+  await act(async () => {
+    current.picker.createNewCategory();
+  });
+
+  await type('Lim');
+  await startNewCategory('Limpeza');
+  await create();
+
+  const [first, second] = createMock.mock.calls.map(([, payload]) => payload);
+  expect(second.name).toBe('Limpeza');
+  expect(second.id).not.toBe(first.id);
+});
+
 test('switching the type clears the term and leaves the new category', async () => {
   await mount();
   await type('Comi');

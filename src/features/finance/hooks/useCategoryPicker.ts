@@ -111,6 +111,9 @@ export function useCategoryPicker({
 
   const leaveNewCategory = useCallback(() => {
     forgetPendingCreation();
+    // A resposta ignorada pode ter criado a categoria com este id; reusá-lo
+    // para outro nome daria 409 de id já usado.
+    newCategoryId.current = null;
     setNewName(null);
     setFailure(null);
   }, [forgetPendingCreation]);
