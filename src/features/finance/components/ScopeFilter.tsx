@@ -35,10 +35,8 @@ export function ScopeFilter<T extends string>({
             accessibilityRole="radio"
             accessibilityState={{ checked: selected, selected }}
             className={cn(
-              'h-[31px] items-center justify-center rounded-[20px] px-3',
-              selected
-                ? 'bg-button-primary'
-                : 'bg-white shadow-[0px_5px_5px_rgba(0,0,0,0.1)]',
+              'h-[31px] items-center justify-center rounded-[20px] px-3 shadow-[0px_5px_5px_rgba(0,0,0,0.1)]',
+              selected ? 'bg-button-primary' : 'bg-white',
             )}
           >
             <Text

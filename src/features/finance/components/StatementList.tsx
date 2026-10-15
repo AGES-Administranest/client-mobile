@@ -2,6 +2,7 @@ import {
   ArrowDown,
   ArrowUp,
   ChevronRight,
+  Plus,
   Receipt,
   RotateCw,
 } from 'lucide-react-native';
@@ -113,8 +114,10 @@ export function StatementList({
         iconClassName="text-label-quartenery"
         title={texts.empty.title}
         message={texts.empty.description}
+        messageClassName="text-[13px] leading-[19.5px] text-label-placeholder"
         action={{
           label: texts.empty.action,
+          icon: Plus,
           onPress: onCreatePress,
         }}
         className={cn(CARD, 'gap-2 px-6 py-8', className)}

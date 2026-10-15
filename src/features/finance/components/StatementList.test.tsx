@@ -1,6 +1,8 @@
+import { Plus } from 'lucide-react-native';
 import { ActivityIndicator } from 'react-native';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 
 import {
@@ -148,6 +150,9 @@ test('an empty month invites the first entry', async () => {
     'Registre uma entrada ou saída para acompanhar o seu saldo.',
     'Novo lançamento',
   ]);
+  expect(
+    renderer.root.findAllByType(Icon).some(node => node.props.as === Plus),
+  ).toBe(true);
 
   await act(async () => buttons(renderer)[0].props.onPress());
 

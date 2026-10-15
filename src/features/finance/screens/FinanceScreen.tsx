@@ -95,7 +95,7 @@ export function FinanceScreen() {
       >
         <NewEntryFlow onEntrySaved={statement.reload}>
           {({ openOptions }) => (
-            <View className="gap-3 pt-2">
+            <View className="gap-3 pb-6 pt-2">
               <ScopeFilter
                 options={scopeOptions}
                 value={scope}
