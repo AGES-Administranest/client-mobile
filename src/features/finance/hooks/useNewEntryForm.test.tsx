@@ -6,7 +6,7 @@ import {
   type Account,
   type AuthSession,
 } from 'features/auth';
-import { ApiError } from 'shared/services/apiClient';
+import { ApiError, RequestTimeoutError } from 'shared/services/apiClient';
 
 import { useNewEntryForm } from './useNewEntryForm';
 import type {
@@ -292,6 +292,25 @@ test('a retry after a lost connection sends the same id, so nothing is duplicate
   expect(current.failure).toBeNull();
 });
 
+test('a save that gets no answer in time can be retried with the same id', async () => {
+  await mount();
+  await fillValidExpense();
+  createMock.mockRejectedValueOnce(
+    new RequestTimeoutError('POST', '/financial-entries', 20000),
+  );
+
+  await submit();
+  expect(current.failure).toBe('financialEntries.form.failures.network');
+  expect(current.isSaving).toBe(false);
+  expect(current.canSubmit).toBe(true);
+
+  await expect(submit()).resolves.toEqual(CREATED);
+  const [first, second] = createMock.mock.calls.map(
+    ([, payload]) => payload.id,
+  );
+  expect(second).toBe(first);
+});
+
 test('a category the API refuses is cleared and the list is fetched again', async () => {
   await mount();
   await fillValidExpense();
@@ -310,8 +329,8 @@ test('a category the API refuses is cleared and the list is fetched again', asyn
 
 test.each([
   [
-    new ApiError('Taken', 'FINANCIAL_ENTRY_ID_CONFLICT', 409),
-    'financialEntries.form.failures.idConflict',
+    new ApiError('Not found', 'FINANCIAL_ENTRY_NOT_FOUND', 404),
+    'financialEntries.form.failures.unknown',
   ],
   [
     new ApiError('Expired', 'TOKEN_EXPIRED', 401),
@@ -330,6 +349,36 @@ test.each([
 
   expect(current.failure).toBe(key);
   expect(current.isSaving).toBe(false);
+});
+
+test('a retry after an edit keeps the id, so the earlier attempt is updated instead of duplicated', async () => {
+  await mount();
+  await fillValidExpense();
+  createMock.mockRejectedValueOnce(new TypeError('Network request failed'));
+  await submit();
+
+  await act(async () => current.setField('amount', '25000'));
+  await expect(submit()).resolves.toEqual(CREATED);
+
+  const [first, second] = createMock.mock.calls.map(([, payload]) => payload);
+  expect(second.id).toBe(first.id);
+  expect(second.amount).toBe(250);
+});
+
+test('an id the API no longer knows is replaced, so the next try can save', async () => {
+  await mount();
+  await fillValidExpense();
+  createMock.mockRejectedValueOnce(
+    new ApiError('Not found', 'FINANCIAL_ENTRY_NOT_FOUND', 404),
+  );
+  await submit();
+
+  expect(current.failure).toBe('financialEntries.form.failures.unknown');
+  await expect(submit()).resolves.toEqual(CREATED);
+  const [first, second] = createMock.mock.calls.map(
+    ([, payload]) => payload.id,
+  );
+  expect(second).not.toBe(first);
 });
 
 test('the next entry gets a new id', async () => {
@@ -409,6 +458,29 @@ test.each([
     expect(current.categories).toHaveLength(3);
   },
 );
+
+test('a new entry after a failed category load loads them again', async () => {
+  fetchCategoriesMock.mockRejectedValueOnce(
+    new TypeError('Network request failed'),
+  );
+  await mount();
+  expect(current.categoriesStatus).toBe('failed');
+
+  await act(async () => current.startNewEntry());
+
+  expect(fetchCategoriesMock).toHaveBeenCalledTimes(2);
+  expect(current.categoriesStatus).toBe('ready');
+  expect(current.categories).toHaveLength(3);
+});
+
+test('a new entry keeps the categories that already loaded', async () => {
+  await mount();
+
+  await act(async () => current.startNewEntry());
+
+  expect(fetchCategoriesMock).toHaveBeenCalledTimes(1);
+  expect(current.categoriesStatus).toBe('ready');
+});
 
 test('without a session nothing reaches the API and both loading and saving ask to sign in again', async () => {
   await mount(null);

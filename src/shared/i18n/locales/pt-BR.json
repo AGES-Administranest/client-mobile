@@ -673,7 +673,6 @@
       "failures": {
         "session": "Sua sessão expirou. Saia da conta e entre novamente.",
         "categoryInvalid": "Essa categoria não está mais disponível. Escolha outra.",
-        "idConflict": "Este lançamento já foi salvo. Confira o extrato.",
         "network": "Sem conexão. Tente de novo quando a internet voltar.",
         "unknown": "Não foi possível salvar o lançamento. Tente novamente.",
         "categories": "Não foi possível carregar as categorias."

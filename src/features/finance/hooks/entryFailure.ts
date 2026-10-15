@@ -4,7 +4,6 @@ import { isNetworkError } from 'shared/utils/network';
 
 const FAILURE_KEYS: Record<string, TranslationKey> = {
   FINANCIAL_CATEGORY_INVALID: 'financialEntries.form.failures.categoryInvalid',
-  FINANCIAL_ENTRY_ID_CONFLICT: 'financialEntries.form.failures.idConflict',
 };
 
 export function requireToken(idToken: string | null): string {
@@ -17,6 +16,12 @@ export function requireToken(idToken: string | null): string {
 export function isCategoryInvalidError(error: unknown): boolean {
   return (
     error instanceof ApiError && error.code === 'FINANCIAL_CATEGORY_INVALID'
+  );
+}
+
+export function isEntryNotFoundError(error: unknown): boolean {
+  return (
+    error instanceof ApiError && error.code === 'FINANCIAL_ENTRY_NOT_FOUND'
   );
 }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
@@ -14,6 +14,7 @@ export type FinancialCategoriesState = {
   status: CategoriesStatus;
   failure: TranslationKey | null;
   reload: () => void;
+  reloadIfFailed: () => void;
   add: (category: FinancialCategory) => void;
 };
 
@@ -24,6 +25,7 @@ export function useFinancialCategories(): FinancialCategoriesState {
   const [status, setStatus] = useState<CategoriesStatus>('loading');
   const [failure, setFailure] = useState<TranslationKey | null>(null);
   const [version, setVersion] = useState(0);
+  const lastLoadFailed = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -34,11 +36,13 @@ export function useFinancialCategories(): FinancialCategoriesState {
       .then(() => fetchFinancialCategories(requireToken(idToken)))
       .then(loaded => {
         if (!active) return;
+        lastLoadFailed.current = false;
         setCategories(loaded);
         setStatus('ready');
       })
       .catch(error => {
         if (!active) return;
+        lastLoadFailed.current = true;
         setStatus('failed');
         setFailure(toCategoriesFailureKey(error));
       });
@@ -52,6 +56,12 @@ export function useFinancialCategories(): FinancialCategoriesState {
     setVersion(current => current + 1);
   }, []);
 
+  const reloadIfFailed = useCallback(() => {
+    if (lastLoadFailed.current) {
+      reload();
+    }
+  }, [reload]);
+
   const add = useCallback((category: FinancialCategory) => {
     setCategories(current => [
       ...current.filter(listed => listed.id !== category.id),
@@ -59,5 +69,5 @@ export function useFinancialCategories(): FinancialCategoriesState {
     ]);
   }, []);
 
-  return { categories, status, failure, reload, add };
+  return { categories, status, failure, reload, reloadIfFailed, add };
 }

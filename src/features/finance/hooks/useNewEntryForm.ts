@@ -6,6 +6,7 @@ import type { TranslationKey } from 'shared/i18n';
 
 import {
   isCategoryInvalidError,
+  isEntryNotFoundError,
   requireToken,
   toEntryFailureKey,
 } from './entryFailure';
@@ -68,6 +69,7 @@ export function useNewEntryForm(): NewEntryFormState {
     status: categoriesStatus,
     failure: categoriesFailure,
     reload: reloadCategories,
+    reloadIfFailed: reloadCategoriesIfFailed,
     add: addToCategories,
   } = useFinancialCategories();
   // Gerado ao abrir o formulário (ADR-09) e mantido entre tentativas: se a
@@ -142,7 +144,8 @@ export function useNewEntryForm(): NewEntryFormState {
     setHasTriedToSave(false);
     setFailure(null);
     setIsSaving(false);
-  }, []);
+    reloadCategoriesIfFailed();
+  }, [reloadCategoriesIfFailed]);
 
   const submit = useCallback(async () => {
     // Dois toques antes do próximo render não podem mandar dois POSTs.
@@ -169,6 +172,9 @@ export function useNewEntryForm(): NewEntryFormState {
     } catch (error) {
       if (!isCurrent()) return null;
       if (isCategoryInvalidError(error)) forgetRejectedCategory();
+      // O id ficou preso a um lançamento apagado ou de outra conta: tentar de
+      // novo com ele daria o mesmo erro para sempre.
+      if (isEntryNotFoundError(error)) entryId.current = randomUUID();
       setFailure(toEntryFailureKey(error));
       return null;
     } finally {
