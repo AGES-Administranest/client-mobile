@@ -38,3 +38,29 @@ test('aligns a plain message to the start, with no icon, when asked', async () =
   expect(message.props.className).not.toContain('text-center');
   expect(message.props.className).toContain('text-label-primary');
 });
+
+test('can carry a title and a pill action for the first record', async () => {
+  const onPress = jest.fn();
+  const renderer = await render({
+    icon: Inbox,
+    title: 'Nenhum lançamento neste mês',
+    message: 'Registre uma entrada ou saída para acompanhar o seu saldo.',
+    action: { label: 'Novo lançamento', icon: Inbox, onPress },
+  });
+
+  const texts = renderer.root
+    .findAllByType(Text)
+    .map(node => node.props.children);
+  expect(texts).toEqual([
+    'Nenhum lançamento neste mês',
+    'Registre uma entrada ou saída para acompanhar o seu saldo.',
+    'Novo lançamento',
+  ]);
+
+  const button = renderer.root.find(
+    node => node.props.role === 'button' && !!node.props.onPress,
+  );
+  await act(async () => button.props.onPress());
+
+  expect(onPress).toHaveBeenCalledTimes(1);
+});
