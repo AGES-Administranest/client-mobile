@@ -10,6 +10,9 @@ import type { CreateFinancialEntryPayload } from '../domain/financialEntry';
 //   - GET /financial-categories devolve {id, name, nature, defaultScope}
 //   - POST /financial-entries recusa campos fora do DTO (400) e devolve o
 //     lançamento com o amount como Decimal serializado ("180")
+//   - POST com um id já usado e outros dados responde 409
+//     FINANCIAL_ENTRY_ID_CONFLICT; PATCH /financial-entries/:id de um id que
+//     não é um lançamento ativo da conta responde 404 FINANCIAL_ENTRY_NOT_FOUND
 const ID_TOKEN = 'id-token';
 
 const PAYLOAD: CreateFinancialEntryPayload = {
@@ -29,16 +32,22 @@ beforeEach(() => {
   globalThis.fetch = fetchMock as unknown as typeof fetch;
 });
 
-function respond(status: number, body: unknown) {
-  fetchMock.mockResolvedValue({
-    ok: status < 400,
-    status,
-    json: async () => body,
-  });
+function answer(status: number, body: unknown) {
+  return { ok: status < 400, status, json: async () => body };
 }
 
-function lastRequest() {
-  const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+function respond(status: number, body: unknown) {
+  fetchMock.mockResolvedValue(answer(status, body));
+}
+
+function respondInOrder(...answers: [status: number, body: unknown][]) {
+  answers.forEach(([status, body]) =>
+    fetchMock.mockResolvedValueOnce(answer(status, body)),
+  );
+}
+
+function sentRequest(index = 0) {
+  const [url, init] = fetchMock.mock.calls[index] as [string, RequestInit];
   return {
     url: new URL(url),
     init,
@@ -59,25 +68,32 @@ test('lists the categories of both types with the id token', async () => {
 
   await expect(fetchFinancialCategories(ID_TOKEN)).resolves.toEqual(categories);
 
-  const { url, init, headers } = lastRequest();
+  const { url, init, headers } = sentRequest();
   expect(init.method).toBe('GET');
   expect(url.pathname).toBe('/financial-categories');
   expect(url.search).toBe('');
   expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
 });
 
+const SAVED_ENTRY = {
+  ...PAYLOAD,
+  amount: '180',
+  category: { id: 'cat-travel', name: 'Travel', scope: 'PROFESSIONAL' },
+  source: 'MANUAL',
+  origin: { type: 'MANUAL', id: null },
+};
+
+const ID_CONFLICT = {
+  code: 'FINANCIAL_ENTRY_ID_CONFLICT',
+  message: 'This id is already in use',
+};
+
 test('creates the entry with exactly the DTO fields and reads the amount back as a number', async () => {
-  respond(201, {
-    ...PAYLOAD,
-    amount: '180',
-    category: { id: 'cat-travel', name: 'Travel', scope: 'PROFESSIONAL' },
-    source: 'MANUAL',
-    origin: { type: 'MANUAL', id: null },
-  });
+  respond(201, SAVED_ENTRY);
 
   const entry = await createFinancialEntry(ID_TOKEN, PAYLOAD);
 
-  const { url, init } = lastRequest();
+  const { url, init } = sentRequest();
   expect(init.method).toBe('POST');
   expect(url.pathname).toBe('/financial-entries');
   expect(JSON.parse(init.body as string)).toEqual(PAYLOAD);
@@ -97,6 +113,44 @@ test('keeps the backend error code so the form can explain it', async () => {
   expect(error).toMatchObject({
     status: 400,
     code: 'FINANCIAL_CATEGORY_INVALID',
+  });
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+test('a 409 for the form id saves what is on screen over the earlier attempt that went through', async () => {
+  respondInOrder([409, ID_CONFLICT], [200, SAVED_ENTRY]);
+
+  const entry = await createFinancialEntry(ID_TOKEN, PAYLOAD);
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  const { url, init, headers } = sentRequest(1);
+  const { id, ...draft } = PAYLOAD;
+  expect(init.method).toBe('PATCH');
+  expect(url.pathname).toBe(`/financial-entries/${id}`);
+  expect(JSON.parse(init.body as string)).toEqual(draft);
+  expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
+  expect(init.signal).toBeDefined();
+  expect(entry.amount).toBe(180);
+});
+
+test('when the 409 id is not an active entry of this account, the PATCH answer reaches the form', async () => {
+  respondInOrder(
+    [409, ID_CONFLICT],
+    [
+      404,
+      {
+        code: 'FINANCIAL_ENTRY_NOT_FOUND',
+        message: 'Financial entry was not found',
+      },
+    ],
+  );
+
+  const error = await createFinancialEntry(ID_TOKEN, PAYLOAD).catch(e => e);
+
+  expect(error).toBeInstanceOf(ApiError);
+  expect(error).toMatchObject({
+    status: 404,
+    code: 'FINANCIAL_ENTRY_NOT_FOUND',
   });
 });
 
