@@ -1,5 +1,4 @@
-import { Check, ChevronDown, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { Check, X } from 'lucide-react-native';
 import {
   Animated,
   Modal,
@@ -11,6 +10,7 @@ import {
 
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
+import { ItemPicker } from 'app/components/ui/item-picker';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
@@ -50,6 +50,8 @@ type OutputAdjustmentModalProps = {
   failureMessage: string | null;
   reasonLabels: Record<AdjustmentReason, string>;
   errorMessages: Record<string, string>;
+  itemCaption?: (item: AdjustableItem) => string;
+  noItemsMessage?: string;
 };
 
 function FieldError({ message }: { message?: string }) {
@@ -86,9 +88,9 @@ function OutputAdjustmentModal({
   failureMessage,
   reasonLabels,
   errorMessages,
+  itemCaption,
+  noItemsMessage,
 }: OutputAdjustmentModalProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const selectedItem = items.find(item => item.id === draft.itemId) ?? null;
   // Como as outras modais: o fundo aparece com fade, só a folha sobe.
 
   const sheet = useSheetAnimation(visible, onClose);
@@ -131,62 +133,22 @@ function OutputAdjustmentModal({
                   <Text className="text-xs font-medium uppercase text-label-tertiary">
                     {itemLabel}
                   </Text>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={itemLabel}
-                    accessibilityState={{ expanded: isDropdownOpen }}
-                    onPress={() => setIsDropdownOpen(open => !open)}
-                    className="flex-row items-center gap-2 rounded-xl border border-border-primary bg-white px-4 py-3"
-                  >
-                    <Text
-                      className={cn(
-                        'flex-1',
-                        selectedItem
-                          ? 'text-label-primary'
-                          : 'text-label-tertiary',
-                      )}
-                      numberOfLines={1}
-                    >
-                      {selectedItem ? selectedItem.name : itemPlaceholder}
-                    </Text>
-                    <Icon
-                      as={ChevronDown}
-                      className="size-4 text-label-tertiary"
-                    />
-                  </Pressable>
+                  <ItemPicker
+                    label={itemLabel}
+                    placeholder={itemPlaceholder}
+                    options={items.map(item => ({
+                      id: item.id,
+                      name: item.name,
+                      caption: itemCaption?.(item),
+                    }))}
+                    selectedId={draft.itemId}
+                    emptyMessage={noItemsMessage}
+                    hasError={Boolean(errors.itemId)}
+                    onSelect={onItemChange}
+                  />
                   <FieldError
                     message={errors.itemId && errorMessages.required}
                   />
-
-                  {isDropdownOpen ? (
-                    <View className="mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
-                      {items.map(item => (
-                        <Pressable
-                          key={item.id}
-                          testID={`item-option-${item.id}`}
-                          accessibilityRole="button"
-                          accessibilityState={{
-                            selected: item.id === draft.itemId,
-                          }}
-                          onPress={() => {
-                            onItemChange(item.id);
-                            setIsDropdownOpen(false);
-                          }}
-                          className="flex-row items-center gap-2 border-b border-details-primary px-4 py-3"
-                        >
-                          <Text className="flex-1" numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                          {item.id === draft.itemId ? (
-                            <Icon
-                              as={Check}
-                              className="size-4 text-label-quartenery"
-                            />
-                          ) : null}
-                        </Pressable>
-                      ))}
-                    </View>
-                  ) : null}
                 </View>
 
                 <View className="gap-1">
