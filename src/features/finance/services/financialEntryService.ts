@@ -27,6 +27,7 @@ export async function createFinancialCategory(
 ): Promise<FinancialCategory> {
   return apiClient.post<FinancialCategory>('/financial-categories', payload, {
     token: idToken,
+    timeoutMs: SAVE_TIMEOUT_MS,
   });
 }
 

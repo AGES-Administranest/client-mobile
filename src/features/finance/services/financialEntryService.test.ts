@@ -222,3 +222,26 @@ test('keeps the id of the category that already has the name', async () => {
     details: { id: 'cat-food' },
   });
 });
+
+test('stops waiting for a category create after 20 s, as a network failure the field can retry', async () => {
+  jest.useFakeTimers();
+  try {
+    fetchMock.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) =>
+          init.signal?.addEventListener('abort', () =>
+            reject(new Error('The operation was aborted.')),
+          ),
+        ),
+    );
+
+    const failure = createFinancialCategory(ID_TOKEN, NEW_CATEGORY).catch(
+      e => e,
+    );
+    jest.advanceTimersByTime(20000);
+
+    expect(await failure).toBeInstanceOf(RequestTimeoutError);
+  } finally {
+    jest.useRealTimers();
+  }
+});
