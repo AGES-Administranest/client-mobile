@@ -48,3 +48,14 @@ export function toEntryFailureKey(error: unknown): TranslationKey {
     'financialEntries.form.failures.unknown'
   );
 }
+
+export function toStatementFailureKey(error: unknown): TranslationKey {
+  const key = toEntryFailureKey(error);
+  if (key === 'financialEntries.form.failures.session') {
+    return 'financialEntries.statement.failures.session';
+  }
+  if (key === 'financialEntries.form.failures.network') {
+    return 'financialEntries.statement.failures.network';
+  }
+  return 'financialEntries.statement.failures.unknown';
+}
