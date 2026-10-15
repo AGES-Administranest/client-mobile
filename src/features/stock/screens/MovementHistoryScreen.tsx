@@ -37,11 +37,15 @@ const SAVED_MESSAGE_DURATION_MS = 3000;
 type MovementHistoryScreenProps = {
   savedMessageDurationMs?: number;
   searchDebounceMs?: number;
+  // Dentro da rolagem de Finanças: no iOS uma segunda rolagem vertical segura o
+  // arrasto e a página para de rolar.
+  embedded?: boolean;
 };
 
 export function MovementHistoryScreen({
   savedMessageDurationMs = SAVED_MESSAGE_DURATION_MS,
   searchDebounceMs,
+  embedded = false,
 }: MovementHistoryScreenProps = {}) {
   const { t, locale } = useTranslation();
   const {
@@ -176,8 +180,14 @@ export function MovementHistoryScreen({
   });
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-background-modal">
-      <ScrollView contentContainerClassName="gap-4 px-4 py-4">
+    <SafeAreaView
+      edges={embedded ? [] : ['top']}
+      className="flex-1 bg-background-modal"
+    >
+      <ScrollView
+        scrollEnabled={!embedded}
+        contentContainerClassName="gap-4 px-4 py-4"
+      >
         <Button
           shape="pill"
           icon={Plus}

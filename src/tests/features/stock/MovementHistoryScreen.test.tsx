@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ScrollView } from 'react-native';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
@@ -208,7 +209,9 @@ afterEach(() => {
   }
 });
 
-async function mount(props: { savedMessageDurationMs?: number } = {}) {
+async function mount(
+  props: { savedMessageDurationMs?: number; embedded?: boolean } = {},
+) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
@@ -333,6 +336,14 @@ test('lists inbounds, appointment outbounds and manual adjustments with date, va
   expect(texts).toContain('Ajuste · Vencimento');
   expect(texts).toContain('-R$ 26,70');
   expect(texts).toContain('3 un');
+});
+
+test('scrolls by itself as a screen, but leaves the scrolling to the page it sits in', async () => {
+  const standalone = await mount();
+  expect(standalone.root.findByType(ScrollView).props.scrollEnabled).toBe(true);
+
+  const embedded = await mount({ embedded: true });
+  expect(embedded.root.findByType(ScrollView).props.scrollEnabled).toBe(false);
 });
 
 test('shows the appointment link only on movements that came from an appointment', async () => {

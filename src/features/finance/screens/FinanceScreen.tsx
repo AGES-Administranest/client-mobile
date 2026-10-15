@@ -160,7 +160,7 @@ export function FinanceScreen() {
             setStockHistoryHeight(event.nativeEvent.layout.height)
           }
         >
-          <MovementHistoryScreen />
+          <MovementHistoryScreen embedded />
         </View>
       </ScrollView>
       <CalculatorScreen
