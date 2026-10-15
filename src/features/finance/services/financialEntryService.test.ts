@@ -3,11 +3,14 @@ import { ApiError, RequestTimeoutError } from 'shared/services/apiClient';
 import {
   createFinancialEntry,
   fetchFinancialCategories,
+  fetchFinancialEntries,
 } from './financialEntryService';
 import type { CreateFinancialEntryPayload } from '../domain/financialEntry';
 
 // Contrato do backend (módulo financial, PR #50):
 //   - GET /financial-categories devolve {id, name, nature, defaultScope}
+//   - GET /financial-entries?month&year&scope&page&limit devolve a página do
+//     mês (uma página menor que o limit é a última) com o amount como texto
 //   - POST /financial-entries recusa campos fora do DTO (400) e devolve o
 //     lançamento com o amount como Decimal serializado ("180")
 //   - POST com um id já usado e outros dados responde 409
@@ -173,4 +176,69 @@ test('stops waiting for a save after 20 s, as a network failure the form can ret
   } finally {
     jest.useRealTimers();
   }
+});
+
+describe('fetchFinancialEntries', () => {
+  const AUGUST = { period: { month: 8, year: 2026 }, scope: 'all' } as const;
+
+  it('asks for one page of the month with the id token', async () => {
+    respond(200, []);
+
+    await fetchFinancialEntries(ID_TOKEN, AUGUST, 2);
+
+    const { url, init, headers } = sentRequest();
+    expect(init.method).toBe('GET');
+    expect(url.pathname).toBe('/financial-entries');
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      month: '8',
+      year: '2026',
+      page: '2',
+      limit: '50',
+    });
+    expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
+  });
+
+  it('sends the chosen scope and leaves it out for "all"', async () => {
+    respond(200, []);
+
+    await fetchFinancialEntries(ID_TOKEN, { ...AUGUST, scope: 'PERSONAL' }, 1);
+    await fetchFinancialEntries(ID_TOKEN, AUGUST, 1);
+
+    expect(sentRequest(0).url.searchParams.get('scope')).toBe('PERSONAL');
+    expect(sentRequest(1).url.searchParams.has('scope')).toBe(false);
+  });
+
+  it('turns the amount text into a number and keeps the rest', async () => {
+    respond(200, [
+      {
+        id: 'entry-1',
+        nature: 'INCOME',
+        description: 'Orquiectomia – Mel',
+        category: {
+          id: 'cat-fees',
+          name: 'Professional fees',
+          scope: 'PROFESSIONAL',
+        },
+        scope: 'PROFESSIONAL',
+        amount: '620',
+        accrualDate: '2026-08-17T12:00:00.000Z',
+        source: 'APPOINTMENT',
+        origin: { type: 'APPOINTMENT', id: 'appointment-1' },
+      },
+    ]);
+
+    const [entry] = await fetchFinancialEntries(ID_TOKEN, AUGUST, 1);
+
+    expect(entry.amount).toBe(620);
+    expect(entry.source).toBe('APPOINTMENT');
+    expect(entry.origin).toEqual({ type: 'APPOINTMENT', id: 'appointment-1' });
+  });
+
+  it('passes the API error through', async () => {
+    respond(401, { code: 'TOKEN_EXPIRED', message: 'expired' });
+
+    await expect(fetchFinancialEntries(ID_TOKEN, AUGUST, 1)).rejects.toThrow(
+      ApiError,
+    );
+  });
 });
