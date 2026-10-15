@@ -64,3 +64,16 @@ test('can carry a title and a pill action for the first record', async () => {
 
   expect(onPress).toHaveBeenCalledTimes(1);
 });
+
+test('lets the caller restyle the message, keeping its alignment', async () => {
+  const renderer = await render({
+    message: 'Registre uma entrada ou saída',
+    messageClassName: 'text-[13px] text-label-placeholder',
+  });
+
+  const message = renderer.root.findByType(Text);
+  expect(message.props.className).toContain('text-center');
+  expect(message.props.className).toContain(
+    'text-[13px] text-label-placeholder',
+  );
+});

@@ -42,6 +42,7 @@ type EmptyStateProps = VariantProps<typeof emptyStateVariants> & {
   iconClassName?: string;
   title?: string;
   message: string;
+  messageClassName?: string;
   action?: EmptyStateAction;
   className?: string;
 };
@@ -51,6 +52,7 @@ function EmptyState({
   iconClassName,
   title,
   message,
+  messageClassName,
   action,
   align,
   className,
@@ -71,7 +73,7 @@ function EmptyState({
       ) : null}
       <Text
         variant={align === 'start' ? 'default' : 'muted'}
-        className={emptyStateMessageVariants({ align })}
+        className={cn(emptyStateMessageVariants({ align }), messageClassName)}
       >
         {message}
       </Text>
