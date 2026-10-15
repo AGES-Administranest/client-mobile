@@ -1,12 +1,12 @@
 import { Check } from 'lucide-react-native';
 import { View } from 'react-native';
 
+import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 
 import { ClinicFields, type ClinicFieldTexts } from './ClinicFields';
-import { ClinicSheet } from './ClinicSheet';
 import type { ClinicDraft, ClinicField } from '../domain/clinicForm';
 
 type NewClinicSheetProps = {
@@ -41,7 +41,7 @@ function NewClinicSheet({
   onClose,
 }: NewClinicSheetProps) {
   return (
-    <ClinicSheet
+    <BottomSheet
       visible={visible}
       title={title}
       closeLabel={closeLabel}
@@ -76,7 +76,7 @@ function NewClinicSheet({
         fieldTexts={fieldTexts}
         onChangeField={onChangeField}
       />
-    </ClinicSheet>
+    </BottomSheet>
   );
 }
 

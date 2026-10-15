@@ -43,7 +43,8 @@ Observed scale (screen → smallest label):
 | Style | Size (approx.) | Weight | Case | Color | Used for |
 | --- | --- | --- | --- | --- | --- |
 | Screen title | ~24px | Bold | Normal | primary | Pet name ("Mel") |
-| Section title | ~17–18px | Semibold/Bold | Normal | primary | "Orquiectomia", bottom-sheet titles |
+| Section title | ~17–18px | Semibold/Bold | Normal | primary | "Orquiectomia" |
+| Bottom-sheet title | 16px (`text-base`, 24px line) | Bold | Normal | primary | "Novo atendimento", "Novo lançamento manual" (read from Figma) |
 | Eyebrow / field label | ~11px | Bold | UPPERCASE, letter-spaced | tertiary | "IDADE", "PESO", "MATERIAIS USADOS", "DESLOCAMENTO" |
 | Card value (emphasis) | ~20–22px | Bold | Normal | primary | "3 anos", "R$ 620", "1.5h" |
 | Body / paragraph | ~14px | Regular | Normal | primary/tertiary | Item names, subtitles ("1 un. × R$ 19.90") |
@@ -56,11 +57,11 @@ Observed scale (screen → smallest label):
 
 - **Screen padding:** ~16px horizontal, consistent across all sections.
 - **Vertical rhythm:** ~12–16px gap between sections/cards.
-- **Card radius:** large, ~16–20px (`rounded-2xl`) on every white card and the bottom sheet's top corners.
+- **Card radius:** large, ~16–20px (`rounded-2xl`) on every white card. The bottom sheet's top corners are 20px (`rounded-t-[20px]`, read from Figma).
 - **Pill buttons:** fully rounded (`rounded-full`) — every primary action button ("Confirmar", "+ Adicionar", "Novo insumo") and the icon-only FAB use this, never a small/medium radius.
 - **Inputs:** ~12px radius (`rounded-xl`), 1px `border-border-primary`, no fill (transparent/white), placeholder in `label-placeholder`.
 - **List rows:** no card border between items, just a 1px bottom divider (`border-border-primary`) inside a single card container — not one card per row.
-- **Bottom sheet:** rounded top corners only, small centered drag-handle bar at the top, thin divider under the title, primary CTA pinned full-width at the bottom.
+- **Bottom sheet:** rounded top corners only, a centered 36×4 drag handle (`h-1 w-9`, `bg-border-primary`) at the top, a 1px `border-primary` divider under the title, primary CTA pinned full-width at the bottom.
 
 ## 5. Component inventory
 
@@ -75,8 +76,10 @@ Cross-referenced against what already exists in [`src/app/components/ui`](./src/
 | **SectionHeader** | Eyebrow label (left) + trailing text-link action (right) — "MATERIAIS USADOS" / "+ Adicionar", "DESLOCAMENTO" / "Cancelar" | Still ad hoc per-section rows in `AppointmentDetailScreen`/`TravelSection` — worth extracting if a third screen needs the same pattern |
 | **ListRow (dismissible)** | Title + subtitle on the left, price + small `×` remove button on the right, divider below | Implemented as `SupplyList` in `features/procedures/components` |
 | **EmptyState (inline)** | Dashed/soft box, centered muted text ("Nenhum deslocamento registrado") | Exists — `empty-state.tsx` (icon + centered muted message), used by Materials, Clinics, Partners, stock entry and notifications; `TravelSection` (`features/procedures/components`) still has its own inline box. The icon is optional and `align="start"` drops the centering: a left-aligned message in `text-label-primary`, used by `PricingOnboarding` (`features/pricing/components`) for the hourly calculator's initial state — a white `rounded-2xl` card with "Preencha os campos para que os valores sejam calculados", no icon and no button, at the bottom where the result will go |
-| **BottomSheet / Modal** | Drag handle, title, divider, scrollable list, pinned CTA — used for 3 of the 5 screen variants seen | Check if `@rn-primitives` already ships a sheet primitive before building one from scratch |
+| **BottomSheet / Modal** | Drag handle, title (header role), divider, a body that scrolls only when it overflows, optional pinned footer; labelled backdrop, drag down to close, keyboard-aware — used for 3 of the 5 screen variants seen | Exists — `bottom-sheet.tsx` (`useSheetAnimation` + RN `Modal` + `KeyboardAvoidingView`; content goes in `children`, actions in `footer`), used by finance and clinics. `@rn-primitives` has no sheet. `ConfirmSheet`, `OptionsModal`, `item-modal`, `OutputAdjustmentModal`, `EquipmentFormSheet`, `StockEntryModal` and the procedures/stock sheets (`CancelAppointmentSheet`, `EditAmountSheet`, `RescheduleAppointmentSheet`, `ProcedureFormSheet`, `SupplySelectorSheet`) still carry their own copy — move them onto it when touched |
 | **Search-select field (autocomplete)** | Eyebrow label (left) + text-link "Novo tomador" (right) above a regular input; typing shows an inline white `rounded-xl` result list right under it (max 5 rows, hairline dividers), or a one-line muted status ("Buscando…", "Nenhum tomador encontrado", red on error). The list is filtered locally as you type (case- and accent-insensitive); picking a row fills the input with its name | Exists as `ClientAutocomplete` in `features/clients/components` — client-specific for now; move to `app/components/ui` once a second feature needs a search-select |
+| **Choice toggle (single choice)** | Equal-width options in a row: the selected one filled `bg-button-primary` with light text; optional leading icon (↑ Entrada / ↓ Saída). Figma draws the unselected ones as white tiles with a soft shadow and no border | `Choice` in `features/finance/components/EntryFormFields` (h-10, `rounded-[10px]`, white + shadow) and `Segment` in `features/procedures/components/ProcedureFormSheet` (py-3, `rounded-xl`, white + border) — two features hold it now; candidate for `app/components/ui` |
+| **Category chip grid** | One-of-many picker: three chips per row (`w-[31.5%]`, h-11, `rounded-[10px]`, 12px medium label, up to two lines); selected chip filled brown, the others white tiles with a soft shadow | `CategoryChoices` in `features/finance/components/EntryFormFields` (new entry form, US03) |
 | **Text** | Central place for the typography scale above (title/eyebrow/body/price variants) | Exists (`text.tsx`) — extend its variants to cover "eyebrow" and "price" if not already there |
 
 **Stock entry (US10) compositions**, in `features/stockEntry/components` until a second feature needs them: `FullScreenModal` (slide-in `Modal` over the background gradient), `ScreenHeader` (back chevron + title), `NoticeBanner` (alert / warning / info, with an optional pill action), `FormField` (eyebrow label + `rounded-xl` input; read-only without `onChangeText`), `MenuOption` (icon circle, title, caption, chevron), `CatalogOption` (list row with hairline divider), `AttentionCounter`, `ReviewLineCard`, `EntryCard` (a pending entry: title, meta, total, a status pill — yellow (`details-tertiary`) when ready, lavender (`details-primary`) while processing, red outline when failed, gray outline otherwise — and text-link actions) and `SaveStatusBar` (the draft's autosave state, with a retry link when it fails).
@@ -123,6 +126,8 @@ The Figma frame contains 5 states of the same screen — useful as the acceptanc
 - **Any "add" flow opens a bottom sheet**, never a full-screen navigation — consistent with this app having no stack navigator today (`src/app/App.tsx` currently only switches tabs), so a sheet/modal is the natural primitive to add rather than introducing new screens for CRUD-style flows.
 - **Negative monetary values are red** (`alert-primary`), positive/neutral bold values are black (`label-primary`) — don't invent a second "success green". The same red marks a blocking state (a stock entry line that cannot go into stock as it is); a state that only needs checking is yellow (`details-tertiary`).
 - **A review or detail that fills the screen** opens as a `Modal` with `animationType="slide"` and a back chevron (appointment detail, stock entry review), since there is no stack navigator. Adding or editing a record from inside it is still a bottom sheet.
+- **A success notice goes away by itself** 3 s after it appears ("Atualização salva" in the stock history, "Lançamento salvo." in finance), or as soon as the next action starts.
+- **Errors reach screen readers.** A field error is also the field's `accessibilityHint` (on each option, for a field made of choice buttons), so it is read together with the field. A form-level failure, such as a save that did not go through, is spoken with `AccessibilityInfo.announceForAccessibility` when it appears — VoiceOver and TalkBack do not read new text on their own — and its box keeps `accessibilityLiveRegion="polite"` (Android) and `role="alert"` (web).
 
 ## 9. Open questions for a follow-up pass
 
