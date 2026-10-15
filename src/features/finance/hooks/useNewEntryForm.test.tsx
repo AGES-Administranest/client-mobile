@@ -305,8 +305,8 @@ test('a category the API refuses is cleared and the list is fetched again', asyn
 
 test.each([
   [
-    new ApiError('Taken', 'FINANCIAL_ENTRY_ID_CONFLICT', 409),
-    'financialEntries.form.failures.idConflict',
+    new ApiError('Not found', 'FINANCIAL_ENTRY_NOT_FOUND', 404),
+    'financialEntries.form.failures.unknown',
   ],
   [
     new ApiError('Expired', 'TOKEN_EXPIRED', 401),
@@ -325,6 +325,36 @@ test.each([
 
   expect(current.failure).toBe(key);
   expect(current.isSaving).toBe(false);
+});
+
+test('a retry after an edit keeps the id, so the earlier attempt is updated instead of duplicated', async () => {
+  await mount();
+  await fillValidExpense();
+  createMock.mockRejectedValueOnce(new TypeError('Network request failed'));
+  await submit();
+
+  await act(async () => current.setField('amount', '25000'));
+  await expect(submit()).resolves.toEqual(CREATED);
+
+  const [first, second] = createMock.mock.calls.map(([, payload]) => payload);
+  expect(second.id).toBe(first.id);
+  expect(second.amount).toBe(250);
+});
+
+test('an id the API no longer knows is replaced, so the next try can save', async () => {
+  await mount();
+  await fillValidExpense();
+  createMock.mockRejectedValueOnce(
+    new ApiError('Not found', 'FINANCIAL_ENTRY_NOT_FOUND', 404),
+  );
+  await submit();
+
+  expect(current.failure).toBe('financialEntries.form.failures.unknown');
+  await expect(submit()).resolves.toEqual(CREATED);
+  const [first, second] = createMock.mock.calls.map(
+    ([, payload]) => payload.id,
+  );
+  expect(second).not.toBe(first);
 });
 
 test('the next entry gets a new id', async () => {
