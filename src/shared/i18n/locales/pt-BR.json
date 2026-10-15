@@ -679,7 +679,35 @@
       }
     },
     "saved": "Lançamento salvo.",
-    "stockWriteOffSaved": "Baixa registrada."
+    "stockWriteOffSaved": "Baixa registrada.",
+    "statement": {
+      "scopes": {
+        "all": "Todos",
+        "professional": "Profissional",
+        "personal": "Pessoal"
+      },
+      "scopeFilterLabel": "Filtrar lançamentos por escopo",
+      "automatic": "automático",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
+      "loading": "Carregando lançamentos…",
+      "loadingMore": "Carregando mais lançamentos…",
+      "empty": {
+        "title": "Nenhum lançamento neste mês",
+        "description": "Registre uma entrada ou saída para acompanhar o seu saldo.",
+        "action": "Novo lançamento"
+      },
+      "noResults": {
+        "professional": "Nenhum lançamento profissional neste mês.",
+        "personal": "Nenhum lançamento pessoal neste mês."
+      },
+      "failures": {
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "network": "Sem conexão. Tente de novo quando a internet voltar.",
+        "unknown": "Não foi possível carregar os lançamentos."
+      },
+      "retry": "Tentar novamente",
+      "loadMoreFailure": "Não foi possível carregar mais lançamentos."
+    }
   },
   "tabbar": {
     "day": "Dia-Dia",
