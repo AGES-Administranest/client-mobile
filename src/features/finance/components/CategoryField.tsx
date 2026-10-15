@@ -64,8 +64,8 @@ function listStatus(
   return options.length > 0 ? 'results' : 'empty';
 }
 
-// VoiceOver e TalkBack não leem sozinhos o que muda na tela: só o resultado
-// vazio e a categoria criada são anunciados, para não falar a cada tecla.
+// VoiceOver e TalkBack não leem sozinhos o que muda na tela. Nada é anunciado
+// a cada tecla: só o resultado vazio, a categoria criada e as falhas.
 function useAnnouncement(shouldAnnounce: boolean, message: string) {
   useEffect(() => {
     if (shouldAnnounce) {
@@ -93,8 +93,10 @@ export function CategoryField({
   onChangeNewName,
   onCreate,
 }: CategoryFieldProps) {
-  useAnnouncement(hasNoMatch, texts.noResults);
+  useAnnouncement(status === 'ready' && hasNoMatch, texts.noResults);
   useAnnouncement(wasJustCreated, texts.created);
+  useAnnouncement(status === 'failed', loadFailure ?? '');
+  useAnnouncement(Boolean(newCategory?.failure), newCategory?.failure ?? '');
 
   return (
     <View className="gap-2">
@@ -182,6 +184,7 @@ function NewCategoryRow({
           placeholderTextColor={LabelPlaceholder}
           selectionColor={LabelPrimary}
           value={input.name}
+          editable={!input.isSaving}
           autoFocus
           autoCapitalize="sentences"
           returnKeyType="done"

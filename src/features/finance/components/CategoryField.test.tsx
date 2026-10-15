@@ -237,6 +237,7 @@ describe('new category row', () => {
       disabled: true,
       busy: true,
     });
+    expect(inputs(renderer)[1].props.editable).toBe(false);
     await act(async () => inputs(renderer)[1].props.onSubmitEditing());
     expect(props.onCreate).not.toHaveBeenCalled();
   });
@@ -284,5 +285,45 @@ describe('screen reader announcements', () => {
     await render({ wasJustCreated: true });
 
     expect(announce).toHaveBeenCalledWith('Categoria criada.');
+  });
+
+  test.each<CategoryFieldProps['status']>(['loading', 'failed'])(
+    'does not say nothing was found while the list is %p',
+    async status => {
+      await render({
+        status,
+        loadFailure: status === 'failed' ? 'Sem conexão.' : null,
+        options: [],
+        hasNoMatch: true,
+        text: 'Co',
+      });
+
+      expect(announce).not.toHaveBeenCalledWith(
+        'Nenhuma categoria encontrada.',
+      );
+    },
+  );
+
+  test('announces why the categories did not load', async () => {
+    await render({
+      status: 'failed',
+      loadFailure: 'Sem conexão.',
+      options: [],
+    });
+
+    expect(announce).toHaveBeenCalledWith('Sem conexão.');
+  });
+
+  test('announces a failed create', async () => {
+    await render({
+      newCategory: {
+        ...NEW_CATEGORY,
+        failure: 'Não foi possível criar a categoria. Tente de novo.',
+      },
+    });
+
+    expect(announce).toHaveBeenCalledWith(
+      'Não foi possível criar a categoria. Tente de novo.',
+    );
   });
 });
