@@ -242,6 +242,26 @@ test('reports what went wrong, out loud too, and keeps the form open on failure'
   expect(modal.some(node => node.props.visible === true)).toBe(true);
 });
 
+test('announces the same failure again when saving fails again', async () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => {});
+  const renderer = await mountOpen();
+
+  await fillValidAdjustment(renderer);
+  await act(async () => {
+    byLabel(renderer, 'Quantidade').props.onChangeText('9');
+  });
+  await save(renderer);
+  await save(renderer);
+
+  expect(announce.mock.calls).toEqual([
+    ['Quantidade maior que o saldo disponível (8).'],
+    ['Quantidade maior que o saldo disponível (8).'],
+  ]);
+  announce.mockRestore();
+});
+
 test('starts empty every time it opens', async () => {
   const renderer = await mountOpen();
 

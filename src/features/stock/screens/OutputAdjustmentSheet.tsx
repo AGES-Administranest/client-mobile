@@ -59,11 +59,12 @@ export function OutputAdjustmentSheet({
     : null;
 
   // Um aviso que aparece não é lido sozinho pelo VoiceOver nem pelo TalkBack.
+  // Cada falha é um objeto novo: a mesma falha duas vezes seguidas também é lida.
   useEffect(() => {
     if (failureMessage) {
       AccessibilityInfo.announceForAccessibility(failureMessage);
     }
-  }, [failureMessage]);
+  }, [adjustment.failure, failureMessage]);
 
   const submitAdjustment = async () => {
     const saved = await adjustment.submit();
