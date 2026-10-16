@@ -6,6 +6,14 @@ const FAILURE_KEYS: Record<string, TranslationKey> = {
   FINANCIAL_CATEGORY_INVALID: 'financialEntries.form.failures.categoryInvalid',
 };
 
+// Só a edição e a exclusão chegam a um lançamento que já existe: na criação,
+// o 404 vem do PATCH de recuperação do 409 e não quer dizer "foi apagado".
+const SAVED_ENTRY_FAILURE_KEYS: Record<string, TranslationKey> = {
+  FINANCIAL_ENTRY_NOT_FOUND: 'financialEntries.detail.failures.notFound',
+  FINANCIAL_ENTRY_CONTROLLED_BY_ORIGIN:
+    'financialEntries.detail.failures.controlledByOrigin',
+};
+
 export function requireToken(idToken: string | null): string {
   if (!idToken) {
     throw new ApiError('No active session', 'UNAUTHENTICATED', 401);
@@ -22,6 +30,13 @@ export function isCategoryInvalidError(error: unknown): boolean {
 export function isEntryNotFoundError(error: unknown): boolean {
   return (
     error instanceof ApiError && error.code === 'FINANCIAL_ENTRY_NOT_FOUND'
+  );
+}
+
+export function isDeleteViaOriginError(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    error.code === 'FINANCIAL_ENTRY_DELETE_VIA_ORIGIN'
   );
 }
 
@@ -58,4 +73,21 @@ export function toStatementFailureKey(error: unknown): TranslationKey {
     return 'financialEntries.statement.failures.network';
   }
   return 'financialEntries.statement.failures.unknown';
+}
+
+export function toEditFailureKey(error: unknown): TranslationKey {
+  const code = error instanceof ApiError ? error.code : undefined;
+  return (code && SAVED_ENTRY_FAILURE_KEYS[code]) || toEntryFailureKey(error);
+}
+
+export function toDeleteFailureKey(error: unknown): TranslationKey {
+  const code = error instanceof ApiError ? error.code : undefined;
+  if (code && SAVED_ENTRY_FAILURE_KEYS[code]) {
+    return SAVED_ENTRY_FAILURE_KEYS[code];
+  }
+  const key = toEntryFailureKey(error);
+  return key === 'financialEntries.form.failures.session' ||
+    key === 'financialEntries.form.failures.network'
+    ? key
+    : 'financialEntries.detail.failures.delete';
 }
