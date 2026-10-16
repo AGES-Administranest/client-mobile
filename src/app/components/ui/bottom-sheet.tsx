@@ -28,6 +28,12 @@ type BottomSheetProps = {
   onClose: () => void;
   /** iOS: abra o próximo sheet aqui, não no onClose. */
   onClosed?: () => void;
+  /**
+   * No lugar do título padrão, para quem precisa de mais (selo, subtítulo).
+   * Deve trazer o próprio `accessibilityRole="header"`; `title` continua
+   * nomeando o diálogo.
+   */
+  header?: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
 };
@@ -38,6 +44,7 @@ function BottomSheet({
   closeLabel,
   onClose,
   onClosed,
+  header,
   footer,
   children,
 }: BottomSheetProps) {
@@ -84,12 +91,14 @@ function BottomSheet({
           <View className="shrink gap-4 rounded-t-[20px] bg-background-modal px-5 pb-8 pt-4">
             <View className="h-1 w-9 self-center rounded-full bg-border-primary" />
 
-            <Text
-              accessibilityRole="header"
-              className="text-base font-bold text-label-primary"
-            >
-              {title}
-            </Text>
+            {header ?? (
+              <Text
+                accessibilityRole="header"
+                className="text-base font-bold text-label-primary"
+              >
+                {title}
+              </Text>
+            )}
 
             <View className="h-px bg-border-primary" />
 

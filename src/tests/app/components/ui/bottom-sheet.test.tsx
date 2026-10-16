@@ -122,3 +122,29 @@ test('does not report a close when it mounts closed', async () => {
 
   expect(onClosed).not.toHaveBeenCalled();
 });
+
+test('a custom header takes the place of the title, which still names the dialog', async () => {
+  let renderer: Renderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <BottomSheet
+          visible
+          title="Combustível"
+          closeLabel="Fechar"
+          onClose={jest.fn()}
+          header={
+            <Text accessibilityRole="header">Combustível · Automático</Text>
+          }
+        >
+          <Text>Descrição</Text>
+        </BottomSheet>
+      </SafeAreaProvider>,
+    );
+  });
+
+  expect(headerTexts(renderer!)).toEqual(['Combustível · Automático']);
+  expect(renderer!.root.findByType(Modal).props['aria-label']).toBe(
+    'Combustível',
+  );
+});
