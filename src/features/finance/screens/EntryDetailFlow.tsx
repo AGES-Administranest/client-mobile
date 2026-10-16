@@ -170,7 +170,14 @@ export function EntryDetailFlow({
       onChanged();
       leave('done');
     } else if (outcome === 'viaOrigin') {
-      leave('blockedDelete');
+      // O extrato estava desatualizado: o lançamento é automático. Sem origem
+      // conhecida não há aviso para mostrar, então o extrato é recarregado.
+      if (originKey) {
+        leave('blockedDelete');
+      } else {
+        onChanged();
+        leave('done');
+      }
     }
   };
 

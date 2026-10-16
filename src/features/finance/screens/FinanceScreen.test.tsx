@@ -6,6 +6,7 @@ import { EmptyState } from 'app/components/ui/empty-state';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { StockSyncProvider } from 'features/stock';
 import { I18nProvider } from 'shared/i18n';
+import { ApiError } from 'shared/services/apiClient';
 
 import { FinanceScreen } from './FinanceScreen';
 import type { FinancialEntry } from '../domain/financialEntry';
@@ -627,6 +628,21 @@ describe('entry detail', () => {
       ]),
     );
     expect(fetchEntriesMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('a stale statement that showed an automatic entry as manual just reloads', async () => {
+    deleteMock.mockRejectedValue(
+      new ApiError('Via origin', 'FINANCIAL_ENTRY_DELETE_VIA_ORIGIN', 409),
+    );
+    const renderer = await renderScreen();
+    await openRow(renderer, 'Combustível');
+    await pressByText(renderer, 'Excluir');
+
+    await pressByText(renderer, 'Excluir');
+
+    expect(fetchEntriesMock).toHaveBeenCalledTimes(2);
+    expect(textsOf(renderer)).not.toContain('Excluir este lançamento?');
+    expect(textsOf(renderer)).not.toContain('Saída · Lançamento manual');
   });
 
   test('cancelling the delete goes back to the entry', async () => {
