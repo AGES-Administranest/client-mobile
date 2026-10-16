@@ -546,6 +546,18 @@ describe('entry detail', () => {
     expect(textsOf(renderer)).not.toContain('Editar lançamento');
   });
 
+  test('saving an edit without changes goes back without reloading', async () => {
+    const renderer = await renderScreen();
+    await openRow(renderer, 'Combustível');
+    await pressByText(renderer, 'Editar');
+
+    await pressByText(renderer, 'Salvar');
+
+    expect(updateMock).not.toHaveBeenCalled();
+    expect(fetchEntriesMock).toHaveBeenCalledTimes(1);
+    expect(textsOf(renderer)).toContain('Saída · Lançamento manual');
+  });
+
   test('cancelling an edit with changes asks first, and discarding keeps the entry as it was', async () => {
     const renderer = await renderScreen();
     await openRow(renderer, 'Combustível');

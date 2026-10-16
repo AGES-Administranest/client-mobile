@@ -183,11 +183,14 @@ export function EntryDetailFlow({
   };
 
   const finishEditing = (updated: FinancialEntry) => {
-    setShown(updated);
-    AccessibilityInfo.announceForAccessibility(
-      t('financialEntries.detail.updated'),
-    );
-    onChanged();
+    // Salvar sem mudar nada não chega ao backend e devolve o mesmo lançamento.
+    if (updated !== shown) {
+      setShown(updated);
+      AccessibilityInfo.announceForAccessibility(
+        t('financialEntries.detail.updated'),
+      );
+      onChanged();
+    }
     leave('detail');
   };
 
