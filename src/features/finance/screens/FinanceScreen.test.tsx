@@ -491,6 +491,10 @@ describe('entry detail', () => {
     return act(async () => row.props.onPress());
   }
 
+  // Exclusão e aviso aparecem no meio da tela, não subindo de baixo.
+  const isDialogOpen = (renderer: ReactTestRenderer.ReactTestRenderer) =>
+    renderer.root.findAll(node => node.props.role === 'alertdialog').length > 0;
+
   const hasInput = (
     renderer: ReactTestRenderer.ReactTestRenderer,
     label: string,
@@ -604,6 +608,7 @@ describe('entry detail', () => {
       ]),
     );
     expect(deleteMock).not.toHaveBeenCalled();
+    expect(isDialogOpen(renderer)).toBe(true);
 
     await pressByText(renderer, 'Excluir');
 
@@ -698,6 +703,7 @@ describe('entry detail', () => {
       ]),
     );
     expect(deleteMock).not.toHaveBeenCalled();
+    expect(isDialogOpen(renderer)).toBe(true);
 
     await pressByText(renderer, 'Abrir procedimento');
     expect(textsOf(renderer)).toContain('Atendimento appointment-1');

@@ -1,6 +1,7 @@
 import {
   ArrowDown,
   ArrowUp,
+  CircleAlert,
   ClipboardList,
   Trash2,
   X,
@@ -8,7 +9,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
-import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { ConfirmDialog } from 'app/components/ui/confirm-dialog';
 import { AppointmentDetailScreen } from 'features/procedures';
 import { useTranslation } from 'shared/i18n';
 
@@ -253,8 +254,9 @@ export function EntryDetailFlow({
         onEntryGone={markGone}
       />
 
-      <ConfirmSheet
+      <ConfirmDialog
         visible={step === 'confirmDelete'}
+        icon={Trash2}
         title={t('financialEntries.detail.deleteConfirm.title')}
         message={t(
           deleter.failure ?? 'financialEntries.detail.deleteConfirm.message',
@@ -272,8 +274,10 @@ export function EntryDetailFlow({
       />
 
       {originKey ? (
-        <ConfirmSheet
+        <ConfirmDialog
           visible={step === 'blockedDelete'}
+          icon={CircleAlert}
+          tone="neutral"
           title={t('financialEntries.detail.deleteBlocked.title')}
           message={t(`financialEntries.detail.deleteBlocked.${originKey}`, {
             description: shown.description,
