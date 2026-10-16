@@ -43,6 +43,11 @@ export type CreateFinancialEntryPayload = {
   scope: EntryScope;
 };
 
+/** Só o que mudou: um campo ausente fica como está no backend. */
+export type UpdateFinancialEntryPayload = Partial<
+  Omit<CreateFinancialEntryPayload, 'id'>
+>;
+
 export function toFinancialEntry(
   response: FinancialEntryResponse,
 ): FinancialEntry {
