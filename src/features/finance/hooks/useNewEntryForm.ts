@@ -9,20 +9,25 @@ import {
   isEntryNotFoundError,
   requireToken,
   toCategoriesFailureKey,
+  toEditFailureKey,
   toEntryFailureKey,
 } from './entryFailure';
 import {
   changeNature,
   createEmptyDraft,
+  draftFromEntry,
+  hasDraftChanges,
   isEntryDraftValid,
   maskEntryField,
   selectCategory,
   toCreatePayload,
+  toUpdatePayload,
   validateEntryDraft,
   type EntryDraft,
   type EntryDraftErrors,
   type EntryTextField,
 } from '../domain/entryForm';
+import { lockedFieldsOf, type LockedEntryField } from '../domain/entryOrigin';
 import { categoriesFor } from '../domain/financialCategory';
 import type {
   EntryNature,
@@ -33,6 +38,7 @@ import type {
 import {
   createFinancialEntry,
   fetchFinancialCategories,
+  updateFinancialEntry,
 } from '../services/financialEntryService';
 
 export type CategoriesStatus = 'loading' | 'ready' | 'failed';
@@ -41,17 +47,23 @@ export type NewEntryFormState = {
   draft: EntryDraft;
   errors: EntryDraftErrors;
   failure: TranslationKey | null;
+  /** A edição chegou a um lançamento que não existe mais (404). */
+  entryIsGone: boolean;
   isSaving: boolean;
   canSubmit: boolean;
   categories: FinancialCategory[];
   categoriesStatus: CategoriesStatus;
   categoriesFailure: TranslationKey | null;
+  editedEntry: FinancialEntry | null;
+  hasChanges: boolean;
+  lockedFields: readonly LockedEntryField[];
   setNature: (nature: EntryNature) => void;
   setField: (field: EntryTextField, value: string) => void;
   chooseCategory: (category: FinancialCategory) => void;
   setScope: (scope: EntryScope) => void;
   reloadCategories: () => void;
   startNewEntry: () => void;
+  startEditing: (entry: FinancialEntry) => void;
   submit: () => Promise<FinancialEntry | null>;
 };
 
@@ -63,6 +75,8 @@ export function useNewEntryForm(): NewEntryFormState {
   );
   const [hasTriedToSave, setHasTriedToSave] = useState(false);
   const [failure, setFailure] = useState<TranslationKey | null>(null);
+  const [entryIsGone, setEntryIsGone] = useState(false);
+  const [editedEntry, setEditedEntry] = useState<FinancialEntry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [allCategories, setAllCategories] = useState<FinancialCategory[]>([]);
   const [categoriesStatus, setCategoriesStatus] =
@@ -122,16 +136,29 @@ export function useNewEntryForm(): NewEntryFormState {
     [draft.nature, allCategories],
   );
 
-  const setNature = useCallback((nature: EntryNature) => {
-    setDraft(current => changeNature(current, nature));
-  }, []);
+  const lockedFields = useMemo(
+    () => (editedEntry ? lockedFieldsOf(editedEntry) : []),
+    [editedEntry],
+  );
 
-  const setField = useCallback((field: EntryTextField, value: string) => {
-    setDraft(current => ({
-      ...current,
-      [field]: maskEntryField(field, value),
-    }));
-  }, []);
+  const setNature = useCallback(
+    (nature: EntryNature) => {
+      if (lockedFields.includes('nature')) return;
+      setDraft(current => changeNature(current, nature));
+    },
+    [lockedFields],
+  );
+
+  const setField = useCallback(
+    (field: EntryTextField, value: string) => {
+      if (field !== 'description' && lockedFields.includes(field)) return;
+      setDraft(current => ({
+        ...current,
+        [field]: maskEntryField(field, value),
+      }));
+    },
+    [lockedFields],
+  );
 
   const chooseCategory = useCallback((category: FinancialCategory) => {
     setDraft(current => selectCategory(current, category));
@@ -150,18 +177,34 @@ export function useNewEntryForm(): NewEntryFormState {
     reloadCategories();
   }, [reloadCategories]);
 
+  const restart = useCallback(
+    (startingDraft: EntryDraft, entry: FinancialEntry | null) => {
+      formGeneration.current += 1;
+      isSending.current = false;
+      entryId.current = randomUUID();
+      setEditedEntry(entry);
+      setDraft(startingDraft);
+      setHasTriedToSave(false);
+      setFailure(null);
+      setEntryIsGone(false);
+      setIsSaving(false);
+      if (lastCategoriesLoadFailed.current) {
+        reloadCategories();
+      }
+    },
+    [reloadCategories],
+  );
+
   const startNewEntry = useCallback(() => {
-    formGeneration.current += 1;
-    isSending.current = false;
-    entryId.current = randomUUID();
-    setDraft(createEmptyDraft(new Date()));
-    setHasTriedToSave(false);
-    setFailure(null);
-    setIsSaving(false);
-    if (lastCategoriesLoadFailed.current) {
-      reloadCategories();
-    }
-  }, [reloadCategories]);
+    restart(createEmptyDraft(new Date()), null);
+  }, [restart]);
+
+  const startEditing = useCallback(
+    (entry: FinancialEntry) => {
+      restart(draftFromEntry(entry), entry);
+    },
+    [restart],
+  );
 
   const submit = useCallback(async () => {
     // Dois toques antes do próximo render não podem mandar dois POSTs.
@@ -181,6 +224,14 @@ export function useNewEntryForm(): NewEntryFormState {
     isSending.current = true;
     setIsSaving(true);
     try {
+      if (editedEntry) {
+        if (!hasDraftChanges(draft, editedEntry)) return editedEntry;
+        return await updateFinancialEntry(
+          requireToken(idToken),
+          editedEntry.id,
+          toUpdatePayload(draft, editedEntry),
+        );
+      }
       return await createFinancialEntry(
         requireToken(idToken),
         toCreatePayload(draft, entryId.current ?? randomUUID()),
@@ -188,6 +239,11 @@ export function useNewEntryForm(): NewEntryFormState {
     } catch (error) {
       if (!isCurrent()) return null;
       if (isCategoryInvalidError(error)) forgetRejectedCategory();
+      if (editedEntry) {
+        setEntryIsGone(isEntryNotFoundError(error));
+        setFailure(toEditFailureKey(error));
+        return null;
+      }
       // O id ficou preso a um lançamento apagado ou de outra conta: tentar de
       // novo com ele daria o mesmo erro para sempre.
       if (isEntryNotFoundError(error)) entryId.current = randomUUID();
@@ -199,23 +255,28 @@ export function useNewEntryForm(): NewEntryFormState {
         setIsSaving(false);
       }
     }
-  }, [draft, idToken, forgetRejectedCategory]);
+  }, [draft, editedEntry, idToken, forgetRejectedCategory]);
 
   return {
     draft,
     errors,
     failure,
+    entryIsGone,
     isSaving,
     canSubmit: !isSaving && isEntryDraftValid(errors),
     categories,
     categoriesStatus,
     categoriesFailure,
+    editedEntry,
+    hasChanges: editedEntry ? hasDraftChanges(draft, editedEntry) : false,
+    lockedFields,
     setNature,
     setField,
     chooseCategory,
     setScope,
     reloadCategories,
     startNewEntry,
+    startEditing,
     submit,
   };
 }
