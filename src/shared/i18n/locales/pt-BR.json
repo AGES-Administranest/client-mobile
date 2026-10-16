@@ -1055,5 +1055,15 @@
         "save": "Não foi possível salvar as metas. Tente novamente."
       }
     }
+  },
+  "deleteOrigin": {
+    "effectsLabel": "Ao excluir:",
+    "effects": {
+      "financialEntry": "O lançamento dele sai do extrato de Finanças.",
+      "suppliesReturn": "Os materiais usados voltam para o estoque.",
+      "stockRemoval": "Os itens da nota saem do estoque.",
+      "documentRemoval": "O documento e o arquivo são apagados.",
+      "historyRemoval": "O atendimento sai da agenda e do histórico."
+    }
   }
 }

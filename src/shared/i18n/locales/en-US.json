@@ -1055,5 +1055,15 @@
         "save": "Could not save your goals. Please try again."
       }
     }
+  },
+  "deleteOrigin": {
+    "effectsLabel": "When you delete it:",
+    "effects": {
+      "financialEntry": "Its entry leaves the Finance statement.",
+      "suppliesReturn": "The supplies used go back to the stock.",
+      "stockRemoval": "The order's items leave the stock.",
+      "documentRemoval": "The document and its file are deleted.",
+      "historyRemoval": "The appointment leaves the schedule and the history."
+    }
   }
 }
