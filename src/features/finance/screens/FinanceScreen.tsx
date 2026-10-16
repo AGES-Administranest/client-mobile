@@ -10,6 +10,7 @@ import { CalculatorScreen } from 'features/calculator';
 import { MovementHistoryScreen } from 'features/stock';
 import { useTranslation } from 'shared/i18n';
 
+import { EntryDetailFlow } from './EntryDetailFlow';
 import { NewEntryFlow } from './NewEntryFlow';
 import { FinanceHeader } from '../components/FinanceHeader';
 import { ScopeFilter } from '../components/ScopeFilter';
@@ -42,6 +43,7 @@ export function FinanceScreen() {
   const [period] = useState(() => currentPeriod(new Date()));
   const statement = useFinancialStatement({ period, scope });
   const [stockHistoryHeight, setStockHistoryHeight] = useState(0);
+  const [openEntry, setOpenEntry] = useState<FinancialEntry | null>(null);
 
   const categoryLabel = (category: FinancialEntry['category']) => {
     const key = defaultCategoryKey(category);
@@ -151,6 +153,11 @@ export function FinanceScreen() {
                 onRetry={statement.reload}
                 onRetryLoadMore={statement.retryLoadMore}
                 onCreatePress={openOptions}
+                onItemPress={id =>
+                  setOpenEntry(
+                    statement.entries.find(entry => entry.id === id) ?? null,
+                  )
+                }
               />
             </View>
           )}
@@ -163,6 +170,11 @@ export function FinanceScreen() {
           <MovementHistoryScreen embedded />
         </View>
       </ScrollView>
+      <EntryDetailFlow
+        entry={openEntry}
+        onChanged={statement.reload}
+        onFinished={() => setOpenEntry(null)}
+      />
       <CalculatorScreen
         visible={calculatorVisible}
         onClose={() => setCalculatorVisible(false)}
