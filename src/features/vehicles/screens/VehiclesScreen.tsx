@@ -238,7 +238,7 @@ export function VehiclesScreen({
           </View>
         ) : vehicleList.length === 0 && vehiclesHook.error ? (
           <View className="flex-1 items-center justify-center gap-3 px-4">
-            <Text className="text-center text-sm text-label-secondary">
+            <Text className="text-center text-sm text-label-tertiary">
               {t('vehicles.loadFailed')}
             </Text>
             <Button
