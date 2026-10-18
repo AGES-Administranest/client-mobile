@@ -36,25 +36,6 @@ describe('validateProcedureForm', () => {
     ).toBeUndefined();
   });
 
-  it('limita nome do paciente e procedimento ao limite da API', () => {
-    expect(
-      validateProcedureForm({ ...valid, patientName: 'a'.repeat(161) })
-        .patientName,
-    ).toBe('NAME_TOO_LONG');
-    expect(
-      validateProcedureForm({ ...valid, procedureName: 'a'.repeat(161) })
-        .procedureName,
-    ).toBe('NAME_TOO_LONG');
-    expect(
-      validateProcedureForm({ ...valid, patientName: 'a'.repeat(160) })
-        .patientName,
-    ).toBeUndefined();
-    expect(
-      validateProcedureForm({ ...valid, procedureName: 'a'.repeat(160) })
-        .procedureName,
-    ).toBeUndefined();
-  });
-
   it.each([
     ['620,555', 'MAX_2_DECIMALS'],
     ['620.555', 'MAX_2_DECIMALS'],

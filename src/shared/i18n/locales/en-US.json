@@ -806,7 +806,6 @@
       "IN_THE_PAST": "Pick a future date and time",
       "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
       "SELECT_CLIENT": "Pick a clinic from the list",
-      "NAME_TOO_LONG": "At most 160 characters",
       "TOO_LONG": "At most 2000 characters"
     },
     "clientSearch": {
