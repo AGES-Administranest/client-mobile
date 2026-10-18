@@ -15,7 +15,7 @@ export function validateAmountInput(raw: string): AmountFieldError | null {
   if (amount === null) {
     return 'INVALID_NUMBER';
   }
-  if (amount <= 0) {
+  if (amount < 0) {
     return 'MUST_BE_POSITIVE';
   }
   if (decimalPlaces(raw) > 2) {

@@ -1080,7 +1080,7 @@
         "errors": {
           "REQUIRED": "Informe o valor.",
           "INVALID_NUMBER": "Informe um valor válido, como 350,00.",
-          "MUST_BE_POSITIVE": "O valor deve ser maior que zero.",
+          "MUST_BE_POSITIVE": "O valor não pode ser negativo.",
           "MAX_2_DECIMALS": "Use no máximo 2 casas decimais.",
           "FAILED": "Não foi possível salvar o valor. Tente novamente."
         }

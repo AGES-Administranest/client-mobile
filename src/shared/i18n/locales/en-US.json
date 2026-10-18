@@ -1080,7 +1080,7 @@
         "errors": {
           "REQUIRED": "Enter the amount.",
           "INVALID_NUMBER": "Enter a valid amount, like 350.00.",
-          "MUST_BE_POSITIVE": "The amount must be greater than zero.",
+          "MUST_BE_POSITIVE": "The amount cannot be negative.",
           "MAX_2_DECIMALS": "Use at most 2 decimal places.",
           "FAILED": "Could not save the amount. Try again."
         }

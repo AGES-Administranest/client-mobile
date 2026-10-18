@@ -149,13 +149,13 @@ describe('validateProcedureForm', () => {
     ).toBeUndefined();
   });
 
-  it('valor "0,5" é válido e "0,00" deve ser maior que zero', () => {
+  it('valor "0,5" e "0,00" são válidos', () => {
     expect(
       validateProcedureForm({ ...valid, amount: '0,5' }).amount,
     ).toBeUndefined();
-    expect(validateProcedureForm({ ...valid, amount: '0,00' }).amount).toBe(
-      'MUST_BE_POSITIVE',
-    );
+    expect(
+      validateProcedureForm({ ...valid, amount: '0,00' }).amount,
+    ).toBeUndefined();
   });
 
   it('idade não numérica é inválida', () => {
@@ -179,7 +179,7 @@ describe('validateProcedureForm', () => {
     ).toBe('AGE_OUT_OF_RANGE');
   });
 
-  it.each(['-5', '0'])('valor "%s" deve ser maior que zero', amount => {
+  it.each(['-5', '-0,01'])('valor "%s" não pode ser negativo', amount => {
     expect(validateProcedureForm({ ...valid, amount }).amount).toBe(
       'MUST_BE_POSITIVE',
     );
