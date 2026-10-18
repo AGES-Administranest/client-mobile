@@ -53,7 +53,7 @@ const category = (
   name: string,
   nature: FinancialCategory['nature'],
   defaultScope: FinancialCategory['defaultScope'] = 'PROFESSIONAL',
-): FinancialCategory => ({ id, name, nature, defaultScope });
+): FinancialCategory => ({ id, name, nature, defaultScope, isDefault: true });
 
 const CATEGORIES: FinancialCategory[] = [
   category('cat-other-out', 'Other', 'EXPENSE'),
@@ -207,6 +207,30 @@ test('choosing a category suggests its scope, and the scope can still change', a
 
   await act(async () => current.setScope('PROFESSIONAL'));
   expect(current.draft.scope).toBe('PROFESSIONAL');
+});
+
+test('a category created in the form joins the list and is chosen with its scope', async () => {
+  await mount();
+  const food = {
+    ...category('cat-food', 'Comida', 'EXPENSE', 'PERSONAL'),
+    isDefault: false,
+  };
+
+  await act(async () => current.addCategory(food));
+
+  expect(current.categories.map(c => c.id)).toContain('cat-food');
+  expect(current.draft.categoryId).toBe('cat-food');
+  expect(current.draft.scope).toBe('PERSONAL');
+});
+
+test('clearing the category keeps the rest of the draft', async () => {
+  await mount();
+  await fillValidExpense();
+
+  await act(async () => current.clearCategory());
+
+  expect(current.draft.categoryId).toBeNull();
+  expect(current.draft.description).toBe('Combustível');
 });
 
 test('shows no errors until the first save, then blocks saving until they are fixed', async () => {

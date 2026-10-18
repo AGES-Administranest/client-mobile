@@ -1,10 +1,7 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import {
-  EntryFormFields,
-  type CategoriesState,
-  type EntryFormTexts,
-} from './EntryFormFields';
+import type { CategoryFieldState } from './CategoryField';
+import { EntryFormFields, type EntryFormTexts } from './EntryFormFields';
 import type { EntryDraft } from '../domain/entryForm';
 
 const TEXTS: EntryFormTexts = {
@@ -14,9 +11,14 @@ const TEXTS: EntryFormTexts = {
   date: { label: 'Data', placeholder: 'dd/mm/aaaa' },
   category: {
     label: 'Categoria',
+    placeholder: 'Digite o nome da categoria',
     loading: 'Carregando categorias…',
     retry: 'Tentar de novo',
-    empty: 'Nenhuma categoria para esse tipo.',
+    noResults: 'Nenhuma categoria encontrada.',
+    created: 'Categoria criada.',
+    add: 'Adicionar Categoria',
+    newPlaceholder: 'Digite o nome da nova categoria',
+    create: 'Criar categoria',
   },
   scope: {
     label: 'Escopo',
@@ -35,12 +37,25 @@ const DRAFT: EntryDraft = {
   scope: 'PROFESSIONAL',
 };
 
-const READY: CategoriesState = {
+const CATEGORY: CategoryFieldState = {
   status: 'ready',
+  loadFailure: null,
+  text: 'Deslocamento',
   options: [
     { id: 'cat-supplies', label: 'Insumos' },
     { id: 'cat-travel', label: 'Deslocamento' },
   ],
+  selectedId: 'cat-travel',
+  offersNewCategory: false,
+  hasNoMatch: false,
+  wasJustCreated: false,
+  newCategory: null,
+  onChangeText: jest.fn(),
+  onSelect: jest.fn(),
+  onRetry: jest.fn(),
+  onStartNewCategory: jest.fn(),
+  onChangeNewName: jest.fn(),
+  onCreate: jest.fn(),
 };
 
 async function render(
@@ -50,12 +65,10 @@ async function render(
     draft: DRAFT,
     fieldErrors: {},
     texts: TEXTS,
-    categories: READY,
+    category: CATEGORY,
     onChangeNature: jest.fn(),
     onChangeField: jest.fn(),
-    onSelectCategory: jest.fn(),
     onChangeScope: jest.fn(),
-    onRetryCategories: jest.fn(),
     ...overrides,
   };
   let renderer: ReactTestRenderer.ReactTestRenderer;
@@ -103,25 +116,22 @@ test('shows every field of the Figma form, in order', async () => {
     'Valor (R$)',
     'Data',
     'Categoria',
-    'Insumos',
-    'Deslocamento',
     'Escopo',
     'Profissional',
     'Pessoal',
     'Sugerido pela categoria. Você pode alterar.',
   ]);
   expect(input(renderer, 'Data').props.value).toBe('09/10/2026');
+  expect(input(renderer, 'Categoria').props.value).toBe('Deslocamento');
 });
 
-test('marks the chosen type, category and scope as selected', async () => {
+test('marks the chosen type and scope as selected', async () => {
   const { renderer } = await render();
 
   const selected = (label: string) =>
     pressable(renderer, label).props.accessibilityState.selected;
   expect(selected('Saída')).toBe(true);
   expect(selected('Entrada')).toBe(false);
-  expect(selected('Deslocamento')).toBe(true);
-  expect(selected('Insumos')).toBe(false);
   expect(selected('Profissional')).toBe(true);
   expect(selected('Pessoal')).toBe(false);
 });
@@ -140,7 +150,7 @@ test('reports each choice and each typed value', async () => {
 
   await act(() => {
     pressable(renderer, 'Entrada').props.onPress();
-    pressable(renderer, 'Insumos').props.onPress();
+    input(renderer, 'Categoria').props.onChangeText('Insu');
     pressable(renderer, 'Pessoal').props.onPress();
     input(renderer, 'Descrição').props.onChangeText('Combustível');
     input(renderer, 'Valor (R$)').props.onChangeText('18000');
@@ -148,7 +158,7 @@ test('reports each choice and each typed value', async () => {
   });
 
   expect(props.onChangeNature).toHaveBeenCalledWith('INCOME');
-  expect(props.onSelectCategory).toHaveBeenCalledWith('cat-supplies');
+  expect(CATEGORY.onChangeText).toHaveBeenCalledWith('Insu');
   expect(props.onChangeScope).toHaveBeenCalledWith('PERSONAL');
   expect(props.onChangeField).toHaveBeenCalledWith(
     'description',
@@ -186,8 +196,6 @@ test('shows each field error right under its own field', async () => {
     'Data',
     'Data inválida.',
     'Categoria',
-    'Insumos',
-    'Deslocamento',
     'Selecione uma categoria.',
     'Escopo',
     'Profissional',
@@ -208,39 +216,7 @@ test('ties each field error to its input, so a screen reader reads both together
     'Informe uma descrição.',
   );
   expect(input(renderer, 'Valor (R$)').props.accessibilityHint).toBeUndefined();
-  expect(pressable(renderer, 'Insumos').props.accessibilityHint).toBe(
+  expect(input(renderer, 'Categoria').props.accessibilityHint).toBe(
     'Selecione uma categoria.',
   );
-});
-
-test.each<[CategoriesState, string]>([
-  [{ status: 'loading' }, 'Carregando categorias…'],
-  [{ status: 'ready', options: [] }, 'Nenhuma categoria para esse tipo.'],
-])('explains the category list state %p', async (categories, message) => {
-  const { renderer } = await render({ categories });
-
-  expect(texts(renderer)).toContain(message);
-});
-
-test('a failed category load says why and can be retried', async () => {
-  const { renderer, props } = await render({
-    categories: { status: 'failed', message: 'Sem conexão.' },
-  });
-
-  expect(texts(renderer)).toContain('Sem conexão.');
-  await act(() => pressable(renderer, 'Tentar de novo').props.onPress());
-  expect(props.onRetryCategories).toHaveBeenCalledTimes(1);
-});
-
-test('the retry link is brown, like the other text links', async () => {
-  const { renderer } = await render({
-    categories: { status: 'failed', message: 'Sem conexão.' },
-  });
-
-  const link = renderer.root.find(
-    node =>
-      node.type === ('Text' as never) &&
-      node.props.children === 'Tentar de novo',
-  );
-  expect(link.props.className).toContain('text-label-quartenery');
 });

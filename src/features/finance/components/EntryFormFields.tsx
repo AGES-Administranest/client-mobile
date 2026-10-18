@@ -11,6 +11,11 @@ import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import { LabelPlaceholder, LabelPrimary } from 'theme/colors';
 
+import {
+  CategoryField,
+  type CategoryFieldState,
+  type CategoryFieldTexts,
+} from './CategoryField';
 import type {
   EntryDraft,
   EntryField,
@@ -23,7 +28,7 @@ export type EntryFormTexts = {
   description: { label: string; placeholder: string };
   amount: { label: string; placeholder: string };
   date: { label: string; placeholder: string };
-  category: { label: string; loading: string; retry: string; empty: string };
+  category: CategoryFieldTexts;
   scope: {
     label: string;
     professional: string;
@@ -32,23 +37,14 @@ export type EntryFormTexts = {
   };
 };
 
-export type CategoryOption = { id: string; label: string };
-
-export type CategoriesState =
-  | { status: 'loading' }
-  | { status: 'failed'; message: string }
-  | { status: 'ready'; options: CategoryOption[] };
-
 type EntryFormFieldsProps = {
   draft: EntryDraft;
   fieldErrors: Partial<Record<EntryField, string>>;
   texts: EntryFormTexts;
-  categories: CategoriesState;
+  category: CategoryFieldState;
   onChangeNature: (nature: EntryNature) => void;
   onChangeField: (field: EntryTextField, value: string) => void;
-  onSelectCategory: (categoryId: string) => void;
   onChangeScope: (scope: EntryScope) => void;
-  onRetryCategories: () => void;
 };
 
 const UNSELECTED_TILE = 'bg-white shadow-[0px_5px_5px_rgba(0,0,0,0.1)]';
@@ -152,81 +148,14 @@ function EntryInput({
   );
 }
 
-function CategoryChoices({
-  state,
-  selectedId,
-  error,
-  texts,
-  onSelect,
-  onRetry,
-}: {
-  state: CategoriesState;
-  selectedId: string | null;
-  error?: string;
-  texts: EntryFormTexts['category'];
-  onSelect: (id: string) => void;
-  onRetry: () => void;
-}) {
-  if (state.status === 'loading') {
-    return <Text className="text-sm text-label-tertiary">{texts.loading}</Text>;
-  }
-  if (state.status === 'failed') {
-    return (
-      <View className="flex-row flex-wrap items-center gap-x-2 gap-y-1">
-        <Text className="text-sm text-alert-primary">{state.message}</Text>
-        <Pressable accessibilityRole="button" onPress={onRetry} hitSlop={8}>
-          <Text className="text-sm font-semibold text-label-quartenery underline">
-            {texts.retry}
-          </Text>
-        </Pressable>
-      </View>
-    );
-  }
-  if (state.options.length === 0) {
-    return <Text className="text-sm text-label-tertiary">{texts.empty}</Text>;
-  }
-  return (
-    <View className="flex-row flex-wrap gap-2">
-      {state.options.map(option => {
-        const selected = option.id === selectedId;
-        return (
-          <Pressable
-            key={option.id}
-            accessibilityRole="button"
-            accessibilityState={{ selected }}
-            accessibilityHint={error}
-            onPress={() => onSelect(option.id)}
-            className={cn(
-              'h-11 w-[31.5%] items-center justify-center rounded-[10px] px-0.5',
-              selected ? 'bg-button-primary' : UNSELECTED_TILE,
-            )}
-          >
-            <Text
-              numberOfLines={2}
-              className={cn(
-                'text-center text-[12px] font-medium',
-                selected ? 'text-label-secondary' : 'text-label-primary',
-              )}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 export function EntryFormFields({
   draft,
   fieldErrors,
   texts,
-  categories,
+  category,
   onChangeNature,
   onChangeField,
-  onSelectCategory,
   onChangeScope,
-  onRetryCategories,
 }: EntryFormFieldsProps) {
   return (
     <>
@@ -282,18 +211,11 @@ export function EntryFormFields({
         />
       </View>
 
-      <View className="gap-2">
-        <Label>{texts.category.label}</Label>
-        <CategoryChoices
-          state={categories}
-          selectedId={draft.categoryId}
-          error={fieldErrors.categoryId}
-          texts={texts.category}
-          onSelect={onSelectCategory}
-          onRetry={onRetryCategories}
-        />
-        <FieldError message={fieldErrors.categoryId} />
-      </View>
+      <CategoryField
+        {...category}
+        texts={texts.category}
+        error={fieldErrors.categoryId}
+      />
 
       <View className="gap-2">
         <Label>{texts.scope.label}</Label>
