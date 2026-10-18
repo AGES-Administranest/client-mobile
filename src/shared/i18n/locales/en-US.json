@@ -6,7 +6,25 @@
   },
   "finance": {
     "title": "Finance",
-    "openCalculator": "Open hourly rate calculator"
+    "openCalculator": "Open hourly rate calculator",
+    "entryOptionsLabel": "Open entry options",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "currentMonth": "Current month",
+    "netBalance": "Net balance",
+    "revenue": "Revenue",
+    "professional": "Prof.",
+    "personal": "Personal",
+    "productivityAndFixedCosts": "Productivity and fixed costs",
+    "hoursWorked": "Hours worked",
+    "hoursValue": "{{hours}}h",
+    "thisMonth": "this month",
+    "averageHourly": "Average hourly",
+    "grossPerHour": "gross/hour",
+    "equipmentDepreciation": "Equipment depreciation",
+    "equipmentMonthlyCost": "{{count}} items · monthly cost",
+    "perMonth": "/month",
+    "overviewError": "Could not load the finance summary."
   },
   "calculator": {
     "title": "Hourly rate calculator",
@@ -458,14 +476,14 @@
         }
       },
       "quantity": "{{quantity}} {{unit}}",
-      "newEntry": "New entry",
-      "savedMessage": "Update saved"
+      "newEntry": "New entry"
     },
     "outputAdjustment": {
       "title": "Stock output adjustment",
       "close": "Close",
       "itemLabel": "Item",
       "itemPlaceholder": "Select the item",
+      "noItems": "No items in stock to write off.",
       "quantityLabel": "Quantity",
       "quantityPlaceholder": "0",
       "reasonLabel": "Reason",
@@ -597,6 +615,187 @@
       "delete": "Delete"
     },
     "loadFailure": "Could not load the clinics."
+  },
+  "financialEntries": {
+    "newEntry": "New entry",
+    "options": {
+      "title": "New entry",
+      "descriptionWithStockWriteOff": "Upload the invoice or order as a PDF, fill it in by hand or write off a stock item",
+      "sendDocument": "Upload document (PDF)",
+      "manual": "Manual entry",
+      "stockWriteOff": "Stock write-off"
+    },
+    "documentSoon": {
+      "title": "PDF upload coming soon",
+      "message": "For now, record the income or the expense with a manual entry.",
+      "ok": "Got it"
+    },
+    "categories": {
+      "professionalFees": "Professional fees",
+      "supplies": "Supplies",
+      "travel": "Travel",
+      "taxesAndFees": "Taxes and fees",
+      "fixedCosts": "Fixed costs",
+      "other": "Other"
+    },
+    "form": {
+      "title": "New manual entry",
+      "close": "Close",
+      "nature": {
+        "label": "Type",
+        "income": "Income",
+        "expense": "Expense"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "E.g. Electricity bill"
+      },
+      "amount": {
+        "label": "Amount (R$)",
+        "placeholder": "0.00"
+      },
+      "date": {
+        "label": "Date",
+        "placeholder": "dd/mm/yyyy"
+      },
+      "category": {
+        "label": "Category",
+        "loading": "Loading categories…",
+        "retry": "Try again"
+      },
+      "scope": {
+        "label": "Scope",
+        "professional": "Professional",
+        "personal": "Personal",
+        "hint": "Suggested by the category. You can change it."
+      },
+      "save": "Save",
+      "saving": "Saving…",
+      "errors": {
+        "description": {
+          "required": "Enter a description.",
+          "tooLong": "Use at most 500 characters."
+        },
+        "amount": {
+          "required": "Enter the amount.",
+          "invalid": "Enter a valid amount.",
+          "notPositive": "Enter an amount greater than zero."
+        },
+        "date": {
+          "required": "Enter the date.",
+          "invalid": "Invalid date."
+        },
+        "categoryId": {
+          "required": "Choose a category."
+        }
+      },
+      "failures": {
+        "session": "Your session has expired. Sign out and sign in again.",
+        "categoryInvalid": "This category is no longer available. Choose another one.",
+        "network": "No connection. Try again when you are back online.",
+        "unknown": "Could not save the entry. Try again.",
+        "categories": "Could not load the categories."
+      }
+    },
+    "categoryField": {
+      "placeholder": "Type the category name",
+      "add": "Add category",
+      "newPlaceholder": "Type the new category name",
+      "create": "Create category",
+      "noResults": "No categories found.",
+      "created": "Category created.",
+      "createFailed": "Could not create the category. Try again.",
+      "errors": {
+        "tooLong": "Use up to 40 characters."
+      }
+    },
+    "saved": "Entry saved.",
+    "statement": {
+      "scopes": {
+        "all": "All",
+        "professional": "Professional",
+        "personal": "Personal"
+      },
+      "scopeFilterLabel": "Filter entries by scope",
+      "automatic": "automatic",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
+      "loading": "Loading entries…",
+      "loadingMore": "Loading more entries…",
+      "empty": {
+        "title": "No entries this month",
+        "description": "Record an income or an expense to follow your balance.",
+        "action": "New entry"
+      },
+      "noResults": {
+        "professional": "No professional entries this month.",
+        "personal": "No personal entries this month."
+      },
+      "failures": {
+        "session": "Your session has expired. Sign out and sign in again.",
+        "network": "No connection. Try again when you are back online.",
+        "unknown": "Could not load the entries."
+      },
+      "retry": "Try again",
+      "loadMoreFailure": "Couldn't load more entries."
+    },
+    "detail": {
+      "close": "Close",
+      "automatic": "Automatic",
+      "subtitle": "{{origin}}",
+      "origins": {
+        "manual": "Manual entry",
+        "appointment": "Created by the procedure",
+        "serviceInvoice": "Created by the service invoice",
+        "purchaseInvoice": "Created by the purchase order",
+        "trip": "Created by the trip"
+      },
+      "lockedHint": {
+        "appointment": "Type, amount and date come from the procedure. Fix them at the origin.",
+        "serviceInvoice": "Type, amount and date come from the service invoice. Fix them at the origin.",
+        "purchaseInvoice": "Type, amount and date come from the purchase order. Fix them at the origin.",
+        "trip": "Type, amount and date come from the trip. Fix them at the origin."
+      },
+      "field": "{{label}}: {{value}}",
+      "lockedField": "{{label}}: {{value}}, set by the origin",
+      "openOrigin": {
+        "appointment": "Open procedure",
+        "serviceInvoice": "Open service invoice",
+        "purchaseInvoice": "Open purchase order",
+        "trip": "Open trip"
+      },
+      "originUnavailable": "This origin has no screen in the app yet.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit entry",
+      "cancel": "Cancel",
+      "discard": {
+        "message": "Discard your changes?",
+        "confirm": "Discard",
+        "keep": "Keep editing"
+      },
+      "deleteConfirm": {
+        "title": "Delete this entry?",
+        "message": "It leaves the statement and this cannot be undone.",
+        "confirm": "Delete",
+        "confirming": "Deleting…",
+        "cancel": "Cancel"
+      },
+      "deleteBlocked": {
+        "title": "It can't be deleted here",
+        "appointment": "This entry was created by the procedure {{description}}. To delete it, delete the procedure — the appointment also leaves the history.",
+        "serviceInvoice": "This entry was created by the service invoice {{description}}. To delete it, delete the invoice — its document and file are deleted too.",
+        "purchaseInvoice": "This entry was created by the purchase order {{description}}. To delete it, delete the order — its items also leave the stock.",
+        "trip": "This entry was created by the trip {{description}}. To delete it, delete the trip.",
+        "close": "Close"
+      },
+      "updated": "Entry updated.",
+      "deleted": "Entry deleted.",
+      "failures": {
+        "notFound": "This entry no longer exists. The statement was refreshed.",
+        "controlledByOrigin": "Type, amount and date of this entry come from its origin and can't be changed here.",
+        "delete": "Could not delete the entry. Try again."
+      }
+    }
   },
   "tabbar": {
     "day": "Day-to-Day",
@@ -1062,6 +1261,16 @@
       "failures": {
         "save": "Could not save your goals. Please try again."
       }
+    }
+  },
+  "deleteOrigin": {
+    "effectsLabel": "When you delete it:",
+    "effects": {
+      "financialEntry": "Its entry leaves the Finance statement.",
+      "suppliesReturn": "The supplies used go back to the stock.",
+      "stockRemoval": "The order's items leave the stock.",
+      "documentRemoval": "The document and its file are deleted.",
+      "historyRemoval": "The appointment leaves the schedule and the history."
     }
   }
 }

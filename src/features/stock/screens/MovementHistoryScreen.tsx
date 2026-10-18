@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,19 +9,18 @@ import { useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services';
 import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
 
+import { OutputAdjustmentSheet } from './OutputAdjustmentSheet';
 import { MovementFilters } from '../../../app/components/ui/MovementFilters';
 import {
   MovementList,
   type MovementListItem,
 } from '../../../app/components/ui/MovementList';
-import { OutputAdjustmentModal } from '../../../app/components/ui/OutputAdjustmentModal';
 import {
   formatCalendarDate,
   formatMovementDate,
   formatQuantity,
   formatSignedValue,
 } from '../domain/formatMovement';
-import { ADJUSTMENT_REASONS } from '../domain/outputAdjustment';
 import {
   getMovementAppointment,
   getMovementOriginKey,
@@ -30,18 +29,17 @@ import {
 import { useStockSyncState } from '../hooks/StockSyncContext';
 import { useMovementFilters } from '../hooks/useMovementFilters';
 import { useMovementHistory } from '../hooks/useMovementHistory';
-import { useOutputAdjustment } from '../hooks/useOutputAdjustment';
-
-const SAVED_MESSAGE_DURATION_MS = 3000;
 
 type MovementHistoryScreenProps = {
-  savedMessageDurationMs?: number;
   searchDebounceMs?: number;
+  // Dentro da rolagem de Finanças: no iOS uma segunda rolagem vertical segura o
+  // arrasto e a página para de rolar.
+  embedded?: boolean;
 };
 
 export function MovementHistoryScreen({
-  savedMessageDurationMs = SAVED_MESSAGE_DURATION_MS,
   searchDebounceMs,
+  embedded = false,
 }: MovementHistoryScreenProps = {}) {
   const { t, locale } = useTranslation();
   const {
@@ -54,11 +52,10 @@ export function MovementHistoryScreen({
   } = useMovementFilters();
   const { movements, pendingIds, isLoading, hasError, retry } =
     useMovementHistory(filters, searchDebounceMs);
-  const { sync, syncedAt } = useStockSyncState();
+  const { syncedAt, pendingCount } = useStockSyncState();
+  const queuedBefore = useRef(pendingCount);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
-  const [savedAt, setSavedAt] = useState<number | null>(null);
-  const adjustment = useOutputAdjustment();
 
   useEffect(() => onConnectionRestored(retry), [retry]);
 
@@ -71,53 +68,14 @@ export function MovementHistoryScreen({
   }, [syncedAt, retry]);
 
   useEffect(() => {
-    if (savedAt === null) {
-      return;
+    if (pendingCount > queuedBefore.current) {
+      retry();
     }
-
-    const timer = setTimeout(() => setSavedAt(null), savedMessageDurationMs);
-
-    return () => clearTimeout(timer);
-  }, [savedAt, savedMessageDurationMs]);
-
-  const reasonLabels = Object.fromEntries(
-    ADJUSTMENT_REASONS.map(reason => [
-      reason,
-      t(`stock.outputAdjustment.reasons.${reason}`),
-    ]),
-  ) as Record<(typeof ADJUSTMENT_REASONS)[number], string>;
-
-  const errorMessages = {
-    required: t('stock.outputAdjustment.errors.required'),
-    mustBePositive: t('stock.outputAdjustment.errors.mustBePositive'),
-  };
-
-  const failureMessage = adjustment.failure
-    ? t(
-        `stock.outputAdjustment.errors.${adjustment.failure.code}` as
-          | 'stock.outputAdjustment.errors.QUEUE_WRITE_FAILED'
-          | 'stock.outputAdjustment.errors.INSUFFICIENT_STOCK'
-          | 'stock.outputAdjustment.errors.NO_ACCOUNT'
-          | 'stock.outputAdjustment.errors.NO_UNIT_COST',
-        adjustment.failure.params,
-      )
-    : null;
+    queuedBefore.current = pendingCount;
+  }, [pendingCount, retry]);
 
   const openAdjustment = () => {
-    adjustment.reset();
-    setSavedAt(null);
     setIsAdjustmentOpen(true);
-  };
-
-  const submitAdjustment = async () => {
-    const saved = await adjustment.submit();
-
-    if (saved) {
-      setIsAdjustmentOpen(false);
-      setSavedAt(current => (current ?? 0) + 1);
-      retry();
-      sync();
-    }
   };
 
   const periodLabel = (range: CalendarRange) => {
@@ -176,8 +134,14 @@ export function MovementHistoryScreen({
   });
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-background-modal">
-      <ScrollView contentContainerClassName="gap-4 px-4 py-4">
+    <SafeAreaView
+      edges={embedded ? [] : ['top']}
+      className="flex-1 bg-background-modal"
+    >
+      <ScrollView
+        scrollEnabled={!embedded}
+        contentContainerClassName="gap-4 px-4 py-4"
+      >
         <Button
           shape="pill"
           icon={Plus}
@@ -186,14 +150,6 @@ export function MovementHistoryScreen({
         >
           <Text>{t('stock.movementHistory.newEntry')}</Text>
         </Button>
-
-        {savedAt !== null ? (
-          <View className="rounded-xl border border-details-tertiary bg-details-secondary p-3">
-            <Text className="text-sm text-label-primary">
-              {t('stock.movementHistory.savedMessage')}
-            </Text>
-          </View>
-        ) : null}
 
         <View className="gap-1">
           <Text variant="h4">{t('stock.movementHistory.title')}</Text>
@@ -248,34 +204,10 @@ export function MovementHistoryScreen({
         />
       </ScrollView>
 
-      <OutputAdjustmentModal
+      <OutputAdjustmentSheet
         visible={isAdjustmentOpen}
         onClose={() => setIsAdjustmentOpen(false)}
-        onSubmit={submitAdjustment}
-        draft={adjustment.draft}
-        items={adjustment.items}
-        errors={adjustment.errors}
-        isSaving={adjustment.isSaving}
-        needsWrittenReason={adjustment.needsWrittenReason}
-        onItemChange={adjustment.setItemId}
-        onQuantityChange={adjustment.setQuantity}
-        onReasonChange={adjustment.setReason}
-        onOtherReasonChange={adjustment.setOtherReason}
-        title={t('stock.outputAdjustment.title')}
-        itemLabel={t('stock.outputAdjustment.itemLabel')}
-        itemPlaceholder={t('stock.outputAdjustment.itemPlaceholder')}
-        quantityLabel={t('stock.outputAdjustment.quantityLabel')}
-        quantityPlaceholder={t('stock.outputAdjustment.quantityPlaceholder')}
-        reasonLabel={t('stock.outputAdjustment.reasonLabel')}
-        otherReasonLabel={t('stock.outputAdjustment.otherReasonLabel')}
-        otherReasonPlaceholder={t(
-          'stock.outputAdjustment.otherReasonPlaceholder',
-        )}
-        saveLabel={t('stock.outputAdjustment.save')}
-        closeLabel={t('stock.outputAdjustment.close')}
-        failureMessage={failureMessage}
-        reasonLabels={reasonLabels}
-        errorMessages={errorMessages}
+        onSaved={() => setIsAdjustmentOpen(false)}
       />
     </SafeAreaView>
   );

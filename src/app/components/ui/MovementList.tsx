@@ -1,7 +1,8 @@
-import { RotateCw } from 'lucide-react-native';
+import { Inbox, RotateCw } from 'lucide-react-native';
 import { ActivityIndicator, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { EmptyState } from 'app/components/ui/empty-state';
 import {
   MovementCard,
   type MovementCardProps,
@@ -60,9 +61,7 @@ function MovementList({
 
   if (items.length === 0) {
     return (
-      <Text variant="muted" className={cn('py-6 text-center', className)}>
-        {emptyMessage}
-      </Text>
+      <EmptyState icon={Inbox} message={emptyMessage} className={className} />
     );
   }
 
