@@ -220,3 +220,63 @@ test('ties each field error to its input, so a screen reader reads both together
     'Selecione uma categoria.',
   );
 });
+describe('an automatic entry being edited', () => {
+  const LOCKED = {
+    fields: ['nature', 'amount', 'date'] as const,
+    hint: 'Tipo, valor e data vêm do procedimento. Corrija pela origem.',
+    accessibilityLabels: {
+      nature: 'Tipo: Entrada, controlado pela origem',
+      amount: 'Valor (R$): 620,00, controlado pela origem',
+      date: 'Data: 17/08/2026, controlado pela origem',
+    },
+  };
+  const AUTOMATIC: EntryDraft = {
+    ...DRAFT,
+    nature: 'INCOME',
+    description: 'Orquiectomia',
+    amount: '620,00',
+    date: '17/08/2026',
+  };
+
+  test('shows type, amount and date locked, with the reason under them', async () => {
+    const { renderer } = await render({ draft: AUTOMATIC, locked: LOCKED });
+
+    expect(texts(renderer)).toEqual(
+      expect.arrayContaining(['Entrada', '620,00', '17/08/2026', LOCKED.hint]),
+    );
+    expect(
+      renderer.root.findAll(
+        node =>
+          node.props.accessibilityLabel === LOCKED.accessibilityLabels.amount,
+      ),
+    ).not.toHaveLength(0);
+    expect(() => input(renderer, 'Valor (R$)')).toThrow();
+    expect(() => input(renderer, 'Data')).toThrow();
+    expect(() => pressable(renderer, 'Saída')).toThrow();
+  });
+
+  test('keeps description, category and scope editable', async () => {
+    const { renderer, props } = await render({
+      draft: AUTOMATIC,
+      locked: LOCKED,
+    });
+
+    await act(() =>
+      input(renderer, 'Descrição').props.onChangeText('Orquiectomia – Mel'),
+    );
+    await act(() => pressable(renderer, 'Pessoal').props.onPress());
+
+    expect(props.onChangeField).toHaveBeenCalledWith(
+      'description',
+      'Orquiectomia – Mel',
+    );
+    expect(props.onChangeScope).toHaveBeenCalledWith('PERSONAL');
+  });
+
+  test('a manual entry shows no lock and no reason', async () => {
+    const { renderer } = await render();
+
+    expect(texts(renderer)).not.toContain(LOCKED.hint);
+    expect(input(renderer, 'Valor (R$)')).toBeDefined();
+  });
+});

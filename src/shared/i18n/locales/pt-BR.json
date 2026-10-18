@@ -716,6 +716,64 @@
       },
       "retry": "Tentar novamente",
       "loadMoreFailure": "Não foi possível carregar mais lançamentos."
+    },
+    "detail": {
+      "close": "Fechar",
+      "automatic": "Automático",
+      "subtitle": "{{nature}} · {{origin}}",
+      "origins": {
+        "manual": "Lançamento manual",
+        "appointment": "Gerado pelo procedimento",
+        "serviceInvoice": "Gerado pela nota fiscal",
+        "purchaseInvoice": "Gerado pelo pedido de compra",
+        "trip": "Gerado pelo deslocamento"
+      },
+      "lockedHint": {
+        "appointment": "Tipo, valor e data vêm do procedimento. Corrija pela origem.",
+        "serviceInvoice": "Tipo, valor e data vêm da nota fiscal. Corrija pela origem.",
+        "purchaseInvoice": "Tipo, valor e data vêm do pedido de compra. Corrija pela origem.",
+        "trip": "Tipo, valor e data vêm do deslocamento. Corrija pela origem."
+      },
+      "field": "{{label}}: {{value}}",
+      "lockedField": "{{label}}: {{value}}, controlado pela origem",
+      "openOrigin": {
+        "appointment": "Abrir procedimento",
+        "serviceInvoice": "Abrir nota fiscal",
+        "purchaseInvoice": "Abrir pedido de compra",
+        "trip": "Abrir deslocamento"
+      },
+      "originUnavailable": "Essa origem ainda não tem tela no app.",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "editTitle": "Editar lançamento",
+      "cancel": "Cancelar",
+      "discard": {
+        "message": "Descartar as alterações?",
+        "confirm": "Descartar",
+        "keep": "Continuar editando"
+      },
+      "deleteConfirm": {
+        "title": "Excluir este lançamento?",
+        "message": "Ele sai do extrato e essa ação não pode ser desfeita.",
+        "confirm": "Excluir",
+        "confirming": "Excluindo…",
+        "cancel": "Cancelar"
+      },
+      "deleteBlocked": {
+        "title": "Não dá para excluir por aqui",
+        "appointment": "Este lançamento foi gerado pelo procedimento {{description}}. Para excluí-lo, exclua o procedimento — o atendimento também sai do histórico.",
+        "serviceInvoice": "Este lançamento foi gerado pela nota fiscal {{description}}. Para excluí-lo, exclua a nota — o documento e o arquivo também são apagados.",
+        "purchaseInvoice": "Este lançamento foi gerado pelo pedido de compra {{description}}. Para excluí-lo, exclua o pedido — os itens também saem do estoque.",
+        "trip": "Este lançamento foi gerado pelo deslocamento {{description}}. Para excluí-lo, exclua o deslocamento.",
+        "close": "Fechar"
+      },
+      "updated": "Lançamento atualizado.",
+      "deleted": "Lançamento excluído.",
+      "failures": {
+        "notFound": "Este lançamento não existe mais. O extrato foi atualizado.",
+        "controlledByOrigin": "Tipo, valor e data deste lançamento vêm da origem e não mudam por aqui.",
+        "delete": "Não foi possível excluir o lançamento. Tente novamente."
+      }
     }
   },
   "tabbar": {

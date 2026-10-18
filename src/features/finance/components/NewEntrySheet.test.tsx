@@ -169,3 +169,71 @@ test('closes from the dimmed backdrop', async () => {
   );
   expect(props.onClose).toHaveBeenCalledTimes(1);
 });
+
+describe('editing a saved entry', () => {
+  const editActions = (isConfirmingDiscard = false) => ({
+    cancel: 'Cancelar',
+    discard: {
+      message: 'Descartar as alterações?',
+      confirm: 'Descartar',
+      keep: 'Continuar editando',
+    },
+    isConfirmingDiscard,
+    onCancel: jest.fn(),
+    onDiscard: jest.fn(),
+    onKeepEditing: jest.fn(),
+  });
+
+  const button = (
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    label: string,
+  ) =>
+    renderer.root.find(
+      node =>
+        typeof node.props.onPress === 'function' &&
+        node
+          .findAllByType('Text' as never)
+          .some(t => t.props.children === label),
+    );
+
+  test('puts Cancelar next to Salvar', async () => {
+    const actions = editActions();
+    const { renderer } = await render({ editActions: actions });
+
+    expect(textsOf(renderer)).toEqual(
+      expect.arrayContaining(['Cancelar', 'Salvar']),
+    );
+    await act(() => button(renderer, 'Cancelar').props.onPress());
+    expect(actions.onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  test('asks before dropping the changes, and announces the question', async () => {
+    const announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    const actions = editActions(true);
+    const { renderer } = await render({ editActions: actions });
+
+    expect(textsOf(renderer)).toEqual(
+      expect.arrayContaining([
+        'Descartar as alterações?',
+        'Continuar editando',
+        'Descartar',
+      ]),
+    );
+    expect(() => saveButton(renderer)).toThrow();
+    expect(announce).toHaveBeenCalledWith('Descartar as alterações?');
+
+    await act(() => button(renderer, 'Continuar editando').props.onPress());
+    await act(() => button(renderer, 'Descartar').props.onPress());
+    expect(actions.onKeepEditing).toHaveBeenCalledTimes(1);
+    expect(actions.onDiscard).toHaveBeenCalledTimes(1);
+    announce.mockRestore();
+  });
+
+  test('a new entry has only Salvar', async () => {
+    const { renderer } = await render();
+
+    expect(textsOf(renderer)).not.toContain('Cancelar');
+  });
+});

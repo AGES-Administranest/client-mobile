@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
 import { useTranslation } from 'shared/i18n';
 
 import type { CategoryFieldState } from '../components/CategoryField';
-import { NewEntrySheet } from '../components/NewEntrySheet';
+import type { LockedFieldsState } from '../components/EntryFormFields';
+import {
+  NewEntrySheet,
+  type EntryEditActions,
+} from '../components/NewEntrySheet';
 import {
   isEntryDraftValid,
   validateEntryDraft,
@@ -15,16 +19,29 @@ import {
   type LabeledCategory,
 } from '../domain/financialCategory';
 import type { FinancialEntry } from '../domain/financialEntry';
+import { originKeyOf } from '../domain/entryOrigin';
 import { useCategoryPicker } from '../hooks/useCategoryPicker';
 import { useNewEntryForm } from '../hooks/useNewEntryForm';
 
 type NewEntryFormProps = {
   visible: boolean;
+  /** Com um lançamento, o formulário edita esse lançamento em vez de criar. */
+  entry?: FinancialEntry | null;
   onClose: () => void;
+  onClosed?: () => void;
   onSaved: (entry: FinancialEntry) => void;
+  /** A edição descobriu que o lançamento foi apagado em outro lugar. */
+  onEntryGone?: () => void;
 };
 
-export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
+export function NewEntryForm({
+  visible,
+  entry = null,
+  onClose,
+  onClosed,
+  onSaved,
+  onEntryGone,
+}: NewEntryFormProps) {
   const { t } = useTranslation();
   const form = useNewEntryForm();
   const labeledCategories = useMemo<LabeledCategory[]>(
@@ -47,15 +64,29 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
     onUnchoose: form.clearCategory,
     onCreate: form.addCategory,
   });
-  const { startNewEntry } = form;
+  const { startNewEntry, startEditing } = form;
   const { reset: resetPicker } = picker;
+  const [isConfirmingDiscard, setIsConfirmingDiscard] = useState(false);
 
   useEffect(() => {
-    if (visible) {
+    if (!visible) {
+      return;
+    }
+    setIsConfirmingDiscard(false);
+    if (entry) {
+      startEditing(entry);
+    } else {
       startNewEntry();
       resetPicker();
     }
-  }, [visible, startNewEntry, resetPicker]);
+  }, [visible, entry, startNewEntry, startEditing, resetPicker]);
+
+  const { entryIsGone } = form;
+  useEffect(() => {
+    if (entryIsGone) {
+      onEntryGone?.();
+    }
+  }, [entryIsGone, onEntryGone]);
 
   const { newCategory } = picker;
   const category: CategoryFieldState = {
@@ -122,19 +153,71 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
   }, [firstFieldError]);
 
   // Fechado no meio do envio, o sheet não teria onde mostrar a resposta.
+  // Numa edição com alterações, fechar (até pelo fundo ou arrastando) pergunta
+  // antes de jogar fora o que a pessoa digitou.
   const closeUnlessSaving = () => {
-    if (!form.isSaving) {
-      onClose();
+    if (form.isSaving) {
+      return;
     }
+    if (form.editedEntry && form.hasChanges) {
+      setIsConfirmingDiscard(true);
+      return;
+    }
+    onClose();
   };
+
+  const originKey = form.editedEntry ? originKeyOf(form.editedEntry) : null;
+  const natureLabel = t(
+    form.draft.nature === 'INCOME'
+      ? 'financialEntries.form.nature.income'
+      : 'financialEntries.form.nature.expense',
+  );
+  const lockedLabel = (label: string, value: string) =>
+    t('financialEntries.detail.lockedField', { label, value });
+  const locked: LockedFieldsState | null =
+    originKey && form.lockedFields.length > 0
+      ? {
+          fields: form.lockedFields,
+          hint: t(`financialEntries.detail.lockedHint.${originKey}`),
+          accessibilityLabels: {
+            nature: lockedLabel(
+              t('financialEntries.form.nature.label'),
+              natureLabel,
+            ),
+            amount: lockedLabel(
+              t('financialEntries.form.amount.label'),
+              form.draft.amount,
+            ),
+            date: lockedLabel(
+              t('financialEntries.form.date.label'),
+              form.draft.date,
+            ),
+          },
+        }
+      : null;
+
+  const editActions: EntryEditActions | null = form.editedEntry
+    ? {
+        cancel: t('financialEntries.detail.cancel'),
+        discard: {
+          message: t('financialEntries.detail.discard.message'),
+          confirm: t('financialEntries.detail.discard.confirm'),
+          keep: t('financialEntries.detail.discard.keep'),
+        },
+        isConfirmingDiscard,
+        onCancel: closeUnlessSaving,
+        onDiscard: onClose,
+        onKeepEditing: () => setIsConfirmingDiscard(false),
+      }
+    : null;
 
   const save = async () => {
     announceRefusal.current = !isEntryDraftValid(
       validateEntryDraft(form.draft),
     );
-    const entry = await form.submit();
-    if (entry) {
-      onSaved(entry);
+    const saved = await form.submit();
+    if (saved) {
+      onSaved(saved);
     }
   };
 
@@ -142,7 +225,11 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
     <NewEntrySheet
       visible={visible}
       texts={{
-        title: t('financialEntries.form.title'),
+        title: t(
+          entry
+            ? 'financialEntries.detail.editTitle'
+            : 'financialEntries.form.title',
+        ),
         close: t('financialEntries.form.close'),
         save: t('financialEntries.form.save'),
         saving: t('financialEntries.form.saving'),
@@ -189,11 +276,14 @@ export function NewEntryForm({ visible, onClose, onSaved }: NewEntryFormProps) {
       failureMessage={form.failure ? t(form.failure) : null}
       isSaving={form.isSaving}
       canSubmit={form.canSubmit}
+      locked={locked}
+      editActions={editActions}
       onChangeNature={form.setNature}
       onChangeField={form.setField}
       onChangeScope={form.setScope}
       onSubmit={save}
       onClose={closeUnlessSaving}
+      onClosed={onClosed}
     />
   );
 }

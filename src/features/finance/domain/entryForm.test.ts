@@ -2,14 +2,17 @@ import {
   DESCRIPTION_MAX_LENGTH,
   changeNature,
   createEmptyDraft,
+  draftFromEntry,
+  hasDraftChanges,
   isEntryDraftValid,
   maskEntryField,
   selectCategory,
   toCreatePayload,
+  toUpdatePayload,
   validateEntryDraft,
   type EntryDraft,
 } from './entryForm';
-import type { FinancialCategory } from './financialEntry';
+import type { FinancialCategory, FinancialEntry } from './financialEntry';
 
 const TRAVEL: FinancialCategory = {
   id: 'cat-travel',
@@ -161,4 +164,102 @@ test('builds the payload the API expects', () => {
 
 test('refuses to build a payload from an invalid draft', () => {
   expect(() => toCreatePayload({ ...VALID, amount: '' }, 'entry-1')).toThrow();
+});
+
+const SAVED: FinancialEntry = {
+  id: 'entry-1',
+  nature: 'EXPENSE',
+  description: 'Combustível',
+  category: { id: 'cat-travel', name: 'Travel', scope: 'PROFESSIONAL' },
+  scope: 'PROFESSIONAL',
+  amount: 180,
+  accrualDate: '2026-08-09T12:00:00.000Z',
+  source: 'MANUAL',
+  origin: { type: 'MANUAL', id: null },
+};
+
+const FROM_APPOINTMENT: FinancialEntry = {
+  ...SAVED,
+  nature: 'INCOME',
+  description: 'Orquiectomia',
+  category: {
+    id: 'cat-fees',
+    name: 'Professional fees',
+    scope: 'PROFESSIONAL',
+  },
+  amount: 620,
+  accrualDate: '2026-08-17T13:30:00.000Z',
+  source: 'APPOINTMENT',
+  origin: { type: 'APPOINTMENT', id: 'apt-1' },
+};
+
+describe('editing a saved entry', () => {
+  test('fills the form with the saved entry', () => {
+    expect(draftFromEntry(SAVED)).toEqual(VALID);
+  });
+
+  test.each([
+    [0.5, '0,50'],
+    [1234.56, '1.234,56'],
+    [250, '250,00'],
+  ])('shows the amount %p as %p', (amount, masked) => {
+    expect(draftFromEntry({ ...SAVED, amount }).amount).toBe(masked);
+  });
+
+  test('has no changes until a field differs from the saved entry', () => {
+    expect(hasDraftChanges(VALID, SAVED)).toBe(false);
+    expect(
+      hasDraftChanges({ ...VALID, description: ' Combustível ' }, SAVED),
+    ).toBe(false);
+    expect(hasDraftChanges({ ...VALID, scope: 'PERSONAL' }, SAVED)).toBe(true);
+  });
+
+  test('sends only the fields that changed', () => {
+    expect(
+      toUpdatePayload(
+        { ...VALID, description: ' Gasolina ', amount: '200,00' },
+        SAVED,
+      ),
+    ).toEqual({ description: 'Gasolina', amount: 200 });
+  });
+
+  test('sends nothing when nothing changed', () => {
+    expect(toUpdatePayload(VALID, SAVED)).toEqual({});
+  });
+
+  test('sends a new date at noon UTC, like a new entry', () => {
+    expect(toUpdatePayload({ ...VALID, date: '10/08/2026' }, SAVED)).toEqual({
+      accrualDate: '2026-08-10T12:00:00.000Z',
+    });
+  });
+
+  test('sends the new type together with a category of that type', () => {
+    expect(
+      toUpdatePayload(
+        { ...VALID, nature: 'INCOME', categoryId: 'cat-fees' },
+        SAVED,
+      ),
+    ).toEqual({ nature: 'INCOME', categoryId: 'cat-fees' });
+  });
+
+  test('never sends type, amount or date of an automatic entry', () => {
+    const draft = {
+      ...draftFromEntry(FROM_APPOINTMENT),
+      nature: 'EXPENSE' as const,
+      amount: '1,00',
+      date: '01/01/2026',
+      description: 'Orquiectomia – Mel',
+      scope: 'PERSONAL' as const,
+    };
+    expect(toUpdatePayload(draft, FROM_APPOINTMENT)).toEqual({
+      description: 'Orquiectomia – Mel',
+      scope: 'PERSONAL',
+    });
+  });
+
+  test('refuses to build an update from an invalid draft', () => {
+    expect(() =>
+      toUpdatePayload({ ...VALID, categoryId: null }, SAVED),
+    ).toThrow();
+  });
 });

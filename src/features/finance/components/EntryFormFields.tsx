@@ -16,11 +16,16 @@ import {
   type CategoryFieldState,
   type CategoryFieldTexts,
 } from './CategoryField';
+import {
+  EntryFieldLabel as Label,
+  EntryReadOnlyField,
+} from './EntryReadOnlyField';
 import type {
   EntryDraft,
   EntryField,
   EntryTextField,
 } from '../domain/entryForm';
+import type { LockedEntryField } from '../domain/entryOrigin';
 import type { EntryNature, EntryScope } from '../domain/financialEntry';
 
 export type EntryFormTexts = {
@@ -37,6 +42,12 @@ export type EntryFormTexts = {
   };
 };
 
+/** Campos que a origem controla: aparecem travados, com o motivo embaixo. */
+export type LockedFieldsState = {
+  fields: readonly LockedEntryField[];
+  hint: string;
+  accessibilityLabels: Record<LockedEntryField, string>;
+};
 type EntryFormFieldsProps = {
   draft: EntryDraft;
   fieldErrors: Partial<Record<EntryField, string>>;
@@ -45,17 +56,10 @@ type EntryFormFieldsProps = {
   onChangeNature: (nature: EntryNature) => void;
   onChangeField: (field: EntryTextField, value: string) => void;
   onChangeScope: (scope: EntryScope) => void;
+  locked?: LockedFieldsState | null;
 };
 
 const UNSELECTED_TILE = 'bg-white shadow-[0px_5px_5px_rgba(0,0,0,0.1)]';
-
-function Label({ children }: { children: string }) {
-  return (
-    <Text className="text-xs font-semibold uppercase text-label-primary">
-      {children}
-    </Text>
-  );
-}
 
 function FieldError({ message }: { message?: string }) {
   return message ? (
@@ -156,26 +160,44 @@ export function EntryFormFields({
   onChangeNature,
   onChangeField,
   onChangeScope,
+  locked = null,
 }: EntryFormFieldsProps) {
+  const isLocked = (field: LockedEntryField) =>
+    locked?.fields.includes(field) ?? false;
+
   return (
     <>
-      <View className="gap-2">
-        <Label>{texts.nature.label}</Label>
-        <View className="flex-row gap-2">
-          <Choice
-            label={texts.nature.income}
-            icon={ArrowUp}
-            selected={draft.nature === 'INCOME'}
-            onPress={() => onChangeNature('INCOME')}
-          />
-          <Choice
-            label={texts.nature.expense}
-            icon={ArrowDown}
-            selected={draft.nature === 'EXPENSE'}
-            onPress={() => onChangeNature('EXPENSE')}
-          />
+      {isLocked('nature') && locked ? (
+        <EntryReadOnlyField
+          locked
+          label={texts.nature.label}
+          value={
+            draft.nature === 'INCOME'
+              ? texts.nature.income
+              : texts.nature.expense
+          }
+          icon={draft.nature === 'INCOME' ? ArrowUp : ArrowDown}
+          accessibilityLabel={locked.accessibilityLabels.nature}
+        />
+      ) : (
+        <View className="gap-2">
+          <Label>{texts.nature.label}</Label>
+          <View className="flex-row gap-2">
+            <Choice
+              label={texts.nature.income}
+              icon={ArrowUp}
+              selected={draft.nature === 'INCOME'}
+              onPress={() => onChangeNature('INCOME')}
+            />
+            <Choice
+              label={texts.nature.expense}
+              icon={ArrowDown}
+              selected={draft.nature === 'EXPENSE'}
+              onPress={() => onChangeNature('EXPENSE')}
+            />
+          </View>
         </View>
-      </View>
+      )}
 
       <EntryInput
         label={texts.description.label}
@@ -186,29 +208,56 @@ export function EntryFormFields({
         onChangeText={value => onChangeField('description', value)}
       />
 
-      <View className="flex-row gap-3">
-        <EntryInput
-          className="flex-1"
-          label={texts.amount.label}
-          placeholder={texts.amount.placeholder}
-          value={draft.amount}
-          error={fieldErrors.amount}
-          keyboardType="number-pad"
-          inputMode="numeric"
-          onChangeText={value => onChangeField('amount', value)}
-        />
-        <EntryInput
-          className="flex-1"
-          label={texts.date.label}
-          placeholder={texts.date.placeholder}
-          value={draft.date}
-          error={fieldErrors.date}
-          keyboardType="number-pad"
-          inputMode="numeric"
-          maxLength={10}
-          trailingIcon={CalendarDays}
-          onChangeText={value => onChangeField('date', value)}
-        />
+      <View className="gap-1.5">
+        <View className="flex-row gap-3">
+          {isLocked('amount') && locked ? (
+            <EntryReadOnlyField
+              locked
+              className="flex-1"
+              label={texts.amount.label}
+              value={draft.amount}
+              accessibilityLabel={locked.accessibilityLabels.amount}
+            />
+          ) : (
+            <EntryInput
+              className="flex-1"
+              label={texts.amount.label}
+              placeholder={texts.amount.placeholder}
+              value={draft.amount}
+              error={fieldErrors.amount}
+              keyboardType="number-pad"
+              inputMode="numeric"
+              onChangeText={value => onChangeField('amount', value)}
+            />
+          )}
+          {isLocked('date') && locked ? (
+            <EntryReadOnlyField
+              locked
+              className="flex-1"
+              label={texts.date.label}
+              value={draft.date}
+              accessibilityLabel={locked.accessibilityLabels.date}
+            />
+          ) : (
+            <EntryInput
+              className="flex-1"
+              label={texts.date.label}
+              placeholder={texts.date.placeholder}
+              value={draft.date}
+              error={fieldErrors.date}
+              keyboardType="number-pad"
+              inputMode="numeric"
+              maxLength={10}
+              trailingIcon={CalendarDays}
+              onChangeText={value => onChangeField('date', value)}
+            />
+          )}
+        </View>
+        {locked && locked.fields.length > 0 ? (
+          <Text className="text-[11px] leading-[16.5px] text-label-tertiary">
+            {locked.hint}
+          </Text>
+        ) : null}
       </View>
 
       <CategoryField

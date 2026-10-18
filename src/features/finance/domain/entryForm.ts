@@ -10,11 +10,14 @@ import {
   toAccrualDate,
   type MaskedDate,
 } from './entryDate';
+import { lockedFieldsOf } from './entryOrigin';
 import type {
   CreateFinancialEntryPayload,
   EntryNature,
   EntryScope,
   FinancialCategory,
+  FinancialEntry,
+  UpdateFinancialEntryPayload,
 } from './financialEntry';
 
 export type EntryDraft = {
@@ -150,4 +153,70 @@ export function toCreatePayload(
     categoryId: draft.categoryId,
     scope: draft.scope,
   };
+}
+
+/** O lançamento salvo no formato do formulário: o ponto de partida da edição. */
+export function draftFromEntry(entry: FinancialEntry): EntryDraft {
+  return {
+    nature: entry.nature,
+    description: entry.description,
+    amount: maskAmountInput(entry.amount.toFixed(2)),
+    date: formatEntryDate(new Date(entry.accrualDate)),
+    categoryId: entry.category.id,
+    scope: entry.scope,
+  };
+}
+
+type DraftChanges = Record<keyof EntryDraft, boolean>;
+
+function draftChanges(draft: EntryDraft, entry: FinancialEntry): DraftChanges {
+  const saved = draftFromEntry(entry);
+  return {
+    nature: draft.nature !== saved.nature,
+    description: draft.description.trim() !== saved.description.trim(),
+    amount: draft.amount !== saved.amount,
+    date: draft.date !== saved.date,
+    categoryId: draft.categoryId !== saved.categoryId,
+    scope: draft.scope !== saved.scope,
+  };
+}
+
+export function hasDraftChanges(
+  draft: EntryDraft,
+  entry: FinancialEntry,
+): boolean {
+  return Object.values(draftChanges(draft, entry)).some(Boolean);
+}
+
+/**
+ * Só os campos alterados. A data sai só se a pessoa mexeu nela: reenviar a de
+ * um lançamento antigo trocaria o horário salvo pelo meio-dia.
+ */
+export function toUpdatePayload(
+  draft: EntryDraft,
+  entry: FinancialEntry,
+): UpdateFinancialEntryPayload {
+  const edited = toCreatePayload(draft, entry.id);
+  const changed = draftChanges(draft, entry);
+  const locked = lockedFieldsOf(entry);
+  const payload: UpdateFinancialEntryPayload = {};
+  if (changed.nature && !locked.includes('nature')) {
+    payload.nature = edited.nature;
+  }
+  if (changed.description) {
+    payload.description = edited.description;
+  }
+  if (changed.amount && !locked.includes('amount')) {
+    payload.amount = edited.amount;
+  }
+  if (changed.date && !locked.includes('date')) {
+    payload.accrualDate = edited.accrualDate;
+  }
+  if (changed.categoryId) {
+    payload.categoryId = edited.categoryId;
+  }
+  if (changed.scope) {
+    payload.scope = edited.scope;
+  }
+  return payload;
 }

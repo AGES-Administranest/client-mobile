@@ -3,8 +3,10 @@ import { ApiError, RequestTimeoutError } from 'shared/services/apiClient';
 import {
   createFinancialCategory,
   createFinancialEntry,
+  deleteFinancialEntry,
   fetchFinancialCategories,
   fetchFinancialEntries,
+  updateFinancialEntry,
 } from './financialEntryService';
 import type {
   CreateFinancialCategoryPayload,
@@ -23,6 +25,10 @@ import type {
 //   - POST com um id já usado e outros dados responde 409
 //     FINANCIAL_ENTRY_ID_CONFLICT; PATCH /financial-entries/:id de um id que
 //     não é um lançamento ativo da conta responde 404 FINANCIAL_ENTRY_NOT_FOUND
+//   - PATCH de um automático com amount, accrualDate ou nature responde 400
+//     FINANCIAL_ENTRY_CONTROLLED_BY_ORIGIN
+//   - DELETE /financial-entries/:id responde 204; num automático, 409
+//     FINANCIAL_ENTRY_DELETE_VIA_ORIGIN com a origem em details
 const ID_TOKEN = 'id-token';
 
 const PAYLOAD: CreateFinancialEntryPayload = {
@@ -311,5 +317,70 @@ describe('fetchFinancialEntries', () => {
     await expect(fetchFinancialEntries(ID_TOKEN, AUGUST, 1)).rejects.toThrow(
       ApiError,
     );
+  });
+});
+
+describe('editing and deleting a saved entry', () => {
+  test('sends only the changes and reads the amount back as a number', async () => {
+    respond(200, { ...SAVED_ENTRY, description: 'Gasolina' });
+
+    const entry = await updateFinancialEntry(ID_TOKEN, 'entry-1', {
+      description: 'Gasolina',
+    });
+
+    const { url, init, headers } = sentRequest();
+    expect(init.method).toBe('PATCH');
+    expect(url.pathname).toBe('/financial-entries/entry-1');
+    expect(JSON.parse(init.body as string)).toEqual({
+      description: 'Gasolina',
+    });
+    expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
+    expect(init.signal).toBeDefined();
+    expect(entry).toMatchObject({ description: 'Gasolina', amount: 180 });
+  });
+
+  test('keeps the refusal for fields an automatic entry takes from its origin', async () => {
+    respond(400, {
+      code: 'FINANCIAL_ENTRY_CONTROLLED_BY_ORIGIN',
+      message: 'Amount and accrual date are controlled by the origin',
+    });
+
+    const error = await updateFinancialEntry(ID_TOKEN, 'entry-1', {
+      amount: 1,
+    }).catch(e => e);
+
+    expect(error).toMatchObject({
+      status: 400,
+      code: 'FINANCIAL_ENTRY_CONTROLLED_BY_ORIGIN',
+    });
+  });
+
+  test('deletes the entry with the id token', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 204 });
+
+    await expect(
+      deleteFinancialEntry(ID_TOKEN, 'entry-1'),
+    ).resolves.toBeUndefined();
+
+    const { url, init, headers } = sentRequest();
+    expect(init.method).toBe('DELETE');
+    expect(url.pathname).toBe('/financial-entries/entry-1');
+    expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
+  });
+
+  test('keeps the origin the backend names when an automatic entry is deleted', async () => {
+    respond(409, {
+      code: 'FINANCIAL_ENTRY_DELETE_VIA_ORIGIN',
+      message: 'An automatic entry can only be deleted by deleting its origin',
+      details: { type: 'APPOINTMENT', id: 'apt-1' },
+    });
+
+    const error = await deleteFinancialEntry(ID_TOKEN, 'entry-1').catch(e => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      status: 409,
+      code: 'FINANCIAL_ENTRY_DELETE_VIA_ORIGIN',
+    });
   });
 });

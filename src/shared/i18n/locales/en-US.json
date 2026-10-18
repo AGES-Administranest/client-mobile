@@ -716,6 +716,64 @@
       },
       "retry": "Try again",
       "loadMoreFailure": "Couldn't load more entries."
+    },
+    "detail": {
+      "close": "Close",
+      "automatic": "Automatic",
+      "subtitle": "{{nature}} · {{origin}}",
+      "origins": {
+        "manual": "Manual entry",
+        "appointment": "Created by the procedure",
+        "serviceInvoice": "Created by the service invoice",
+        "purchaseInvoice": "Created by the purchase order",
+        "trip": "Created by the trip"
+      },
+      "lockedHint": {
+        "appointment": "Type, amount and date come from the procedure. Fix them at the origin.",
+        "serviceInvoice": "Type, amount and date come from the service invoice. Fix them at the origin.",
+        "purchaseInvoice": "Type, amount and date come from the purchase order. Fix them at the origin.",
+        "trip": "Type, amount and date come from the trip. Fix them at the origin."
+      },
+      "field": "{{label}}: {{value}}",
+      "lockedField": "{{label}}: {{value}}, set by the origin",
+      "openOrigin": {
+        "appointment": "Open procedure",
+        "serviceInvoice": "Open service invoice",
+        "purchaseInvoice": "Open purchase order",
+        "trip": "Open trip"
+      },
+      "originUnavailable": "This origin has no screen in the app yet.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit entry",
+      "cancel": "Cancel",
+      "discard": {
+        "message": "Discard your changes?",
+        "confirm": "Discard",
+        "keep": "Keep editing"
+      },
+      "deleteConfirm": {
+        "title": "Delete this entry?",
+        "message": "It leaves the statement and this cannot be undone.",
+        "confirm": "Delete",
+        "confirming": "Deleting…",
+        "cancel": "Cancel"
+      },
+      "deleteBlocked": {
+        "title": "It can't be deleted here",
+        "appointment": "This entry was created by the procedure {{description}}. To delete it, delete the procedure — the appointment also leaves the history.",
+        "serviceInvoice": "This entry was created by the service invoice {{description}}. To delete it, delete the invoice — its document and file are deleted too.",
+        "purchaseInvoice": "This entry was created by the purchase order {{description}}. To delete it, delete the order — its items also leave the stock.",
+        "trip": "This entry was created by the trip {{description}}. To delete it, delete the trip.",
+        "close": "Close"
+      },
+      "updated": "Entry updated.",
+      "deleted": "Entry deleted.",
+      "failures": {
+        "notFound": "This entry no longer exists. The statement was refreshed.",
+        "controlledByOrigin": "Type, amount and date of this entry come from its origin and can't be changed here.",
+        "delete": "Could not delete the entry. Try again."
+      }
     }
   },
   "tabbar": {

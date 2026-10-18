@@ -16,11 +16,13 @@ import type {
 import {
   createFinancialEntry,
   fetchFinancialCategories,
+  updateFinancialEntry,
 } from '../services/financialEntryService';
 
 jest.mock('../services/financialEntryService', () => ({
   createFinancialEntry: jest.fn(),
   fetchFinancialCategories: jest.fn(),
+  updateFinancialEntry: jest.fn(),
 }));
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
@@ -28,6 +30,9 @@ jest.mock('features/auth/services/accountApi', () => ({}));
 
 const createMock = createFinancialEntry as jest.MockedFunction<
   typeof createFinancialEntry
+>;
+const updateMock = updateFinancialEntry as jest.MockedFunction<
+  typeof updateFinancialEntry
 >;
 const fetchCategoriesMock = fetchFinancialCategories as jest.MockedFunction<
   typeof fetchFinancialCategories
@@ -114,6 +119,7 @@ async function submit() {
 
 beforeEach(() => {
   createMock.mockReset().mockResolvedValue(CREATED);
+  updateMock.mockReset();
   fetchCategoriesMock.mockReset().mockResolvedValue(CATEGORIES);
 });
 
@@ -496,4 +502,142 @@ test('without a session nothing reaches the API and both loading and saving ask 
 
   expect(createMock).not.toHaveBeenCalled();
   expect(current.failure).toBe('financialEntries.form.failures.session');
+});
+
+describe('editing a saved entry', () => {
+  const FROM_APPOINTMENT: FinancialEntry = {
+    ...CREATED,
+    id: 'entry-apt',
+    nature: 'INCOME',
+    description: 'Orquiectomia',
+    category: {
+      id: 'cat-fees',
+      name: 'Professional fees',
+      scope: 'PROFESSIONAL',
+    },
+    amount: 620,
+    accrualDate: '2026-08-17T13:30:00.000Z',
+    source: 'APPOINTMENT',
+    origin: { type: 'APPOINTMENT', id: 'apt-1' },
+  };
+
+  test('fills the form with the entry, unchanged and with nothing locked', async () => {
+    await mount();
+
+    await act(async () => current.startEditing(CREATED));
+
+    expect(current.editedEntry).toBe(CREATED);
+    expect(current.draft).toEqual({
+      nature: 'EXPENSE',
+      description: 'Combustível',
+      amount: '180,00',
+      date: '09/08/2026',
+      categoryId: 'cat-travel',
+      scope: 'PROFESSIONAL',
+    });
+    expect(current.hasChanges).toBe(false);
+    expect(current.lockedFields).toEqual([]);
+  });
+
+  test('saves only what changed, on the same entry', async () => {
+    const updated = { ...CREATED, description: 'Gasolina' };
+    updateMock.mockResolvedValue(updated);
+    await mount();
+    await act(async () => current.startEditing(CREATED));
+
+    await act(async () => current.setField('description', 'Gasolina'));
+    expect(current.hasChanges).toBe(true);
+
+    await expect(submit()).resolves.toEqual(updated);
+    expect(updateMock).toHaveBeenCalledWith('id-token', 'entry-1', {
+      description: 'Gasolina',
+    });
+    expect(createMock).not.toHaveBeenCalled();
+  });
+
+  test('saving without changes asks nothing of the API', async () => {
+    await mount();
+    await act(async () => current.startEditing(CREATED));
+
+    await expect(submit()).resolves.toBe(CREATED);
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  test('validates an edit like a new entry', async () => {
+    await mount();
+    await act(async () => current.startEditing(CREATED));
+    await act(async () => current.setField('amount', ''));
+
+    await expect(submit()).resolves.toBeNull();
+    expect(current.errors).toEqual({ amount: 'required' });
+    expect(current.canSubmit).toBe(false);
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  test('keeps type, amount and date of an automatic entry as the origin set them', async () => {
+    updateMock.mockResolvedValue(FROM_APPOINTMENT);
+    await mount();
+    await act(async () => current.startEditing(FROM_APPOINTMENT));
+    expect(current.lockedFields).toEqual(['nature', 'amount', 'date']);
+
+    await act(async () => {
+      current.setNature('EXPENSE');
+      current.setField('amount', '100');
+      current.setField('date', '01012026');
+      current.setField('description', 'Orquiectomia – Mel');
+    });
+
+    expect(current.draft).toMatchObject({
+      nature: 'INCOME',
+      amount: '620,00',
+      description: 'Orquiectomia – Mel',
+    });
+    await submit();
+    expect(updateMock).toHaveBeenCalledWith('id-token', 'entry-apt', {
+      description: 'Orquiectomia – Mel',
+    });
+  });
+
+  test.each([
+    [
+      new ApiError('Not found', 'FINANCIAL_ENTRY_NOT_FOUND', 404),
+      'financialEntries.detail.failures.notFound',
+      true,
+    ],
+    [
+      new ApiError('Locked', 'FINANCIAL_ENTRY_CONTROLLED_BY_ORIGIN', 400),
+      'financialEntries.detail.failures.controlledByOrigin',
+      false,
+    ],
+    [
+      new TypeError('Network request failed'),
+      'financialEntries.form.failures.network',
+      false,
+    ],
+  ])('explains %p as %p', async (error, key, gone) => {
+    updateMock.mockRejectedValue(error);
+    await mount();
+    await act(async () => current.startEditing(CREATED));
+    await act(async () => current.setScope('PERSONAL'));
+
+    await expect(submit()).resolves.toBeNull();
+
+    expect(current.failure).toBe(key);
+    expect(current.entryIsGone).toBe(gone);
+    expect(current.isSaving).toBe(false);
+  });
+
+  test('a new entry after editing starts empty and creates', async () => {
+    await mount();
+    await act(async () => current.startEditing(CREATED));
+
+    await act(async () => current.startNewEntry());
+
+    expect(current.editedEntry).toBeNull();
+    expect(current.draft.description).toBe('');
+    await fillValidExpense();
+    await submit();
+    expect(createMock).toHaveBeenCalledTimes(1);
+    expect(updateMock).not.toHaveBeenCalled();
+  });
 });

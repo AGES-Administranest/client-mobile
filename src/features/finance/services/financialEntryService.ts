@@ -7,6 +7,7 @@ import {
   type FinancialCategory,
   type FinancialEntry,
   type FinancialEntryResponse,
+  type UpdateFinancialEntryPayload,
 } from '../domain/financialEntry';
 import { toStatementQuery, type StatementFilters } from '../domain/statement';
 
@@ -79,10 +80,30 @@ async function saveOverEarlierAttempt(
   idToken: string,
   { id, ...draft }: CreateFinancialEntryPayload,
 ): Promise<FinancialEntry> {
+  return updateFinancialEntry(idToken, id, draft);
+}
+
+/** O backend recusa tipo, valor e data de um automático: só o que mudou vai. */
+export async function updateFinancialEntry(
+  idToken: string,
+  id: string,
+  changes: UpdateFinancialEntryPayload,
+): Promise<FinancialEntry> {
   const response = await apiClient.patch<FinancialEntryResponse>(
     `/financial-entries/${id}`,
-    draft,
+    changes,
     { token: idToken, timeoutMs: SAVE_TIMEOUT_MS },
   );
   return toFinancialEntry(response);
+}
+
+/** Um automático responde 409 FINANCIAL_ENTRY_DELETE_VIA_ORIGIN. */
+export async function deleteFinancialEntry(
+  idToken: string,
+  id: string,
+): Promise<void> {
+  await apiClient.delete<void>(`/financial-entries/${id}`, {
+    token: idToken,
+    timeoutMs: SAVE_TIMEOUT_MS,
+  });
 }
