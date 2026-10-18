@@ -740,7 +740,7 @@
     "detail": {
       "close": "Fechar",
       "automatic": "Automático",
-      "subtitle": "{{nature}} · {{origin}}",
+      "subtitle": "{{origin}}",
       "origins": {
         "manual": "Lançamento manual",
         "appointment": "Gerado pelo procedimento",

@@ -218,7 +218,6 @@ export function EntryDetailFlow({
         visible={step === 'detail'}
         title={shown.description}
         subtitle={t('financialEntries.detail.subtitle', {
-          nature: natureLabel,
           origin: t(`financialEntries.detail.origins.${originKey ?? 'manual'}`),
         })}
         automaticBadge={

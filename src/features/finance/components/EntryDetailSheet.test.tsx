@@ -42,7 +42,7 @@ async function render(overrides: Partial<Props> = {}) {
   const props: Props = {
     visible: true,
     title: 'Combustível',
-    subtitle: 'Saída · Lançamento manual',
+    subtitle: 'Lançamento manual',
     automaticBadge: null,
     fields: MANUAL_FIELDS,
     lockedHint: null,
@@ -90,7 +90,7 @@ test('shows a manual entry read-only, in the order of the Figma', async () => {
 
   expect(textsOf(renderer)).toEqual([
     'Combustível',
-    'Saída · Lançamento manual',
+    'Lançamento manual',
     'Tipo',
     'Saída',
     'Descrição',
@@ -141,7 +141,7 @@ test('an automatic entry carries the badge, the locks and the way to its origin'
   const onOpen = jest.fn();
   const { renderer } = await render({
     title: 'Orquiectomia',
-    subtitle: 'Entrada · Gerado pelo procedimento',
+    subtitle: 'Gerado pelo procedimento',
     automaticBadge: 'Automático',
     fields: AUTOMATIC_FIELDS,
     lockedHint: 'Tipo, valor e data vêm do procedimento. Corrija pela origem.',

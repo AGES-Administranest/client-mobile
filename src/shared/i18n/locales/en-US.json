@@ -740,7 +740,7 @@
     "detail": {
       "close": "Close",
       "automatic": "Automatic",
-      "subtitle": "{{nature}} · {{origin}}",
+      "subtitle": "{{origin}}",
       "origins": {
         "manual": "Manual entry",
         "appointment": "Created by the procedure",

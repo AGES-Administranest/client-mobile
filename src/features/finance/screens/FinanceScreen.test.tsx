@@ -532,7 +532,7 @@ describe('entry detail', () => {
 
     expect(textsOf(renderer)).toEqual(
       expect.arrayContaining([
-        'Saída · Lançamento manual',
+        'Lançamento manual',
         '180,00',
         '09/08/2026',
         'Deslocamento',
@@ -580,7 +580,7 @@ describe('entry detail', () => {
 
     expect(updateMock).not.toHaveBeenCalled();
     expect(fetchEntriesMock).toHaveBeenCalledTimes(1);
-    expect(textsOf(renderer)).toContain('Saída · Lançamento manual');
+    expect(textsOf(renderer)).toContain('Lançamento manual');
   });
 
   test('cancelling an edit with changes asks first, and discarding keeps the entry as it was', async () => {
@@ -600,7 +600,7 @@ describe('entry detail', () => {
 
     expect(updateMock).not.toHaveBeenCalled();
     expect(textsOf(renderer)).toEqual(
-      expect.arrayContaining(['Saída · Lançamento manual', 'Combustível']),
+      expect.arrayContaining(['Lançamento manual', 'Combustível']),
     );
     expect(textsOf(renderer)).not.toContain('Gasolina');
   });
@@ -613,7 +613,7 @@ describe('entry detail', () => {
     await pressByText(renderer, 'Cancelar');
 
     expect(textsOf(renderer)).not.toContain('Descartar as alterações?');
-    expect(textsOf(renderer)).toContain('Saída · Lançamento manual');
+    expect(textsOf(renderer)).toContain('Lançamento manual');
   });
 
   test('a manual entry is deleted only after the confirmation', async () => {
@@ -635,7 +635,7 @@ describe('entry detail', () => {
     expect(deleteMock).toHaveBeenCalledWith('id-token', 'entry-2');
     expect(fetchEntriesMock).toHaveBeenCalledTimes(2);
     expect(textsOf(renderer)).not.toContain('Excluir este lançamento?');
-    expect(textsOf(renderer)).not.toContain('Saída · Lançamento manual');
+    expect(textsOf(renderer)).not.toContain('Lançamento manual');
   });
 
   test('a failed delete keeps the entry and says why', async () => {
@@ -667,7 +667,7 @@ describe('entry detail', () => {
 
     expect(fetchEntriesMock).toHaveBeenCalledTimes(2);
     expect(textsOf(renderer)).not.toContain('Excluir este lançamento?');
-    expect(textsOf(renderer)).not.toContain('Saída · Lançamento manual');
+    expect(textsOf(renderer)).not.toContain('Lançamento manual');
   });
 
   test('cancelling the delete goes back to the entry', async () => {
@@ -678,7 +678,7 @@ describe('entry detail', () => {
     await pressByText(renderer, 'Cancelar');
 
     expect(deleteMock).not.toHaveBeenCalled();
-    expect(textsOf(renderer)).toContain('Saída · Lançamento manual');
+    expect(textsOf(renderer)).toContain('Lançamento manual');
   });
 
   test('an automatic entry shows what its origin controls', async () => {
@@ -689,7 +689,7 @@ describe('entry detail', () => {
     expect(textsOf(renderer)).toEqual(
       expect.arrayContaining([
         'Automático',
-        'Entrada · Gerado pelo procedimento',
+        'Gerado pelo procedimento',
         'Tipo, valor e data vêm do procedimento. Corrija pela origem.',
         'Abrir procedimento',
       ]),
