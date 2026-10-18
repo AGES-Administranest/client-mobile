@@ -258,7 +258,7 @@ beforeEach(() => {
   }));
 });
 
-test('mounts the stock movement history', async () => {
+test('keeps stock movement history out of the finance statement', async () => {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
@@ -279,7 +279,7 @@ test('mounts the stock movement history', async () => {
     .findAllByType('Text' as never)
     .map(node => node.props.children);
 
-  expect(JSON.stringify(texts)).toContain('Histórico de movimentações');
+  expect(JSON.stringify(texts)).not.toContain('Histórico de movimentações');
   expect(
     renderer!.root.findAllByProps({ testID: 'finance-new-entry-button' }),
   ).not.toHaveLength(0);

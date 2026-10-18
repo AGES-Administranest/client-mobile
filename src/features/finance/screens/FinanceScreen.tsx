@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 
 import { CalculatorScreen } from 'features/calculator';
-import { MovementHistoryScreen } from 'features/stock';
 import { useTranslation } from 'shared/i18n';
 
 import { EntryDetailFlow } from './EntryDetailFlow';
@@ -45,7 +44,6 @@ export function FinanceScreen() {
   const [period, setPeriod] = useState(() => currentPeriod(new Date()));
   const statement = useFinancialStatement({ period, scope });
   const overview = useFinanceOverview(period);
-  const [stockHistoryHeight, setStockHistoryHeight] = useState(0);
   const [openEntry, setOpenEntry] = useState<FinancialEntry | null>(null);
 
   const categoryLabel = (category: FinancialEntry['category']) => {
@@ -105,10 +103,9 @@ export function FinanceScreen() {
     event: NativeSyntheticEvent<NativeScrollEvent>,
   ) => {
     const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
-    const statementEnd = contentSize.height - stockHistoryHeight;
     if (
       contentOffset.y + layoutMeasurement.height >=
-      statementEnd - LOAD_MORE_THRESHOLD_PX
+      contentSize.height - LOAD_MORE_THRESHOLD_PX
     ) {
       statement.loadMore();
     }
@@ -201,13 +198,6 @@ export function FinanceScreen() {
                     }
                   />
                 </View>
-              </View>
-              <View
-                onLayout={event =>
-                  setStockHistoryHeight(event.nativeEvent.layout.height)
-                }
-              >
-                <MovementHistoryScreen embedded />
               </View>
             </ScrollView>
           </>
