@@ -463,7 +463,7 @@ describe('month statement', () => {
 
     expect(createMock).toHaveBeenCalledTimes(1);
     expect(fetchEntriesMock).toHaveBeenCalledTimes(2);
-    expect(textsOf(renderer)).toContain('Lançamento salvo.');
+    expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
   });
 
   test('scrolling near the end of the statement loads the next page', async () => {

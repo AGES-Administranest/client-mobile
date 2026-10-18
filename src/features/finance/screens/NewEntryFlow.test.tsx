@@ -319,7 +319,7 @@ test('the manual choice opens the form, and only then loads the categories', asy
   );
 });
 
-test('saving a filled form closes it and confirms the entry was saved', async () => {
+test('saving a filled form closes it without a success notice', async () => {
   const renderer = await renderFlow();
   await openManualForm(renderer);
 
@@ -344,7 +344,7 @@ test('saving a filled form closes it and confirms the entry was saved', async ()
   );
   const texts = textsOf(renderer);
   expect(texts).not.toContain('Novo lançamento manual');
-  expect(texts).toContain('Lançamento salvo.');
+  expect(texts).not.toContain('Lançamento salvo.');
 });
 
 test('a category typed, created on the spot and saved goes into the entry', async () => {
@@ -400,10 +400,10 @@ test('a category typed, created on the spot and saved goes into the entry', asyn
       categoryId: createdCategory.id,
     }),
   );
-  expect(textsOf(renderer)).toContain('Lançamento salvo.');
+  expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
 });
 
-test('a screen reader hears that the entry was saved, since the notice goes away', async () => {
+test('saving an entry does not announce or show a success notice', async () => {
   const announce = jest
     .spyOn(AccessibilityInfo, 'announceForAccessibility')
     .mockImplementation(() => {});
@@ -419,11 +419,8 @@ test('a screen reader hears that the entry was saved, since the notice goes away
         .props.onPress();
     });
 
-    expect(announce).toHaveBeenCalledWith('Lançamento salvo.');
-    const notice = renderer.root.find(
-      node => typeof node.type === 'string' && node.props.role === 'status',
-    );
-    expect(notice.props.accessibilityLiveRegion).toBe('polite');
+    expect(announce).not.toHaveBeenCalledWith('Lançamento salvo.');
+    expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
   } finally {
     announce.mockRestore();
   }
@@ -615,11 +612,11 @@ test('the form cannot be closed while it is saving', async () => {
       origin: { type: 'MANUAL', id: null },
     }),
   );
-  expect(textsOf(renderer)).toContain('Lançamento salvo.');
+  expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
   expect(textsOf(renderer)).not.toContain('Novo lançamento manual');
 });
 
-test('the saved notice goes away when the next entry starts', async () => {
+test('saving an entry leaves no success notice when another entry starts', async () => {
   const renderer = await renderFlow();
   await openManualForm(renderer);
   await typeInto(renderer, 'Descrição', 'Combustível');
@@ -630,7 +627,7 @@ test('the saved notice goes away when the next entry starts', async () => {
       .findByProps({ testID: 'finance-new-entry-save' })
       .props.onPress();
   });
-  expect(textsOf(renderer)).toContain('Lançamento salvo.');
+  expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
 
   await openOptions(renderer);
 
@@ -691,36 +688,6 @@ test('closing the stock write-off without saving confirms nothing', async () => 
   });
 
   expect(textsOf(renderer)).toEqual(['Novo lançamento']);
-});
-
-test('the saved notice goes away by itself after 3 seconds', async () => {
-  jest.useFakeTimers();
-  const elapse = (ms: number) =>
-    act(async () => {
-      jest.advanceTimersByTime(ms);
-    });
-  const renderer = await renderFlow();
-  try {
-    await openOptions(renderer);
-    await pressByText(renderer, 'Lançamento manual');
-    await elapse(1000);
-    await typeInto(renderer, 'Descrição', 'Combustível');
-    await typeInto(renderer, 'Valor (R$)', '18000');
-    await chooseCategory(renderer, 'Deslocamento');
-    await act(async () => {
-      renderer.root
-        .findByProps({ testID: 'finance-new-entry-save' })
-        .props.onPress();
-    });
-
-    await elapse(2999);
-    expect(textsOf(renderer)).toContain('Lançamento salvo.');
-
-    await elapse(1);
-    expect(textsOf(renderer)).not.toContain('Lançamento salvo.');
-  } finally {
-    jest.useRealTimers();
-  }
 });
 
 test('the stock write-off notice goes away by itself after 3 seconds', async () => {

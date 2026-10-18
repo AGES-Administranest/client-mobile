@@ -1,5 +1,6 @@
 import { randomUUID } from 'expo-crypto';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { LayoutAnimation, Platform, UIManager } from 'react-native';
 
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
@@ -24,6 +25,16 @@ import type {
   FinancialCategory,
 } from '../domain/financialEntry';
 import { createFinancialCategory } from '../services/financialEntryService';
+
+function animateCategoryLayout(): void {
+  if (
+    Platform.OS === 'android' &&
+    UIManager.setLayoutAnimationEnabledExperimental
+  ) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+}
 
 type CategoryPickerOptions = {
   categories: readonly LabeledCategory[];
@@ -151,6 +162,7 @@ export function useCategoryPicker({
   const startNewCategory = useCallback(() => {
     const typed = typedTerm?.trim() ?? '';
     if (selectedId !== null) onUnchoose();
+    animateCategoryLayout();
     newCategoryId.current ??= randomUUID();
     setNewName(current => typed || (current ?? ''));
     setTypedTerm(null);
@@ -164,6 +176,7 @@ export function useCategoryPicker({
   }, []);
 
   const finishNewCategory = useCallback(() => {
+    animateCategoryLayout();
     newCategoryId.current = null;
     setNewName(null);
     setTypedTerm(null);

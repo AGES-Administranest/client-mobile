@@ -15,9 +15,7 @@ import type { FinancialEntry } from '../domain/financialEntry';
 
 const SAVED_MESSAGE_DURATION_MS = 3000;
 
-type SavedMessageKey =
-  | 'financialEntries.saved'
-  | 'financialEntries.stockWriteOffSaved';
+type SavedMessageKey = 'financialEntries.stockWriteOffSaved';
 
 type NewEntryFlowProps = {
   onEntrySaved?: (entry: FinancialEntry) => void;
@@ -83,7 +81,6 @@ export function NewEntryFlow({
 
   const finishSaving = (entry: FinancialEntry) => {
     setFormVisible(false);
-    setSavedMessageKey('financialEntries.saved');
     onEntrySaved?.(entry);
   };
 

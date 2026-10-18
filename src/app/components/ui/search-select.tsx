@@ -1,6 +1,13 @@
 import { Plus, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import {
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  TextInput,
+  UIManager,
+  View,
+} from 'react-native';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -51,6 +58,16 @@ type SearchSelectProps = {
 // acontece (a lista já sumiu quando o toque seria processado).
 const BLUR_CLOSE_DELAY_MS = 150;
 
+function animateOptionLayout(): void {
+  if (
+    Platform.OS === 'android' &&
+    UIManager.setLayoutAnimationEnabledExperimental
+  ) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+}
+
 export function SearchSelect({
   label,
   placeholder,
@@ -86,6 +103,7 @@ export function SearchSelect({
 
   function handleFocus(): void {
     cancelPendingClose();
+    if (!inUse) animateOptionLayout();
     setInUse(true);
   }
 
@@ -96,7 +114,10 @@ export function SearchSelect({
 
   function handleBlur(): void {
     blurTimeout.current = setTimeout(
-      () => setInUse(false),
+      () => {
+        if (inUse) animateOptionLayout();
+        setInUse(false);
+      },
       BLUR_CLOSE_DELAY_MS,
     );
   }
@@ -108,6 +129,7 @@ export function SearchSelect({
 
   function closeAndThen(action: () => void): void {
     cancelPendingClose();
+    animateOptionLayout();
     setInUse(false);
     // Dentro de um ScrollView com keyboardShouldPersistTaps, o input continua
     // focado depois do toque na linha, e tocar nele de novo não reabriria a lista.
