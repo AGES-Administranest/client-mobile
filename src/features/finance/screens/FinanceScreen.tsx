@@ -118,7 +118,7 @@ export function FinanceScreen() {
     <View className="flex-1">
       <NewEntryFlow
         showButton={false}
-        containerClassName="gap-0 px-0 pt-0"
+        containerClassName="flex-1 gap-0 px-0 pt-0"
         onEntrySaved={() => {
           statement.reload();
           overview.retry();
@@ -134,6 +134,7 @@ export function FinanceScreen() {
               onCalculatorPress={() => setCalculatorVisible(true)}
             />
             <ScrollView
+              className="flex-1"
               onScroll={loadMoreNearStatementEnd}
               scrollEventThrottle={16}
               testID="finance-scroll"

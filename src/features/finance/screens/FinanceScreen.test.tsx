@@ -285,6 +285,13 @@ test('mounts the stock movement history', async () => {
   ).not.toHaveLength(0);
 });
 
+test('the finance content scroll view fills the available screen height', async () => {
+  const renderer = await renderScreen();
+  const scrollView = renderer.root.findByProps({ testID: 'finance-scroll' });
+
+  expect(scrollView.props.className).toContain('flex-1');
+});
+
 test('opens the calculator from the header icon', async () => {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
