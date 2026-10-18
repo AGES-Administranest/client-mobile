@@ -1,4 +1,5 @@
 import { ApiError, apiClient } from 'shared/services/apiClient';
+import { normalizeForSearch } from 'shared/utils/search';
 
 import {
   loadClientOutbox,
@@ -9,7 +10,6 @@ import {
   saveResolvedClientId,
 } from './offlineClientStore';
 import type { Client } from '../domain/client';
-import { normalizeForSearch } from '../domain/clientSearch';
 import type {
   ClientSyncRejection,
   PendingClientOperation,
