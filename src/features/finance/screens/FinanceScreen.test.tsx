@@ -427,6 +427,11 @@ describe('month statement', () => {
     await pressByText(renderer, 'Lançamento manual');
     await typeInto(renderer, 'Descrição', 'Combustível');
     await typeInto(renderer, 'Valor (R$)', '18000');
+    await act(async () => {
+      renderer.root
+        .find(node => node.props.accessibilityLabel === 'Categoria')
+        .props.onFocus();
+    });
     await pressByText(renderer, 'Deslocamento');
     await pressByText(renderer, 'Salvar');
 
