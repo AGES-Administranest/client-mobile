@@ -14,12 +14,12 @@ import {
   validateEntryDraft,
   type EntryField,
 } from '../domain/entryForm';
+import { originKeyOf } from '../domain/entryOrigin';
 import {
   defaultCategoryKey,
   type LabeledCategory,
 } from '../domain/financialCategory';
 import type { FinancialEntry } from '../domain/financialEntry';
-import { originKeyOf } from '../domain/entryOrigin';
 import { useCategoryPicker } from '../hooks/useCategoryPicker';
 import { useNewEntryForm } from '../hooks/useNewEntryForm';
 

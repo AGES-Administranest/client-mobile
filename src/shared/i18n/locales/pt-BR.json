@@ -454,7 +454,9 @@
           "other": "un"
         }
       },
-      "quantity": "{{quantity}} {{unit}}"
+      "quantity": "{{quantity}} {{unit}}",
+      "newEntry": "Novo lançamento",
+      "savedMessage": "Atualização salva"
     },
     "outputAdjustment": {
       "title": "Registro de ajuste de saída",

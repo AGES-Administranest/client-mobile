@@ -454,7 +454,9 @@
           "other": "un"
         }
       },
-      "quantity": "{{quantity}} {{unit}}"
+      "quantity": "{{quantity}} {{unit}}",
+      "newEntry": "New entry",
+      "savedMessage": "Update saved"
     },
     "outputAdjustment": {
       "title": "Stock output adjustment",

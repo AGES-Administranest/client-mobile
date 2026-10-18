@@ -11,7 +11,6 @@ import { ApiError } from 'shared/services/apiClient';
 import { FinanceScreen } from './FinanceScreen';
 import type { FinancialEntry } from '../domain/financialEntry';
 import { STATEMENT_PAGE_SIZE } from '../domain/statement';
-import { fetchAdjustableItems } from 'features/stock/services/stockAdjustmentService';
 import {
   createFinancialEntry,
   deleteFinancialEntry,
@@ -72,17 +71,6 @@ jest.mock('features/stock/services/stockSyncService', () => ({
   })),
 }));
 
-jest.mock('features/stock/services/stockAdjustmentService', () => {
-  const actual = jest.requireActual(
-    'features/stock/services/stockAdjustmentService',
-  );
-
-  return {
-    ...actual,
-    fetchAdjustableItems: jest.fn(() => Promise.resolve([])),
-  };
-});
-
 const createMock = createFinancialEntry as jest.MockedFunction<
   typeof createFinancialEntry
 >;
@@ -91,9 +79,6 @@ const fetchCategoriesMock = fetchFinancialCategories as jest.MockedFunction<
 >;
 const fetchEntriesMock = fetchFinancialEntries as jest.MockedFunction<
   typeof fetchFinancialEntries
->;
-const mockFetchAdjustableItems = fetchAdjustableItems as jest.MockedFunction<
-  typeof fetchAdjustableItems
 >;
 
 const updateMock = updateFinancialEntry as jest.MockedFunction<
@@ -237,7 +222,6 @@ async function renderScreen() {
 }
 
 beforeEach(() => {
-  mockFetchAdjustableItems.mockClear();
   fetchEntriesMock.mockReset().mockResolvedValue(ENTRIES);
   fetchCategoriesMock.mockReset().mockResolvedValue([
     {
@@ -280,7 +264,6 @@ test('mounts the stock movement history', async () => {
   expect(
     renderer!.root.findAllByProps({ testID: 'finance-new-entry-button' }),
   ).not.toHaveLength(0);
-  expect(mockFetchAdjustableItems).not.toHaveBeenCalled();
 });
 
 test('opens the calculator from the header icon', async () => {

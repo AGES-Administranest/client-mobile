@@ -5,11 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
-import { OutputAdjustmentSheet } from './OutputAdjustmentSheet';
 import { useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services';
 import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
 
+import { OutputAdjustmentSheet } from './OutputAdjustmentSheet';
 import { MovementFilters } from '../../../app/components/ui/MovementFilters';
 import {
   MovementList,
