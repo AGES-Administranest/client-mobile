@@ -198,9 +198,7 @@ afterEach(() => {
   }
 });
 
-async function mount(
-  props: { embedded?: boolean } = {},
-) {
+async function mount(props: { embedded?: boolean } = {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {

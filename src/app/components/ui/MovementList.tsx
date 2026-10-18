@@ -61,11 +61,7 @@ function MovementList({
 
   if (items.length === 0) {
     return (
-      <EmptyState
-        icon={Inbox}
-        message={emptyMessage}
-        className={className}
-      />
+      <EmptyState icon={Inbox} message={emptyMessage} className={className} />
     );
   }
 

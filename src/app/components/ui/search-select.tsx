@@ -113,13 +113,10 @@ export function SearchSelect({
   }
 
   function handleBlur(): void {
-    blurTimeout.current = setTimeout(
-      () => {
-        if (inUse) animateOptionLayout();
-        setInUse(false);
-      },
-      BLUR_CLOSE_DELAY_MS,
-    );
+    blurTimeout.current = setTimeout(() => {
+      if (inUse) animateOptionLayout();
+      setInUse(false);
+    }, BLUR_CLOSE_DELAY_MS);
   }
 
   function openFromIcon(): void {
