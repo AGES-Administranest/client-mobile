@@ -11,6 +11,9 @@ import type { ProcedureErrors, ProcedureFormValues } from './procedure.types';
 import { validateAmountInput } from './validateAmount';
 import { CANCELLATION_REASON_MAX_LENGTH } from './validateCancellationReason';
 
+// Keep in sync with CreateAppointmentDto in the backend.
+export const APPOINTMENT_NAME_MAX_LENGTH = 160;
+
 export function validateProcedureForm(
   values: ProcedureFormValues,
   now: Date = new Date(),
@@ -19,11 +22,15 @@ export function validateProcedureForm(
 
   if (values.patientName.trim() === '') {
     errors.patientName = 'REQUIRED';
+  } else if (values.patientName.trim().length > APPOINTMENT_NAME_MAX_LENGTH) {
+    errors.patientName = 'NAME_TOO_LONG';
   }
   if (values.procedureName.trim() === '') {
     errors.procedureName = 'REQUIRED';
   } else if (values.procedureName.trim().length < 2) {
     errors.procedureName = 'TOO_SHORT';
+  } else if (values.procedureName.trim().length > APPOINTMENT_NAME_MAX_LENGTH) {
+    errors.procedureName = 'NAME_TOO_LONG';
   }
   // O campo aceita digitação só para filtrar: sem escolher uma clínica da
   // lista não há clientId, mesmo com texto no campo.

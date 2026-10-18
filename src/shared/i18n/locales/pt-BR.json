@@ -806,6 +806,7 @@
       "IN_THE_PAST": "Escolha uma data e horário futuros",
       "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
       "SELECT_CLIENT": "Escolha uma clínica da lista",
+      "NAME_TOO_LONG": "Máximo de 160 caracteres",
       "TOO_LONG": "Máximo de 2000 caracteres"
     },
     "clientSearch": {

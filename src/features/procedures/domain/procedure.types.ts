@@ -54,6 +54,7 @@ export type FieldErrorCode =
   | 'SELECT_CLIENT'
   | 'INVALID_DATE'
   | 'INVALID_TIME'
+  | 'NAME_TOO_LONG'
   | 'TOO_LONG';
 
 export type ProcedureErrors = Partial<

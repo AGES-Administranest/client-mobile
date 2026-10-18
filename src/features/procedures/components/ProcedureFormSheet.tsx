@@ -31,6 +31,7 @@ import type {
   ProcedureTextField,
   Species,
 } from '../domain/procedure.types';
+import { APPOINTMENT_NAME_MAX_LENGTH } from '../domain/validateProcedureForm';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -140,6 +141,7 @@ export function ProcedureFormSheet({
                 placeholder={texts.placeholders.patientName}
                 value={values.patientName}
                 error={texts.errors.patientName}
+                maxLength={APPOINTMENT_NAME_MAX_LENGTH}
                 onChangeText={v => onChangeText('patientName', v)}
               />
               <Field
@@ -147,6 +149,7 @@ export function ProcedureFormSheet({
                 placeholder={texts.placeholders.procedureName}
                 value={values.procedureName}
                 error={texts.errors.procedureName}
+                maxLength={APPOINTMENT_NAME_MAX_LENGTH}
                 onChangeText={v => onChangeText('procedureName', v)}
               />
               <ClientAutocomplete
