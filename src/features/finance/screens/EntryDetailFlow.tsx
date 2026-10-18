@@ -255,7 +255,6 @@ export function EntryDetailFlow({
 
       <ConfirmDialog
         visible={step === 'confirmDelete'}
-        icon={Trash2}
         title={t('financialEntries.detail.deleteConfirm.title')}
         message={t(
           deleter.failure ?? 'financialEntries.detail.deleteConfirm.message',
@@ -265,7 +264,6 @@ export function EntryDetailFlow({
             ? 'financialEntries.detail.deleteConfirm.confirming'
             : 'financialEntries.detail.deleteConfirm.confirm',
         )}
-        confirmIcon={Trash2}
         cancelLabel={t('financialEntries.detail.deleteConfirm.cancel')}
         onConfirm={confirmDelete}
         onCancel={cancelDelete}

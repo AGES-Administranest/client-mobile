@@ -108,18 +108,16 @@ export function EntryDetailSheet({
               ) : null}
             </View>
           ) : null}
-          <View className="flex-row gap-3">
+          <View className="gap-2.5">
             <ActionButton
               label={texts.edit}
               icon={<Icon as={Pencil} size={16} />}
-              className="w-auto flex-1"
               onPress={onEdit}
             />
             <ActionButton
               label={texts.delete}
               variant="secondary"
               icon={<Icon as={Trash2} size={16} />}
-              className="w-auto flex-1"
               onPress={onDelete}
             />
           </View>

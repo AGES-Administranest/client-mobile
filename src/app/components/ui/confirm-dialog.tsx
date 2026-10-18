@@ -1,4 +1,4 @@
-import { X, type LucideIcon } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 
@@ -8,7 +8,7 @@ import { Text } from 'app/components/ui/text';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
 const MAX_WIDTH = 400;
-const INITIAL_SCALE = 0.94;
+const INITIAL_SCALE = 0.98;
 
 const styles = StyleSheet.create({
   card: { width: '100%', maxWidth: MAX_WIDTH },
@@ -23,14 +23,14 @@ type ConfirmDialogProps = {
   cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
-  /** No círculo acima do título: a lixeira numa exclusão, um alerta num aviso. */
+  /** Ícone discreto ao lado do título. */
   icon?: LucideIcon;
-  /** 'danger' pinta o ícone de vermelho; 'neutral' o deixa marrom. */
+  /** 'danger' dá destaque vermelho à confirmação; 'neutral' usa o marrom. */
   tone?: 'danger' | 'neutral';
   confirmIcon?: LucideIcon;
   /**
-   * 'danger' (padrão) pinta o cancelar de vermelho, como a `ConfirmSheet`;
-   * 'button' usa o marrom, para avisos sem risco.
+   * 'danger' (padrão) deixa o cancelar contornado; 'button' usa o marrom para
+   * avisos neutros que precisam de duas ações equivalentes.
    */
   cancelAppearance?: 'danger' | 'button';
   /** iOS: abra o próximo Modal aqui, quando este terminou de sair. */
@@ -40,9 +40,8 @@ type ConfirmDialogProps = {
 };
 
 /**
- * Pergunta ou aviso no meio da tela. Uma exclusão que sobe de baixo, com os
- * botões empilhados, parece mais uma lista de opções do que um alerta; no
- * centro ela fica com cara de "tem certeza?", como os alertas do sistema.
+ * Pergunta ou aviso compacto no meio da tela. Hierarquia simples, texto
+ * alinhado à esquerda e uma ação principal clara.
  */
 function ConfirmDialog({
   visible,
@@ -94,32 +93,39 @@ function ConfirmDialog({
           >
             <Pressable
               role="alertdialog"
-              className="items-center gap-4 rounded-3xl bg-background-modal px-6 pb-6 pt-7 shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.15)]"
+              className="gap-4 rounded-2xl border border-border-primary bg-background-modal p-5 shadow-[0px_12px_24px_-10px_rgba(0,0,0,0.16)]"
               onPress={event => event.stopPropagation()}
             >
               {icon ? (
-                <View className="size-14 items-center justify-center rounded-full bg-details-primary">
+                <View className="flex-row items-center gap-2">
                   <Icon
                     as={icon}
-                    size={26}
+                    size={18}
                     className={
                       tone === 'danger'
                         ? 'text-button-secondary'
                         : 'text-label-quartenery'
                     }
                   />
+                  <Text
+                    accessibilityRole="header"
+                    className="text-[17px] font-semibold text-label-primary"
+                  >
+                    {title}
+                  </Text>
                 </View>
-              ) : null}
-
-              <View className="w-full gap-2">
+              ) : (
                 <Text
                   accessibilityRole="header"
-                  className="text-center text-xl font-bold text-label-primary"
+                  className="text-[17px] font-semibold text-label-primary"
                 >
                   {title}
                 </Text>
+              )}
+
+              <View className="w-full gap-2">
                 {message ? (
-                  <Text className="text-center text-[15px] leading-[22px] text-label-primary">
+                  <Text className="text-[14px] leading-5 text-label-tertiary">
                     {message}
                   </Text>
                 ) : null}
@@ -127,11 +133,12 @@ function ConfirmDialog({
 
               {children ? <View className="w-full">{children}</View> : null}
 
-              <View className="w-full gap-2.5 pt-1">
+              <View className="w-full gap-2 pt-1">
                 <Button
+                  variant={tone === 'danger' ? 'destructive' : 'default'}
                   shape="pill"
                   icon={confirmIcon}
-                  className="h-12 w-full"
+                  className="h-[46px] w-full"
                   onPress={onConfirm}
                 >
                   <Text className="font-semibold">{confirmLabel}</Text>
@@ -140,10 +147,9 @@ function ConfirmDialog({
                   <Button
                     shape="pill"
                     variant={
-                      cancelAppearance === 'danger' ? 'secondary' : 'default'
+                      cancelAppearance === 'danger' ? 'outline' : 'default'
                     }
-                    icon={X}
-                    className="h-12 w-full"
+                    className="h-[46px] w-full"
                     accessibilityLabel={cancelLabel}
                     onPress={onCancel}
                   >

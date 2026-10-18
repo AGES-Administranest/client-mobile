@@ -91,7 +91,7 @@ test.each([
   const { renderer } = await render({ icon: CircleAlert, tone });
 
   const icon = renderer.root.find(
-    node => node.props.as === CircleAlert && node.props.size === 26,
+    node => node.props.as === CircleAlert && node.props.size === 18,
   );
   expect(icon.props.className).toBe(color);
 });
