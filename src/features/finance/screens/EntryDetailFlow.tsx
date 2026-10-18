@@ -3,7 +3,6 @@ import {
   ArrowUp,
   CircleAlert,
   ClipboardList,
-  Trash2,
   X,
 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
