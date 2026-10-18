@@ -133,7 +133,12 @@ export async function cancelAppointment(
 // [from, to]; 100 é o teto do pageSize, folgado para um dia.
 export async function fetchAppointments(
   idToken: string,
-  query: { status: AppointmentResult['status']; from: string; to: string },
+  query: {
+    status: AppointmentResult['status'];
+    from: string;
+    to: string;
+    page?: number;
+  },
 ): Promise<AppointmentResult[]> {
   const params = new URLSearchParams({
     status: query.status,
@@ -141,6 +146,7 @@ export async function fetchAppointments(
     to: query.to,
     pageSize: '100',
   });
+  if (query.page !== undefined) params.set('page', String(query.page));
   return apiClient.get<AppointmentResult[]>(`/appointments?${params}`, {
     token: idToken,
   });

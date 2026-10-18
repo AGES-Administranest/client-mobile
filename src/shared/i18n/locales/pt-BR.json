@@ -6,7 +6,25 @@
   },
   "finance": {
     "title": "Finanças",
-    "openCalculator": "Abrir calculadora de hora"
+    "openCalculator": "Abrir calculadora de hora",
+    "entryOptionsLabel": "Abrir opções de lançamento",
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "currentMonth": "Mês atual",
+    "netBalance": "Saldo líquido",
+    "revenue": "Receitas",
+    "professional": "Prof.",
+    "personal": "Pessoal",
+    "productivityAndFixedCosts": "Produtividade e custos fixos",
+    "hoursWorked": "Horas trabalhadas",
+    "hoursValue": "{{hours}}h",
+    "thisMonth": "este mês",
+    "averageHourly": "Valor médio/hora",
+    "grossPerHour": "bruto/hora",
+    "equipmentDepreciation": "Depreciação de equipamentos",
+    "equipmentMonthlyCost": "{{count}} equipamentos · custo mensal",
+    "perMonth": "/mês",
+    "overviewError": "Não foi possível carregar o resumo financeiro."
   },
   "calculator": {
     "title": "Calculadora de hora",
@@ -455,14 +473,14 @@
         }
       },
       "quantity": "{{quantity}} {{unit}}",
-      "newEntry": "Novo lançamento",
-      "savedMessage": "Atualização salva"
+      "newEntry": "Novo lançamento"
     },
     "outputAdjustment": {
       "title": "Registro de ajuste de saída",
       "close": "Fechar",
       "itemLabel": "Item",
       "itemPlaceholder": "Selecione o item",
+      "noItems": "Nenhum item com estoque para dar baixa.",
       "quantityLabel": "Quantidade",
       "quantityPlaceholder": "0",
       "reasonLabel": "Motivo",
@@ -594,6 +612,187 @@
       "delete": "Excluir"
     },
     "loadFailure": "Não foi possível carregar as clínicas."
+  },
+  "financialEntries": {
+    "newEntry": "Novo lançamento",
+    "options": {
+      "title": "Novo lançamento",
+      "descriptionWithStockWriteOff": "Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque",
+      "sendDocument": "Enviar documento (PDF)",
+      "manual": "Lançamento manual",
+      "stockWriteOff": "Baixa no estoque"
+    },
+    "documentSoon": {
+      "title": "Envio de PDF em breve",
+      "message": "Por enquanto, registre a entrada ou a saída pelo lançamento manual.",
+      "ok": "Entendi"
+    },
+    "categories": {
+      "professionalFees": "Honorários",
+      "supplies": "Insumos",
+      "travel": "Deslocamento",
+      "taxesAndFees": "Impostos e taxas",
+      "fixedCosts": "Custos fixos",
+      "other": "Outros"
+    },
+    "form": {
+      "title": "Novo lançamento manual",
+      "close": "Fechar",
+      "nature": {
+        "label": "Tipo",
+        "income": "Entrada",
+        "expense": "Saída"
+      },
+      "description": {
+        "label": "Descrição",
+        "placeholder": "Ex: Conta de luz"
+      },
+      "amount": {
+        "label": "Valor (R$)",
+        "placeholder": "0,00"
+      },
+      "date": {
+        "label": "Data",
+        "placeholder": "dd/mm/aaaa"
+      },
+      "category": {
+        "label": "Categoria",
+        "loading": "Carregando categorias…",
+        "retry": "Tentar de novo"
+      },
+      "scope": {
+        "label": "Escopo",
+        "professional": "Profissional",
+        "personal": "Pessoal",
+        "hint": "Sugerido pela categoria. Você pode alterar."
+      },
+      "save": "Salvar",
+      "saving": "Salvando…",
+      "errors": {
+        "description": {
+          "required": "Informe uma descrição.",
+          "tooLong": "Use no máximo 500 caracteres."
+        },
+        "amount": {
+          "required": "Informe o valor.",
+          "invalid": "Informe um valor válido.",
+          "notPositive": "Informe um valor maior que zero."
+        },
+        "date": {
+          "required": "Informe a data.",
+          "invalid": "Data inválida."
+        },
+        "categoryId": {
+          "required": "Selecione uma categoria."
+        }
+      },
+      "failures": {
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "categoryInvalid": "Essa categoria não está mais disponível. Escolha outra.",
+        "network": "Sem conexão. Tente de novo quando a internet voltar.",
+        "unknown": "Não foi possível salvar o lançamento. Tente novamente.",
+        "categories": "Não foi possível carregar as categorias."
+      }
+    },
+    "categoryField": {
+      "placeholder": "Digite o nome da categoria",
+      "add": "Adicionar Categoria",
+      "newPlaceholder": "Digite o nome da nova categoria",
+      "create": "Criar categoria",
+      "noResults": "Nenhuma categoria encontrada.",
+      "created": "Categoria criada.",
+      "createFailed": "Não foi possível criar a categoria. Tente de novo.",
+      "errors": {
+        "tooLong": "Use até 40 caracteres."
+      }
+    },
+    "saved": "Lançamento salvo.",
+    "statement": {
+      "scopes": {
+        "all": "Todos",
+        "professional": "Profissional",
+        "personal": "Pessoal"
+      },
+      "scopeFilterLabel": "Filtrar lançamentos por escopo",
+      "automatic": "automático",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
+      "loading": "Carregando lançamentos…",
+      "loadingMore": "Carregando mais lançamentos…",
+      "empty": {
+        "title": "Nenhum lançamento neste mês",
+        "description": "Registre uma entrada ou saída para acompanhar o seu saldo.",
+        "action": "Novo lançamento"
+      },
+      "noResults": {
+        "professional": "Nenhum lançamento profissional neste mês.",
+        "personal": "Nenhum lançamento pessoal neste mês."
+      },
+      "failures": {
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "network": "Sem conexão. Tente de novo quando a internet voltar.",
+        "unknown": "Não foi possível carregar os lançamentos."
+      },
+      "retry": "Tentar novamente",
+      "loadMoreFailure": "Não foi possível carregar mais lançamentos."
+    },
+    "detail": {
+      "close": "Fechar",
+      "automatic": "Automático",
+      "subtitle": "{{origin}}",
+      "origins": {
+        "manual": "Lançamento manual",
+        "appointment": "Gerado pelo procedimento",
+        "serviceInvoice": "Gerado pela nota fiscal",
+        "purchaseInvoice": "Gerado pelo pedido de compra",
+        "trip": "Gerado pelo deslocamento"
+      },
+      "lockedHint": {
+        "appointment": "Tipo, valor e data vêm do procedimento. Corrija pela origem.",
+        "serviceInvoice": "Tipo, valor e data vêm da nota fiscal. Corrija pela origem.",
+        "purchaseInvoice": "Tipo, valor e data vêm do pedido de compra. Corrija pela origem.",
+        "trip": "Tipo, valor e data vêm do deslocamento. Corrija pela origem."
+      },
+      "field": "{{label}}: {{value}}",
+      "lockedField": "{{label}}: {{value}}, controlado pela origem",
+      "openOrigin": {
+        "appointment": "Abrir procedimento",
+        "serviceInvoice": "Abrir nota fiscal",
+        "purchaseInvoice": "Abrir pedido de compra",
+        "trip": "Abrir deslocamento"
+      },
+      "originUnavailable": "Essa origem ainda não tem tela no app.",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "editTitle": "Editar lançamento",
+      "cancel": "Cancelar",
+      "discard": {
+        "message": "Descartar as alterações?",
+        "confirm": "Descartar",
+        "keep": "Continuar editando"
+      },
+      "deleteConfirm": {
+        "title": "Excluir este lançamento?",
+        "message": "Ele sai do extrato e essa ação não pode ser desfeita.",
+        "confirm": "Excluir",
+        "confirming": "Excluindo…",
+        "cancel": "Cancelar"
+      },
+      "deleteBlocked": {
+        "title": "Não dá para excluir por aqui",
+        "appointment": "Este lançamento foi gerado pelo procedimento {{description}}. Para excluí-lo, exclua o procedimento — o atendimento também sai do histórico.",
+        "serviceInvoice": "Este lançamento foi gerado pela nota fiscal {{description}}. Para excluí-lo, exclua a nota — o documento e o arquivo também são apagados.",
+        "purchaseInvoice": "Este lançamento foi gerado pelo pedido de compra {{description}}. Para excluí-lo, exclua o pedido — os itens também saem do estoque.",
+        "trip": "Este lançamento foi gerado pelo deslocamento {{description}}. Para excluí-lo, exclua o deslocamento.",
+        "close": "Fechar"
+      },
+      "updated": "Lançamento atualizado.",
+      "deleted": "Lançamento excluído.",
+      "failures": {
+        "notFound": "Este lançamento não existe mais. O extrato foi atualizado.",
+        "controlledByOrigin": "Tipo, valor e data deste lançamento vêm da origem e não mudam por aqui.",
+        "delete": "Não foi possível excluir o lançamento. Tente novamente."
+      }
+    }
   },
   "tabbar": {
     "day": "Dia-Dia",
@@ -1054,6 +1253,16 @@
       "failures": {
         "save": "Não foi possível salvar as metas. Tente novamente."
       }
+    }
+  },
+  "deleteOrigin": {
+    "effectsLabel": "Ao excluir:",
+    "effects": {
+      "financialEntry": "O lançamento dele sai do extrato de Finanças.",
+      "suppliesReturn": "Os materiais usados voltam para o estoque.",
+      "stockRemoval": "Os itens da nota saem do estoque.",
+      "documentRemoval": "O documento e o arquivo são apagados.",
+      "historyRemoval": "O atendimento sai da agenda e do histórico."
     }
   }
 }

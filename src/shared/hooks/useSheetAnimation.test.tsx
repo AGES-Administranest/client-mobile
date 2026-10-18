@@ -20,12 +20,16 @@ jest
     return { panHandlers: {} };
   });
 
-async function mount(visible: boolean, onClose = jest.fn()) {
+async function mount(
+  visible: boolean,
+  onClose = jest.fn(),
+  onClosed = jest.fn(),
+) {
   const result = {
     current: null as unknown as ReturnType<typeof useSheetAnimation>,
   };
   function Harness({ open }: { open: boolean }) {
-    result.current = useSheetAnimation(open, onClose);
+    result.current = useSheetAnimation(open, onClose, onClosed);
     return null;
   }
   let renderer: ReactTestRenderer.ReactTestRenderer;
@@ -34,7 +38,7 @@ async function mount(visible: boolean, onClose = jest.fn()) {
   });
   const setVisible = async (open: boolean) =>
     act(async () => renderer.update(<Harness open={open} />));
-  return { result, setVisible, onClose };
+  return { result, setVisible, onClose, onClosed };
 }
 
 const dragOffset = (result: {
@@ -53,6 +57,21 @@ test('fica montado enquanto desce e só desmonta no fim da saída', async () => 
   await setVisible(false);
 
   expect(result.current.isRendered).toBe(false);
+});
+
+test('avisa uma vez quando a saída termina, para a próxima folha abrir depois', async () => {
+  const { setVisible, onClosed } = await mount(true);
+  expect(onClosed).not.toHaveBeenCalled();
+
+  await setVisible(false);
+
+  expect(onClosed).toHaveBeenCalledTimes(1);
+});
+
+test('não avisa saída quando já monta fechada', async () => {
+  const { onClosed } = await mount(false);
+
+  expect(onClosed).not.toHaveBeenCalled();
 });
 
 test.each([
