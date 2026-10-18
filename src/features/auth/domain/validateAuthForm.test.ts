@@ -1,5 +1,6 @@
 import {
   hasErrors,
+  maskConfirmationCode,
   validateConfirmationCode,
   validateLoginForm,
   validateSignUpForm,
@@ -94,8 +95,21 @@ describe('validateConfirmationCode', () => {
     expect(validateConfirmationCode(' ')).toBe('required');
   });
 
-  it('accepts any non-blank code, leaving the format to Cognito', () => {
+  it('accepts a 6-digit code', () => {
     expect(validateConfirmationCode('123456')).toBeNull();
+  });
+
+  it.each(['12345', '1234567', '12 3456', 'abcdef'])(
+    'rejects the malformed code %p',
+    code => {
+      expect(validateConfirmationCode(code)).toBe('invalidCode');
+    },
+  );
+});
+
+describe('maskConfirmationCode', () => {
+  it('keeps only the first six digits', () => {
+    expect(maskConfirmationCode('12a34-56789')).toBe('123456');
   });
 });
 

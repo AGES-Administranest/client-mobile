@@ -1,3 +1,4 @@
+import { CANCELLATION_REASON_MAX_LENGTH } from './validateCancellationReason';
 import { validateProcedureForm } from './validateProcedureForm';
 import { validProcedureForm as valid } from './validProcedureForm.fixture';
 
@@ -33,6 +34,25 @@ describe('validateProcedureForm', () => {
     expect(
       validateProcedureForm({ ...valid, procedureName: 'OS' }).procedureName,
     ).toBeUndefined();
+  });
+
+  it('aceita nomes de paciente e procedimento com 160 caracteres e rejeita 161', () => {
+    expect(
+      validateProcedureForm({ ...valid, patientName: 'a'.repeat(160) })
+        .patientName,
+    ).toBeUndefined();
+    expect(
+      validateProcedureForm({ ...valid, procedureName: 'a'.repeat(160) })
+        .procedureName,
+    ).toBeUndefined();
+    expect(
+      validateProcedureForm({ ...valid, patientName: 'a'.repeat(161) })
+        .patientName,
+    ).toBe('NAME_TOO_LONG');
+    expect(
+      validateProcedureForm({ ...valid, procedureName: 'a'.repeat(161) })
+        .procedureName,
+    ).toBe('NAME_TOO_LONG');
   });
 
   it.each([
@@ -129,13 +149,13 @@ describe('validateProcedureForm', () => {
     ).toBeUndefined();
   });
 
-  it('valor "0,5" é válido e "0,00" deve ser maior que zero', () => {
+  it('valor "0,5" e "0,00" são válidos', () => {
     expect(
       validateProcedureForm({ ...valid, amount: '0,5' }).amount,
     ).toBeUndefined();
-    expect(validateProcedureForm({ ...valid, amount: '0,00' }).amount).toBe(
-      'MUST_BE_POSITIVE',
-    );
+    expect(
+      validateProcedureForm({ ...valid, amount: '0,00' }).amount,
+    ).toBeUndefined();
   });
 
   it('idade não numérica é inválida', () => {
@@ -159,7 +179,7 @@ describe('validateProcedureForm', () => {
     ).toBe('AGE_OUT_OF_RANGE');
   });
 
-  it.each(['-5', '0'])('valor "%s" deve ser maior que zero', amount => {
+  it.each(['-5', '-0,01'])('valor "%s" não pode ser negativo', amount => {
     expect(validateProcedureForm({ ...valid, amount }).amount).toBe(
       'MUST_BE_POSITIVE',
     );
@@ -169,6 +189,15 @@ describe('validateProcedureForm', () => {
     expect(validateProcedureForm({ ...valid, amount: 'abc' }).amount).toBe(
       'INVALID_NUMBER',
     );
+  });
+
+  it('rejeita observações além do limite do backend', () => {
+    expect(
+      validateProcedureForm({
+        ...valid,
+        notes: 'x'.repeat(CANCELLATION_REASON_MAX_LENGTH + 1),
+      }).notes,
+    ).toBe('TOO_LONG');
   });
 
   it('idade negativa é inválida', () => {

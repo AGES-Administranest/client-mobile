@@ -6,6 +6,7 @@ import { AuthButton } from '../components/AuthButton';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormMessage } from '../components/FormMessage';
 import { TextField } from '../components/TextField';
+import { CONFIRMATION_CODE_LENGTH } from '../domain/validateAuthForm';
 import { fieldErrorKey } from '../hooks/authMessageKeys';
 import { useConfirmSignUp } from '../hooks/useConfirmSignUp';
 
@@ -51,6 +52,7 @@ export function ConfirmSignUpScreen({
         onChangeText={setCode}
         error={codeErrorKey ? t(codeErrorKey) : undefined}
         keyboardType="number-pad"
+        maxLength={CONFIRMATION_CODE_LENGTH}
         autoComplete="one-time-code"
         textContentType="oneTimeCode"
         returnKeyType="done"

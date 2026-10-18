@@ -68,6 +68,10 @@ const ISSUE_KEYS: Record<
     message: 'stockEntry.review.line.issues.noUnitValue',
     fix: 'stockEntry.review.line.fixes.noUnitValue',
   },
+  invalidExpiry: {
+    message: 'stockEntry.review.line.issues.invalidExpiry',
+    fix: 'stockEntry.review.line.fixes.invalidExpiry',
+  },
 };
 
 const SAVE_KEYS: Record<SaveStatus, TranslationKey> = {
