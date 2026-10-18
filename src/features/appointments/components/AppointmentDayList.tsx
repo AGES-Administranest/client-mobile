@@ -2,7 +2,7 @@ import { CalendarDays, MapPin, Plus } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Button } from 'app/components/ui/button';
+import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
@@ -74,28 +74,21 @@ export function AppointmentDayList({
       {count === 0 && emptyState !== undefined ? (
         emptyState
       ) : count === 0 ? (
-        <View className="items-center justify-center rounded-2xl bg-white/70 border border-dashed border-border-primary/80 p-8 my-2">
-          <View className="size-12 items-center justify-center rounded-full bg-details-primary/80 mb-3">
-            <Icon as={CalendarDays} className="size-6 text-label-quartenery" />
-          </View>
-          <Text className="text-base font-bold text-label-primary text-center">
-            {emptyTitle}
-          </Text>
-          <Text className="text-xs text-label-tertiary text-center mt-1 px-4">
-            {emptySubtitle}
-          </Text>
-          {onAddAppointment && (
-            <Button
-              icon={Plus}
-              onPress={onAddAppointment}
-              className="mt-4 rounded-full px-5 py-2.5"
-            >
-              <Text className="text-sm font-semibold text-white">
-                {addLabel}
-              </Text>
-            </Button>
-          )}
-        </View>
+        <EmptyState
+          icon={CalendarDays}
+          title={emptyTitle}
+          message={emptySubtitle}
+          action={
+            onAddAppointment
+              ? {
+                  label: addLabel,
+                  icon: Plus,
+                  onPress: onAddAppointment,
+                }
+              : undefined
+          }
+          className="my-2"
+        />
       ) : (
         <View className="gap-3">
           {appointments.map(item => {

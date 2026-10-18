@@ -114,16 +114,11 @@ export function StatementList({
 
   if (items.length === 0 && noResultsMessage) {
     return (
-      <View
-        className={cn(
-          'rounded-[14px] border border-dashed border-border-primary bg-white px-3.5 py-3',
-          className,
-        )}
-      >
-        <Text className="text-[13px] leading-[19.5px] text-label-placeholder">
-          {noResultsMessage}
-        </Text>
-      </View>
+      <EmptyState
+        icon={Receipt}
+        message={noResultsMessage}
+        className={className}
+      />
     );
   }
 
@@ -131,16 +126,14 @@ export function StatementList({
     return (
       <EmptyState
         icon={Receipt}
-        iconClassName="text-label-quartenery"
         title={texts.empty.title}
         message={texts.empty.description}
-        messageClassName="text-[13px] leading-[19.5px] text-label-placeholder"
         action={{
           label: texts.empty.action,
           icon: Plus,
           onPress: onCreatePress,
         }}
-        className={cn(CARD, 'gap-2 px-6 py-8', className)}
+        className={className}
       />
     );
   }

@@ -10,7 +10,8 @@ import { cn } from 'app/lib/utils';
 const emptyStateVariants = cva('gap-3', {
   variants: {
     align: {
-      center: 'items-center justify-center px-8 py-10',
+      center:
+        'w-full items-center justify-center gap-2 rounded-[14px] bg-white px-6 py-8 shadow-[0px_5px_5px_rgba(0,0,0,0.1)]',
       start: 'items-start',
     },
   },
@@ -41,7 +42,7 @@ type EmptyStateProps = VariantProps<typeof emptyStateVariants> & {
   icon?: LucideIcon;
   iconClassName?: string;
   title?: string;
-  message: string;
+  message?: string;
   messageClassName?: string;
   action?: EmptyStateAction;
   className?: string;
@@ -62,21 +63,23 @@ function EmptyState({
       {icon ? (
         <Icon
           as={icon}
-          size={48}
-          className={cn('text-label-tertiary', iconClassName)}
+          size={40}
+          className={cn('text-label-quartenery', iconClassName)}
         />
       ) : null}
       {title ? (
-        <Text className="text-center text-base font-semibold leading-6 text-label-quartenery">
+        <Text className="text-center text-[15px] font-semibold leading-[22px] text-label-primary">
           {title}
         </Text>
       ) : null}
-      <Text
-        variant={align === 'start' ? 'default' : 'muted'}
-        className={cn(emptyStateMessageVariants({ align }), messageClassName)}
-      >
-        {message}
-      </Text>
+      {message ? (
+        <Text
+          variant={align === 'start' ? 'default' : 'muted'}
+          className={cn(emptyStateMessageVariants({ align }), messageClassName)}
+        >
+          {message}
+        </Text>
+      ) : null}
       {action ? (
         <Button
           shape="pill"
