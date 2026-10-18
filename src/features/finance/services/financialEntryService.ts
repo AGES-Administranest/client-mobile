@@ -8,6 +8,7 @@ import {
   type FinancialEntry,
   type FinancialEntryResponse,
 } from '../domain/financialEntry';
+import { toStatementQuery, type StatementFilters } from '../domain/statement';
 
 const SAVE_TIMEOUT_MS = 20000;
 
@@ -29,6 +30,19 @@ export async function createFinancialCategory(
     token: idToken,
     timeoutMs: SAVE_TIMEOUT_MS,
   });
+}
+
+/** Uma página do extrato do mês, da data mais recente para a mais antiga. */
+export async function fetchFinancialEntries(
+  idToken: string,
+  filters: StatementFilters,
+  page: number,
+): Promise<FinancialEntry[]> {
+  const response = await apiClient.get<FinancialEntryResponse[]>(
+    `/financial-entries?${toStatementQuery(filters, page)}`,
+    { token: idToken },
+  );
+  return response.map(toFinancialEntry);
 }
 
 /** Reenviar o mesmo id com os mesmos dados devolve o lançamento já criado. */

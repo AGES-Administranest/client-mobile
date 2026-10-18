@@ -688,7 +688,35 @@
       }
     },
     "saved": "Entry saved.",
-    "stockWriteOffSaved": "Write-off saved."
+    "stockWriteOffSaved": "Write-off saved.",
+    "statement": {
+      "scopes": {
+        "all": "All",
+        "professional": "Professional",
+        "personal": "Personal"
+      },
+      "scopeFilterLabel": "Filter entries by scope",
+      "automatic": "automatic",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
+      "loading": "Loading entries…",
+      "loadingMore": "Loading more entries…",
+      "empty": {
+        "title": "No entries this month",
+        "description": "Record an income or an expense to follow your balance.",
+        "action": "New entry"
+      },
+      "noResults": {
+        "professional": "No professional entries this month.",
+        "personal": "No personal entries this month."
+      },
+      "failures": {
+        "session": "Your session has expired. Sign out and sign in again.",
+        "network": "No connection. Try again when you are back online.",
+        "unknown": "Could not load the entries."
+      },
+      "retry": "Try again",
+      "loadMoreFailure": "Couldn't load more entries."
+    }
   },
   "tabbar": {
     "day": "Day-to-Day",

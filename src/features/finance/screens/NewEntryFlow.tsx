@@ -1,5 +1,5 @@
 import { FileText, PackageMinus, Pencil } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, View } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
@@ -10,6 +10,7 @@ import { useTranslation } from 'shared/i18n';
 
 import { NewEntryForm } from './NewEntryForm';
 import { NewEntryButton } from '../components/NewEntryButton';
+import type { FinancialEntry } from '../domain/financialEntry';
 
 const SAVED_MESSAGE_DURATION_MS = 3000;
 
@@ -17,7 +18,12 @@ type SavedMessageKey =
   | 'financialEntries.saved'
   | 'financialEntries.stockWriteOffSaved';
 
-export function NewEntryFlow() {
+type NewEntryFlowProps = {
+  onEntrySaved?: (entry: FinancialEntry) => void;
+  children?: (flow: { openOptions: () => void }) => ReactNode;
+};
+
+export function NewEntryFlow({ onEntrySaved, children }: NewEntryFlowProps) {
   const { t } = useTranslation();
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [documentSoonVisible, setDocumentSoonVisible] = useState(false);
@@ -67,9 +73,10 @@ export function NewEntryFlow() {
     setFormVisible(true);
   };
 
-  const finishSaving = () => {
+  const finishSaving = (entry: FinancialEntry) => {
     setFormVisible(false);
     setSavedMessageKey('financialEntries.saved');
+    onEntrySaved?.(entry);
   };
 
   const openStockWriteOff = () => {
@@ -100,6 +107,8 @@ export function NewEntryFlow() {
           </Text>
         </View>
       ) : null}
+
+      {children?.({ openOptions })}
 
       <OptionsModal
         visible={optionsVisible}
