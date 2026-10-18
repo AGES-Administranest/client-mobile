@@ -6,7 +6,25 @@
   },
   "finance": {
     "title": "Finance",
-    "openCalculator": "Open hourly rate calculator"
+    "openCalculator": "Open hourly rate calculator",
+    "entryOptionsLabel": "Open entry options",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "currentMonth": "Current month",
+    "netBalance": "Net balance",
+    "revenue": "Revenue",
+    "professional": "Prof.",
+    "personal": "Personal",
+    "productivityAndFixedCosts": "Productivity and fixed costs",
+    "hoursWorked": "Hours worked",
+    "hoursValue": "{{hours}}h",
+    "thisMonth": "this month",
+    "averageHourly": "Average hourly",
+    "grossPerHour": "gross/hour",
+    "equipmentDepreciation": "Equipment depreciation",
+    "equipmentMonthlyCost": "{{count}} items · monthly cost",
+    "perMonth": "/month",
+    "overviewError": "Could not load the finance summary."
   },
   "calculator": {
     "title": "Hourly rate calculator",

@@ -22,6 +22,7 @@ import {
 jest.mock('../services/financialEntryService', () => ({
   createFinancialEntry: jest.fn(),
   deleteFinancialEntry: jest.fn(),
+  fetchAllMonthlyFinancialEntries: jest.fn(() => Promise.resolve([])),
   fetchFinancialCategories: jest.fn(),
   fetchFinancialEntries: jest.fn(),
   updateFinancialEntry: jest.fn(),
@@ -30,7 +31,10 @@ jest.mock('../services/financialEntryService', () => ({
 jest.mock('features/procedures', () => {
   const { createElement } = jest.requireActual('react');
   const { Pressable, Text } = jest.requireActual('react-native');
+  const actual = jest.requireActual('features/procedures');
   return {
+    ...actual,
+    fetchAppointments: jest.fn(() => Promise.resolve([])),
     AppointmentDetailScreen: ({
       appointmentId,
       onClose,
@@ -47,6 +51,21 @@ jest.mock('features/procedures', () => {
         : null,
   };
 });
+jest.mock('features/calculator', () => ({
+  ...jest.requireActual('features/calculator'),
+  fetchFixedCostsSummary: jest.fn(() =>
+    Promise.resolve({
+      professionalExpenses: 0,
+      personalExpenses: 0,
+      equipmentDepreciation: 0,
+      transportCost: 0,
+      total: 0,
+    }),
+  ),
+}));
+jest.mock('features/equipment', () => ({
+  equipmentService: { summary: jest.fn(() => Promise.resolve({ count: 0 })) },
+}));
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));

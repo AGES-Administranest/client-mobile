@@ -6,7 +6,25 @@
   },
   "finance": {
     "title": "Finanças",
-    "openCalculator": "Abrir calculadora de hora"
+    "openCalculator": "Abrir calculadora de hora",
+    "entryOptionsLabel": "Abrir opções de lançamento",
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "currentMonth": "Mês atual",
+    "netBalance": "Saldo líquido",
+    "revenue": "Receitas",
+    "professional": "Prof.",
+    "personal": "Pessoal",
+    "productivityAndFixedCosts": "Produtividade e custos fixos",
+    "hoursWorked": "Horas trabalhadas",
+    "hoursValue": "{{hours}}h",
+    "thisMonth": "este mês",
+    "averageHourly": "Valor médio/hora",
+    "grossPerHour": "bruto/hora",
+    "equipmentDepreciation": "Depreciação de equipamentos",
+    "equipmentMonthlyCost": "{{count}} equipamentos · custo mensal",
+    "perMonth": "/mês",
+    "overviewError": "Não foi possível carregar o resumo financeiro."
   },
   "calculator": {
     "title": "Calculadora de hora",

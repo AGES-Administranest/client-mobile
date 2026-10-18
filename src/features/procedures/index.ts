@@ -1,4 +1,9 @@
 export { DiaDiaScreen } from './screens/DiaDiaScreen';
+export { calculateHoursWorked } from './domain/appointmentHours';
+export {
+  fetchAppointments,
+  type AppointmentResult,
+} from './services/procedureService';
 export { DayAppointments } from './screens/DayAppointments';
 export { AppointmentDetailScreen } from './screens/AppointmentDetailScreen';
 export {

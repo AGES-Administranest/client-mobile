@@ -9,7 +9,12 @@ import {
   type FinancialEntryResponse,
   type UpdateFinancialEntryPayload,
 } from '../domain/financialEntry';
-import { toStatementQuery, type StatementFilters } from '../domain/statement';
+import {
+  isLastStatementPage,
+  toStatementQuery,
+  type StatementFilters,
+  type StatementPeriod,
+} from '../domain/statement';
 
 const SAVE_TIMEOUT_MS = 20000;
 
@@ -44,6 +49,23 @@ export async function fetchFinancialEntries(
     { token: idToken },
   );
   return response.map(toFinancialEntry);
+}
+
+/** Todas as páginas do mês para o resumo: não depende do escopo selecionado no extrato. */
+export async function fetchAllMonthlyFinancialEntries(
+  idToken: string,
+  period: StatementPeriod,
+): Promise<FinancialEntry[]> {
+  const entries: FinancialEntry[] = [];
+  for (let page = 1; ; page += 1) {
+    const results = await fetchFinancialEntries(
+      idToken,
+      { period, scope: 'all' },
+      page,
+    );
+    entries.push(...results);
+    if (isLastStatementPage(results)) return entries;
+  }
 }
 
 /** Reenviar o mesmo id com os mesmos dados devolve o lançamento já criado. */

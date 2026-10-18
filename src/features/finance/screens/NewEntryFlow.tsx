@@ -5,6 +5,7 @@ import { AccessibilityInfo, View } from 'react-native';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
+import { cn } from 'app/lib/utils';
 import { OutputAdjustmentSheet } from 'features/stock';
 import { useTranslation } from 'shared/i18n';
 
@@ -20,10 +21,17 @@ type SavedMessageKey =
 
 type NewEntryFlowProps = {
   onEntrySaved?: (entry: FinancialEntry) => void;
+  showButton?: boolean;
+  containerClassName?: string;
   children?: (flow: { openOptions: () => void }) => ReactNode;
 };
 
-export function NewEntryFlow({ onEntrySaved, children }: NewEntryFlowProps) {
+export function NewEntryFlow({
+  onEntrySaved,
+  showButton = true,
+  containerClassName,
+  children,
+}: NewEntryFlowProps) {
   const { t } = useTranslation();
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [documentSoonVisible, setDocumentSoonVisible] = useState(false);
@@ -90,11 +98,13 @@ export function NewEntryFlow({ onEntrySaved, children }: NewEntryFlowProps) {
   };
 
   return (
-    <View className="gap-3 px-4 pt-3">
-      <NewEntryButton
-        label={t('financialEntries.newEntry')}
-        onPress={openOptions}
-      />
+    <View className={cn('gap-3 px-4 pt-3', containerClassName)}>
+      {showButton ? (
+        <NewEntryButton
+          label={t('financialEntries.newEntry')}
+          onPress={openOptions}
+        />
+      ) : null}
 
       {savedMessageKey ? (
         <View

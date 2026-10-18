@@ -13,6 +13,8 @@ import { useTranslation } from 'shared/i18n';
 import { EntryDetailFlow } from './EntryDetailFlow';
 import { NewEntryFlow } from './NewEntryFlow';
 import { FinanceHeader } from '../components/FinanceHeader';
+import { FinanceOverviewPanel } from '../components/FinanceOverviewPanel';
+import { NewEntryButton } from '../components/NewEntryButton';
 import { ScopeFilter } from '../components/ScopeFilter';
 import { StatementList, type StatementItem } from '../components/StatementList';
 import { defaultCategoryKey } from '../domain/financialCategory';
@@ -25,6 +27,7 @@ import {
   isAutomaticEntry,
   type StatementScope,
 } from '../domain/statement';
+import { useFinanceOverview } from '../hooks/useFinanceOverview';
 import { useFinancialStatement } from '../hooks/useFinancialStatement';
 
 const SCOPE_KEYS = {
@@ -39,9 +42,9 @@ export function FinanceScreen() {
   const { t, locale } = useTranslation();
   const [calculatorVisible, setCalculatorVisible] = useState(false);
   const [scope, setScope] = useState<StatementScope>('all');
-  // O seletor de mês é da US04: até ele chegar, o extrato mostra o mês atual.
-  const [period] = useState(() => currentPeriod(new Date()));
+  const [period, setPeriod] = useState(() => currentPeriod(new Date()));
   const statement = useFinancialStatement({ period, scope });
+  const overview = useFinanceOverview(period);
   const [stockHistoryHeight, setStockHistoryHeight] = useState(0);
   const [openEntry, setOpenEntry] = useState<FinancialEntry | null>(null);
 
@@ -90,6 +93,13 @@ export function FinanceScreen() {
     scope === 'all'
       ? null
       : t(`financialEntries.statement.noResults.${SCOPE_KEYS[scope]}`);
+  const today = currentPeriod(new Date());
+  const isCurrentMonth =
+    period.month === today.month && period.year === today.year;
+  const shiftMonth = (offset: number) => {
+    const date = new Date(period.year, period.month - 1 + offset, 1);
+    setPeriod({ month: date.getMonth() + 1, year: date.getFullYear() });
+  };
 
   const loadMoreNearStatementEnd = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -105,74 +115,109 @@ export function FinanceScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background-modal">
-      <FinanceHeader
-        title={t('finance.title')}
-        calculatorLabel={t('finance.openCalculator')}
-        onCalculatorPress={() => setCalculatorVisible(true)}
-      />
-      <ScrollView
-        onScroll={loadMoreNearStatementEnd}
-        scrollEventThrottle={16}
-        testID="finance-scroll"
+    <View className="flex-1">
+      <NewEntryFlow
+        showButton={false}
+        containerClassName="gap-0 px-0 pt-0"
+        onEntrySaved={() => {
+          statement.reload();
+          overview.retry();
+        }}
       >
-        <NewEntryFlow onEntrySaved={statement.reload}>
-          {({ openOptions }) => (
-            <View className="gap-3 pb-6 pt-2">
-              <ScopeFilter
-                options={scopeOptions}
-                value={scope}
-                onChange={setScope}
-                accessibilityLabel={t(
-                  'financialEntries.statement.scopeFilterLabel',
-                )}
-              />
-              <StatementList
-                items={items}
-                status={statement.status}
-                isLoadingMore={statement.isLoadingMore}
-                loadMoreFailed={statement.loadMoreFailed}
-                texts={{
-                  loading: t('financialEntries.statement.loading'),
-                  loadingMore: t('financialEntries.statement.loadingMore'),
-                  automatic: t('financialEntries.statement.automatic'),
-                  retry: t('financialEntries.statement.retry'),
-                  loadMoreFailure: t(
-                    'financialEntries.statement.loadMoreFailure',
-                  ),
-                  empty: {
-                    title: t('financialEntries.statement.empty.title'),
-                    description: t(
-                      'financialEntries.statement.empty.description',
-                    ),
-                    action: t('financialEntries.statement.empty.action'),
-                  },
-                }}
-                failureMessage={statement.failure ? t(statement.failure) : null}
-                noResultsMessage={noResultsMessage}
-                onRetry={statement.reload}
-                onRetryLoadMore={statement.retryLoadMore}
-                onCreatePress={openOptions}
-                onItemPress={id =>
-                  setOpenEntry(
-                    statement.entries.find(entry => entry.id === id) ?? null,
-                  )
+        {({ openOptions }) => (
+          <>
+            <FinanceHeader
+              title={t('finance.title')}
+              calculatorLabel={t('finance.openCalculator')}
+              vehicleLabel={t('finance.entryOptionsLabel')}
+              onVehiclePress={openOptions}
+              onCalculatorPress={() => setCalculatorVisible(true)}
+            />
+            <ScrollView
+              onScroll={loadMoreNearStatementEnd}
+              scrollEventThrottle={16}
+              testID="finance-scroll"
+            >
+              <View className="gap-4 pb-6 pt-2">
+                <FinanceOverviewPanel
+                  period={period}
+                  overview={overview.overview}
+                  isLoading={overview.isLoading}
+                  hasError={overview.hasError}
+                  isCurrentMonth={isCurrentMonth}
+                  onPreviousMonth={() => shiftMonth(-1)}
+                  onNextMonth={() => shiftMonth(1)}
+                  onRetry={overview.retry}
+                />
+                <View className="px-5">
+                  <NewEntryButton
+                    label={t('financialEntries.newEntry')}
+                    onPress={openOptions}
+                  />
+                </View>
+                <View className="gap-3 px-5">
+                  <ScopeFilter
+                    options={scopeOptions}
+                    value={scope}
+                    onChange={setScope}
+                    accessibilityLabel={t(
+                      'financialEntries.statement.scopeFilterLabel',
+                    )}
+                  />
+                  <StatementList
+                    items={items}
+                    status={statement.status}
+                    isLoadingMore={statement.isLoadingMore}
+                    loadMoreFailed={statement.loadMoreFailed}
+                    texts={{
+                      loading: t('financialEntries.statement.loading'),
+                      loadingMore: t('financialEntries.statement.loadingMore'),
+                      automatic: t('financialEntries.statement.automatic'),
+                      retry: t('financialEntries.statement.retry'),
+                      loadMoreFailure: t(
+                        'financialEntries.statement.loadMoreFailure',
+                      ),
+                      empty: {
+                        title: t('financialEntries.statement.empty.title'),
+                        description: t(
+                          'financialEntries.statement.empty.description',
+                        ),
+                        action: t('financialEntries.statement.empty.action'),
+                      },
+                    }}
+                    failureMessage={
+                      statement.failure ? t(statement.failure) : null
+                    }
+                    noResultsMessage={noResultsMessage}
+                    onRetry={statement.reload}
+                    onRetryLoadMore={statement.retryLoadMore}
+                    onCreatePress={openOptions}
+                    onItemPress={id =>
+                      setOpenEntry(
+                        statement.entries.find(entry => entry.id === id) ??
+                          null,
+                      )
+                    }
+                  />
+                </View>
+              </View>
+              <View
+                onLayout={event =>
+                  setStockHistoryHeight(event.nativeEvent.layout.height)
                 }
-              />
-            </View>
-          )}
-        </NewEntryFlow>
-        <View
-          onLayout={event =>
-            setStockHistoryHeight(event.nativeEvent.layout.height)
-          }
-        >
-          <MovementHistoryScreen embedded />
-        </View>
-      </ScrollView>
+              >
+                <MovementHistoryScreen embedded />
+              </View>
+            </ScrollView>
+          </>
+        )}
+      </NewEntryFlow>
       <EntryDetailFlow
         entry={openEntry}
-        onChanged={statement.reload}
+        onChanged={() => {
+          statement.reload();
+          overview.retry();
+        }}
         onFinished={() => setOpenEntry(null)}
       />
       <CalculatorScreen
