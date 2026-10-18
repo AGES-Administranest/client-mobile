@@ -4,6 +4,7 @@ import {
   getSignedQuantity,
   getSignedTotal,
   getUnitPluralForm,
+  unitPluralFormFor,
   sortMovementsByDate,
   type StockMovement,
 } from './stockMovement';
@@ -119,6 +120,18 @@ describe('getUnitPluralForm', () => {
 
   it.each([0, 2, 1.5, 0.5])('is plural for %s units', quantity => {
     expect(getUnitPluralForm(movement({ quantity }))).toBe('other');
+  });
+});
+
+describe('unitPluralFormFor', () => {
+  it.each([
+    [1, 'one'],
+    [-1, 'one'],
+    [0, 'other'],
+    [8, 'other'],
+    [0.5, 'other'],
+  ])('reads %s units as %p', (quantity, form) => {
+    expect(unitPluralFormFor(quantity)).toBe(form);
   });
 });
 

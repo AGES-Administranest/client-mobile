@@ -3,13 +3,20 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import type { StockMovement } from 'features/stock/domain/stockMovement';
-import { StockSyncProvider } from 'features/stock/hooks/StockSyncContext';
+import {
+  StockSyncProvider,
+  useStockSyncState,
+} from 'features/stock/hooks/StockSyncContext';
 import { MovementHistoryScreen } from 'features/stock/screens/MovementHistoryScreen';
 import {
   addPendingMovement,
   loadPendingMovements,
 } from 'features/stock/services/pendingMovementsRepository';
 import { fetchStockMovements } from 'features/stock/services/stockMovementService';
+import {
+  pullStockMovements,
+  pushPendingMovements,
+} from 'features/stock/services/stockSyncService';
 import { I18nProvider } from 'shared/i18n';
 import { toCalendarDate } from 'shared/utils/calendar';
 
@@ -46,29 +53,11 @@ jest.mock('features/stock/services/stockSyncService', () => ({
   })),
 }));
 
-jest.mock('features/stock/services/stockAdjustmentService', () => {
-  const actual = jest.requireActual(
-    'features/stock/services/stockAdjustmentService',
-  );
-
-  return {
-    ...actual,
-    fetchAdjustableItems: jest.fn(() =>
-      Promise.resolve([
-        {
-          id: 'item-1',
-          name: 'Propofol 10mg/ml 20ml',
-          unit: 'ampoule',
-          availableQuantity: 8,
-          unitCost: 10,
-        },
-      ]),
-    ),
-  };
-});
-
 const fetchMock = fetchStockMovements as jest.MockedFunction<
   typeof fetchStockMovements
+>;
+const pullMock = pullStockMovements as jest.MockedFunction<
+  typeof pullStockMovements
 >;
 
 const ID_TOKEN = 'id-token';
@@ -208,7 +197,7 @@ afterEach(() => {
   }
 });
 
-async function mount(props: { savedMessageDurationMs?: number } = {}) {
+async function mount() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
@@ -216,10 +205,7 @@ async function mount(props: { savedMessageDurationMs?: number } = {}) {
       <I18nProvider>
         <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
           <StockSyncProvider>
-            <MovementHistoryScreen
-              searchDebounceMs={SEARCH_DEBOUNCE_MS}
-              {...props}
-            />
+            <MovementHistoryScreen searchDebounceMs={SEARCH_DEBOUNCE_MS} />
           </StockSyncProvider>
         </AuthProvider>
       </I18nProvider>,
@@ -437,6 +423,70 @@ test('refreshes the history after the connection is restored', async () => {
   expect(readTexts(renderer)).not.toContain(
     'Não foi possível carregar o histórico.',
   );
+});
+
+test('refreshes the history once a stock sync brings changes', async () => {
+  pullMock.mockResolvedValueOnce({
+    movements: [PURCHASE_INBOUND],
+    balances: [],
+    cursor: 'cursor-2',
+    hasMore: false,
+    afterId: null,
+  });
+  fetchMock.mockResolvedValueOnce([]).mockResolvedValue([PURCHASE_INBOUND]);
+
+  const renderer = await mount();
+  await wait(50);
+
+  expect(readTexts(renderer)).toContain('Seringa 60ml (cx 30un)');
+});
+
+test('refreshes the history when a movement is left waiting in the queue', async () => {
+  const pushMock = pushPendingMovements as jest.MockedFunction<
+    typeof pushPendingMovements
+  >;
+  let syncNow: () => Promise<void> = async () => {};
+  function SyncTrigger() {
+    syncNow = useStockSyncState().sync;
+    return null;
+  }
+  fetchMock.mockResolvedValue([]);
+  await act(async () => {
+    mounted.push(
+      ReactTestRenderer.create(
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <StockSyncProvider>
+              <MovementHistoryScreen searchDebounceMs={SEARCH_DEBOUNCE_MS} />
+              <SyncTrigger />
+            </StockSyncProvider>
+          </AuthProvider>
+        </I18nProvider>,
+      ),
+    );
+  });
+  await wait(50);
+  const callsBefore = fetchMock.mock.calls.length;
+
+  await addPendingMovement(USER, {
+    id: 'queued-write-off',
+    itemId: 'item-1',
+    itemName: 'Dipirona',
+    unit: 'unit',
+    type: 'outbound',
+    source: 'manualAdjustment',
+    quantity: 2,
+    unitCost: 5,
+    occurredAt: '2026-09-10T08:00:00.000Z',
+    notes: null,
+  });
+  pushMock.mockRejectedValueOnce(new Error('network down'));
+  await act(async () => {
+    await syncNow();
+  });
+  await wait(50);
+
+  expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBefore);
 });
 
 describe('filters', () => {
@@ -662,170 +712,5 @@ describe('calendar visibility', () => {
     });
 
     expect(isCalendarOpen(renderer)).toBe(true);
-  });
-});
-
-describe('output adjustment', () => {
-  beforeEach(() => {
-    respondFilteringLikeTheBackend([PURCHASE_INBOUND]);
-  });
-
-  function pressableWithText(
-    renderer: ReactTestRenderer.ReactTestRenderer,
-    text: string,
-  ) {
-    return renderer.root
-      .findAll(
-        node =>
-          (node.props.role === 'button' ||
-            node.props.accessibilityRole === 'button') &&
-          typeof node.props.onPress === 'function',
-      )
-      .find(node =>
-        node
-          .findAllByType('Text' as never)
-          .some(label => label.props.children === text),
-      )!;
-  }
-
-  function byLabel(
-    renderer: ReactTestRenderer.ReactTestRenderer,
-    label: string,
-  ) {
-    return renderer.root.find(
-      node =>
-        node.props.accessibilityLabel === label &&
-        (typeof node.props.onPress === 'function' ||
-          typeof node.props.onChangeText === 'function'),
-    );
-  }
-
-  async function fillValidAdjustment(
-    renderer: ReactTestRenderer.ReactTestRenderer,
-  ) {
-    await act(async () => {
-      pressableWithText(renderer, 'Novo lançamento').props.onPress();
-    });
-
-    await act(async () => {
-      byLabel(renderer, 'Item').props.onPress();
-    });
-
-    await act(async () => {
-      renderer.root
-        .find(node => node.props.testID === 'item-option-item-1')
-        .props.onPress();
-    });
-
-    await act(async () => {
-      byLabel(renderer, 'Quantidade').props.onChangeText('2');
-    });
-
-    await act(async () => {
-      byLabel(renderer, 'Perda').props.onPress();
-    });
-  }
-
-  it('opens the adjustment form from the button above the title', async () => {
-    const renderer = await mount();
-
-    await act(async () => {
-      pressableWithText(renderer, 'Novo lançamento').props.onPress();
-    });
-
-    expect(readTexts(renderer)).toContain('Registro de ajuste de saída');
-  });
-
-  it('shows the saved message and closes the form on success', async () => {
-    const renderer = await mount();
-
-    await fillValidAdjustment(renderer);
-
-    await act(async () => {
-      pressableWithText(renderer, 'Salvar').props.onPress();
-    });
-
-    expect(await loadPendingMovements(USER)).toEqual([
-      expect.objectContaining({
-        itemId: 'item-1',
-        quantity: 2,
-        adjustmentReason: 'loss',
-        notes: null,
-      }),
-    ]);
-    expect(readTexts(renderer)).toContain('Atualização salva');
-
-    const modal = renderer.root.findAll(
-      node => node.props.visible !== undefined && node.props.transparent,
-    );
-
-    expect(modal.every(node => node.props.visible === false)).toBe(true);
-  });
-
-  it('hides the saved message after a few seconds', async () => {
-    const renderer = await mount({ savedMessageDurationMs: 200 });
-
-    await fillValidAdjustment(renderer);
-
-    await act(async () => {
-      pressableWithText(renderer, 'Salvar').props.onPress();
-    });
-
-    expect(readTexts(renderer)).toContain('Atualização salva');
-
-    await wait(600);
-
-    expect(readTexts(renderer)).not.toContain('Atualização salva');
-  });
-
-  it('restarts the countdown when a second adjustment is saved', async () => {
-    const renderer = await mount({ savedMessageDurationMs: 500 });
-
-    await fillValidAdjustment(renderer);
-    await act(async () => {
-      pressableWithText(renderer, 'Salvar').props.onPress();
-    });
-
-    await wait(150);
-
-    await fillValidAdjustment(renderer);
-    await act(async () => {
-      pressableWithText(renderer, 'Salvar').props.onPress();
-    });
-
-    await wait(200);
-
-    expect(readTexts(renderer)).toContain('Atualização salva');
-
-    await wait(900);
-
-    expect(readTexts(renderer)).not.toContain('Atualização salva');
-  });
-
-  it('reports what went wrong and keeps the form open on failure', async () => {
-    const renderer = await mount();
-
-    await fillValidAdjustment(renderer);
-
-    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
-      new Error('disk full'),
-    );
-
-    await act(async () => {
-      pressableWithText(renderer, 'Salvar').props.onPress();
-    });
-
-    const texts = readTexts(renderer);
-
-    expect(texts).toContain(
-      'Não foi possível salvar o ajuste neste aparelho. Tente de novo.',
-    );
-    expect(texts).not.toContain('Atualização salva');
-
-    const modal = renderer.root.findAll(
-      node => node.props.visible !== undefined && node.props.transparent,
-    );
-
-    expect(modal.some(node => node.props.visible === true)).toBe(true);
   });
 });

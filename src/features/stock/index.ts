@@ -1,4 +1,5 @@
 export { MovementHistoryScreen } from './screens/MovementHistoryScreen';
+export { OutputAdjustmentSheet } from './screens/OutputAdjustmentSheet';
 export { StockSyncProvider, useStockSyncState } from './hooks/StockSyncContext';
 export { SupplySelectorSheet } from './components/SupplySelectorSheet';
 export type { SupplySelectorSheetProps } from './components/SupplySelectorSheet';

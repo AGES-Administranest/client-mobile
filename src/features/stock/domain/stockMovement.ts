@@ -76,8 +76,12 @@ export function getSignedTotal(movement: StockMovement): number {
 
 export type UnitPluralForm = 'one' | 'other';
 
+export function unitPluralFormFor(quantity: number): UnitPluralForm {
+  return Math.abs(quantity) === 1 ? 'one' : 'other';
+}
+
 export function getUnitPluralForm(movement: StockMovement): UnitPluralForm {
-  return Math.abs(movement.quantity) === 1 ? 'one' : 'other';
+  return unitPluralFormFor(movement.quantity);
 }
 
 export function getMovementAppointment(
