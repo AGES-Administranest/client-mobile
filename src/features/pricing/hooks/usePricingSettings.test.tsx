@@ -103,3 +103,18 @@ test('reload asks again, so saving the form leaves the onboarding', async () => 
   expect(fetchMock).toHaveBeenCalledTimes(2);
   expect(result.current.state.status).toBe('configured');
 });
+
+test('applySaved marks the goals as configured without asking the API again', async () => {
+  fetchMock.mockResolvedValue(null);
+  const result = await mountHook();
+
+  await act(async () => {
+    result.current.applySaved(SETTINGS);
+  });
+
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  expect(result.current.state).toEqual({
+    status: 'configured',
+    settings: SETTINGS,
+  });
+});
