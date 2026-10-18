@@ -30,10 +30,7 @@ import { useStockSyncState } from '../hooks/StockSyncContext';
 import { useMovementFilters } from '../hooks/useMovementFilters';
 import { useMovementHistory } from '../hooks/useMovementHistory';
 
-const SAVED_MESSAGE_DURATION_MS = 3000;
-
 type MovementHistoryScreenProps = {
-  savedMessageDurationMs?: number;
   searchDebounceMs?: number;
   // Dentro da rolagem de Finanças: no iOS uma segunda rolagem vertical segura o
   // arrasto e a página para de rolar.
@@ -41,7 +38,6 @@ type MovementHistoryScreenProps = {
 };
 
 export function MovementHistoryScreen({
-  savedMessageDurationMs = SAVED_MESSAGE_DURATION_MS,
   searchDebounceMs,
   embedded = false,
 }: MovementHistoryScreenProps = {}) {
@@ -60,7 +56,6 @@ export function MovementHistoryScreen({
   const queuedBefore = useRef(pendingCount);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
-  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   useEffect(() => onConnectionRestored(retry), [retry]);
 
@@ -79,18 +74,7 @@ export function MovementHistoryScreen({
     queuedBefore.current = pendingCount;
   }, [pendingCount, retry]);
 
-  useEffect(() => {
-    if (savedAt === null) {
-      return;
-    }
-
-    const timer = setTimeout(() => setSavedAt(null), savedMessageDurationMs);
-
-    return () => clearTimeout(timer);
-  }, [savedAt, savedMessageDurationMs]);
-
   const openAdjustment = () => {
-    setSavedAt(null);
     setIsAdjustmentOpen(true);
   };
 
@@ -167,14 +151,6 @@ export function MovementHistoryScreen({
           <Text>{t('stock.movementHistory.newEntry')}</Text>
         </Button>
 
-        {savedAt !== null ? (
-          <View className="rounded-xl border border-details-tertiary bg-details-secondary p-3">
-            <Text className="text-sm text-label-primary">
-              {t('stock.movementHistory.savedMessage')}
-            </Text>
-          </View>
-        ) : null}
-
         <View className="gap-1">
           <Text variant="h4">{t('stock.movementHistory.title')}</Text>
           <Text variant="muted">{t('stock.movementHistory.description')}</Text>
@@ -231,10 +207,7 @@ export function MovementHistoryScreen({
       <OutputAdjustmentSheet
         visible={isAdjustmentOpen}
         onClose={() => setIsAdjustmentOpen(false)}
-        onSaved={() => {
-          setIsAdjustmentOpen(false);
-          setSavedAt(current => (current ?? 0) + 1);
-        }}
+        onSaved={() => setIsAdjustmentOpen(false)}
       />
     </SafeAreaView>
   );

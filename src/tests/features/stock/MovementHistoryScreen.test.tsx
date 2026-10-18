@@ -199,7 +199,7 @@ afterEach(() => {
 });
 
 async function mount(
-  props: { savedMessageDurationMs?: number; embedded?: boolean } = {},
+  props: { embedded?: boolean } = {},
 ) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 

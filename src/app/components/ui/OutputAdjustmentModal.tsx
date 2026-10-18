@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import {
   Animated,
   Modal,
@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
-import { Icon } from 'app/components/ui/icon';
 import { ItemPicker } from 'app/components/ui/item-picker';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
@@ -116,16 +115,18 @@ function OutputAdjustmentModal({
             }}
           >
             <View className="shrink rounded-t-3xl bg-background-modal p-5">
-              <View className="mb-4 flex-row items-center justify-between">
-                <Text variant="h4">{title}</Text>
+              <View className="mb-4">
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={closeLabel}
                   onPress={onClose}
-                  className="size-8 items-center justify-center rounded-full bg-details-primary"
+                  className="h-6 w-full items-center justify-center"
                 >
-                  <Icon as={X} className="size-4 text-label-primary" />
+                  <View className="h-1 w-10 rounded-full bg-border-primary" />
                 </Pressable>
+                <Text variant="h4" className="mt-2">
+                  {title}
+                </Text>
               </View>
 
               <ScrollView contentContainerClassName="gap-4 pb-2">

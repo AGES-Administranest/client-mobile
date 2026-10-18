@@ -473,8 +473,7 @@
         }
       },
       "quantity": "{{quantity}} {{unit}}",
-      "newEntry": "New entry",
-      "savedMessage": "Update saved"
+      "newEntry": "New entry"
     },
     "outputAdjustment": {
       "title": "Stock output adjustment",
@@ -708,7 +707,6 @@
       }
     },
     "saved": "Entry saved.",
-    "stockWriteOffSaved": "Write-off saved.",
     "statement": {
       "scopes": {
         "all": "All",

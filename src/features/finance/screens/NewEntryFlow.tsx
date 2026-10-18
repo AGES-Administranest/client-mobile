@@ -1,10 +1,9 @@
 import { FileText, PackageMinus, Pencil } from 'lucide-react-native';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, View } from 'react-native';
+import { useRef, useState, type ReactNode } from 'react';
+import { View } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { OptionsModal } from 'app/components/ui/options-modal';
-import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import { OutputAdjustmentSheet } from 'features/stock';
 import { useTranslation } from 'shared/i18n';
@@ -12,10 +11,6 @@ import { useTranslation } from 'shared/i18n';
 import { NewEntryForm } from './NewEntryForm';
 import { NewEntryButton } from '../components/NewEntryButton';
 import type { FinancialEntry } from '../domain/financialEntry';
-
-const SAVED_MESSAGE_DURATION_MS = 3000;
-
-type SavedMessageKey = 'financialEntries.stockWriteOffSaved';
 
 type NewEntryFlowProps = {
   onEntrySaved?: (entry: FinancialEntry) => void;
@@ -38,25 +33,8 @@ export function NewEntryFlow({
   const [formVisible, setFormVisible] = useState(false);
   const [stockWriteOffOpenedOnce, setStockWriteOffOpenedOnce] = useState(false);
   const [stockWriteOffVisible, setStockWriteOffVisible] = useState(false);
-  const [savedMessageKey, setSavedMessageKey] =
-    useState<SavedMessageKey | null>(null);
   // iOS: um Modal não abre enquanto outro fecha.
   const openAfterOptionsLeave = useRef<(() => void) | null>(null);
-
-  useEffect(() => {
-    if (!savedMessageKey) {
-      return;
-    }
-
-    // Some em 3 s: sem o anúncio, quem usa leitor de tela nunca chega a ouvir.
-    AccessibilityInfo.announceForAccessibility(t(savedMessageKey));
-    const timer = setTimeout(
-      () => setSavedMessageKey(null),
-      SAVED_MESSAGE_DURATION_MS,
-    );
-
-    return () => clearTimeout(timer);
-  }, [savedMessageKey, t]);
 
   const choose = (openNext?: () => void) => {
     openAfterOptionsLeave.current = openNext ?? null;
@@ -70,7 +48,6 @@ export function NewEntryFlow({
   };
 
   const openOptions = () => {
-    setSavedMessageKey(null);
     setOptionsVisible(true);
   };
 
@@ -91,7 +68,6 @@ export function NewEntryFlow({
 
   const finishStockWriteOff = () => {
     setStockWriteOffVisible(false);
-    setSavedMessageKey('financialEntries.stockWriteOffSaved');
   };
 
   return (
@@ -101,18 +77,6 @@ export function NewEntryFlow({
           label={t('financialEntries.newEntry')}
           onPress={openOptions}
         />
-      ) : null}
-
-      {savedMessageKey ? (
-        <View
-          role="status"
-          accessibilityLiveRegion="polite"
-          className="rounded-xl border border-details-tertiary bg-details-secondary p-3"
-        >
-          <Text className="text-sm text-label-primary">
-            {t(savedMessageKey)}
-          </Text>
-        </View>
       ) : null}
 
       {children?.({ openOptions })}

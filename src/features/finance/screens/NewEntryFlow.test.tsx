@@ -652,7 +652,7 @@ test('the stock write-off opens only after the options sheet has finished leavin
   }
 });
 
-test('saving a stock write-off closes the sheet and confirms it was registered, out loud too', async () => {
+test('saving a stock write-off closes the sheet without showing a success notice', async () => {
   const announce = jest
     .spyOn(AccessibilityInfo, 'announceForAccessibility')
     .mockImplementation(() => {});
@@ -669,10 +669,10 @@ test('saving a stock write-off closes the sheet and confirms it was registered, 
 
   const texts = textsOf(renderer);
   expect(texts).not.toContain(STOCK_WRITE_OFF_TITLE);
-  expect(texts).toContain('Baixa registrada.');
+  expect(texts).not.toContain('Baixa registrada.');
   expect(texts).not.toContain('Lançamento salvo.');
   expect(createMock).not.toHaveBeenCalled();
-  expect(announce).toHaveBeenCalledWith('Baixa registrada.');
+  expect(announce).not.toHaveBeenCalledWith('Baixa registrada.');
   announce.mockRestore();
 });
 
@@ -688,30 +688,4 @@ test('closing the stock write-off without saving confirms nothing', async () => 
   });
 
   expect(textsOf(renderer)).toEqual(['Novo lançamento']);
-});
-
-test('the stock write-off notice goes away by itself after 3 seconds', async () => {
-  jest.useFakeTimers();
-  const elapse = (ms: number) =>
-    act(async () => {
-      jest.advanceTimersByTime(ms);
-    });
-  const renderer = await renderFlow();
-  try {
-    await openOptions(renderer);
-    await pressByText(renderer, 'Baixa no estoque');
-    await elapse(1000);
-    await fillStockWriteOff(renderer);
-    await act(async () => {
-      await pressByText(renderer, 'Salvar');
-    });
-
-    await elapse(2999);
-    expect(textsOf(renderer)).toContain('Baixa registrada.');
-
-    await elapse(1);
-    expect(textsOf(renderer)).not.toContain('Baixa registrada.');
-  } finally {
-    jest.useRealTimers();
-  }
 });

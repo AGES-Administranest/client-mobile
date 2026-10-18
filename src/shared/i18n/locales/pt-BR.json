@@ -473,8 +473,7 @@
         }
       },
       "quantity": "{{quantity}} {{unit}}",
-      "newEntry": "Novo lançamento",
-      "savedMessage": "Atualização salva"
+      "newEntry": "Novo lançamento"
     },
     "outputAdjustment": {
       "title": "Registro de ajuste de saída",
@@ -708,7 +707,6 @@
       }
     },
     "saved": "Lançamento salvo.",
-    "stockWriteOffSaved": "Baixa registrada.",
     "statement": {
       "scopes": {
         "all": "Todos",
