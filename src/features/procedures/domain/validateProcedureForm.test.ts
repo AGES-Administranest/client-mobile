@@ -36,6 +36,25 @@ describe('validateProcedureForm', () => {
     ).toBeUndefined();
   });
 
+  it('aceita nomes de paciente e procedimento com 160 caracteres e rejeita 161', () => {
+    expect(
+      validateProcedureForm({ ...valid, patientName: 'a'.repeat(160) })
+        .patientName,
+    ).toBeUndefined();
+    expect(
+      validateProcedureForm({ ...valid, procedureName: 'a'.repeat(160) })
+        .procedureName,
+    ).toBeUndefined();
+    expect(
+      validateProcedureForm({ ...valid, patientName: 'a'.repeat(161) })
+        .patientName,
+    ).toBe('NAME_TOO_LONG');
+    expect(
+      validateProcedureForm({ ...valid, procedureName: 'a'.repeat(161) })
+        .procedureName,
+    ).toBe('NAME_TOO_LONG');
+  });
+
   it.each([
     ['620,555', 'MAX_2_DECIMALS'],
     ['620.555', 'MAX_2_DECIMALS'],

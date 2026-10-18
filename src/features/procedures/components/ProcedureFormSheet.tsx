@@ -44,6 +44,7 @@ export type ProcedureFormTexts = {
   asaOptions: AsaClassification[];
   errors: Partial<Record<keyof ProcedureFormValues, string>>;
   clientSearchMessages: ClientAutocompleteMessages;
+  nameMaxLength: number;
   notesMaxLength: number;
 };
 
@@ -140,6 +141,7 @@ export function ProcedureFormSheet({
                 placeholder={texts.placeholders.patientName}
                 value={values.patientName}
                 error={texts.errors.patientName}
+                maxLength={texts.nameMaxLength}
                 onChangeText={v => onChangeText('patientName', v)}
               />
               <Field
@@ -147,6 +149,7 @@ export function ProcedureFormSheet({
                 placeholder={texts.placeholders.procedureName}
                 value={values.procedureName}
                 error={texts.errors.procedureName}
+                maxLength={texts.nameMaxLength}
                 onChangeText={v => onChangeText('procedureName', v)}
               />
               <ClientAutocomplete
