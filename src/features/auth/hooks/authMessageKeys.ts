@@ -25,6 +25,7 @@ const FIELD_ERROR_KEYS: Record<AuthFieldError, TranslationKey> = {
   invalidEmail: 'auth.validation.invalidEmail',
   passwordMismatch: 'auth.validation.passwordMismatch',
   termsRequired: 'auth.validation.termsRequired',
+  invalidCode: 'auth.validation.invalidCode',
 };
 
 export function authErrorCodeOf(error: unknown): AuthErrorCode {

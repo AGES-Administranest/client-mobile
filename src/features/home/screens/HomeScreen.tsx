@@ -24,6 +24,7 @@ import {
   View,
 } from 'react-native';
 
+import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
@@ -322,21 +323,16 @@ export function HomeScreen() {
               }
               emptyState={
                 calendar.isLoading ? null : (
-                  <View className="items-center gap-3 py-16">
-                    {/* Figma: ícone e texto do estado vazio saem em marrom
-                        (label-quartenery), não em preto. */}
-                    <Icon
-                      as={CalendarX2}
-                      className="size-16 text-label-quartenery"
-                    />
-                    <Text className="text-base font-semibold text-label-quartenery">
-                      {showsMonth
+                  <EmptyState
+                    icon={CalendarX2}
+                    message={
+                      showsMonth
                         ? t('appointments.emptyMonth')
                         : isToday
                         ? t('appointments.emptyToday')
-                        : t('appointments.emptySelectedDay')}
-                    </Text>
-                  </View>
+                        : t('appointments.emptySelectedDay')
+                    }
+                  />
                 )
               }
             />

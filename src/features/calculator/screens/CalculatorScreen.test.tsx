@@ -2,7 +2,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
-import { fetchPricingSettings } from 'features/pricing';
+import { fetchPricingSettings, pricingService } from 'features/pricing';
 import { I18nProvider } from 'shared/i18n';
 
 import { CalculatorScreen } from './CalculatorScreen';
@@ -18,6 +18,9 @@ jest.mock('features/auth/services/accountApi', () => ({}));
 jest.mock('features/pricing/services/pricingSettingsService', () => ({
   fetchPricingSettings: jest.fn(),
 }));
+jest.mock('features/pricing/services/pricingService', () => ({
+  pricingService: { saveSettings: jest.fn() },
+}));
 jest.mock('../services/fixedCostsSummaryService', () => ({
   fetchFixedCostsSummary: jest.fn(),
   updateTransportCost: jest.fn(),
@@ -26,6 +29,7 @@ jest.mock('../services/fixedCostsSummaryService', () => ({
 const fetchSummary = fetchFixedCostsSummary as jest.Mock;
 const fetchSettings = fetchPricingSettings as jest.Mock;
 const updateTransport = updateTransportCost as jest.Mock;
+const saveSettings = pricingService.saveSettings as jest.Mock;
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -111,6 +115,9 @@ beforeEach(() => {
   fetchSummary.mockReset().mockResolvedValue(SUMMARY);
   fetchSettings.mockReset().mockResolvedValue(null);
   updateTransport.mockReset();
+  saveSettings
+    .mockReset()
+    .mockImplementation((_token, dto) => Promise.resolve(dto));
 });
 
 test('shows the title and the subtitle', async () => {
@@ -164,6 +171,41 @@ test('drops the setup guide once the goals exist', async () => {
 
   expect(texts).not.toContain('Preencha os campos');
   expect(texts).toContain('Custos fixos mensais');
+});
+
+test('drops the setup guide as soon as the goals are saved', async () => {
+  const { renderer } = await renderScreen();
+  const goal = (label: string) =>
+    renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === label &&
+        typeof node.props.onChangeText === 'function',
+    );
+
+  await act(async () =>
+    goal('Meta de renda líquida mensal (R$)').props.onChangeText('8.000'),
+  );
+  await act(async () =>
+    goal('Horas disponíveis por semana').props.onChangeText('40'),
+  );
+  await act(async () =>
+    goal('Margem de segurança (%)').props.onChangeText('10'),
+  );
+  const save = renderer.root
+    .findAll(node => typeof node.props?.onPress === 'function')
+    .find(node =>
+      node
+        .findAllByType('Text' as never)
+        .some(text => text.props.children === 'Salvar metas'),
+    )!;
+  await act(async () => save.props.onPress());
+
+  expect(saveSettings).toHaveBeenCalledWith('id-token', {
+    monthlyIncomeGoal: 8000,
+    weeklyHours: 40,
+    safetyMarginPct: 10,
+  });
+  expect(textsOf(renderer).join(' ')).not.toContain('Preencha os campos');
 });
 
 test('puts the goals card above the fixed costs', async () => {

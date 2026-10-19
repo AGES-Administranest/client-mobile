@@ -6,7 +6,25 @@
   },
   "finance": {
     "title": "Finance",
-    "openCalculator": "Open hourly rate calculator"
+    "openCalculator": "Open hourly rate calculator",
+    "entryOptionsLabel": "Open entry options",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "currentMonth": "Current month",
+    "netBalance": "Net balance",
+    "revenue": "Revenue",
+    "professional": "Prof.",
+    "personal": "Personal",
+    "productivityAndFixedCosts": "Productivity and fixed costs",
+    "hoursWorked": "Hours worked",
+    "hoursValue": "{{hours}}h",
+    "thisMonth": "this month",
+    "averageHourly": "Average hourly",
+    "grossPerHour": "gross/hour",
+    "equipmentDepreciation": "Equipment depreciation",
+    "equipmentMonthlyCost": "{{count}} items · monthly cost",
+    "perMonth": "/month",
+    "overviewError": "Could not load the finance summary."
   },
   "calculator": {
     "title": "Hourly rate calculator",
@@ -97,6 +115,98 @@
     "deleteConfirmTitle": "Delete item",
     "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
   },
+  "equipment": {
+    "loading": "Loading equipment...",
+    "empty": "No equipment registered. Register the first one to track depreciation.",
+    "addButton": "Add equipment",
+    "errorLoad": "Could not load the equipment.",
+    "errorSession": "Your session has expired. Sign out and sign in again.",
+    "summary": {
+      "label": "Total depreciation/month",
+      "countSingular": "{{count}} equipment · {{annual}}/year",
+      "countPlural": "{{count}} equipment · {{annual}}/year"
+    },
+    "card": {
+      "perMonth": "/month",
+      "since": "Since {{date}} · Current value {{value}}",
+      "lifeUsed": "{{percent}}% of useful life used",
+      "endOfLife": "End of useful life"
+    },
+    "form": {
+      "title": {
+        "create": "New equipment",
+        "edit": "Edit equipment"
+      },
+      "confirm": {
+        "create": "Confirm",
+        "edit": "Save"
+      },
+      "close": "Close",
+      "labels": {
+        "name": "Equipment name",
+        "purchaseValue": "Purchase value (R$)",
+        "acquisitionDate": "Acquisition date",
+        "usefulLifeYears": "Estimated useful life",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "name": "E.g. Matrx VIP 3000 vaporizer",
+        "purchaseValue": "0,00",
+        "acquisitionDate": "DD/MM/YYYY",
+        "usefulLifeYears": "E.g. 5 years",
+        "notes": "Calibration, warranty, etc."
+      },
+      "usefulLifeHint": "If left empty, we assume 10 years (10% per year)",
+      "usefulLifeLegacy": "Current useful life: {{months}} months. Enter years to change it",
+      "previewUnavailable": "—",
+      "previewLifeEnded": "Useful life already ended",
+      "errorSave": "Could not save the equipment.",
+      "errors": {
+        "name": {
+          "required": "Enter the equipment name.",
+          "tooShort": "The name needs at least 2 characters.",
+          "tooLong": "The name can have at most 120 characters."
+        },
+        "purchaseValue": {
+          "required": "Enter the purchase value.",
+          "invalidNumber": "Invalid value. Use the format 1.234,56.",
+          "mustBePositive": "The value must be greater than zero."
+        },
+        "acquisitionDate": {
+          "required": "Enter the acquisition date.",
+          "invalidDate": "Invalid date. Use the format DD/MM/YYYY.",
+          "futureDate": "The acquisition date cannot be in the future."
+        },
+        "usefulLifeYears": {
+          "invalidNumber": "Enter a number of years.",
+          "mustBeInteger": "Enter whole years, with no decimals.",
+          "mustBePositive": "The useful life must be greater than zero.",
+          "tooLarge": "The useful life can be at most 100 years."
+        },
+        "notes": {
+          "tooLong": "The notes can have at most 1000 characters."
+        }
+      },
+      "previewLabel": "Estimated depreciation:",
+      "previewValue": "{{value}}/month",
+      "startEdit": "Edit",
+      "usefulLifeView": {
+        "year": "{{count}} year",
+        "years": "{{count}} years",
+        "months": "{{count}} months"
+      },
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "button": "Delete",
+      "confirmTitle": "Delete equipment?",
+      "confirmMessage": "“{{name}}” will no longer appear in the list and will not count towards the total depreciation.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "error": "Could not delete the equipment. Try again.",
+      "confirming": "Deleting…"
+    }
+  },
   "stockEntry": {
     "trigger": "Entries",
     "triggerWithCount": "Entries ({{count}})",
@@ -160,6 +270,7 @@
       "invoiceNumber": "INVOICE NO.",
       "date": "DATE",
       "datePlaceholder": "dd/mm/yyyy",
+      "invalidDate": "Enter a valid date (dd/mm/yyyy).",
       "total": "INVOICE TOTAL",
       "linesSum": "Sum of lines: {{sum}}",
       "linesSumDifference": "Sum of lines: {{sum}} · {{difference}} off",
@@ -200,14 +311,16 @@
           "shortName": "The invoice description has {{count}} letters. Too short to identify the item.",
           "unlinked": "No item in your stock was recognized in this description.",
           "noQuantity": "The quantity is not on the invoice. Nothing would go into stock like this.",
-          "noUnitValue": "The unit price is not on the invoice. Without it there is no line total."
+          "noUnitValue": "The unit price is not on the invoice. Without it there is no line total.",
+          "invalidExpiry": "Expiry must be a real date, in dd/mm/yyyy."
         },
         "fixes": {
           "mismatch": "Use {{computed}}",
           "shortName": "Link to an item",
           "unlinked": "Link to an item",
           "noQuantity": "Fill in quantity",
-          "noUnitValue": "Fill in unit price"
+          "noUnitValue": "Fill in unit price",
+          "invalidExpiry": "Fix expiry"
         }
       },
       "save": {
@@ -363,14 +476,14 @@
         }
       },
       "quantity": "{{quantity}} {{unit}}",
-      "newEntry": "New entry",
-      "savedMessage": "Update saved"
+      "newEntry": "New entry"
     },
     "outputAdjustment": {
       "title": "Stock output adjustment",
       "close": "Close",
       "itemLabel": "Item",
       "itemPlaceholder": "Select the item",
+      "noItems": "No items in stock to write off.",
       "quantityLabel": "Quantity",
       "quantityPlaceholder": "0",
       "reasonLabel": "Reason",
@@ -503,6 +616,187 @@
     },
     "loadFailure": "Could not load the clinics."
   },
+  "financialEntries": {
+    "newEntry": "New entry",
+    "options": {
+      "title": "New entry",
+      "descriptionWithStockWriteOff": "Upload the invoice or order as a PDF, fill it in by hand or write off a stock item",
+      "sendDocument": "Upload document (PDF)",
+      "manual": "Manual entry",
+      "stockWriteOff": "Stock write-off"
+    },
+    "documentSoon": {
+      "title": "PDF upload coming soon",
+      "message": "For now, record the income or the expense with a manual entry.",
+      "ok": "Got it"
+    },
+    "categories": {
+      "professionalFees": "Professional fees",
+      "supplies": "Supplies",
+      "travel": "Travel",
+      "taxesAndFees": "Taxes and fees",
+      "fixedCosts": "Fixed costs",
+      "other": "Other"
+    },
+    "form": {
+      "title": "New manual entry",
+      "close": "Close",
+      "nature": {
+        "label": "Type",
+        "income": "Income",
+        "expense": "Expense"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "E.g. Electricity bill"
+      },
+      "amount": {
+        "label": "Amount (R$)",
+        "placeholder": "0.00"
+      },
+      "date": {
+        "label": "Date",
+        "placeholder": "dd/mm/yyyy"
+      },
+      "category": {
+        "label": "Category",
+        "loading": "Loading categories…",
+        "retry": "Try again"
+      },
+      "scope": {
+        "label": "Scope",
+        "professional": "Professional",
+        "personal": "Personal",
+        "hint": "Suggested by the category. You can change it."
+      },
+      "save": "Save",
+      "saving": "Saving…",
+      "errors": {
+        "description": {
+          "required": "Enter a description.",
+          "tooLong": "Use at most 500 characters."
+        },
+        "amount": {
+          "required": "Enter the amount.",
+          "invalid": "Enter a valid amount.",
+          "notPositive": "Enter an amount greater than zero."
+        },
+        "date": {
+          "required": "Enter the date.",
+          "invalid": "Invalid date."
+        },
+        "categoryId": {
+          "required": "Choose a category."
+        }
+      },
+      "failures": {
+        "session": "Your session has expired. Sign out and sign in again.",
+        "categoryInvalid": "This category is no longer available. Choose another one.",
+        "network": "No connection. Try again when you are back online.",
+        "unknown": "Could not save the entry. Try again.",
+        "categories": "Could not load the categories."
+      }
+    },
+    "categoryField": {
+      "placeholder": "Type the category name",
+      "add": "Add category",
+      "newPlaceholder": "Type the new category name",
+      "create": "Create category",
+      "noResults": "No categories found.",
+      "created": "Category created.",
+      "createFailed": "Could not create the category. Try again.",
+      "errors": {
+        "tooLong": "Use up to 40 characters."
+      }
+    },
+    "saved": "Entry saved.",
+    "statement": {
+      "scopes": {
+        "all": "All",
+        "professional": "Professional",
+        "personal": "Personal"
+      },
+      "scopeFilterLabel": "Filter entries by scope",
+      "automatic": "automatic",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
+      "loading": "Loading entries…",
+      "loadingMore": "Loading more entries…",
+      "empty": {
+        "title": "No entries this month",
+        "description": "Record an income or an expense to follow your balance.",
+        "action": "New entry"
+      },
+      "noResults": {
+        "professional": "No professional entries this month.",
+        "personal": "No personal entries this month."
+      },
+      "failures": {
+        "session": "Your session has expired. Sign out and sign in again.",
+        "network": "No connection. Try again when you are back online.",
+        "unknown": "Could not load the entries."
+      },
+      "retry": "Try again",
+      "loadMoreFailure": "Couldn't load more entries."
+    },
+    "detail": {
+      "close": "Close",
+      "automatic": "Automatic",
+      "subtitle": "{{origin}}",
+      "origins": {
+        "manual": "Manual entry",
+        "appointment": "Created by the procedure",
+        "serviceInvoice": "Created by the service invoice",
+        "purchaseInvoice": "Created by the purchase order",
+        "trip": "Created by the trip"
+      },
+      "lockedHint": {
+        "appointment": "Type, amount and date come from the procedure. Fix them at the origin.",
+        "serviceInvoice": "Type, amount and date come from the service invoice. Fix them at the origin.",
+        "purchaseInvoice": "Type, amount and date come from the purchase order. Fix them at the origin.",
+        "trip": "Type, amount and date come from the trip. Fix them at the origin."
+      },
+      "field": "{{label}}: {{value}}",
+      "lockedField": "{{label}}: {{value}}, set by the origin",
+      "openOrigin": {
+        "appointment": "Open procedure",
+        "serviceInvoice": "Open service invoice",
+        "purchaseInvoice": "Open purchase order",
+        "trip": "Open trip"
+      },
+      "originUnavailable": "This origin has no screen in the app yet.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit entry",
+      "cancel": "Cancel",
+      "discard": {
+        "message": "Discard your changes?",
+        "confirm": "Discard",
+        "keep": "Keep editing"
+      },
+      "deleteConfirm": {
+        "title": "Delete this entry?",
+        "message": "It leaves the statement and this cannot be undone.",
+        "confirm": "Delete",
+        "confirming": "Deleting…",
+        "cancel": "Cancel"
+      },
+      "deleteBlocked": {
+        "title": "It can't be deleted here",
+        "appointment": "This entry was created by the procedure {{description}}. To delete it, delete the procedure — the appointment also leaves the history.",
+        "serviceInvoice": "This entry was created by the service invoice {{description}}. To delete it, delete the invoice — its document and file are deleted too.",
+        "purchaseInvoice": "This entry was created by the purchase order {{description}}. To delete it, delete the order — its items also leave the stock.",
+        "trip": "This entry was created by the trip {{description}}. To delete it, delete the trip.",
+        "close": "Close"
+      },
+      "updated": "Entry updated.",
+      "deleted": "Entry deleted.",
+      "failures": {
+        "notFound": "This entry no longer exists. The statement was refreshed.",
+        "controlledByOrigin": "Type, amount and date of this entry come from its origin and can't be changed here.",
+        "delete": "Could not delete the entry. Try again."
+      }
+    }
+  },
   "tabbar": {
     "day": "Day-to-Day",
     "finance": "Finance",
@@ -614,7 +908,8 @@
       "required": "This field is required.",
       "invalidEmail": "Enter a valid e-mail.",
       "passwordMismatch": "Passwords do not match.",
-      "termsRequired": "Accept the terms to continue."
+      "termsRequired": "Accept the terms to continue.",
+      "invalidCode": "The code must have 6 digits."
     },
     "errors": {
       "invalidCredentials": "Incorrect e-mail or password.",
@@ -709,7 +1004,9 @@
       "INVALID_TIME": "Invalid time",
       "IN_THE_PAST": "Pick a future date and time",
       "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
-      "SELECT_CLIENT": "Pick a clinic from the list"
+      "SELECT_CLIENT": "Pick a clinic from the list",
+      "NAME_TOO_LONG": "At most 160 characters",
+      "TOO_LONG": "At most 2000 characters"
     },
     "clientSearch": {
       "loading": "Searching…",
@@ -783,6 +1080,8 @@
         "errors": {
           "REQUIRED": "Enter the amount.",
           "INVALID_NUMBER": "Enter a valid amount, like 350.00.",
+          "MUST_BE_POSITIVE": "The amount cannot be negative.",
+          "MAX_2_DECIMALS": "Use at most 2 decimal places.",
           "FAILED": "Could not save the amount. Try again."
         }
       },
@@ -1023,6 +1322,16 @@
       },
       "reactivate": "Reactivate vehicle",
       "deactivated": "Deactivated"
+    }
+  },
+  "deleteOrigin": {
+    "effectsLabel": "When you delete it:",
+    "effects": {
+      "financialEntry": "Its entry leaves the Finance statement.",
+      "suppliesReturn": "The supplies used go back to the stock.",
+      "stockRemoval": "The order's items leave the stock.",
+      "documentRemoval": "The document and its file are deleted.",
+      "historyRemoval": "The appointment leaves the schedule and the history."
     }
   }
 }

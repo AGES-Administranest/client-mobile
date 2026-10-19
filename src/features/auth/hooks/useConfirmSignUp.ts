@@ -6,6 +6,7 @@ import { useAuth } from './AuthContext';
 import { useSubmit } from './useSubmit';
 import {
   AuthFieldError,
+  maskConfirmationCode,
   validateConfirmationCode,
 } from '../domain/validateAuthForm';
 import { confirmSignUp, resendConfirmationCode } from '../services/authService';
@@ -34,7 +35,7 @@ export function useConfirmSignUp({
   const { isSubmitting, errorKey, run } = useSubmit();
 
   const setCode = useCallback((value: string) => {
-    setCodeValue(value);
+    setCodeValue(maskConfirmationCode(value));
     setCodeError(null);
   }, []);
 

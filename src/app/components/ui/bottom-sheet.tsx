@@ -15,31 +15,42 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from 'app/components/ui/text';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
-// Faixa do fundo escurecido que continua aparecendo acima do sheet mais alto,
-// para ainda dar para fechar tocando fora.
-const SHEET_TOP_GAP = 8;
+const TAP_OUTSIDE_TO_CLOSE_GAP = 8;
 
-type ClinicSheetProps = {
+const styles = StyleSheet.create({
+  shrinkAboveKeyboard: { flexShrink: 1 },
+});
+
+type BottomSheetProps = {
   visible: boolean;
   title: string;
   closeLabel: string;
   onClose: () => void;
-  children: ReactNode;
+  /** iOS: abra o próximo sheet aqui, não no onClose. */
+  onClosed?: () => void;
+  /**
+   * No lugar do título padrão, para quem precisa de mais (selo, subtítulo).
+   * Deve trazer o próprio `accessibilityRole="header"`; `title` continua
+   * nomeando o diálogo.
+   */
+  header?: ReactNode;
   footer?: ReactNode;
+  children: ReactNode;
 };
 
-function ClinicSheet({
+function BottomSheet({
   visible,
   title,
   closeLabel,
   onClose,
-  children,
+  onClosed,
+  header,
   footer,
-}: ClinicSheetProps) {
+  children,
+}: BottomSheetProps) {
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-
-  const sheet = useSheetAnimation(visible, onClose);
+  const sheet = useSheetAnimation(visible, onClose, onClosed);
 
   return (
     <Modal
@@ -47,10 +58,12 @@ function ClinicSheet({
       transparent
       animationType="none"
       onRequestClose={onClose}
+      aria-label={title}
     >
       <KeyboardAvoidingView
         className="flex-1 justify-end"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        onAccessibilityEscape={onClose}
       >
         <Animated.View
           style={[StyleSheet.absoluteFill, { opacity: sheet.progress }]}
@@ -63,27 +76,31 @@ function ClinicSheet({
           />
         </Animated.View>
 
-        {/* O className não era aplicado neste Animated.View (na web o sheet
-            aparecia sem fundo e sem padding): a animação fica nele e o visual
-            vai no View de dentro, como no ItemModal. */}
-        {/* Como no Figma, o form inteiro cabe sem rolagem: o sheet pode subir
-            até logo abaixo da barra de status. A ScrollView só entra em tela
-            pequena ou com o teclado aberto. */}
+        {/* className em Animated.View não é aplicado na web: a animação fica
+            nele e o visual vai no View de dentro. */}
         <Animated.View
           {...sheet.panHandlers}
-          style={{
-            maxHeight: windowHeight - insets.top - SHEET_TOP_GAP,
-            ...sheet.sheetStyle,
-          }}
+          style={[
+            styles.shrinkAboveKeyboard,
+            {
+              maxHeight: windowHeight - insets.top - TAP_OUTSIDE_TO_CLOSE_GAP,
+              ...sheet.sheetStyle,
+            },
+          ]}
         >
-          <View className="shrink gap-4 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
-            <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
+          <View className="shrink gap-4 rounded-t-[20px] bg-background-modal px-5 pb-8 pt-4">
+            <View className="h-1 w-9 self-center rounded-full bg-border-primary" />
 
-            <Text className="text-xl font-bold text-label-primary">
-              {title}
-            </Text>
+            {header ?? (
+              <Text
+                accessibilityRole="header"
+                className="text-base font-bold text-label-primary"
+              >
+                {title}
+              </Text>
+            )}
 
-            <View className="h-px bg-details-primary" />
+            <View className="h-px bg-border-primary" />
 
             <ScrollView
               keyboardShouldPersistTaps="handled"
@@ -100,5 +117,5 @@ function ClinicSheet({
   );
 }
 
-export { ClinicSheet };
-export type { ClinicSheetProps };
+export { BottomSheet };
+export type { BottomSheetProps };

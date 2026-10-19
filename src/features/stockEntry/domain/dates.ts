@@ -4,6 +4,10 @@ export function toDayMonthYear(isoDate: string): string {
   return year && month && day ? `${day}/${month}/${year}` : '';
 }
 
+export function isAcceptableReviewDate(value: string): boolean {
+  return value.trim() === '' || toIsoDate(value) !== null;
+}
+
 /** A complete, real `dd/mm/aaaa` as `YYYY-MM-DD`; anything else is null. */
 export function toIsoDate(dayMonthYear: string): string | null {
   const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dayMonthYear.trim());

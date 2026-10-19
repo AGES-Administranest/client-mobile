@@ -25,7 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 import { Button } from 'app/components/ui/button';
-import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { DeleteOriginDialog } from 'app/components/ui/delete-origin-dialog';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
@@ -39,6 +39,7 @@ import {
 import { SupplySelectorSheet, useSupplySelector } from 'features/stock';
 import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
+import { originDeletionEffects } from 'shared/utils/originDeletion';
 import { Colors } from 'theme/colors';
 
 import {
@@ -148,6 +149,12 @@ export function AppointmentDetailScreen({
   // criado offline sair da fila; editar os dados dele continua valendo.
   const syncedEditable = editable && !detail.pendingSync;
   const totalCost = calculateSupplyTotalCost(detail.supplies);
+  // O backend apaga junto o lançamento do atendimento concluído e devolve os
+  // materiais ao estoque (US03): a pessoa fica sabendo antes de confirmar.
+  const deleteEffects = originDeletionEffects('appointment', {
+    hasFinancialEntry: appointment?.status === 'COMPLETED',
+    hasSupplies: detail.supplies.length > 0,
+  }).map(effect => t(`deleteOrigin.effects.${effect}`));
   const margin = appointment
     ? grossMargin(appointment.amount, totalCost)
     : null;
@@ -576,11 +583,12 @@ export function AppointmentDetailScreen({
         onAdjust={form.dismissConflict}
       />
 
-      <ConfirmSheet
-        confirmIcon={Trash2}
+      <DeleteOriginDialog
         visible={deleteVisible}
         title={t('procedures.detail.deleteConfirm')}
         message={deleteFailed ? t('procedures.detail.deleteFailed') : undefined}
+        effectsLabel={t('deleteOrigin.effectsLabel')}
+        effects={deleteEffects}
         confirmLabel={t('procedures.detail.delete')}
         cancelLabel={t('procedures.detail.deleteCancel')}
         onConfirm={confirmDelete}

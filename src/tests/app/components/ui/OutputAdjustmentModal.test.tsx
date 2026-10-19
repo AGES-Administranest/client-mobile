@@ -239,7 +239,7 @@ test('shows the failure returned by the save', async () => {
   );
 });
 
-test('submits and closes through the header button', async () => {
+test('submits and closes through the sheet handle', async () => {
   const { renderer, spies } = await render();
 
   await act(() => {

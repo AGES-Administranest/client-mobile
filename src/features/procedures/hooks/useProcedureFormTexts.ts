@@ -7,6 +7,8 @@ import {
   type ProcedureErrors,
   type ProcedureFormValues,
 } from '../domain/procedure.types';
+import { CANCELLATION_REASON_MAX_LENGTH } from '../domain/validateCancellationReason';
+import { APPOINTMENT_NAME_MAX_LENGTH } from '../domain/validateProcedureForm';
 
 export function useProcedureFormTexts(
   errors: ProcedureErrors,
@@ -69,6 +71,8 @@ export function useProcedureFormTexts(
       error: t('procedures.clientSearch.error'),
       empty: t('procedures.clientSearch.empty'),
     },
+    nameMaxLength: APPOINTMENT_NAME_MAX_LENGTH,
+    notesMaxLength: CANCELLATION_REASON_MAX_LENGTH,
   };
 
   return texts;

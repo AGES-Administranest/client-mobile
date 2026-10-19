@@ -134,7 +134,9 @@ function Button({
         role="button"
         {...props}
       >
-        {IconComponent && <Icon as={IconComponent} className="size-4" />}
+        {/* Tamanho pela prop, não por classe: na web a classe desce para os
+            <rect> do SVG e deforma ícones como ClipboardList e CalendarPlus. */}
+        {IconComponent && <Icon as={IconComponent} size={16} />}
         {children}
       </Pressable>
     </TextClassContext.Provider>

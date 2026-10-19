@@ -1,3 +1,5 @@
+import { normalizeForSearch } from 'shared/utils/search';
+
 import type { Client } from './client';
 
 // Uma busca por nome que devolve dezenas de linhas não cabe num campo de
@@ -17,16 +19,6 @@ export type ClientSearchSnapshot = {
   hasError: boolean;
   resultCount: number;
 };
-
-// "Clínica" e "clinica" precisam se encontrar: ninguém digita acento no
-// meio de uma busca rápida.
-export function normalizeForSearch(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
-    .trim();
-}
 
 // O GET /client não filtra por nome (só por type), então a lista inteira vem
 // de uma vez e o filtro é local. Sem termo digitado (campo recém-aberto), o

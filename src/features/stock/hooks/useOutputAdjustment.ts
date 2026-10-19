@@ -23,7 +23,11 @@ import {
 } from '../services/stockAdjustmentService';
 
 export type AdjustmentFailure = {
-  code: string;
+  code:
+    | 'NO_ACCOUNT'
+    | 'INSUFFICIENT_STOCK'
+    | 'NO_UNIT_COST'
+    | 'QUEUE_WRITE_FAILED';
   params: Record<string, string | number>;
 };
 
@@ -39,6 +43,7 @@ type OutputAdjustmentState = {
   setReason: (reason: AdjustmentReason) => void;
   setOtherReason: (otherReason: string) => void;
   reset: () => void;
+  reloadItems: () => void;
   submit: () => Promise<boolean>;
 };
 
@@ -60,6 +65,7 @@ export function useOutputAdjustment(): OutputAdjustmentState {
   const [errors, setErrors] = useState<OutputAdjustmentErrors>({});
   const [failure, setFailure] = useState<AdjustmentFailure | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [itemsVersion, setItemsVersion] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -71,7 +77,9 @@ export function useOutputAdjustment(): OutputAdjustmentState {
         }
       })
       .catch(() => {
-        if (isMounted) {
+        // Uma busca que falha (sem rede, por exemplo) mantém a lista que já
+        // veio: a baixa vai para a fila offline e só precisa do item e do custo.
+        if (isMounted && !idToken) {
           setItems([]);
         }
       });
@@ -79,7 +87,11 @@ export function useOutputAdjustment(): OutputAdjustmentState {
     return () => {
       isMounted = false;
     };
-  }, [idToken]);
+  }, [idToken, itemsVersion]);
+
+  const reloadItems = useCallback(() => {
+    setItemsVersion(current => current + 1);
+  }, []);
 
   const setItemId = useCallback(
     (itemId: string) => setDraft(current => ({ ...current, itemId })),
@@ -187,6 +199,7 @@ export function useOutputAdjustment(): OutputAdjustmentState {
     setReason,
     setOtherReason,
     reset,
+    reloadItems,
     submit,
   };
 }

@@ -13,6 +13,7 @@ import { useAuth } from 'features/auth';
 import { toSupplyItem } from '../domain/appointmentSupply';
 import { parseDecimal } from '../domain/parseDecimal';
 import type { SupplyItem } from '../domain/supplyItem';
+import { validateAmountInput } from '../domain/validateAmount';
 import {
   fetchAppointmentSupplies,
   registerAppointmentSupplies,
@@ -49,7 +50,12 @@ function toAppointmentResult(appointment: Appointment): AppointmentResult {
   };
 }
 
-export type AmountError = 'REQUIRED' | 'INVALID_NUMBER' | 'FAILED';
+export type AmountError =
+  | 'REQUIRED'
+  | 'INVALID_NUMBER'
+  | 'MUST_BE_POSITIVE'
+  | 'MAX_2_DECIMALS'
+  | 'FAILED';
 
 export type AppointmentDetailState = {
   appointment: AppointmentResult | null;
@@ -183,11 +189,12 @@ export function useAppointmentDetail(
   }
 
   async function saveAmount(text: string): Promise<AmountError | null> {
-    if (text.trim() === '') {
-      return 'REQUIRED';
+    const validation = validateAmountInput(text);
+    if (validation) {
+      return validation;
     }
     const amount = parseDecimal(text);
-    if (amount === null || amount < 0) {
+    if (amount === null) {
       return 'INVALID_NUMBER';
     }
     if (!idToken || !appointmentId || !serverId || pendingSync) {

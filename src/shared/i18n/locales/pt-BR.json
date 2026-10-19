@@ -6,7 +6,25 @@
   },
   "finance": {
     "title": "Finanças",
-    "openCalculator": "Abrir calculadora de hora"
+    "openCalculator": "Abrir calculadora de hora",
+    "entryOptionsLabel": "Abrir opções de lançamento",
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "currentMonth": "Mês atual",
+    "netBalance": "Saldo líquido",
+    "revenue": "Receitas",
+    "professional": "Prof.",
+    "personal": "Pessoal",
+    "productivityAndFixedCosts": "Produtividade e custos fixos",
+    "hoursWorked": "Horas trabalhadas",
+    "hoursValue": "{{hours}}h",
+    "thisMonth": "este mês",
+    "averageHourly": "Valor médio/hora",
+    "grossPerHour": "bruto/hora",
+    "equipmentDepreciation": "Depreciação de equipamentos",
+    "equipmentMonthlyCost": "{{count}} equipamentos · custo mensal",
+    "perMonth": "/mês",
+    "overviewError": "Não foi possível carregar o resumo financeiro."
   },
   "calculator": {
     "title": "Calculadora de hora",
@@ -97,6 +115,98 @@
     "deleteConfirmTitle": "Excluir item",
     "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
   },
+  "equipment": {
+    "loading": "Carregando equipamentos...",
+    "empty": "Nenhum equipamento cadastrado. Cadastre o primeiro para acompanhar a depreciação.",
+    "addButton": "Adicionar equipamento",
+    "errorLoad": "Não foi possível carregar os equipamentos.",
+    "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "summary": {
+      "label": "Depreciação total/mês",
+      "countSingular": "{{count}} equipamento · {{annual}}/ano",
+      "countPlural": "{{count}} equipamentos · {{annual}}/ano"
+    },
+    "card": {
+      "perMonth": "/mês",
+      "since": "Desde {{date}} · Valor atual {{value}}",
+      "lifeUsed": "{{percent}}% da vida útil utilizada",
+      "endOfLife": "Fim da vida útil"
+    },
+    "form": {
+      "title": {
+        "create": "Novo equipamento",
+        "edit": "Editar equipamento"
+      },
+      "confirm": {
+        "create": "Confirmar",
+        "edit": "Salvar"
+      },
+      "close": "Fechar",
+      "labels": {
+        "name": "Nome do equipamento",
+        "purchaseValue": "Valor de compra (R$)",
+        "acquisitionDate": "Data de aquisição",
+        "usefulLifeYears": "Vida útil estimada",
+        "notes": "Observações"
+      },
+      "placeholders": {
+        "name": "Ex: Vaporizador Matrx VIP 3000",
+        "purchaseValue": "0,00",
+        "acquisitionDate": "DD/MM/AAAA",
+        "usefulLifeYears": "Ex.: 5 anos",
+        "notes": "Calibração, garantia, etc."
+      },
+      "usefulLifeHint": "Se não informar, consideramos 10 anos (10% ao ano)",
+      "usefulLifeLegacy": "Vida útil atual: {{months}} meses. Informe em anos para alterar",
+      "previewUnavailable": "—",
+      "previewLifeEnded": "Vida útil já encerrada",
+      "errorSave": "Não foi possível salvar o equipamento.",
+      "errors": {
+        "name": {
+          "required": "Informe o nome do equipamento.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+          "tooLong": "O nome pode ter no máximo 120 caracteres."
+        },
+        "purchaseValue": {
+          "required": "Informe o valor de compra.",
+          "invalidNumber": "Valor inválido. Use o formato 1.234,56.",
+          "mustBePositive": "O valor precisa ser maior que zero."
+        },
+        "acquisitionDate": {
+          "required": "Informe a data de aquisição.",
+          "invalidDate": "Data inválida. Use o formato DD/MM/AAAA.",
+          "futureDate": "A data de aquisição não pode ser futura."
+        },
+        "usefulLifeYears": {
+          "invalidNumber": "Informe um número de anos.",
+          "mustBeInteger": "Informe anos inteiros, sem casas decimais.",
+          "mustBePositive": "A vida útil precisa ser maior que zero.",
+          "tooLarge": "A vida útil pode ter no máximo 100 anos."
+        },
+        "notes": {
+          "tooLong": "As observações podem ter no máximo 1000 caracteres."
+        }
+      },
+      "previewLabel": "Depreciação estimada:",
+      "previewValue": "{{value}}/mês",
+      "startEdit": "Editar",
+      "usefulLifeView": {
+        "year": "{{count}} ano",
+        "years": "{{count}} anos",
+        "months": "{{count}} meses"
+      },
+      "cancel": "Cancelar"
+    },
+    "delete": {
+      "button": "Excluir",
+      "confirmTitle": "Excluir equipamento?",
+      "confirmMessage": "“{{name}}” deixa de aparecer na lista e não entra mais na depreciação total.",
+      "confirm": "Excluir",
+      "cancel": "Cancelar",
+      "error": "Não foi possível excluir o equipamento. Tente novamente.",
+      "confirming": "Excluindo…"
+    }
+  },
   "stockEntry": {
     "trigger": "Entradas",
     "triggerWithCount": "Entradas ({{count}})",
@@ -160,6 +270,7 @@
       "invoiceNumber": "Nº DA NOTA",
       "date": "DATA",
       "datePlaceholder": "dd/mm/aaaa",
+      "invalidDate": "Informe uma data válida (dd/mm/aaaa).",
       "total": "VALOR TOTAL DA NOTA",
       "linesSum": "Soma das linhas: {{sum}}",
       "linesSumDifference": "Soma das linhas: {{sum}} · diferença de {{difference}}",
@@ -200,14 +311,16 @@
           "shortName": "A descrição da nota tem {{count}} letras. Curta demais para identificar o item.",
           "unlinked": "Nenhum item do seu estoque foi reconhecido nesta descrição.",
           "noQuantity": "A quantidade não veio na nota. Nada entraria no estoque assim.",
-          "noUnitValue": "O valor unitário não veio na nota. Sem ele não há total da linha."
+          "noUnitValue": "O valor unitário não veio na nota. Sem ele não há total da linha.",
+          "invalidExpiry": "A validade precisa ser uma data real, no formato dd/mm/aaaa."
         },
         "fixes": {
           "mismatch": "Usar {{computed}}",
           "shortName": "Vincular a um item",
           "unlinked": "Vincular a um item",
           "noQuantity": "Informar quantidade",
-          "noUnitValue": "Informar valor unitário"
+          "noUnitValue": "Informar valor unitário",
+          "invalidExpiry": "Corrigir validade"
         }
       },
       "save": {
@@ -363,14 +476,14 @@
         }
       },
       "quantity": "{{quantity}} {{unit}}",
-      "newEntry": "Novo lançamento",
-      "savedMessage": "Atualização salva"
+      "newEntry": "Novo lançamento"
     },
     "outputAdjustment": {
       "title": "Registro de ajuste de saída",
       "close": "Fechar",
       "itemLabel": "Item",
       "itemPlaceholder": "Selecione o item",
+      "noItems": "Nenhum item com estoque para dar baixa.",
       "quantityLabel": "Quantidade",
       "quantityPlaceholder": "0",
       "reasonLabel": "Motivo",
@@ -503,6 +616,187 @@
     },
     "loadFailure": "Não foi possível carregar as clínicas."
   },
+  "financialEntries": {
+    "newEntry": "Novo lançamento",
+    "options": {
+      "title": "Novo lançamento",
+      "descriptionWithStockWriteOff": "Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque",
+      "sendDocument": "Enviar documento (PDF)",
+      "manual": "Lançamento manual",
+      "stockWriteOff": "Baixa no estoque"
+    },
+    "documentSoon": {
+      "title": "Envio de PDF em breve",
+      "message": "Por enquanto, registre a entrada ou a saída pelo lançamento manual.",
+      "ok": "Entendi"
+    },
+    "categories": {
+      "professionalFees": "Honorários",
+      "supplies": "Insumos",
+      "travel": "Deslocamento",
+      "taxesAndFees": "Impostos e taxas",
+      "fixedCosts": "Custos fixos",
+      "other": "Outros"
+    },
+    "form": {
+      "title": "Novo lançamento manual",
+      "close": "Fechar",
+      "nature": {
+        "label": "Tipo",
+        "income": "Entrada",
+        "expense": "Saída"
+      },
+      "description": {
+        "label": "Descrição",
+        "placeholder": "Ex: Conta de luz"
+      },
+      "amount": {
+        "label": "Valor (R$)",
+        "placeholder": "0,00"
+      },
+      "date": {
+        "label": "Data",
+        "placeholder": "dd/mm/aaaa"
+      },
+      "category": {
+        "label": "Categoria",
+        "loading": "Carregando categorias…",
+        "retry": "Tentar de novo"
+      },
+      "scope": {
+        "label": "Escopo",
+        "professional": "Profissional",
+        "personal": "Pessoal",
+        "hint": "Sugerido pela categoria. Você pode alterar."
+      },
+      "save": "Salvar",
+      "saving": "Salvando…",
+      "errors": {
+        "description": {
+          "required": "Informe uma descrição.",
+          "tooLong": "Use no máximo 500 caracteres."
+        },
+        "amount": {
+          "required": "Informe o valor.",
+          "invalid": "Informe um valor válido.",
+          "notPositive": "Informe um valor maior que zero."
+        },
+        "date": {
+          "required": "Informe a data.",
+          "invalid": "Data inválida."
+        },
+        "categoryId": {
+          "required": "Selecione uma categoria."
+        }
+      },
+      "failures": {
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "categoryInvalid": "Essa categoria não está mais disponível. Escolha outra.",
+        "network": "Sem conexão. Tente de novo quando a internet voltar.",
+        "unknown": "Não foi possível salvar o lançamento. Tente novamente.",
+        "categories": "Não foi possível carregar as categorias."
+      }
+    },
+    "categoryField": {
+      "placeholder": "Digite o nome da categoria",
+      "add": "Adicionar Categoria",
+      "newPlaceholder": "Digite o nome da nova categoria",
+      "create": "Criar categoria",
+      "noResults": "Nenhuma categoria encontrada.",
+      "created": "Categoria criada.",
+      "createFailed": "Não foi possível criar a categoria. Tente de novo.",
+      "errors": {
+        "tooLong": "Use até 40 caracteres."
+      }
+    },
+    "saved": "Lançamento salvo.",
+    "statement": {
+      "scopes": {
+        "all": "Todos",
+        "professional": "Profissional",
+        "personal": "Pessoal"
+      },
+      "scopeFilterLabel": "Filtrar lançamentos por escopo",
+      "automatic": "automático",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
+      "loading": "Carregando lançamentos…",
+      "loadingMore": "Carregando mais lançamentos…",
+      "empty": {
+        "title": "Nenhum lançamento neste mês",
+        "description": "Registre uma entrada ou saída para acompanhar o seu saldo.",
+        "action": "Novo lançamento"
+      },
+      "noResults": {
+        "professional": "Nenhum lançamento profissional neste mês.",
+        "personal": "Nenhum lançamento pessoal neste mês."
+      },
+      "failures": {
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "network": "Sem conexão. Tente de novo quando a internet voltar.",
+        "unknown": "Não foi possível carregar os lançamentos."
+      },
+      "retry": "Tentar novamente",
+      "loadMoreFailure": "Não foi possível carregar mais lançamentos."
+    },
+    "detail": {
+      "close": "Fechar",
+      "automatic": "Automático",
+      "subtitle": "{{origin}}",
+      "origins": {
+        "manual": "Lançamento manual",
+        "appointment": "Gerado pelo procedimento",
+        "serviceInvoice": "Gerado pela nota fiscal",
+        "purchaseInvoice": "Gerado pelo pedido de compra",
+        "trip": "Gerado pelo deslocamento"
+      },
+      "lockedHint": {
+        "appointment": "Tipo, valor e data vêm do procedimento. Corrija pela origem.",
+        "serviceInvoice": "Tipo, valor e data vêm da nota fiscal. Corrija pela origem.",
+        "purchaseInvoice": "Tipo, valor e data vêm do pedido de compra. Corrija pela origem.",
+        "trip": "Tipo, valor e data vêm do deslocamento. Corrija pela origem."
+      },
+      "field": "{{label}}: {{value}}",
+      "lockedField": "{{label}}: {{value}}, controlado pela origem",
+      "openOrigin": {
+        "appointment": "Abrir procedimento",
+        "serviceInvoice": "Abrir nota fiscal",
+        "purchaseInvoice": "Abrir pedido de compra",
+        "trip": "Abrir deslocamento"
+      },
+      "originUnavailable": "Essa origem ainda não tem tela no app.",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "editTitle": "Editar lançamento",
+      "cancel": "Cancelar",
+      "discard": {
+        "message": "Descartar as alterações?",
+        "confirm": "Descartar",
+        "keep": "Continuar editando"
+      },
+      "deleteConfirm": {
+        "title": "Excluir este lançamento?",
+        "message": "Ele sai do extrato e essa ação não pode ser desfeita.",
+        "confirm": "Excluir",
+        "confirming": "Excluindo…",
+        "cancel": "Cancelar"
+      },
+      "deleteBlocked": {
+        "title": "Não dá para excluir por aqui",
+        "appointment": "Este lançamento foi gerado pelo procedimento {{description}}. Para excluí-lo, exclua o procedimento — o atendimento também sai do histórico.",
+        "serviceInvoice": "Este lançamento foi gerado pela nota fiscal {{description}}. Para excluí-lo, exclua a nota — o documento e o arquivo também são apagados.",
+        "purchaseInvoice": "Este lançamento foi gerado pelo pedido de compra {{description}}. Para excluí-lo, exclua o pedido — os itens também saem do estoque.",
+        "trip": "Este lançamento foi gerado pelo deslocamento {{description}}. Para excluí-lo, exclua o deslocamento.",
+        "close": "Fechar"
+      },
+      "updated": "Lançamento atualizado.",
+      "deleted": "Lançamento excluído.",
+      "failures": {
+        "notFound": "Este lançamento não existe mais. O extrato foi atualizado.",
+        "controlledByOrigin": "Tipo, valor e data deste lançamento vêm da origem e não mudam por aqui.",
+        "delete": "Não foi possível excluir o lançamento. Tente novamente."
+      }
+    }
+  },
   "tabbar": {
     "day": "Dia-Dia",
     "finance": "Finança",
@@ -614,7 +908,8 @@
       "required": "Campo obrigatório.",
       "invalidEmail": "Informe um e-mail válido.",
       "passwordMismatch": "As senhas não coincidem.",
-      "termsRequired": "Aceite os termos para continuar."
+      "termsRequired": "Aceite os termos para continuar.",
+      "invalidCode": "O código deve ter 6 dígitos."
     },
     "errors": {
       "invalidCredentials": "E-mail ou senha incorretos.",
@@ -709,7 +1004,9 @@
       "INVALID_TIME": "Hora inválida",
       "IN_THE_PAST": "Escolha uma data e horário futuros",
       "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
-      "SELECT_CLIENT": "Escolha uma clínica da lista"
+      "SELECT_CLIENT": "Escolha uma clínica da lista",
+      "NAME_TOO_LONG": "Máximo de 160 caracteres",
+      "TOO_LONG": "Máximo de 2000 caracteres"
     },
     "clientSearch": {
       "loading": "Buscando…",
@@ -783,6 +1080,8 @@
         "errors": {
           "REQUIRED": "Informe o valor.",
           "INVALID_NUMBER": "Informe um valor válido, como 350,00.",
+          "MUST_BE_POSITIVE": "O valor não pode ser negativo.",
+          "MAX_2_DECIMALS": "Use no máximo 2 casas decimais.",
           "FAILED": "Não foi possível salvar o valor. Tente novamente."
         }
       },
@@ -1023,6 +1322,16 @@
       },
       "reactivate": "Reativar veículo",
       "deactivated": "Desativado"
+    }
+  },
+  "deleteOrigin": {
+    "effectsLabel": "Ao excluir:",
+    "effects": {
+      "financialEntry": "O lançamento dele sai do extrato de Finanças.",
+      "suppliesReturn": "Os materiais usados voltam para o estoque.",
+      "stockRemoval": "Os itens da nota saem do estoque.",
+      "documentRemoval": "O documento e o arquivo são apagados.",
+      "historyRemoval": "O atendimento sai da agenda e do histórico."
     }
   }
 }

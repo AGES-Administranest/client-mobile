@@ -57,6 +57,17 @@ describe('reviewLineView', () => {
     expect(shown.total.missing).toBe(true);
   });
 
+  it('asks to fix an expiry that is not a real date', () => {
+    const line = { ...LINE, expiry: '31/02/2026' };
+    const view = reviewLineView(line, [line], format);
+
+    expect(view.issue?.kind).toBe('invalidExpiry');
+    expect(view.issue?.blocking).toBe(false);
+    expect(view.issue?.message).toBe(
+      'A validade precisa ser uma data real, no formato dd/mm/aaaa.',
+    );
+  });
+
   it('asks for what the document left out', () => {
     const line = { ...LINE, quantity: null, unitValue: null };
     const view = reviewLineView(line, [line], format);

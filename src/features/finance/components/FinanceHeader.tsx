@@ -1,45 +1,42 @@
-import { Car } from 'lucide-react-native';
+import { CarFront } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 import { CalculatorIcon } from 'app/components/ui/calculator-icon';
-import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 
 type FinanceHeaderProps = {
   title: string;
   calculatorLabel: string;
+  vehicleLabel: string;
+  onVehiclePress: () => void;
   onCalculatorPress: () => void;
-  vehiclesLabel?: string;
-  onVehiclesPress?: () => void;
 };
 
 export function FinanceHeader({
   title,
   calculatorLabel,
+  vehicleLabel,
+  onVehiclePress,
   onCalculatorPress,
-  vehiclesLabel,
-  onVehiclesPress,
 }: FinanceHeaderProps) {
   return (
     <View className="flex-row items-center justify-between px-4 pb-2 pt-3">
       <Text
         accessibilityRole="header"
-        className="text-3xl font-bold text-label-primary"
+        className="text-[40px] font-medium leading-[48px] text-label-primary"
       >
         {title}
       </Text>
-      <View className="flex-row items-center gap-2">
-        {onVehiclesPress ? (
-          <Pressable
-            onPress={onVehiclesPress}
-            accessibilityRole="button"
-            accessibilityLabel={vehiclesLabel}
-            hitSlop={8}
-            className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-          >
-            <Icon as={Car} size={18} className="text-white" />
-          </Pressable>
-        ) : null}
+      <View className="flex-row gap-2">
+        <Pressable
+          onPress={onVehiclePress}
+          accessibilityRole="button"
+          accessibilityLabel={vehicleLabel}
+          hitSlop={8}
+          className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+        >
+          <CarFront size={18} color="white" />
+        </Pressable>
         <Pressable
           onPress={onCalculatorPress}
           accessibilityRole="button"

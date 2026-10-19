@@ -1,4 +1,4 @@
-import { toDayMonthYear, toIsoDate } from './dates';
+import { isAcceptableReviewDate, toDayMonthYear, toIsoDate } from './dates';
 import type { DraftDetail, HeaderInput, LineInput, SavedLine } from './draft';
 import type {
   ExtractedLine,
@@ -52,7 +52,8 @@ export type LineIssue =
   | 'shortName'
   | 'unlinked'
   | 'noQuantity'
-  | 'noUnitValue';
+  | 'noUnitValue'
+  | 'invalidExpiry';
 
 /** Red on screen; the rest are yellow. */
 export const BLOCKING_ISSUES: readonly LineIssue[] = [
@@ -231,6 +232,7 @@ export function lineIssue(line: ReviewLine): LineIssue | null {
   }
   if (line.quantity === null || line.quantity <= 0) return 'noQuantity';
   if (line.unitValue === null) return 'noUnitValue';
+  if (!isAcceptableReviewDate(line.expiry)) return 'invalidExpiry';
   return null;
 }
 

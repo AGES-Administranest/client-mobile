@@ -293,7 +293,9 @@ describe('saveAmount', () => {
   it.each([
     ['', 'REQUIRED'],
     ['abc', 'INVALID_NUMBER'],
-    ['-5', 'INVALID_NUMBER'],
+    ['-5', 'MUST_BE_POSITIVE'],
+    ['-0,01', 'MUST_BE_POSITIVE'],
+    ['10,555', 'MAX_2_DECIMALS'],
   ])('rejects %p without calling the API', async (text, expected) => {
     const result = await mountHook();
 
@@ -304,6 +306,23 @@ describe('saveAmount', () => {
 
     expect(error).toBe(expected);
     expect(updateAmountMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts a free appointment of 0,00', async () => {
+    updateAmountMock.mockResolvedValue({ ...APPOINTMENT, amount: '0' });
+    const result = await mountHook();
+
+    let error: string | null = 'unset';
+    await act(async () => {
+      error = await result.current.saveAmount('0,00');
+    });
+
+    expect(error).toBeNull();
+    expect(updateAmountMock).toHaveBeenCalledWith(
+      'id-token',
+      'appointment-1',
+      0,
+    );
   });
 
   it('accepts a comma as decimal separator and shows the updated amount', async () => {

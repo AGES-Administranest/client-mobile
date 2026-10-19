@@ -119,3 +119,46 @@ test('without a cancel label only the confirm button shows, and tapping outside 
   await act(async () => backdrop.props.onPress());
   expect(onCancel).toHaveBeenCalledTimes(1);
 });
+
+test('calls onClosed once the sheet finished closing, and not while it is open', async () => {
+  const onClosed = jest.fn();
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+  const sheet = (visible: boolean) => (
+    <ConfirmSheet
+      visible={visible}
+      title="Excluir item"
+      confirmLabel="Excluir"
+      onConfirm={() => {}}
+      onCancel={() => {}}
+      onClosed={onClosed}
+    />
+  );
+  await act(async () => {
+    renderer = ReactTestRenderer.create(sheet(true));
+  });
+  expect(onClosed).not.toHaveBeenCalled();
+
+  await act(async () => {
+    renderer.update(sheet(false));
+  });
+
+  expect(onClosed).toHaveBeenCalledTimes(1);
+});
+
+test('does not call onClosed when it never opened', async () => {
+  const onClosed = jest.fn();
+  await act(async () => {
+    ReactTestRenderer.create(
+      <ConfirmSheet
+        visible={false}
+        title="Excluir item"
+        confirmLabel="Excluir"
+        onConfirm={() => {}}
+        onCancel={() => {}}
+        onClosed={onClosed}
+      />,
+    );
+  });
+
+  expect(onClosed).not.toHaveBeenCalled();
+});
