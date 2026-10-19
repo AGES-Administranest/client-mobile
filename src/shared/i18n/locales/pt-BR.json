@@ -4,8 +4,1273 @@
     "loading": "Carregando...",
     "retry": "Tentar novamente"
   },
+  "finance": {
+    "title": "Finanças",
+    "openCalculator": "Abrir calculadora de hora",
+    "entryOptionsLabel": "Abrir opções de lançamento",
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "currentMonth": "Mês atual",
+    "netBalance": "Saldo líquido",
+    "revenue": "Receitas",
+    "professional": "Prof.",
+    "personal": "Pessoal",
+    "productivityAndFixedCosts": "Produtividade e custos fixos",
+    "hoursWorked": "Horas trabalhadas",
+    "hoursValue": "{{hours}}h",
+    "thisMonth": "este mês",
+    "averageHourly": "Valor médio/hora",
+    "grossPerHour": "bruto/hora",
+    "equipmentDepreciation": "Depreciação de equipamentos",
+    "equipmentMonthlyCost": "{{count}} equipamentos · custo mensal",
+    "perMonth": "/mês",
+    "overviewError": "Não foi possível carregar o resumo financeiro."
+  },
+  "calculator": {
+    "title": "Calculadora de hora",
+    "subtitle": "Descubra o valor mínimo que deve cobrar por hora trabalhada",
+    "back": "Voltar",
+    "fixedCosts": {
+      "title": "Custos fixos mensais",
+      "professional": "Despesas profissionais (mês)",
+      "personal": "Despesas pessoais (mês)",
+      "depreciation": "Depreciação de equipamentos",
+      "transport": "Custo de transporte/veículo",
+      "total": "Total de custos fixos",
+      "automatic": "automático · do app",
+      "transportField": "Transporte / Veículo (R$/mês)",
+      "transportHint": "Registre deslocamentos como despesa na aba Finanças",
+      "loading": "Carregando custos fixos...",
+      "errors": {
+        "required": "Informe o valor do transporte (use 0 se não houver).",
+        "notNumeric": "Digite apenas números.",
+        "negative": "O valor não pode ser negativo.",
+        "generic": "Não foi possível salvar. O valor anterior foi mantido.",
+        "session": "Sua sessão expirou. Entre novamente."
+      }
+    }
+  },
+  "inventory": {
+    "alert": {
+      "titleSingular": "Estoque baixo",
+      "bodySingular": "{{name}}: restam {{quantity}} {{unit}} (mínimo {{minimum}}).",
+      "titlePlural": "{{total}} itens abaixo do mínimo",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
+    },
+    "expiryAlert": {
+      "titleSingular": "Validade próxima do vencimento",
+      "bodySingular": "{{name}} vence em {{expirationDate}}.",
+      "titlePlural": "{{total}} itens próximos do vencimento",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} e mais {{remaining}}"
+    },
+    "notifications": {
+      "title": "Notificações",
+      "empty": "Nenhum alerta no momento.",
+      "error": "Não foi possível carregar o estoque.",
+      "lowStockTitle": "{{name}} com estoque baixo",
+      "lowStockBody": "{{quantity}} unidades restantes (mín. {{minimum}})",
+      "expiryTitle": "{{name}} irá vencer",
+      "expiryBody": "{{name}} vence em {{date}}",
+      "delete": "Apagar"
+    },
+    "elapsed": {
+      "minutes": "há {{value}} min",
+      "hours": "há {{value}} h",
+      "days": "há {{value}} d"
+    },
+    "card": {
+      "atMinimum": "Item no estoque mínimo",
+      "belowMinimum": "Item abaixo da quantidade mínima",
+      "expiry": "Lote vence em {{date}}"
+    },
+    "overview": {
+      "title": "Estoque",
+      "subtitle": "Acompanhe os materiais que precisam de atenção.",
+      "attention": "Itens que precisam de atenção",
+      "lowStockSingular": "{{count}} item abaixo do mínimo",
+      "lowStockPlural": "{{count}} itens abaixo do mínimo",
+      "expirySingular": "{{count}} lote próximo do vencimento",
+      "expiryPlural": "{{count}} lotes próximos do vencimento",
+      "loading": "Carregando estoque...",
+      "empty": "Nenhum material cadastrado."
+    }
+  },
+  "segmentedControl": {
+    "supplies": "Insumos e medicamentos",
+    "equipment": "Equipamentos"
+  },
+  "materials": {
+    "categoryAll": "Todos",
+    "lowStockWarning": "Item abaixo da quantidade mínima",
+    "addButton": "Adicionar material",
+    "emptyFilter": "Nenhum item encontrado nesta categoria.",
+    "errorLoad": "Não foi possível carregar os itens.",
+    "errorSave": "Não foi possível salvar o item.",
+    "errorDuplicatedItem": "Já existe um item com esse nome e unidade. O nome é único por unidade, independente da categoria.",
+    "errorDuplicatedSupplier": "Já existe um fornecedor com esse nome.",
+    "errorDelete": "Não foi possível excluir o item.",
+    "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "deleteConfirmTitle": "Excluir item",
+    "deleteConfirmMessage": "Tem certeza que deseja excluir \"{{name}}\"? Essa ação não pode ser desfeita."
+  },
+  "equipment": {
+    "loading": "Carregando equipamentos...",
+    "empty": "Nenhum equipamento cadastrado. Cadastre o primeiro para acompanhar a depreciação.",
+    "addButton": "Adicionar equipamento",
+    "errorLoad": "Não foi possível carregar os equipamentos.",
+    "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "summary": {
+      "label": "Depreciação total/mês",
+      "countSingular": "{{count}} equipamento · {{annual}}/ano",
+      "countPlural": "{{count}} equipamentos · {{annual}}/ano"
+    },
+    "card": {
+      "perMonth": "/mês",
+      "since": "Desde {{date}} · Valor atual {{value}}",
+      "lifeUsed": "{{percent}}% da vida útil utilizada",
+      "endOfLife": "Fim da vida útil"
+    },
+    "form": {
+      "title": {
+        "create": "Novo equipamento",
+        "edit": "Editar equipamento"
+      },
+      "confirm": {
+        "create": "Confirmar",
+        "edit": "Salvar"
+      },
+      "close": "Fechar",
+      "labels": {
+        "name": "Nome do equipamento",
+        "purchaseValue": "Valor de compra (R$)",
+        "acquisitionDate": "Data de aquisição",
+        "usefulLifeYears": "Vida útil estimada",
+        "notes": "Observações"
+      },
+      "placeholders": {
+        "name": "Ex: Vaporizador Matrx VIP 3000",
+        "purchaseValue": "0,00",
+        "acquisitionDate": "DD/MM/AAAA",
+        "usefulLifeYears": "Ex.: 5 anos",
+        "notes": "Calibração, garantia, etc."
+      },
+      "usefulLifeHint": "Se não informar, consideramos 10 anos (10% ao ano)",
+      "usefulLifeLegacy": "Vida útil atual: {{months}} meses. Informe em anos para alterar",
+      "previewUnavailable": "—",
+      "previewLifeEnded": "Vida útil já encerrada",
+      "errorSave": "Não foi possível salvar o equipamento.",
+      "errors": {
+        "name": {
+          "required": "Informe o nome do equipamento.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+          "tooLong": "O nome pode ter no máximo 120 caracteres."
+        },
+        "purchaseValue": {
+          "required": "Informe o valor de compra.",
+          "invalidNumber": "Valor inválido. Use o formato 1.234,56.",
+          "mustBePositive": "O valor precisa ser maior que zero."
+        },
+        "acquisitionDate": {
+          "required": "Informe a data de aquisição.",
+          "invalidDate": "Data inválida. Use o formato DD/MM/AAAA.",
+          "futureDate": "A data de aquisição não pode ser futura."
+        },
+        "usefulLifeYears": {
+          "invalidNumber": "Informe um número de anos.",
+          "mustBeInteger": "Informe anos inteiros, sem casas decimais.",
+          "mustBePositive": "A vida útil precisa ser maior que zero.",
+          "tooLarge": "A vida útil pode ter no máximo 100 anos."
+        },
+        "notes": {
+          "tooLong": "As observações podem ter no máximo 1000 caracteres."
+        }
+      },
+      "previewLabel": "Depreciação estimada:",
+      "previewValue": "{{value}}/mês",
+      "startEdit": "Editar",
+      "usefulLifeView": {
+        "year": "{{count}} ano",
+        "years": "{{count}} anos",
+        "months": "{{count}} meses"
+      },
+      "cancel": "Cancelar"
+    },
+    "delete": {
+      "button": "Excluir",
+      "confirmTitle": "Excluir equipamento?",
+      "confirmMessage": "“{{name}}” deixa de aparecer na lista e não entra mais na depreciação total.",
+      "confirm": "Excluir",
+      "cancel": "Cancelar",
+      "error": "Não foi possível excluir o equipamento. Tente novamente.",
+      "confirming": "Excluindo…"
+    }
+  },
+  "stockEntry": {
+    "trigger": "Entradas",
+    "triggerWithCount": "Entradas ({{count}})",
+    "menu": {
+      "attachPdf": "Anexar PDF",
+      "attachPdfCaption": "Fornecedor, número e itens são lidos do arquivo",
+      "photo": "Fotografar a nota",
+      "photoCaption": "A galeria fica dentro da câmera",
+      "typeItem": "Digitar insumo",
+      "typeItemCaption": "Cadastra um item no estoque"
+    },
+    "scan": {
+      "instruction": "Posicione o documento dentro da área demarcada",
+      "capture": "Capturar imagem",
+      "permission": "Precisamos da câmera para escanear a nota",
+      "allowCamera": "Permitir câmera",
+      "fromLibrary": "Escolher da galeria",
+      "cancel": "Cancelar"
+    },
+    "preparing": "Preparando o arquivo...",
+    "uploading": "Enviando e lendo o documento...",
+    "confirmFile": {
+      "back": "Voltar",
+      "title": "Confirmar arquivo",
+      "subtitle": "O PDF só é lido depois do envio.",
+      "meta": "PDF · {{size}}",
+      "info": "Fornecedor, número e itens são lidos no envio. Você confere tudo antes de dar entrada.",
+      "send": "Enviar este arquivo",
+      "replace": "Trocar arquivo",
+      "cancel": "Cancelar"
+    },
+    "reading": {
+      "photo": "A foto ficou anexada como comprovante. Fotos não passam pela leitura automática: para ler os itens, envie o PDF da nota.",
+      "noTextLayer": {
+        "title": "Este PDF não tem texto",
+        "message": "Parece uma digitalização. Ele ficou anexado como comprovante, mas os itens não podem ser lidos. Envie o PDF gerado pelo sistema do fornecedor."
+      },
+      "noTableFound": {
+        "title": "Não encontramos os itens",
+        "message": "O PDF foi lido, mas nenhuma tabela de itens apareceu nele. Confira se é o pedido certo."
+      },
+      "timeout": {
+        "title": "A leitura demorou demais",
+        "message": "O PDF ficou anexado, mas não deu tempo de ler os itens. Envie de novo."
+      },
+      "unreadable": {
+        "title": "Não conseguimos ler este PDF",
+        "message": "O arquivo ficou anexado, mas a leitura falhou. Tente outro PDF."
+      },
+      "replaceWithText": "Trocar por PDF com texto",
+      "replace": "Trocar arquivo",
+      "close": "Fechar"
+    },
+    "review": {
+      "back": "Fechar conferência",
+      "title": "Conferir",
+      "partial": "Lemos {{read}} de {{total}} páginas. Confira e complete os itens que faltam.",
+      "supplier": "FORNECEDOR",
+      "supplierNotRegistered": "Não cadastrado nos seus fornecedores",
+      "supplierNotRead": "Não lido",
+      "invoiceNumber": "Nº DA NOTA",
+      "date": "DATA",
+      "datePlaceholder": "dd/mm/aaaa",
+      "invalidDate": "Informe uma data válida (dd/mm/aaaa).",
+      "total": "VALOR TOTAL DA NOTA",
+      "linesSum": "Soma das linhas: {{sum}}",
+      "linesSumDifference": "Soma das linhas: {{sum}} · diferença de {{difference}}",
+      "attentionOne": "1 linha precisa de atenção",
+      "attention": "{{count}} linhas precisam de atenção",
+      "allChecked": "Tudo conferido",
+      "showOnlyAttention": "Ver só essas",
+      "showAll": "Ver todas",
+      "items": "ITENS DA NOTA",
+      "linesOne": "1 linha",
+      "lines": "{{count}} linhas",
+      "addLine": "Adicionar item manualmente",
+      "confirm": "Dar entrada no estoque",
+      "confirmUnavailable": "Dar entrada no estoque chega na próxima etapa. A conferência fica salva como rascunho.",
+      "leaveTitle": "Sair da conferência?",
+      "leaveMessage": "Algumas alterações não foram salvas e vão se perder.",
+      "leaveConfirm": "Sair sem salvar",
+      "leaveCancel": "Continuar conferindo",
+      "line": {
+        "addedByHand": "Adicionado na conferência",
+        "split": "Dividida · lote {{part}} de {{of}}",
+        "unlinked": "Sem item vinculado",
+        "linkedWithoutName": "Item vinculado",
+        "quantity": "QTD",
+        "unit": "UN",
+        "unitValue": "V. UNIT",
+        "total": "TOTAL",
+        "lineTotal": "TOTAL DA LINHA",
+        "lot": "LOTE",
+        "expiry": "VALIDADE",
+        "missing": "informar",
+        "edit": "Editar",
+        "done": "Concluir",
+        "splitAction": "Dividir",
+        "remove": "Remover linha",
+        "issues": {
+          "mismatch": "{{quantity}} × {{unitValue}} dá {{computed}}. A nota traz {{printed}}.",
+          "shortName": "A descrição da nota tem {{count}} letras. Curta demais para identificar o item.",
+          "unlinked": "Nenhum item do seu estoque foi reconhecido nesta descrição.",
+          "noQuantity": "A quantidade não veio na nota. Nada entraria no estoque assim.",
+          "noUnitValue": "O valor unitário não veio na nota. Sem ele não há total da linha.",
+          "invalidExpiry": "A validade precisa ser uma data real, no formato dd/mm/aaaa."
+        },
+        "fixes": {
+          "mismatch": "Usar {{computed}}",
+          "shortName": "Vincular a um item",
+          "unlinked": "Vincular a um item",
+          "noQuantity": "Informar quantidade",
+          "noUnitValue": "Informar valor unitário",
+          "invalidExpiry": "Corrigir validade"
+        }
+      },
+      "save": {
+        "idle": "Salvo automaticamente",
+        "saving": "Salvando rascunho…",
+        "saved": "Rascunho salvo agora",
+        "failed": "Não foi possível salvar",
+        "retry": "Tentar de novo"
+      },
+      "discard": "Descartar entrada"
+    },
+    "link": {
+      "back": "Voltar à conferência",
+      "title": "Vincular item",
+      "lineOf": "LINHA {{index}} DE {{count}}",
+      "catalogItem": "ITEM DO CATÁLOGO",
+      "searchPlaceholder": "Buscar no catálogo",
+      "suggestions": "SUGESTÕES DA LEITURA",
+      "noSuggestions": "A leitura não achou itens parecidos. Busque pelo nome.",
+      "resultsOne": "1 ITEM NO CATÁLOGO",
+      "results": "{{count}} ITENS NO CATÁLOGO",
+      "noResults": "NENHUM ITEM NO CATÁLOGO",
+      "noResultsHint": "Nada encontrado para “{{term}}”. Você pode cadastrar agora e seguir conferindo.",
+      "searching": "Buscando…",
+      "searchError": "Não foi possível buscar agora. Tente de novo.",
+      "typeMore": "Digite pelo menos 2 letras.",
+      "create": "Cadastrar “{{name}}”",
+      "createCaption": "Nome, quantidade e valor vêm da nota",
+      "createFailed": "Não foi possível cadastrar o item. Tente de novo."
+    },
+    "entries": {
+      "title": "Entradas",
+      "back": "Fechar entradas",
+      "pending": "PENDÊNCIAS",
+      "countOne": "1 entrada",
+      "count": "{{count}} entradas",
+      "empty": "Nenhuma entrada pendente. Toda nota enviada aparece aqui até ser conferida.",
+      "loadFailed": "Não foi possível carregar as entradas.",
+      "retry": "Tentar de novo",
+      "newEntry": "Nova entrada",
+      "untitled": "Documento sem nome",
+      "pdf": "PDF",
+      "photo": "Foto",
+      "invoiceNumber": "NF {{number}}",
+      "status": {
+        "ready": "Pronta para conferir",
+        "processing": "Processando",
+        "failed": "Falhou",
+        "photo": "Rascunho manual",
+        "notUploaded": "Envio não concluído"
+      },
+      "reasons": {
+        "photo": "Foto guardada como comprovante. Os itens não são lidos de fotos.",
+        "notUploaded": "O arquivo não chegou ao servidor."
+      },
+      "actions": {
+        "review": "Conferir",
+        "replace": "Trocar arquivo",
+        "discard": "Descartar"
+      },
+      "discardTitle": "Descartar esta entrada?",
+      "discardMessage": "O documento continua guardado, mas a entrada sai das pendências e o mesmo arquivo pode ser enviado de novo.",
+      "discardConfirm": "Descartar",
+      "discardCancel": "Voltar",
+      "discardFailed": "Não foi possível descartar a entrada. Tente de novo.",
+      "opening": "Abrindo a entrada...",
+      "openFailed": "Não foi possível abrir a entrada. Tente de novo."
+    },
+    "duplicate": {
+      "title": "Documento já enviado",
+      "message": "Este PDF já está em outra entrada.",
+      "open": "Abrir a entrada existente",
+      "close": "Fechar"
+    },
+    "errors": {
+      "dismiss": "Entendi",
+      "permissionDenied": "Precisamos da sua permissão para acessar as fotos.",
+      "unsupportedType": "Só aceitamos PDF ou foto em JPEG. Tire a foto pelo app ou escolha outro arquivo.",
+      "offline": "Sem conexão com a internet. O envio precisa de rede — tente de novo quando voltar.",
+      "tooLarge": "Este arquivo passa de 15 MB. Tire a foto de novo ou envie um PDF menor.",
+      "duplicateFile": "Este documento já foi enviado antes, em outra entrada.",
+      "notProvisioned": "Sua conta ainda não terminou de ser criada. Saia e entre de novo no app.",
+      "uploadRejected": "O envio do arquivo foi recusado. Tente de novo.",
+      "notConfirmed": "O arquivo não chegou completo ao servidor. Tente enviar de novo.",
+      "unexpected": "Algo deu errado no envio. Tente de novo em instantes."
+    }
+  },
+  "stock": {
+    "movementHistory": {
+      "title": "Histórico de movimentações",
+      "description": "Entradas, saídas e ajustes de estoque",
+      "appointmentLink": "Atendimento · {{appointment}}",
+      "pending": "Pendente · {{date}}",
+      "empty": "Nenhuma movimentação registrada.",
+      "emptyFiltered": "Nenhuma movimentação encontrada para o filtro.",
+      "filters": {
+        "searchPlaceholder": "Buscar por item",
+        "period": "Período",
+        "periodRange": "{{from}} até {{to}}",
+        "periodSingle": "{{day}}",
+        "periodFrom": "A partir de {{from}}",
+        "clear": "Limpar",
+        "previousMonth": "Mês anterior",
+        "nextMonth": "Próximo mês"
+      },
+      "error": "Não foi possível carregar o histórico.",
+      "origins": {
+        "manualPurchase": "Compra manual",
+        "orderImport": "Pedido recebido",
+        "appointment": "Saída por atendimento",
+        "correctionReversal": "Estorno de correção",
+        "adjustmentLoss": "Ajuste · Perda",
+        "adjustmentExpiration": "Ajuste · Vencimento",
+        "adjustmentBreakage": "Ajuste · Quebra",
+        "adjustmentOther": "Ajuste · Outro"
+      },
+      "units": {
+        "unit": {
+          "one": "un",
+          "other": "un"
+        },
+        "ampoule": {
+          "one": "ampola",
+          "other": "ampolas"
+        },
+        "vial": {
+          "one": "frasco",
+          "other": "frascos"
+        },
+        "box": {
+          "one": "caixa",
+          "other": "caixas"
+        },
+        "ml": {
+          "one": "ml",
+          "other": "ml"
+        },
+        "mg": {
+          "one": "mg",
+          "other": "mg"
+        },
+        "gram": {
+          "one": "grama",
+          "other": "gramas"
+        },
+        "tablet": {
+          "one": "comprimido",
+          "other": "comprimidos"
+        },
+        "other": {
+          "one": "un",
+          "other": "un"
+        }
+      },
+      "quantity": "{{quantity}} {{unit}}",
+      "newEntry": "Novo lançamento"
+    },
+    "outputAdjustment": {
+      "title": "Registro de ajuste de saída",
+      "close": "Fechar",
+      "itemLabel": "Item",
+      "itemPlaceholder": "Selecione o item",
+      "noItems": "Nenhum item com estoque para dar baixa.",
+      "quantityLabel": "Quantidade",
+      "quantityPlaceholder": "0",
+      "reasonLabel": "Motivo",
+      "otherReasonLabel": "Descreva o motivo",
+      "otherReasonPlaceholder": "Escreva o que aconteceu",
+      "save": "Salvar",
+      "reasons": {
+        "loss": "Perda",
+        "expiration": "Vencimento",
+        "breakage": "Quebra",
+        "other": "Outro"
+      },
+      "errors": {
+        "required": "Campo obrigatório",
+        "mustBePositive": "A quantidade deve ser maior que zero",
+        "QUEUE_WRITE_FAILED": "Não foi possível salvar o ajuste neste aparelho. Tente de novo.",
+        "INSUFFICIENT_STOCK": "Quantidade maior que o saldo disponível ({{available}}).",
+        "NO_ACCOUNT": "Entre novamente para registrar o ajuste.",
+        "NO_UNIT_COST": "Este insumo ainda não tem custo unitário. Registre uma compra dele antes de ajustar."
+      }
+    },
+    "supplySelector": {
+      "title": "Adicionar insumo",
+      "materialLabel": "MATERIAL",
+      "searchPlaceholder": "Busque pelo nome do item",
+      "quantityLabel": "QUANTIDADE",
+      "confirm": "Confirmar",
+      "close": "Fechar",
+      "loading": "Buscando...",
+      "empty": "Nenhum item encontrado.",
+      "error": "Não foi possível buscar os itens.",
+      "termTooShort": "Digite ao menos 2 caracteres.",
+      "insufficientStock": "Quantidade acima do saldo disponível. O estoque ficará negativo após este registro."
+    }
+  },
+  "clinics": {
+    "addClinic": "Adicionar clínica",
+    "newClinic": {
+      "title": "Nova clínica",
+      "close": "Fechar",
+      "confirm": "Confirmar",
+      "saving": "Salvando...",
+      "fields": {
+        "name": {
+          "label": "Nome da clínica",
+          "placeholder": "Digite o nome da clínica"
+        },
+        "cnpj": {
+          "label": "CNPJ",
+          "placeholder": "00.000.000/0000-00"
+        },
+        "addressLine": {
+          "label": "Endereço",
+          "placeholder": "Digite a rua, número e bairro"
+        },
+        "city": {
+          "label": "Cidade",
+          "placeholder": "Ex: São Paulo"
+        },
+        "state": {
+          "label": "UF",
+          "placeholder": "SP"
+        },
+        "phone": {
+          "label": "Contato",
+          "placeholder": "(00) 00000-0000"
+        },
+        "email": {
+          "label": "E-mail",
+          "placeholder": "contato@clinica.com.br"
+        },
+        "contactName": {
+          "label": "Responsável",
+          "placeholder": "Nome do médico responsável"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Informe o nome da clínica.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres."
+        },
+        "cnpj": {
+          "required": "Informe o CNPJ.",
+          "invalid": "O CNPJ informado não é válido.",
+          "duplicated": "Já existe uma clínica com esse CNPJ."
+        },
+        "state": {
+          "required": "Informe a UF.",
+          "invalid": "Informe uma UF válida, como SP."
+        },
+        "phone": {
+          "required": "Informe o telefone.",
+          "invalid": "Informe o telefone com DDD."
+        },
+        "email": {
+          "required": "Informe o e-mail.",
+          "invalid": "Informe um e-mail válido."
+        },
+        "addressLine": {
+          "required": "Informe o endereço.",
+          "tooShort": "O endereço precisa ter pelo menos 5 caracteres."
+        },
+        "city": {
+          "required": "Informe a cidade.",
+          "tooShort": "A cidade precisa ter pelo menos 2 letras.",
+          "invalid": "A cidade só pode ter letras."
+        },
+        "contactName": {
+          "required": "Informe o nome do responsável.",
+          "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+          "invalid": "O nome só pode ter letras."
+        }
+      },
+      "failures": {
+        "duplicatedName": "Já existe uma clínica com esse nome.",
+        "duplicatedTaxId": "Já existe uma clínica com esse CNPJ.",
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "unknown": "Não foi possível salvar a clínica. Tente novamente."
+      }
+    },
+    "countOne": "{{count}} clínica",
+    "countOther": "{{count}} clínicas",
+    "empty": "Nenhuma clínica cadastrada.",
+    "detail": {
+      "call": "Entrar em contato",
+      "edit": "Editar clínica",
+      "editTitle": "Editar",
+      "confirm": "Confirmar",
+      "delete": "Excluir"
+    },
+    "loadFailure": "Não foi possível carregar as clínicas."
+  },
+  "financialEntries": {
+    "newEntry": "Novo lançamento",
+    "options": {
+      "title": "Novo lançamento",
+      "descriptionWithStockWriteOff": "Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque",
+      "sendDocument": "Enviar documento (PDF)",
+      "manual": "Lançamento manual",
+      "stockWriteOff": "Baixa no estoque"
+    },
+    "documentSoon": {
+      "title": "Envio de PDF em breve",
+      "message": "Por enquanto, registre a entrada ou a saída pelo lançamento manual.",
+      "ok": "Entendi"
+    },
+    "categories": {
+      "professionalFees": "Honorários",
+      "supplies": "Insumos",
+      "travel": "Deslocamento",
+      "taxesAndFees": "Impostos e taxas",
+      "fixedCosts": "Custos fixos",
+      "other": "Outros"
+    },
+    "form": {
+      "title": "Novo lançamento manual",
+      "close": "Fechar",
+      "nature": {
+        "label": "Tipo",
+        "income": "Entrada",
+        "expense": "Saída"
+      },
+      "description": {
+        "label": "Descrição",
+        "placeholder": "Ex: Conta de luz"
+      },
+      "amount": {
+        "label": "Valor (R$)",
+        "placeholder": "0,00"
+      },
+      "date": {
+        "label": "Data",
+        "placeholder": "dd/mm/aaaa"
+      },
+      "category": {
+        "label": "Categoria",
+        "loading": "Carregando categorias…",
+        "retry": "Tentar de novo"
+      },
+      "scope": {
+        "label": "Escopo",
+        "professional": "Profissional",
+        "personal": "Pessoal",
+        "hint": "Sugerido pela categoria. Você pode alterar."
+      },
+      "save": "Salvar",
+      "saving": "Salvando…",
+      "errors": {
+        "description": {
+          "required": "Informe uma descrição.",
+          "tooLong": "Use no máximo 500 caracteres."
+        },
+        "amount": {
+          "required": "Informe o valor.",
+          "invalid": "Informe um valor válido.",
+          "notPositive": "Informe um valor maior que zero."
+        },
+        "date": {
+          "required": "Informe a data.",
+          "invalid": "Data inválida."
+        },
+        "categoryId": {
+          "required": "Selecione uma categoria."
+        }
+      },
+      "failures": {
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "categoryInvalid": "Essa categoria não está mais disponível. Escolha outra.",
+        "network": "Sem conexão. Tente de novo quando a internet voltar.",
+        "unknown": "Não foi possível salvar o lançamento. Tente novamente.",
+        "categories": "Não foi possível carregar as categorias."
+      }
+    },
+    "categoryField": {
+      "placeholder": "Digite o nome da categoria",
+      "add": "Adicionar Categoria",
+      "newPlaceholder": "Digite o nome da nova categoria",
+      "create": "Criar categoria",
+      "noResults": "Nenhuma categoria encontrada.",
+      "created": "Categoria criada.",
+      "createFailed": "Não foi possível criar a categoria. Tente de novo.",
+      "errors": {
+        "tooLong": "Use até 40 caracteres."
+      }
+    },
+    "saved": "Lançamento salvo.",
+    "statement": {
+      "scopes": {
+        "all": "Todos",
+        "professional": "Profissional",
+        "personal": "Pessoal"
+      },
+      "scopeFilterLabel": "Filtrar lançamentos por escopo",
+      "automatic": "automático",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
+      "loading": "Carregando lançamentos…",
+      "loadingMore": "Carregando mais lançamentos…",
+      "empty": {
+        "title": "Nenhum lançamento neste mês",
+        "description": "Registre uma entrada ou saída para acompanhar o seu saldo.",
+        "action": "Novo lançamento"
+      },
+      "noResults": {
+        "professional": "Nenhum lançamento profissional neste mês.",
+        "personal": "Nenhum lançamento pessoal neste mês."
+      },
+      "failures": {
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "network": "Sem conexão. Tente de novo quando a internet voltar.",
+        "unknown": "Não foi possível carregar os lançamentos."
+      },
+      "retry": "Tentar novamente",
+      "loadMoreFailure": "Não foi possível carregar mais lançamentos."
+    },
+    "detail": {
+      "close": "Fechar",
+      "automatic": "Automático",
+      "subtitle": "{{origin}}",
+      "origins": {
+        "manual": "Lançamento manual",
+        "appointment": "Gerado pelo procedimento",
+        "serviceInvoice": "Gerado pela nota fiscal",
+        "purchaseInvoice": "Gerado pelo pedido de compra",
+        "trip": "Gerado pelo deslocamento"
+      },
+      "lockedHint": {
+        "appointment": "Tipo, valor e data vêm do procedimento. Corrija pela origem.",
+        "serviceInvoice": "Tipo, valor e data vêm da nota fiscal. Corrija pela origem.",
+        "purchaseInvoice": "Tipo, valor e data vêm do pedido de compra. Corrija pela origem.",
+        "trip": "Tipo, valor e data vêm do deslocamento. Corrija pela origem."
+      },
+      "field": "{{label}}: {{value}}",
+      "lockedField": "{{label}}: {{value}}, controlado pela origem",
+      "openOrigin": {
+        "appointment": "Abrir procedimento",
+        "serviceInvoice": "Abrir nota fiscal",
+        "purchaseInvoice": "Abrir pedido de compra",
+        "trip": "Abrir deslocamento"
+      },
+      "originUnavailable": "Essa origem ainda não tem tela no app.",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "editTitle": "Editar lançamento",
+      "cancel": "Cancelar",
+      "discard": {
+        "message": "Descartar as alterações?",
+        "confirm": "Descartar",
+        "keep": "Continuar editando"
+      },
+      "deleteConfirm": {
+        "title": "Excluir este lançamento?",
+        "message": "Ele sai do extrato e essa ação não pode ser desfeita.",
+        "confirm": "Excluir",
+        "confirming": "Excluindo…",
+        "cancel": "Cancelar"
+      },
+      "deleteBlocked": {
+        "title": "Não dá para excluir por aqui",
+        "appointment": "Este lançamento foi gerado pelo procedimento {{description}}. Para excluí-lo, exclua o procedimento — o atendimento também sai do histórico.",
+        "serviceInvoice": "Este lançamento foi gerado pela nota fiscal {{description}}. Para excluí-lo, exclua a nota — o documento e o arquivo também são apagados.",
+        "purchaseInvoice": "Este lançamento foi gerado pelo pedido de compra {{description}}. Para excluí-lo, exclua o pedido — os itens também saem do estoque.",
+        "trip": "Este lançamento foi gerado pelo deslocamento {{description}}. Para excluí-lo, exclua o deslocamento.",
+        "close": "Fechar"
+      },
+      "updated": "Lançamento atualizado.",
+      "deleted": "Lançamento excluído.",
+      "failures": {
+        "notFound": "Este lançamento não existe mais. O extrato foi atualizado.",
+        "controlledByOrigin": "Tipo, valor e data deste lançamento vêm da origem e não mudam por aqui.",
+        "delete": "Não foi possível excluir o lançamento. Tente novamente."
+      }
+    }
+  },
+  "tabbar": {
+    "day": "Dia-Dia",
+    "finance": "Finança",
+    "materials": "Materiais",
+    "partners": "Parceiros",
+    "reports": "Relatórios",
+    "clinics": "Clínicas"
+  },
+  "optionsModal": {
+    "scanNote": "Escanear nota",
+    "typeSupply": "Digitar insumo"
+  },
+  "itemModal": {
+    "title": "Novo insumo ou medicamento",
+    "categoryLabel": "CATEGORIA",
+    "nameLabel": "NOME",
+    "namePlaceholder": "Digite o nome do {{category}}",
+    "addOption": "+ Adicionar {{category}}",
+    "unitCostLabel": "CUSTO UNITÁRIO (R$)",
+    "unitCostPlaceholder": "Digite o custo",
+    "unitLabel": "UNIDADE",
+    "unitPlaceholder": "Digite a unidade",
+    "supplierLabel": "FORNECEDOR",
+    "supplierPlaceholder": "Selecione o fornecedor",
+    "supplierAddOption": "+ Adicionar fornecedor \"{{name}}\"",
+    "supplierSearchPlaceholder": "Busque ou digite um novo",
+    "quantityLabel": "QUANTIDADE",
+    "minQuantityLabel": "QUANTIDADE MÍNIMA NO ESTOQUE",
+    "expirationLabel": "VALIDADE",
+    "expirationPlaceholder": "Selecione a data",
+    "expirationPastError": "A validade não pode ser uma data passada",
+    "confirm": "Confirmar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "cancel": "Cancelar",
+    "errors": {
+      "name": {
+        "required": "Informe o nome do item.",
+        "tooShort": "O nome precisa ter pelo menos 2 caracteres.",
+        "pickOrAdd": "Selecione um item da lista ou adicione um novo."
+      },
+      "unitCost": {
+        "required": "Informe o custo unitário.",
+        "tooLarge": "O custo unitário é alto demais."
+      },
+      "unit": {
+        "required": "Selecione a unidade."
+      },
+      "quantity": {
+        "required": "Informe a quantidade.",
+        "zero": "A quantidade precisa ser maior que zero.",
+        "tooLarge": "A quantidade é alta demais."
+      },
+      "minQuantity": {
+        "tooLarge": "A quantidade mínima é alta demais."
+      },
+      "expiration": {
+        "incomplete": "Informe a data completa (dd/mm/aaaa).",
+        "invalid": "Informe uma data válida.",
+        "past": "A validade não pode ser uma data passada"
+      },
+      "supplierName": {
+        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres."
+      }
+    }
+  },
+  "auth": {
+    "back": "Voltar",
+    "brand": {
+      "tagline": "Anestesia Veterinária"
+    },
+    "welcome": {
+      "greeting": "Seja bem-vindo(a)",
+      "createAccount": "Criar conta",
+      "or": "ou",
+      "login": "Login"
+    },
+    "social": {
+      "divider": "ou continue com",
+      "google": "Continuar com Google"
+    },
+    "fields": {
+      "name": "Nome",
+      "email": "E-mail",
+      "password": "Senha",
+      "passwordConfirmation": "Confirmar senha",
+      "code": "Código de confirmação"
+    },
+    "login": {
+      "title": "Entrar",
+      "description": "Acesse com o e-mail e a senha da sua conta.",
+      "submit": "Entrar",
+      "noAccount": "Ainda não tem conta? Criar conta"
+    },
+    "signUp": {
+      "title": "Criar conta",
+      "description": "Preencha seus dados para começar.",
+      "submit": "Criar conta",
+      "hasAccount": "Já tem conta? Entrar"
+    },
+    "confirm": {
+      "title": "Confirme seu e-mail",
+      "description": "Enviamos um código de confirmação para {{email}}.",
+      "submit": "Confirmar",
+      "resend": "Reenviar código",
+      "resent": "Enviamos um novo código."
+    },
+    "validation": {
+      "required": "Campo obrigatório.",
+      "invalidEmail": "Informe um e-mail válido.",
+      "passwordMismatch": "As senhas não coincidem.",
+      "termsRequired": "Aceite os termos para continuar.",
+      "invalidCode": "O código deve ter 6 dígitos."
+    },
+    "errors": {
+      "invalidCredentials": "E-mail ou senha incorretos.",
+      "emailAlreadyRegistered": "Não foi possível criar a conta com este e-mail.",
+      "invalidCode": "Código inválido.",
+      "expiredCode": "Este código expirou. Peça um novo.",
+      "weakPassword": "A senha precisa ter ao menos 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos.",
+      "invalidData": "Verifique os dados informados.",
+      "userNotConfirmed": "Confirme seu e-mail antes de entrar.",
+      "sessionExpired": "Sua sessão expirou. Entre novamente.",
+      "tooManyAttempts": "Muitas tentativas. Aguarde um pouco e tente novamente.",
+      "networkUnavailable": "Sem conexão. Verifique sua internet e tente novamente.",
+      "unknown": "Algo deu errado. Tente novamente.",
+      "accountUsesOtherSignIn": "Este e-mail já tem uma conta com outra forma de entrar. Use o mesmo método do cadastro (e-mail e senha, ou Google)."
+    },
+    "terms": {
+      "title": "Termos de uso",
+      "description": "Olá, {{name}}. Para usar o Administranest, aceite os termos de uso e a política de privacidade.",
+      "checkbox": "Li e aceito os Termos de Uso e a Política de Privacidade.",
+      "submit": "Aceitar e continuar",
+      "signOut": "Sair da conta"
+    },
+    "account": {
+      "menu": "Conta",
+      "signOut": "Sair da conta"
+    }
+  },
+  "partners": {
+    "segments": {
+      "clinics": "Clínicas",
+      "suppliers": "Fornecedores"
+    },
+    "suppliersEmpty": "Fornecedores ainda não estão disponíveis aqui."
+  },
+  "procedures": {
+    "newProcedure": "Novo atendimento",
+    "form": {
+      "title": "Novo atendimento",
+      "confirm": "Confirmar",
+      "close": "Fechar",
+      "location": "Local",
+      "submitError": "Não foi possível salvar. Tente novamente."
+    },
+    "supplyPrompt": {
+      "title": "Deseja registrar os insumos utilizados neste procedimento?",
+      "confirm": "Sim",
+      "cancel": "Agora não"
+    },
+    "fields": {
+      "patientName": "Paciente",
+      "procedureName": "Procedimento",
+      "species": "Espécie",
+      "asaClassification": "Classificação ASA",
+      "weightKg": "Peso (kg)",
+      "patientAgeYears": "Idade",
+      "amount": "Valor do atendimento",
+      "startTime": "Início",
+      "endTime": "Fim",
+      "date": "Data",
+      "notes": "Observações"
+    },
+    "placeholders": {
+      "patientName": "Nome do animal",
+      "procedureName": "Ex: Orquiectomia",
+      "location": "Nome da clínica",
+      "notes": "Observações sobre o procedimento",
+      "number": "0",
+      "time": "HH:MM",
+      "date": "DD/MM/YYYY",
+      "species": "Selecione a espécie"
+    },
+    "species": {
+      "canine": "Canino",
+      "feline": "Felino",
+      "equine": "Equino",
+      "bovine": "Bovino",
+      "avian": "Ave",
+      "exotic": "Exótico/Silvestre",
+      "other": "Outro"
+    },
+    "errors": {
+      "REQUIRED": "Campo obrigatório",
+      "INVALID_NUMBER": "Número inválido",
+      "MUST_BE_POSITIVE": "Deve ser maior que zero",
+      "MUST_BE_INTEGER": "Deve ser um número inteiro",
+      "TOO_SHORT": "Mínimo de 2 caracteres",
+      "MAX_2_DECIMALS": "Máximo de 2 casas decimais",
+      "MAX_3_DECIMALS": "Máximo de 3 casas decimais",
+      "AGE_OUT_OF_RANGE": "Idade deve estar entre 0 e 100",
+      "END_BEFORE_START": "O fim deve ser depois do início",
+      "INVALID_DATE": "Data inválida",
+      "INVALID_TIME": "Hora inválida",
+      "IN_THE_PAST": "Escolha uma data e horário futuros",
+      "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
+      "SELECT_CLIENT": "Escolha uma clínica da lista",
+      "NAME_TOO_LONG": "Máximo de 160 caracteres",
+      "TOO_LONG": "Máximo de 2000 caracteres"
+    },
+    "clientSearch": {
+      "loading": "Buscando…",
+      "error": "Não foi possível buscar. Tente novamente.",
+      "empty": "Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas."
+    },
+    "completion": {
+      "action": "Finalizar procedimento",
+      "notices": {
+        "CANCELED": "Este agendamento foi cancelado e não pode mais ser finalizado.",
+        "AMOUNT_REQUIRED": "Preencha o valor do atendimento antes de finalizar.",
+        "FAILED": "Não foi possível finalizar o procedimento. Tente novamente.",
+        "COMPLETED": "Este agendamento já foi finalizado e não pode mais ser cancelado.",
+        "CANCEL_FAILED": "Não foi possível cancelar o agendamento. Tente novamente."
+      }
+    },
+    "cancellation": {
+      "action": "Não realizado",
+      "title": "Motivo do cancelamento",
+      "reasonPlaceholder": "Escreva brevemente o motivo",
+      "confirm": "Confirmar",
+      "errors": {
+        "REQUIRED": "Informe o motivo do cancelamento.",
+        "TOO_LONG": "O motivo pode ter no máximo 2000 caracteres.",
+        "FAILED": "Não foi possível cancelar o agendamento. Tente novamente."
+      }
+    },
+    "supplies": {
+      "empty": "Nenhum material adicionado",
+      "lineDetail": "{{quantity}} un. × {{unitCost}}",
+      "remove": "Remover {{name}}",
+      "totalCost": "Total insumos",
+      "grossMargin": "Margem bruta"
+    },
+    "status": {
+      "SCHEDULED": "Agendado",
+      "COMPLETED": "Realizado",
+      "CANCELED": "Cancelado"
+    },
+    "detail": {
+      "edit": "Editar atendimento",
+      "editTitle": "Editar atendimento",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir este atendimento?",
+      "deleteCancel": "Cancelar",
+      "deleteFailed": "Não foi possível excluir. Tente novamente.",
+      "title": "Atendimento",
+      "back": "Voltar",
+      "loadError": "Não foi possível carregar o atendimento.",
+      "retry": "Tentar de novo",
+      "patient": "Paciente",
+      "procedure": "Procedimento",
+      "time": "Horário",
+      "amount": "Valor",
+      "noAmount": "Sem valor",
+      "editAmount": "Editar valor",
+      "weightLabel": "Peso",
+      "notInformed": "Não informado",
+      "ageValue": "{{years}} anos",
+      "weightValue": "{{kg}} kg",
+      "completedBadge": "Concluído",
+      "suppliesTitle": "Materiais usados",
+      "addSupply": "Adicionar insumo",
+      "addSupplyShort": "Adicionar",
+      "suppliesFailed": "Não foi possível salvar os insumos. Tente novamente.",
+      "pendingSyncHint": "Insumos, valor e status ficam disponíveis depois que o agendamento for enviado.",
+      "amountSheet": {
+        "title": "Valor do atendimento",
+        "placeholder": "0,00",
+        "confirm": "Salvar",
+        "errors": {
+          "REQUIRED": "Informe o valor.",
+          "INVALID_NUMBER": "Informe um valor válido, como 350,00.",
+          "MUST_BE_POSITIVE": "O valor não pode ser negativo.",
+          "MAX_2_DECIMALS": "Use no máximo 2 casas decimais.",
+          "FAILED": "Não foi possível salvar o valor. Tente novamente."
+        }
+      },
+      "hoursWorked": {
+        "title": "Horas trabalhadas",
+        "edit": "Editar",
+        "minutesLabel": "{{count}} minutos",
+        "valuePerHour": "Valor/hora"
+      },
+      "travel": {
+        "title": "Deslocamento",
+        "empty": "Nenhum deslocamento registrado",
+        "register": "+ Registrar",
+        "collapse": "Cancelar",
+        "vehicleLabel": "Carro",
+        "vehiclePlaceholder": "Selecione um carro",
+        "distanceLabel": "Distância (km)",
+        "distancePlaceholder": "Ex: 34",
+        "confirm": "Confirmar"
+      },
+      "cancellationReason": "Motivo do cancelamento"
+    },
+    "day": {
+      "previous": "Dia anterior",
+      "next": "Próximo dia",
+      "empty": "Nenhum atendimento neste dia.",
+      "error": "Não foi possível carregar os atendimentos.",
+      "untitled": "Sem nome"
+    }
+  },
+  "appointments": {
+    "notDone": {
+      "reasons": {
+        "noShow": "Paciente não compareceu",
+        "clientCanceled": "Cancelamento do cliente",
+        "emergency": "Emergência",
+        "other": "Outro"
+      },
+      "dismiss": "Cancelar"
+    },
+    "title": "Agendamentos",
+    "calendar": {
+      "prevMonth": "Mês anterior",
+      "nextMonth": "Próximo mês"
+    },
+    "attendances": "ATENDIMENTOS",
+    "revenue": "RECEITA",
+    "estimated": "estimado",
+    "agenda": "AGENDA",
+    "addAttendance": "+ Adicionar Atendimento",
+    "sectionTitle": "PROCEDIMENTOS DO MÊS OU DIA",
+    "emptyDay": "Nenhum agendamento para este dia.",
+    "emptyDaySub": "Toque no botão abaixo para agendar um procedimento.",
+    "newAppointment": "+ Novo agendamento",
+    "status": {
+      "scheduled": "Agendado",
+      "completed": "Concluído",
+      "canceled": "Cancelado"
+    },
+    "species": {
+      "canine": "Canino",
+      "feline": "Felino",
+      "equine": "Equino",
+      "bovine": "Bovino",
+      "avian": "Ave",
+      "exotic": "Exótico/Silvestre",
+      "other": "Outro"
+    },
+    "form": {
+      "title": "Novo Agendamento",
+      "patientNameLabel": "NOME DO PACIENTE / ANIMAL",
+      "patientNamePlaceholder": "Ex: Mel, Thor...",
+      "speciesLabel": "ESPÉCIE",
+      "procedureLabel": "PROCEDIMENTO",
+      "procedurePlaceholder": "Ex: Orquiectomia, Tartarectomia...",
+      "dateLabel": "DATA (AAAA-MM-DD)",
+      "timeLabel": "HORÁRIO (HH:MM)",
+      "locationLabel": "LOCAL / CLÍNICA",
+      "locationPlaceholder": "Ex: Clínica VetCare",
+      "notesLabel": "OBSERVAÇÕES",
+      "notesPlaceholder": "Recomendações anestésicas, histórico...",
+      "submit": "Confirmar Agendamento",
+      "cancel": "Cancelar"
+    },
+    "viewMonth": "Ver mês",
+    "viewWeek": "Ver semana",
+    "dayOf": "dia {{day}}",
+    "emptyToday": "Sem atendimentos hoje",
+    "emptySelectedDay": "Sem atendimentos neste dia",
+    "emptyMonth": "Sem atendimentos neste mês",
+    "exportToCalendar": "Adicionar à agenda",
+    "exportSuccessTitle": "Adicionado à agenda",
+    "exportSuccess": "Agendamento adicionado à sua agenda.",
+    "exportPermissionDeniedTitle": "Permissão necessária",
+    "exportPermissionDenied": "Não conseguimos acessar sua agenda. Habilite a permissão de calendário nas configurações do dispositivo para adicionar este agendamento.",
+    "exportErrorTitle": "Não foi possível adicionar",
+    "exportError": "Algo deu errado ao adicionar o agendamento à sua agenda. Tente novamente.",
+    "dismiss": "Entendi",
+    "statusActions": {
+      "open": "Atualizar status",
+      "notDone": "Não realizado",
+      "cancel": "Cancelar atendimento",
+      "cancelReason": "Por que o atendimento foi cancelado?",
+      "cancelToast": "Atendimento cancelado"
+    },
+    "reschedule": {
+      "title": "Remarcar atendimento",
+      "message": "O procedimento não foi realizado. Escolha a nova data e horário.",
+      "date": "Data",
+      "startTime": "Início",
+      "endTime": "Fim",
+      "confirm": "Remarcar",
+      "dismiss": "Cancelar",
+      "done": "Atendimento remarcado.",
+      "errors": {
+        "CONFLICT": "Você já possui um atendimento nesse horário.",
+        "FAILED": "Não foi possível remarcar. Tente novamente."
+      }
+    },
+    "conflict": {
+      "title": "Conflito de horário",
+      "message": "Este horário conflita com {{procedure}} às {{time}}.",
+      "unnamedProcedure": "outro atendimento",
+      "adjust": "Alterar horário"
+    },
+    "offline": "Sem conexão. Mostrando a agenda salva no aparelho; o que você criar ou editar será enviado quando a internet voltar.",
+    "pendingSync": "Aguardando envio",
+    "sync": {
+      "title": "Agendamento não sincronizado",
+      "message": "Não foi possível enviar o agendamento de {{patient}} em {{date}} às {{time}}: {{reason}}",
+      "messageEdit": "Não foi possível enviar uma edição de agendamento: {{reason}}",
+      "unnamedPatient": "paciente sem nome",
+      "reasons": {
+        "conflict": "o horário conflita com outro agendamento.",
+        "notFound": "o agendamento não existe mais.",
+        "other": "os dados foram recusados pelo servidor.",
+        "clinicNotSynced": "a clínica dele não pôde ser cadastrada."
+      },
+      "clinicTitle": "Clínica não sincronizada",
+      "clinicMessage": "Não foi possível enviar a clínica {{name}}: {{reason}}",
+      "clinicMessageEdit": "Não foi possível enviar uma edição de clínica: {{reason}}",
+      "clinicReasons": {
+        "duplicatedTaxId": "já existe outra clínica com esse CNPJ.",
+        "notFound": "a clínica não existe mais.",
+        "duplicatedName": "já existe outra clínica com esse nome."
+      }
+    }
+  },
   "home": {
-    "title": "Administranest",
-    "subtitle": "O client-mobile está no ar."
+    "greeting": "Olá, Dr. {{name}}"
+  },
+  "pricing": {
+    "onboarding": {
+      "message": "Preencha os campos para que os valores sejam calculados",
+      "loading": "Carregando suas metas",
+      "loadFailure": "Não foi possível carregar suas metas."
+    },
+    "goalForm": {
+      "title": "Metas",
+      "labels": {
+        "monthlyIncomeGoal": "Meta de renda líquida mensal (R$)",
+        "weeklyHours": "Horas disponíveis por semana",
+        "safetyMarginPct": "Margem de segurança (%)"
+      },
+      "weeklyHoursHint": "Conte as horas em que você fica disponível para trabalhar, incluindo deslocamentos e períodos ociosos, não só as horas que você cobra.",
+      "save": "Salvar metas",
+      "saving": "Salvando…",
+      "errors": {
+        "required": "Preencha este campo",
+        "invalid": "Digite um número válido",
+        "tooManyDecimals": "Use no máximo 2 casas decimais",
+        "tooLarge": "O valor máximo é R$ 999.999.999.999,99",
+        "notPositive": "O valor deve ser maior que zero",
+        "tooHigh": "Uma semana tem no máximo 168 horas",
+        "outOfRange": "A margem deve ficar entre 0% e 100%"
+      },
+      "failures": {
+        "save": "Não foi possível salvar as metas. Tente novamente."
+      }
+    }
+  },
+  "deleteOrigin": {
+    "effectsLabel": "Ao excluir:",
+    "effects": {
+      "financialEntry": "O lançamento dele sai do extrato de Finanças.",
+      "suppliesReturn": "Os materiais usados voltam para o estoque.",
+      "stockRemoval": "Os itens da nota saem do estoque.",
+      "documentRemoval": "O documento e o arquivo são apagados.",
+      "historyRemoval": "O atendimento sai da agenda e do histórico."
+    }
   }
 }

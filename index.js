@@ -2,9 +2,11 @@
  * @format
  */
 
-import { AppRegistry } from 'react-native';
+// Primeiro import do bundle: inicializa o dev client (dev menu e
+// launcher). Inerte em build de release.
+import 'expo-dev-client';
+import { registerRootComponent } from 'expo';
 
-import { name as appName } from './app.json';
 import { App } from './src/app/App';
 
-AppRegistry.registerComponent(appName, () => App);
+registerRootComponent(App);

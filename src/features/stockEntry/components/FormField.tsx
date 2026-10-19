@@ -1,0 +1,54 @@
+import { TextInput, View, type KeyboardTypeOptions } from 'react-native';
+
+import { Text } from 'app/components/ui/text';
+import { cn } from 'app/lib/utils';
+import { LabelPlaceholder } from 'theme/colors';
+
+type FormFieldProps = {
+  label: string;
+  value: string;
+  onChangeText?: (text: string) => void;
+  placeholder?: string;
+  keyboardType?: KeyboardTypeOptions;
+  maxLength?: number;
+  className?: string;
+  error?: string;
+};
+
+/** Without `onChangeText` the value is shown in the same box, read-only. */
+export function FormField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType,
+  maxLength,
+  className,
+  error,
+}: FormFieldProps) {
+  return (
+    <View className={cn('gap-1', className)}>
+      <Text className="text-[11px] font-bold uppercase tracking-wide text-label-tertiary">
+        {label}
+      </Text>
+      <TextInput
+        accessibilityLabel={label}
+        value={value}
+        onChangeText={onChangeText}
+        editable={onChangeText !== undefined}
+        placeholder={placeholder}
+        placeholderTextColor={LabelPlaceholder}
+        keyboardType={keyboardType}
+        maxLength={maxLength}
+        className={cn(
+          'rounded-xl border px-3 py-2.5 text-sm text-label-primary',
+          error ? 'border-alert-primary' : 'border-border-primary',
+          onChangeText ? 'bg-white' : 'bg-details-primary',
+        )}
+      />
+      {error ? (
+        <Text className="text-xs text-alert-primary">{error}</Text>
+      ) : null}
+    </View>
+  );
+}

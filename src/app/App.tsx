@@ -1,18 +1,135 @@
-import { StatusBar, useColorScheme } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as React from 'react';
+import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
+import { TabBar, type TabValue } from 'app/components/ui/tabbar';
+import { AppointmentSyncObserver } from 'features/appointments';
+import {
+  AuthFlow,
+  AuthProvider,
+  needsTermsAcceptance,
+  TermsScreen,
+  useAuth,
+} from 'features/auth';
+import { FinanceScreen } from 'features/finance';
 import { HomeScreen } from 'features/home';
+import {
+  InventoryAlertObserver,
+  InventoryProvider,
+  useInventory,
+  type InventoryAlertSnapshot,
+} from 'features/inventory';
+import { MaterialsScreen } from 'features/materials';
+import { PartnersScreen } from 'features/partners';
+import { ReportsScreen } from 'features/reports';
+import { StockSyncProvider } from 'features/stock';
 import { I18nProvider } from 'shared/i18n';
+import { initNotifications } from 'shared/services';
+
+import { Colors } from '../theme/colors';
+import '../../global.css';
+
+const SCREENS: Record<TabValue, React.ComponentType> = {
+  day: HomeScreen,
+  finance: FinanceScreen,
+  materials: MaterialsScreen,
+  partners: PartnersScreen,
+  reports: ReportsScreen,
+};
 
 export function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
+  React.useEffect(() => {
+    initNotifications();
+  }, []);
+
   return (
     <I18nProvider>
       <SafeAreaProvider>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <HomeScreen />
+        <AuthProvider>
+          <InventoryProvider>
+            <StatusBar
+              barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+            />
+            <AccountInventoryAlerts />
+            <StockSyncProvider>
+              <AppContent />
+            </StockSyncProvider>
+          </InventoryProvider>
+        </AuthProvider>
       </SafeAreaProvider>
     </I18nProvider>
+  );
+}
+
+// Inventory alerts are stored per user (alert timestamps, dismissed alerts,
+// expiry schedules), keyed by the signed-in account's id in the API. This
+// stays mounted across sign out and sign in on purpose: the observer only
+// cancels the previous person's scheduled notifications when it sees the id
+// change (to null on sign out, or to another account), which an unmount would
+// skip.
+export function AccountInventoryAlerts() {
+  const { account } = useAuth();
+  const { status, items, lots } = useInventory();
+
+  const snapshot = React.useMemo<InventoryAlertSnapshot>(
+    () =>
+      status === 'ready' && account
+        ? { status: 'ready', userId: account.id, items, lots }
+        : { status: 'loading', userId: account?.id ?? null },
+    [status, account, items, lots],
+  );
+
+  return <InventoryAlertObserver snapshot={snapshot} />;
+}
+
+function AppContent() {
+  const { session, account, restoring } = useAuth();
+  const [tab, setTab] = React.useState<TabValue>('day');
+  const insets = useSafeAreaInsets();
+
+  // Blank background while a saved session comes back, so the welcome
+  // screen does not flash before the home.
+  if (restoring) {
+    return (
+      <LinearGradient
+        colors={Colors.background.primary.colors}
+        locations={Colors.background.primary.locations}
+        style={StyleSheet.absoluteFill}
+      />
+    );
+  }
+
+  if (!session || !account) {
+    return <AuthFlow />;
+  }
+
+  // No use of the app without consent to the current terms (US25).
+  if (needsTermsAcceptance(account)) {
+    return <TermsScreen />;
+  }
+
+  const Screen = SCREENS[tab];
+  const tabBarWrapperStyle = { paddingBottom: insets.bottom };
+
+  return (
+    <View className="flex-1" style={{ paddingTop: insets.top }}>
+      <LinearGradient
+        colors={Colors.background.primary.colors}
+        locations={Colors.background.primary.locations}
+        style={StyleSheet.absoluteFill}
+      />
+      <Screen />
+      {/* Fora das abas: a fila offline sobe mesmo com outra aba aberta. */}
+      <AppointmentSyncObserver />
+      <View style={tabBarWrapperStyle}>
+        <TabBar value={tab} onValueChange={setTab} className="mx-4 mb-[25px]" />
+      </View>
+    </View>
   );
 }
