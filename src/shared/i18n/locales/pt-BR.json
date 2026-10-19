@@ -1263,6 +1263,67 @@
       }
     }
   },
+  "vehicles": {
+    "title": "Veículos",
+    "counter": "{{count}} VEÍCULOS",
+    "counterSingular": "{{count}} VEÍCULO",
+    "counterPlural": "{{count}} VEÍCULOS",
+    "countSingular": "{{count}} veículo",
+    "countPlural": "{{count}} veículos",
+    "back": "Voltar",
+    "openVehicles": "Abrir veículos",
+    "addVehicle": "Adicionar veículo",
+    "empty": "Nenhum veículo cadastrado",
+    "loadFailed": "Não foi possível carregar seus veículos.",
+    "emptySubtitle": "Cadastre um veículo para calcular os custos de deslocamento.",
+    "costPerKm": "R$ {{cost}}/km",
+    "consumption": "{{consumption}} km/L",
+    "fuelTypes": {
+      "gasoline": "Gasolina",
+      "ethanol": "Etanol",
+      "flex": "Flex",
+      "diesel": "Diesel"
+    },
+    "form": {
+      "title": "Informações",
+      "close": "Fechar",
+      "brand": "MARCA",
+      "brandPlaceholder": "Ex.: Fiat, Honda...",
+      "model": "MODELO DO VEÍCULO",
+      "modelPlaceholder": "Ex.: Strada 2021, CG 160...",
+      "fuelType": "TIPO DE COMBUSTÍVEL",
+      "avgConsumption": "CONSUMO MÉDIO (KM/L)",
+      "avgConsumptionPlaceholder": "Ex.: 12,5",
+      "fuelPrice": "PREÇO DO COMBUSTÍVEL (R$/L)",
+      "fuelPricePlaceholder": "Ex.: 5,89",
+      "estimatedCost": "Custo estimado por km",
+      "estimatedCostPreview": "R$ {{cost}}/km",
+      "submitAdd": "Adicionar veículo",
+      "submitEdit": "Editar veículo",
+      "submitConfirm": "Confirmar",
+      "inactivate": "Inativar",
+      "delete": "Excluir",
+      "confirmInactivateTitle": "Inativar veículo?",
+      "confirmInactivateMessage": "Tem certeza que deseja inativar esse veículo? Os deslocamentos já registrados com ele serão mantidos com o custo original.",
+      "confirmInactivateButton": "Inativar",
+      "cancel": "Cancelar",
+      "errors": {
+        "brandRequired": "A marca é obrigatória",
+        "brandMaxLength": "A marca deve ter no máximo 60 caracteres",
+        "modelRequired": "O modelo é obrigatório",
+        "modelMaxLength": "O modelo deve ter no máximo 120 caracteres",
+        "fuelTypeInvalid": "Tipo de combustível inválido",
+        "avgConsumptionRequired": "O consumo médio é obrigatório",
+        "avgConsumptionInvalid": "Informe um consumo maior que zero, até 100 km/L e com até 2 casas decimais",
+        "fuelPriceRequired": "O preço do combustível é obrigatório",
+        "fuelPriceInvalid": "Informe um preço maior que zero, até R$ 100/L e com até 3 casas decimais",
+        "submitFailed": "Não foi possível salvar o veículo. Tente novamente.",
+        "inactivateFailed": "Não foi possível inativar o veículo. Tente novamente."
+      },
+      "reactivate": "Reativar veículo",
+      "deactivated": "Desativado"
+    }
+  },
   "deleteOrigin": {
     "effectsLabel": "Ao excluir:",
     "effects": {

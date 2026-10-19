@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 
 import { CalculatorScreen } from 'features/calculator';
+import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
 
 import { EntryDetailFlow } from './EntryDetailFlow';
@@ -40,6 +41,7 @@ const LOAD_MORE_THRESHOLD_PX = 200;
 export function FinanceScreen() {
   const { t, locale } = useTranslation();
   const [calculatorVisible, setCalculatorVisible] = useState(false);
+  const [vehiclesVisible, setVehiclesVisible] = useState(false);
   const [scope, setScope] = useState<StatementScope>('all');
   const [period, setPeriod] = useState(() => currentPeriod(new Date()));
   const statement = useFinancialStatement({ period, scope });
@@ -126,8 +128,8 @@ export function FinanceScreen() {
             <FinanceHeader
               title={t('finance.title')}
               calculatorLabel={t('finance.openCalculator')}
-              vehicleLabel={t('finance.entryOptionsLabel')}
-              onVehiclePress={openOptions}
+              vehicleLabel={t('vehicles.openVehicles')}
+              onVehiclePress={() => setVehiclesVisible(true)}
               onCalculatorPress={() => setCalculatorVisible(true)}
             />
             <ScrollView
@@ -214,6 +216,10 @@ export function FinanceScreen() {
       <CalculatorScreen
         visible={calculatorVisible}
         onClose={() => setCalculatorVisible(false)}
+      />
+      <VehiclesScreen
+        visible={vehiclesVisible}
+        onClose={() => setVehiclesVisible(false)}
       />
     </View>
   );

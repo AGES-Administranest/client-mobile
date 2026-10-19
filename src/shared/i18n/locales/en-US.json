@@ -1263,6 +1263,67 @@
       }
     }
   },
+  "vehicles": {
+    "title": "Vehicles",
+    "counter": "{{count}} VEHICLES",
+    "counterSingular": "{{count}} VEHICLE",
+    "counterPlural": "{{count}} VEHICLES",
+    "countSingular": "{{count}} vehicle",
+    "countPlural": "{{count}} vehicles",
+    "back": "Back",
+    "openVehicles": "Open vehicles",
+    "addVehicle": "Add vehicle",
+    "empty": "No vehicles registered",
+    "loadFailed": "Unable to load your vehicles.",
+    "emptySubtitle": "Register a vehicle to calculate travel costs.",
+    "costPerKm": "R$ {{cost}}/km",
+    "consumption": "{{consumption}} km/L",
+    "fuelTypes": {
+      "gasoline": "Gasoline",
+      "ethanol": "Ethanol",
+      "flex": "Flex",
+      "diesel": "Diesel"
+    },
+    "form": {
+      "title": "Information",
+      "close": "Close",
+      "brand": "BRAND",
+      "brandPlaceholder": "e.g. Fiat, Honda...",
+      "model": "VEHICLE MODEL",
+      "modelPlaceholder": "e.g. Strada 2021, CG 160...",
+      "fuelType": "FUEL TYPE",
+      "avgConsumption": "AVERAGE CONSUMPTION (KM/L)",
+      "avgConsumptionPlaceholder": "e.g. 12.5",
+      "fuelPrice": "FUEL PRICE (R$/L)",
+      "fuelPricePlaceholder": "e.g. 5.89",
+      "estimatedCost": "Estimated cost per km",
+      "estimatedCostPreview": "R$ {{cost}}/km",
+      "submitAdd": "Add vehicle",
+      "submitEdit": "Edit vehicle",
+      "submitConfirm": "Confirm",
+      "inactivate": "Deactivate",
+      "delete": "Delete",
+      "confirmInactivateTitle": "Deactivate vehicle?",
+      "confirmInactivateMessage": "Are you sure you want to deactivate this vehicle? Trips already registered with it will be preserved with their original cost.",
+      "confirmInactivateButton": "Deactivate",
+      "cancel": "Cancel",
+      "errors": {
+        "brandRequired": "Brand is required",
+        "brandMaxLength": "Brand must be at most 60 characters",
+        "modelRequired": "Model is required",
+        "modelMaxLength": "Model must be at most 120 characters",
+        "fuelTypeInvalid": "Invalid fuel type",
+        "avgConsumptionRequired": "Average consumption is required",
+        "avgConsumptionInvalid": "Enter a consumption greater than zero, up to 100 km/L, with at most 2 decimal places",
+        "fuelPriceRequired": "Fuel price is required",
+        "fuelPriceInvalid": "Enter a price greater than zero, up to R$ 100/L, with at most 3 decimal places",
+        "submitFailed": "Unable to save vehicle. Please try again.",
+        "inactivateFailed": "Unable to deactivate vehicle. Please try again."
+      },
+      "reactivate": "Reactivate vehicle",
+      "deactivated": "Deactivated"
+    }
+  },
   "deleteOrigin": {
     "effectsLabel": "When you delete it:",
     "effects": {

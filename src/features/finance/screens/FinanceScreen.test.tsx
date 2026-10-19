@@ -771,3 +771,48 @@ describe('entry detail', () => {
     expect(open.props.disabled).toBe(true);
   });
 });
+
+test('opens the vehicles screen from the header icon', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <StockSyncProvider>
+              <FinanceScreen />
+            </StockSyncProvider>
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
+    );
+  });
+
+  const textsOf = () =>
+    renderer!.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children);
+
+  expect(JSON.stringify(textsOf())).not.toContain('VEÍCULOS');
+
+  const openVehicles = renderer!.root.find(
+    node =>
+      node.props.accessibilityLabel === 'Abrir veículos' &&
+      typeof node.props.onPress === 'function',
+  );
+
+  await act(async () => openVehicles.props.onPress());
+
+  expect(JSON.stringify(textsOf())).toContain('VEÍCULOS');
+
+  const back = renderer!.root.find(
+    node =>
+      node.props.accessibilityLabel === 'Voltar' &&
+      typeof node.props.onPress === 'function',
+  );
+
+  await act(async () => back.props.onPress());
+
+  expect(JSON.stringify(textsOf())).not.toContain('VEÍCULOS');
+});
