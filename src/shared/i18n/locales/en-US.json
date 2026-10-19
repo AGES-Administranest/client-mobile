@@ -4,8 +4,1273 @@
     "loading": "Loading...",
     "retry": "Retry"
   },
+  "finance": {
+    "title": "Finance",
+    "openCalculator": "Open hourly rate calculator",
+    "entryOptionsLabel": "Open entry options",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "currentMonth": "Current month",
+    "netBalance": "Net balance",
+    "revenue": "Revenue",
+    "professional": "Prof.",
+    "personal": "Personal",
+    "productivityAndFixedCosts": "Productivity and fixed costs",
+    "hoursWorked": "Hours worked",
+    "hoursValue": "{{hours}}h",
+    "thisMonth": "this month",
+    "averageHourly": "Average hourly",
+    "grossPerHour": "gross/hour",
+    "equipmentDepreciation": "Equipment depreciation",
+    "equipmentMonthlyCost": "{{count}} items · monthly cost",
+    "perMonth": "/month",
+    "overviewError": "Could not load the finance summary."
+  },
+  "calculator": {
+    "title": "Hourly rate calculator",
+    "subtitle": "Find the minimum amount you should charge per hour worked",
+    "back": "Back",
+    "fixedCosts": {
+      "title": "Monthly fixed costs",
+      "professional": "Professional expenses (month)",
+      "personal": "Personal expenses (month)",
+      "depreciation": "Equipment depreciation",
+      "transport": "Transport/vehicle cost",
+      "total": "Total fixed costs",
+      "automatic": "automatic · from the app",
+      "transportField": "Transport / Vehicle (R$/month)",
+      "transportHint": "Record trips as an expense in the Finance tab",
+      "loading": "Loading fixed costs...",
+      "errors": {
+        "required": "Enter the transport amount (use 0 if none).",
+        "notNumeric": "Type numbers only.",
+        "negative": "The amount cannot be negative.",
+        "generic": "Could not save. The previous value was kept.",
+        "session": "Your session expired. Sign in again."
+      }
+    }
+  },
+  "inventory": {
+    "alert": {
+      "titleSingular": "Low stock",
+      "bodySingular": "{{name}}: {{quantity}} {{unit}} left (minimum {{minimum}}).",
+      "titlePlural": "{{total}} items below the minimum",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} and {{remaining}} more"
+    },
+    "expiryAlert": {
+      "titleSingular": "Expiration date approaching",
+      "bodySingular": "{{name}} expires on {{expirationDate}}.",
+      "titlePlural": "{{total}} items nearing expiration",
+      "bodyPlural": "{{items}}",
+      "bodyPluralTruncated": "{{items}} and {{remaining}} more"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No alerts right now.",
+      "error": "Could not load the inventory.",
+      "lowStockTitle": "{{name}} is low on stock",
+      "lowStockBody": "{{quantity}} units remaining (min. {{minimum}})",
+      "expiryTitle": "{{name}} is about to expire",
+      "expiryBody": "{{name}} expires on {{date}}",
+      "delete": "Delete"
+    },
+    "elapsed": {
+      "minutes": "{{value}} min ago",
+      "hours": "{{value}} h ago",
+      "days": "{{value}} d ago"
+    },
+    "card": {
+      "atMinimum": "Item at minimum stock",
+      "belowMinimum": "Item below minimum stock",
+      "expiry": "Lot expires on {{date}}"
+    },
+    "overview": {
+      "title": "Inventory",
+      "subtitle": "Track materials that need attention.",
+      "attention": "Items that need attention",
+      "lowStockSingular": "{{count}} item below minimum",
+      "lowStockPlural": "{{count}} items below minimum",
+      "expirySingular": "{{count}} lot nearing expiration",
+      "expiryPlural": "{{count}} lots nearing expiration",
+      "loading": "Loading inventory...",
+      "empty": "No materials registered."
+    }
+  },
+  "segmentedControl": {
+    "supplies": "Supplies and medicines",
+    "equipment": "Equipment"
+  },
+  "materials": {
+    "categoryAll": "All",
+    "lowStockWarning": "Item below minimum quantity",
+    "addButton": "Add material",
+    "emptyFilter": "No items found in this category.",
+    "errorLoad": "Could not load the items.",
+    "errorSave": "Could not save the item.",
+    "errorDuplicatedItem": "An item with this name and unit already exists. The name is unique per unit, regardless of category.",
+    "errorDuplicatedSupplier": "A supplier with this name already exists.",
+    "errorDelete": "Could not delete the item.",
+    "errorSession": "Your session has expired. Sign out and sign in again.",
+    "deleteConfirmTitle": "Delete item",
+    "deleteConfirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  },
+  "equipment": {
+    "loading": "Loading equipment...",
+    "empty": "No equipment registered. Register the first one to track depreciation.",
+    "addButton": "Add equipment",
+    "errorLoad": "Could not load the equipment.",
+    "errorSession": "Your session has expired. Sign out and sign in again.",
+    "summary": {
+      "label": "Total depreciation/month",
+      "countSingular": "{{count}} equipment · {{annual}}/year",
+      "countPlural": "{{count}} equipment · {{annual}}/year"
+    },
+    "card": {
+      "perMonth": "/month",
+      "since": "Since {{date}} · Current value {{value}}",
+      "lifeUsed": "{{percent}}% of useful life used",
+      "endOfLife": "End of useful life"
+    },
+    "form": {
+      "title": {
+        "create": "New equipment",
+        "edit": "Edit equipment"
+      },
+      "confirm": {
+        "create": "Confirm",
+        "edit": "Save"
+      },
+      "close": "Close",
+      "labels": {
+        "name": "Equipment name",
+        "purchaseValue": "Purchase value (R$)",
+        "acquisitionDate": "Acquisition date",
+        "usefulLifeYears": "Estimated useful life",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "name": "E.g. Matrx VIP 3000 vaporizer",
+        "purchaseValue": "0,00",
+        "acquisitionDate": "DD/MM/YYYY",
+        "usefulLifeYears": "E.g. 5 years",
+        "notes": "Calibration, warranty, etc."
+      },
+      "usefulLifeHint": "If left empty, we assume 10 years (10% per year)",
+      "usefulLifeLegacy": "Current useful life: {{months}} months. Enter years to change it",
+      "previewUnavailable": "—",
+      "previewLifeEnded": "Useful life already ended",
+      "errorSave": "Could not save the equipment.",
+      "errors": {
+        "name": {
+          "required": "Enter the equipment name.",
+          "tooShort": "The name needs at least 2 characters.",
+          "tooLong": "The name can have at most 120 characters."
+        },
+        "purchaseValue": {
+          "required": "Enter the purchase value.",
+          "invalidNumber": "Invalid value. Use the format 1.234,56.",
+          "mustBePositive": "The value must be greater than zero."
+        },
+        "acquisitionDate": {
+          "required": "Enter the acquisition date.",
+          "invalidDate": "Invalid date. Use the format DD/MM/YYYY.",
+          "futureDate": "The acquisition date cannot be in the future."
+        },
+        "usefulLifeYears": {
+          "invalidNumber": "Enter a number of years.",
+          "mustBeInteger": "Enter whole years, with no decimals.",
+          "mustBePositive": "The useful life must be greater than zero.",
+          "tooLarge": "The useful life can be at most 100 years."
+        },
+        "notes": {
+          "tooLong": "The notes can have at most 1000 characters."
+        }
+      },
+      "previewLabel": "Estimated depreciation:",
+      "previewValue": "{{value}}/month",
+      "startEdit": "Edit",
+      "usefulLifeView": {
+        "year": "{{count}} year",
+        "years": "{{count}} years",
+        "months": "{{count}} months"
+      },
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "button": "Delete",
+      "confirmTitle": "Delete equipment?",
+      "confirmMessage": "“{{name}}” will no longer appear in the list and will not count towards the total depreciation.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "error": "Could not delete the equipment. Try again.",
+      "confirming": "Deleting…"
+    }
+  },
+  "stockEntry": {
+    "trigger": "Entries",
+    "triggerWithCount": "Entries ({{count}})",
+    "menu": {
+      "attachPdf": "Attach PDF",
+      "attachPdfCaption": "Supplier, number and items are read from the file",
+      "photo": "Photograph the invoice",
+      "photoCaption": "The gallery is inside the camera",
+      "typeItem": "Enter item",
+      "typeItemCaption": "Registers an item in stock"
+    },
+    "scan": {
+      "instruction": "Position the document inside the marked area",
+      "capture": "Capture image",
+      "permission": "We need the camera to scan the invoice",
+      "allowCamera": "Allow camera",
+      "fromLibrary": "Choose from library",
+      "cancel": "Cancel"
+    },
+    "preparing": "Preparing the file...",
+    "uploading": "Sending and reading the document...",
+    "confirmFile": {
+      "back": "Back",
+      "title": "Confirm file",
+      "subtitle": "The PDF is only read after it is sent.",
+      "meta": "PDF · {{size}}",
+      "info": "Supplier, number and items are read when it is sent. You check everything before stocking it.",
+      "send": "Send this file",
+      "replace": "Change file",
+      "cancel": "Cancel"
+    },
+    "reading": {
+      "photo": "The photo was attached as a receipt. Photos are not read automatically: to read the items, send the invoice PDF.",
+      "noTextLayer": {
+        "title": "This PDF has no text",
+        "message": "It looks like a scan. It was attached as a receipt, but its items cannot be read. Send the PDF produced by the supplier's system."
+      },
+      "noTableFound": {
+        "title": "No items found",
+        "message": "The PDF was read, but no table of items showed up in it. Check that it is the right order."
+      },
+      "timeout": {
+        "title": "Reading took too long",
+        "message": "The PDF was attached, but there was no time to read its items. Send it again."
+      },
+      "unreadable": {
+        "title": "We could not read this PDF",
+        "message": "The file was attached, but reading it failed. Try another PDF."
+      },
+      "replaceWithText": "Change to a PDF with text",
+      "replace": "Change file",
+      "close": "Close"
+    },
+    "review": {
+      "back": "Close review",
+      "title": "Review",
+      "partial": "We read {{read}} of {{total}} pages. Check and complete the missing items.",
+      "supplier": "SUPPLIER",
+      "supplierNotRegistered": "Not among your suppliers",
+      "supplierNotRead": "Not read",
+      "invoiceNumber": "INVOICE NO.",
+      "date": "DATE",
+      "datePlaceholder": "dd/mm/yyyy",
+      "invalidDate": "Enter a valid date (dd/mm/yyyy).",
+      "total": "INVOICE TOTAL",
+      "linesSum": "Sum of lines: {{sum}}",
+      "linesSumDifference": "Sum of lines: {{sum}} · {{difference}} off",
+      "attentionOne": "1 line needs attention",
+      "attention": "{{count}} lines need attention",
+      "allChecked": "All checked",
+      "showOnlyAttention": "Show only these",
+      "showAll": "Show all",
+      "items": "INVOICE ITEMS",
+      "linesOne": "1 line",
+      "lines": "{{count}} lines",
+      "addLine": "Add item by hand",
+      "confirm": "Add to stock",
+      "confirmUnavailable": "Adding to stock comes in the next step. The review stays saved as a draft.",
+      "leaveTitle": "Leave the review?",
+      "leaveMessage": "Some changes were not saved and will be lost.",
+      "leaveConfirm": "Leave without saving",
+      "leaveCancel": "Keep reviewing",
+      "line": {
+        "addedByHand": "Added in the review",
+        "split": "Split · lot {{part}} of {{of}}",
+        "unlinked": "No linked item",
+        "linkedWithoutName": "Linked item",
+        "quantity": "QTY",
+        "unit": "UNIT",
+        "unitValue": "UNIT PRICE",
+        "total": "TOTAL",
+        "lineTotal": "LINE TOTAL",
+        "lot": "LOT",
+        "expiry": "EXPIRY",
+        "missing": "fill in",
+        "edit": "Edit",
+        "done": "Done",
+        "splitAction": "Split",
+        "remove": "Remove line",
+        "issues": {
+          "mismatch": "{{quantity}} × {{unitValue}} is {{computed}}. The invoice says {{printed}}.",
+          "shortName": "The invoice description has {{count}} letters. Too short to identify the item.",
+          "unlinked": "No item in your stock was recognized in this description.",
+          "noQuantity": "The quantity is not on the invoice. Nothing would go into stock like this.",
+          "noUnitValue": "The unit price is not on the invoice. Without it there is no line total.",
+          "invalidExpiry": "Expiry must be a real date, in dd/mm/yyyy."
+        },
+        "fixes": {
+          "mismatch": "Use {{computed}}",
+          "shortName": "Link to an item",
+          "unlinked": "Link to an item",
+          "noQuantity": "Fill in quantity",
+          "noUnitValue": "Fill in unit price",
+          "invalidExpiry": "Fix expiry"
+        }
+      },
+      "save": {
+        "idle": "Saved automatically",
+        "saving": "Saving draft…",
+        "saved": "Draft saved just now",
+        "failed": "Could not save",
+        "retry": "Try again"
+      },
+      "discard": "Discard entry"
+    },
+    "link": {
+      "back": "Back to the review",
+      "title": "Link item",
+      "lineOf": "LINE {{index}} OF {{count}}",
+      "catalogItem": "CATALOG ITEM",
+      "searchPlaceholder": "Search the catalog",
+      "suggestions": "SUGGESTIONS FROM THE READING",
+      "noSuggestions": "The reading found no similar items. Search by name.",
+      "resultsOne": "1 ITEM IN THE CATALOG",
+      "results": "{{count}} ITEMS IN THE CATALOG",
+      "noResults": "NO ITEM IN THE CATALOG",
+      "noResultsHint": "Nothing found for “{{term}}”. You can register it now and keep reviewing.",
+      "searching": "Searching…",
+      "searchError": "Could not search right now. Try again.",
+      "typeMore": "Type at least 2 letters.",
+      "create": "Register “{{name}}”",
+      "createCaption": "Name, quantity and price come from the invoice",
+      "createFailed": "Could not register the item. Try again."
+    },
+    "entries": {
+      "title": "Entries",
+      "back": "Close entries",
+      "pending": "PENDING",
+      "countOne": "1 entry",
+      "count": "{{count}} entries",
+      "empty": "No pending entries. Every invoice you send shows up here until it is reviewed.",
+      "loadFailed": "Could not load the entries.",
+      "retry": "Try again",
+      "newEntry": "New entry",
+      "untitled": "Unnamed document",
+      "pdf": "PDF",
+      "photo": "Photo",
+      "invoiceNumber": "Invoice {{number}}",
+      "status": {
+        "ready": "Ready to review",
+        "processing": "Processing",
+        "failed": "Failed",
+        "photo": "Manual draft",
+        "notUploaded": "Upload not finished"
+      },
+      "reasons": {
+        "photo": "Photo kept as a receipt. Items are not read from photos.",
+        "notUploaded": "The file did not reach the server."
+      },
+      "actions": {
+        "review": "Review",
+        "replace": "Change file",
+        "discard": "Discard"
+      },
+      "discardTitle": "Discard this entry?",
+      "discardMessage": "The document is kept, but the entry leaves the pending list and the same file can be sent again.",
+      "discardConfirm": "Discard",
+      "discardCancel": "Back",
+      "discardFailed": "Could not discard the entry. Try again.",
+      "opening": "Opening the entry...",
+      "openFailed": "Could not open the entry. Try again."
+    },
+    "duplicate": {
+      "title": "Document already sent",
+      "message": "This PDF is already in another entry.",
+      "open": "Open the existing entry",
+      "close": "Close"
+    },
+    "errors": {
+      "dismiss": "Got it",
+      "permissionDenied": "We need your permission to access photos.",
+      "unsupportedType": "We only take a PDF or a JPEG photo. Take the photo in the app or pick another file.",
+      "offline": "No internet connection. Sending needs a network — try again once it is back.",
+      "tooLarge": "This file is over 15 MB. Take the photo again or send a smaller PDF.",
+      "duplicateFile": "This document was already sent, in another entry.",
+      "notProvisioned": "Your account is not finished yet. Sign out and sign in again.",
+      "uploadRejected": "The upload was refused. Please try again.",
+      "notConfirmed": "The file did not arrive complete. Please send it again.",
+      "unexpected": "Something went wrong while sending. Try again in a moment."
+    }
+  },
+  "stock": {
+    "movementHistory": {
+      "title": "Movement history",
+      "description": "Stock inbounds, outbounds and adjustments",
+      "appointmentLink": "Appointment · {{appointment}}",
+      "pending": "Pending · {{date}}",
+      "empty": "No movement recorded yet.",
+      "emptyFiltered": "No movement matches the filter.",
+      "filters": {
+        "searchPlaceholder": "Search by item",
+        "period": "Period",
+        "periodRange": "{{from}} to {{to}}",
+        "periodSingle": "{{day}}",
+        "periodFrom": "From {{from}}",
+        "clear": "Clear",
+        "previousMonth": "Previous month",
+        "nextMonth": "Next month"
+      },
+      "error": "Could not load the history.",
+      "origins": {
+        "manualPurchase": "Manual purchase",
+        "orderImport": "Order received",
+        "appointment": "Used in appointment",
+        "correctionReversal": "Correction reversal",
+        "adjustmentLoss": "Adjustment · Loss",
+        "adjustmentExpiration": "Adjustment · Expiration",
+        "adjustmentBreakage": "Adjustment · Breakage",
+        "adjustmentOther": "Adjustment · Other"
+      },
+      "units": {
+        "unit": {
+          "one": "un",
+          "other": "un"
+        },
+        "ampoule": {
+          "one": "ampoule",
+          "other": "ampoules"
+        },
+        "vial": {
+          "one": "vial",
+          "other": "vials"
+        },
+        "box": {
+          "one": "box",
+          "other": "boxes"
+        },
+        "ml": {
+          "one": "ml",
+          "other": "ml"
+        },
+        "mg": {
+          "one": "mg",
+          "other": "mg"
+        },
+        "gram": {
+          "one": "gram",
+          "other": "grams"
+        },
+        "tablet": {
+          "one": "tablet",
+          "other": "tablets"
+        },
+        "other": {
+          "one": "un",
+          "other": "un"
+        }
+      },
+      "quantity": "{{quantity}} {{unit}}",
+      "newEntry": "New entry"
+    },
+    "outputAdjustment": {
+      "title": "Stock output adjustment",
+      "close": "Close",
+      "itemLabel": "Item",
+      "itemPlaceholder": "Select the item",
+      "noItems": "No items in stock to write off.",
+      "quantityLabel": "Quantity",
+      "quantityPlaceholder": "0",
+      "reasonLabel": "Reason",
+      "otherReasonLabel": "Describe the reason",
+      "otherReasonPlaceholder": "Write what happened",
+      "save": "Save",
+      "reasons": {
+        "loss": "Loss",
+        "expiration": "Expiration",
+        "breakage": "Breakage",
+        "other": "Other"
+      },
+      "errors": {
+        "required": "Required field",
+        "mustBePositive": "Quantity must be greater than zero",
+        "QUEUE_WRITE_FAILED": "Could not save the adjustment on this device. Try again.",
+        "INSUFFICIENT_STOCK": "Quantity is larger than the available balance ({{available}}).",
+        "NO_ACCOUNT": "Sign in again to record the adjustment.",
+        "NO_UNIT_COST": "This item has no unit cost yet. Record a purchase for it before adjusting."
+      }
+    },
+    "supplySelector": {
+      "title": "Add supply",
+      "materialLabel": "MATERIAL",
+      "searchPlaceholder": "Search by item name",
+      "quantityLabel": "QUANTITY",
+      "confirm": "Confirm",
+      "close": "Close",
+      "loading": "Searching...",
+      "empty": "No items found.",
+      "error": "Could not search for items.",
+      "termTooShort": "Type at least 2 characters.",
+      "insufficientStock": "Quantity above the available balance. Stock will go negative after this entry."
+    }
+  },
+  "clinics": {
+    "addClinic": "Add clinic",
+    "newClinic": {
+      "title": "New clinic",
+      "close": "Close",
+      "confirm": "Confirm",
+      "saving": "Saving...",
+      "fields": {
+        "name": {
+          "label": "Clinic name",
+          "placeholder": "Enter the clinic name"
+        },
+        "cnpj": {
+          "label": "CNPJ",
+          "placeholder": "00.000.000/0000-00"
+        },
+        "addressLine": {
+          "label": "Address",
+          "placeholder": "Enter street, number and neighborhood"
+        },
+        "city": {
+          "label": "City",
+          "placeholder": "e.g. São Paulo"
+        },
+        "state": {
+          "label": "State",
+          "placeholder": "SP"
+        },
+        "phone": {
+          "label": "Phone",
+          "placeholder": "(00) 00000-0000"
+        },
+        "email": {
+          "label": "E-mail",
+          "placeholder": "contact@clinic.com"
+        },
+        "contactName": {
+          "label": "Person in charge",
+          "placeholder": "Name of the veterinarian in charge"
+        }
+      },
+      "errors": {
+        "name": {
+          "required": "Enter the clinic name.",
+          "tooShort": "The name must have at least 2 characters."
+        },
+        "cnpj": {
+          "required": "Enter the CNPJ.",
+          "invalid": "The CNPJ is not valid.",
+          "duplicated": "A clinic with this CNPJ already exists."
+        },
+        "state": {
+          "required": "Enter the state.",
+          "invalid": "Enter a valid state code, like SP."
+        },
+        "phone": {
+          "required": "Enter the phone number.",
+          "invalid": "Enter the phone number with its area code."
+        },
+        "email": {
+          "required": "Enter the e-mail.",
+          "invalid": "Enter a valid e-mail."
+        },
+        "addressLine": {
+          "required": "Enter the address.",
+          "tooShort": "The address needs at least 5 characters."
+        },
+        "city": {
+          "required": "Enter the city.",
+          "tooShort": "The city needs at least 2 letters.",
+          "invalid": "The city can only contain letters."
+        },
+        "contactName": {
+          "required": "Enter the contact person's name.",
+          "tooShort": "The name needs at least 2 characters.",
+          "invalid": "The name can only contain letters."
+        }
+      },
+      "failures": {
+        "duplicatedName": "A clinic with this name already exists.",
+        "duplicatedTaxId": "A clinic with this CNPJ already exists.",
+        "session": "Your session has expired. Sign out and sign in again.",
+        "unknown": "Could not save the clinic. Please try again."
+      }
+    },
+    "countOne": "{{count}} clinic",
+    "countOther": "{{count}} clinics",
+    "empty": "No clinics yet.",
+    "detail": {
+      "call": "Contact",
+      "edit": "Edit clinic",
+      "editTitle": "Edit",
+      "confirm": "Confirm",
+      "delete": "Delete"
+    },
+    "loadFailure": "Could not load the clinics."
+  },
+  "financialEntries": {
+    "newEntry": "New entry",
+    "options": {
+      "title": "New entry",
+      "descriptionWithStockWriteOff": "Upload the invoice or order as a PDF, fill it in by hand or write off a stock item",
+      "sendDocument": "Upload document (PDF)",
+      "manual": "Manual entry",
+      "stockWriteOff": "Stock write-off"
+    },
+    "documentSoon": {
+      "title": "PDF upload coming soon",
+      "message": "For now, record the income or the expense with a manual entry.",
+      "ok": "Got it"
+    },
+    "categories": {
+      "professionalFees": "Professional fees",
+      "supplies": "Supplies",
+      "travel": "Travel",
+      "taxesAndFees": "Taxes and fees",
+      "fixedCosts": "Fixed costs",
+      "other": "Other"
+    },
+    "form": {
+      "title": "New manual entry",
+      "close": "Close",
+      "nature": {
+        "label": "Type",
+        "income": "Income",
+        "expense": "Expense"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "E.g. Electricity bill"
+      },
+      "amount": {
+        "label": "Amount (R$)",
+        "placeholder": "0.00"
+      },
+      "date": {
+        "label": "Date",
+        "placeholder": "dd/mm/yyyy"
+      },
+      "category": {
+        "label": "Category",
+        "loading": "Loading categories…",
+        "retry": "Try again"
+      },
+      "scope": {
+        "label": "Scope",
+        "professional": "Professional",
+        "personal": "Personal",
+        "hint": "Suggested by the category. You can change it."
+      },
+      "save": "Save",
+      "saving": "Saving…",
+      "errors": {
+        "description": {
+          "required": "Enter a description.",
+          "tooLong": "Use at most 500 characters."
+        },
+        "amount": {
+          "required": "Enter the amount.",
+          "invalid": "Enter a valid amount.",
+          "notPositive": "Enter an amount greater than zero."
+        },
+        "date": {
+          "required": "Enter the date.",
+          "invalid": "Invalid date."
+        },
+        "categoryId": {
+          "required": "Choose a category."
+        }
+      },
+      "failures": {
+        "session": "Your session has expired. Sign out and sign in again.",
+        "categoryInvalid": "This category is no longer available. Choose another one.",
+        "network": "No connection. Try again when you are back online.",
+        "unknown": "Could not save the entry. Try again.",
+        "categories": "Could not load the categories."
+      }
+    },
+    "categoryField": {
+      "placeholder": "Type the category name",
+      "add": "Add category",
+      "newPlaceholder": "Type the new category name",
+      "create": "Create category",
+      "noResults": "No categories found.",
+      "created": "Category created.",
+      "createFailed": "Could not create the category. Try again.",
+      "errors": {
+        "tooLong": "Use up to 40 characters."
+      }
+    },
+    "saved": "Entry saved.",
+    "statement": {
+      "scopes": {
+        "all": "All",
+        "professional": "Professional",
+        "personal": "Personal"
+      },
+      "scopeFilterLabel": "Filter entries by scope",
+      "automatic": "automatic",
+      "rowLabel": "{{nature}}: {{description}}, {{amount}}, {{date}}, {{category}}",
+      "loading": "Loading entries…",
+      "loadingMore": "Loading more entries…",
+      "empty": {
+        "title": "No entries this month",
+        "description": "Record an income or an expense to follow your balance.",
+        "action": "New entry"
+      },
+      "noResults": {
+        "professional": "No professional entries this month.",
+        "personal": "No personal entries this month."
+      },
+      "failures": {
+        "session": "Your session has expired. Sign out and sign in again.",
+        "network": "No connection. Try again when you are back online.",
+        "unknown": "Could not load the entries."
+      },
+      "retry": "Try again",
+      "loadMoreFailure": "Couldn't load more entries."
+    },
+    "detail": {
+      "close": "Close",
+      "automatic": "Automatic",
+      "subtitle": "{{origin}}",
+      "origins": {
+        "manual": "Manual entry",
+        "appointment": "Created by the procedure",
+        "serviceInvoice": "Created by the service invoice",
+        "purchaseInvoice": "Created by the purchase order",
+        "trip": "Created by the trip"
+      },
+      "lockedHint": {
+        "appointment": "Type, amount and date come from the procedure. Fix them at the origin.",
+        "serviceInvoice": "Type, amount and date come from the service invoice. Fix them at the origin.",
+        "purchaseInvoice": "Type, amount and date come from the purchase order. Fix them at the origin.",
+        "trip": "Type, amount and date come from the trip. Fix them at the origin."
+      },
+      "field": "{{label}}: {{value}}",
+      "lockedField": "{{label}}: {{value}}, set by the origin",
+      "openOrigin": {
+        "appointment": "Open procedure",
+        "serviceInvoice": "Open service invoice",
+        "purchaseInvoice": "Open purchase order",
+        "trip": "Open trip"
+      },
+      "originUnavailable": "This origin has no screen in the app yet.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit entry",
+      "cancel": "Cancel",
+      "discard": {
+        "message": "Discard your changes?",
+        "confirm": "Discard",
+        "keep": "Keep editing"
+      },
+      "deleteConfirm": {
+        "title": "Delete this entry?",
+        "message": "It leaves the statement and this cannot be undone.",
+        "confirm": "Delete",
+        "confirming": "Deleting…",
+        "cancel": "Cancel"
+      },
+      "deleteBlocked": {
+        "title": "It can't be deleted here",
+        "appointment": "This entry was created by the procedure {{description}}. To delete it, delete the procedure — the appointment also leaves the history.",
+        "serviceInvoice": "This entry was created by the service invoice {{description}}. To delete it, delete the invoice — its document and file are deleted too.",
+        "purchaseInvoice": "This entry was created by the purchase order {{description}}. To delete it, delete the order — its items also leave the stock.",
+        "trip": "This entry was created by the trip {{description}}. To delete it, delete the trip.",
+        "close": "Close"
+      },
+      "updated": "Entry updated.",
+      "deleted": "Entry deleted.",
+      "failures": {
+        "notFound": "This entry no longer exists. The statement was refreshed.",
+        "controlledByOrigin": "Type, amount and date of this entry come from its origin and can't be changed here.",
+        "delete": "Could not delete the entry. Try again."
+      }
+    }
+  },
+  "tabbar": {
+    "day": "Day-to-Day",
+    "finance": "Finance",
+    "materials": "Materials",
+    "partners": "Partners",
+    "reports": "Reports",
+    "clinics": "Clinics"
+  },
+  "optionsModal": {
+    "scanNote": "Scan note",
+    "typeSupply": "Type supply"
+  },
+  "itemModal": {
+    "title": "New supply or medication",
+    "categoryLabel": "CATEGORY",
+    "nameLabel": "NAME",
+    "namePlaceholder": "Enter the {{category}} name",
+    "addOption": "+ Add {{category}}",
+    "unitCostLabel": "UNIT COST (R$)",
+    "unitCostPlaceholder": "Enter the cost",
+    "unitLabel": "UNIT",
+    "unitPlaceholder": "Enter the unit",
+    "supplierLabel": "SUPPLIER",
+    "supplierPlaceholder": "Select the supplier",
+    "supplierAddOption": "+ Add supplier \"{{name}}\"",
+    "supplierSearchPlaceholder": "Search or type a new one",
+    "quantityLabel": "QUANTITY",
+    "minQuantityLabel": "MINIMUM STOCK QUANTITY",
+    "expirationLabel": "EXPIRATION",
+    "expirationPlaceholder": "Select the date",
+    "expirationPastError": "Expiration date cannot be in the past",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "errors": {
+      "name": {
+        "required": "Enter the item name.",
+        "tooShort": "The name needs at least 2 characters.",
+        "pickOrAdd": "Pick an item from the list or add a new one."
+      },
+      "unitCost": {
+        "required": "Enter the unit cost.",
+        "tooLarge": "The unit cost is too high."
+      },
+      "unit": {
+        "required": "Select the unit."
+      },
+      "quantity": {
+        "required": "Enter the quantity.",
+        "zero": "The quantity must be greater than zero.",
+        "tooLarge": "The quantity is too high."
+      },
+      "minQuantity": {
+        "tooLarge": "The minimum quantity is too high."
+      },
+      "expiration": {
+        "incomplete": "Enter the full date (dd/mm/yyyy).",
+        "invalid": "Enter a valid date.",
+        "past": "The expiration date cannot be in the past"
+      },
+      "supplierName": {
+        "tooShort": "The supplier name needs at least 2 characters."
+      }
+    }
+  },
+  "auth": {
+    "back": "Back",
+    "brand": {
+      "tagline": "Veterinary Anesthesia"
+    },
+    "welcome": {
+      "greeting": "Welcome",
+      "createAccount": "Create account",
+      "or": "or",
+      "login": "Log in"
+    },
+    "social": {
+      "divider": "or continue with",
+      "google": "Continue with Google"
+    },
+    "fields": {
+      "name": "Name",
+      "email": "E-mail",
+      "password": "Password",
+      "passwordConfirmation": "Confirm password",
+      "code": "Confirmation code"
+    },
+    "login": {
+      "title": "Log in",
+      "description": "Use your account e-mail and password.",
+      "submit": "Log in",
+      "noAccount": "No account yet? Create one"
+    },
+    "signUp": {
+      "title": "Create account",
+      "description": "Fill in your details to get started.",
+      "submit": "Create account",
+      "hasAccount": "Already have an account? Log in"
+    },
+    "confirm": {
+      "title": "Confirm your e-mail",
+      "description": "We sent a confirmation code to {{email}}.",
+      "submit": "Confirm",
+      "resend": "Resend code",
+      "resent": "We sent you a new code."
+    },
+    "validation": {
+      "required": "This field is required.",
+      "invalidEmail": "Enter a valid e-mail.",
+      "passwordMismatch": "Passwords do not match.",
+      "termsRequired": "Accept the terms to continue.",
+      "invalidCode": "The code must have 6 digits."
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect e-mail or password.",
+      "emailAlreadyRegistered": "Could not create an account with this e-mail.",
+      "invalidCode": "Invalid code.",
+      "expiredCode": "This code has expired. Request a new one.",
+      "weakPassword": "The password must have at least 8 characters, with uppercase and lowercase letters, numbers and symbols.",
+      "invalidData": "Check the information you entered.",
+      "userNotConfirmed": "Confirm your e-mail before logging in.",
+      "sessionExpired": "Your session has expired. Please log in again.",
+      "tooManyAttempts": "Too many attempts. Wait a moment and try again.",
+      "networkUnavailable": "No connection. Check your internet and try again.",
+      "unknown": "Something went wrong. Please try again.",
+      "accountUsesOtherSignIn": "This e-mail already has an account with another way to sign in. Use the same method you signed up with (e-mail and password, or Google)."
+    },
+    "terms": {
+      "title": "Terms of use",
+      "description": "Hi, {{name}}. To use Administranest, accept the terms of use and the privacy policy.",
+      "checkbox": "I have read and accept the Terms of Use and the Privacy Policy.",
+      "submit": "Accept and continue",
+      "signOut": "Sign out"
+    },
+    "account": {
+      "menu": "Account",
+      "signOut": "Sign out"
+    }
+  },
+  "partners": {
+    "segments": {
+      "clinics": "Clinics",
+      "suppliers": "Suppliers"
+    },
+    "suppliersEmpty": "Suppliers are not available here yet."
+  },
+  "procedures": {
+    "newProcedure": "New appointment",
+    "form": {
+      "title": "New appointment",
+      "confirm": "Confirm",
+      "close": "Close",
+      "location": "Location",
+      "submitError": "Couldn't save. Please try again."
+    },
+    "supplyPrompt": {
+      "title": "Do you want to record the supplies used in this procedure?",
+      "confirm": "Yes",
+      "cancel": "Not now"
+    },
+    "fields": {
+      "patientName": "Patient",
+      "procedureName": "Procedure",
+      "species": "Species",
+      "asaClassification": "ASA classification",
+      "weightKg": "Weight (kg)",
+      "patientAgeYears": "Age",
+      "amount": "Appointment value",
+      "startTime": "Start",
+      "endTime": "End",
+      "date": "Date",
+      "notes": "Notes"
+    },
+    "placeholders": {
+      "patientName": "Animal's name",
+      "procedureName": "e.g. Neutering",
+      "location": "Clinic name",
+      "notes": "Notes about the procedure",
+      "number": "0",
+      "time": "HH:MM",
+      "date": "DD/MM/YYYY",
+      "species": "Select the species"
+    },
+    "species": {
+      "canine": "Canine",
+      "feline": "Feline",
+      "equine": "Equine",
+      "bovine": "Bovine",
+      "avian": "Avian",
+      "exotic": "Exotic/Wildlife",
+      "other": "Other"
+    },
+    "errors": {
+      "REQUIRED": "Required field",
+      "INVALID_NUMBER": "Invalid number",
+      "MUST_BE_POSITIVE": "Must be greater than zero",
+      "MUST_BE_INTEGER": "Must be a whole number",
+      "TOO_SHORT": "At least 2 characters",
+      "MAX_2_DECIMALS": "At most 2 decimal places",
+      "MAX_3_DECIMALS": "At most 3 decimal places",
+      "AGE_OUT_OF_RANGE": "Age must be between 0 and 100",
+      "END_BEFORE_START": "End must be after start",
+      "INVALID_DATE": "Invalid date",
+      "INVALID_TIME": "Invalid time",
+      "IN_THE_PAST": "Pick a future date and time",
+      "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
+      "SELECT_CLIENT": "Pick a clinic from the list",
+      "NAME_TOO_LONG": "At most 160 characters",
+      "TOO_LONG": "At most 2000 characters"
+    },
+    "clientSearch": {
+      "loading": "Searching…",
+      "error": "Couldn't search. Please try again.",
+      "empty": "No clinics found. Add one under Partners → Clinics."
+    },
+    "completion": {
+      "action": "Complete procedure",
+      "notices": {
+        "CANCELED": "This appointment was canceled and can no longer be completed.",
+        "AMOUNT_REQUIRED": "Fill in the appointment amount before completing it.",
+        "FAILED": "Could not complete the procedure. Please try again.",
+        "COMPLETED": "This appointment was already completed and can no longer be canceled.",
+        "CANCEL_FAILED": "Could not cancel the appointment. Please try again."
+      }
+    },
+    "cancellation": {
+      "action": "Not done",
+      "title": "Cancellation reason",
+      "reasonPlaceholder": "Briefly describe the reason",
+      "confirm": "Confirm",
+      "errors": {
+        "REQUIRED": "Enter the cancellation reason.",
+        "TOO_LONG": "The reason can have at most 2000 characters.",
+        "FAILED": "Could not cancel the appointment. Please try again."
+      }
+    },
+    "supplies": {
+      "empty": "No supplies added",
+      "lineDetail": "{{quantity}} u. × {{unitCost}}",
+      "remove": "Remove {{name}}",
+      "totalCost": "Supplies total",
+      "grossMargin": "Gross margin"
+    },
+    "status": {
+      "SCHEDULED": "Scheduled",
+      "COMPLETED": "Done",
+      "CANCELED": "Canceled"
+    },
+    "detail": {
+      "edit": "Edit appointment",
+      "editTitle": "Edit appointment",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this appointment?",
+      "deleteCancel": "Cancel",
+      "deleteFailed": "Couldn't delete. Please try again.",
+      "title": "Appointment",
+      "back": "Back",
+      "loadError": "Could not load the appointment.",
+      "retry": "Try again",
+      "patient": "Patient",
+      "procedure": "Procedure",
+      "time": "Time",
+      "amount": "Amount",
+      "noAmount": "No amount",
+      "editAmount": "Edit amount",
+      "weightLabel": "Weight",
+      "notInformed": "Not informed",
+      "ageValue": "{{years}} years",
+      "weightValue": "{{kg}} kg",
+      "completedBadge": "Completed",
+      "suppliesTitle": "Supplies used",
+      "addSupply": "Add supply",
+      "addSupplyShort": "Add",
+      "suppliesFailed": "Could not save the supplies. Try again.",
+      "pendingSyncHint": "Supplies, amount and status are available once the appointment is sent.",
+      "amountSheet": {
+        "title": "Appointment amount",
+        "placeholder": "0.00",
+        "confirm": "Save",
+        "errors": {
+          "REQUIRED": "Enter the amount.",
+          "INVALID_NUMBER": "Enter a valid amount, like 350.00.",
+          "MUST_BE_POSITIVE": "The amount cannot be negative.",
+          "MAX_2_DECIMALS": "Use at most 2 decimal places.",
+          "FAILED": "Could not save the amount. Try again."
+        }
+      },
+      "hoursWorked": {
+        "title": "Hours worked",
+        "edit": "Edit",
+        "minutesLabel": "{{count}} minutes",
+        "valuePerHour": "Value/hour"
+      },
+      "travel": {
+        "title": "Travel",
+        "empty": "No travel registered",
+        "register": "+ Register",
+        "collapse": "Cancel",
+        "vehicleLabel": "Vehicle",
+        "vehiclePlaceholder": "Select a vehicle",
+        "distanceLabel": "Distance (km)",
+        "distancePlaceholder": "E.g. 34",
+        "confirm": "Confirm"
+      },
+      "cancellationReason": "Cancellation reason"
+    },
+    "day": {
+      "previous": "Previous day",
+      "next": "Next day",
+      "empty": "No appointments on this day.",
+      "error": "Could not load the appointments.",
+      "untitled": "Untitled"
+    }
+  },
+  "appointments": {
+    "notDone": {
+      "reasons": {
+        "noShow": "Patient did not attend",
+        "clientCanceled": "Client cancellation",
+        "emergency": "Emergency",
+        "other": "Other"
+      },
+      "dismiss": "Cancel"
+    },
+    "title": "Appointments",
+    "calendar": {
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "attendances": "APPOINTMENTS",
+    "revenue": "REVENUE",
+    "estimated": "estimated",
+    "agenda": "SCHEDULE",
+    "addAttendance": "+ Add appointment",
+    "sectionTitle": "PROCEDURES FOR MONTH OR DAY",
+    "emptyDay": "No appointments for this day.",
+    "emptyDaySub": "Tap the button below to schedule an appointment.",
+    "newAppointment": "+ New appointment",
+    "status": {
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "canceled": "Canceled"
+    },
+    "species": {
+      "canine": "Canine",
+      "feline": "Feline",
+      "equine": "Equine",
+      "bovine": "Bovine",
+      "avian": "Avian",
+      "exotic": "Exotic/Wildlife",
+      "other": "Other"
+    },
+    "form": {
+      "title": "New Appointment",
+      "patientNameLabel": "PATIENT / ANIMAL NAME",
+      "patientNamePlaceholder": "E.g. Mel, Thor...",
+      "speciesLabel": "SPECIES",
+      "procedureLabel": "PROCEDURE",
+      "procedurePlaceholder": "E.g. Orchiectomy, Scaling...",
+      "dateLabel": "DATE (YYYY-MM-DD)",
+      "timeLabel": "TIME (HH:MM)",
+      "locationLabel": "LOCATION / CLINIC",
+      "locationPlaceholder": "E.g. VetCare Clinic",
+      "notesLabel": "NOTES",
+      "notesPlaceholder": "Anesthetic notes, patient history...",
+      "submit": "Confirm Appointment",
+      "cancel": "Cancel"
+    },
+    "viewMonth": "View month",
+    "viewWeek": "View week",
+    "dayOf": "day {{day}}",
+    "emptyToday": "No appointments today",
+    "emptySelectedDay": "No appointments on this day",
+    "emptyMonth": "No appointments this month",
+    "exportToCalendar": "Add to calendar",
+    "exportSuccessTitle": "Added to calendar",
+    "exportSuccess": "Appointment added to your calendar.",
+    "exportPermissionDeniedTitle": "Permission required",
+    "exportPermissionDenied": "We could not access your calendar. Enable calendar permission in your device settings to add this appointment.",
+    "exportErrorTitle": "Could not add appointment",
+    "exportError": "Something went wrong while adding the appointment to your calendar. Please try again.",
+    "dismiss": "Got it",
+    "statusActions": {
+      "open": "Update status",
+      "notDone": "Not done",
+      "cancel": "Cancel appointment",
+      "cancelReason": "Why was the appointment canceled?",
+      "cancelToast": "Appointment canceled"
+    },
+    "reschedule": {
+      "title": "Reschedule appointment",
+      "message": "The procedure was not done. Pick the new date and time.",
+      "date": "Date",
+      "startTime": "Start",
+      "endTime": "End",
+      "confirm": "Reschedule",
+      "dismiss": "Cancel",
+      "done": "Appointment rescheduled.",
+      "errors": {
+        "CONFLICT": "You already have an appointment at this time.",
+        "FAILED": "Could not reschedule. Try again."
+      }
+    },
+    "conflict": {
+      "title": "Schedule conflict",
+      "message": "This time conflicts with {{procedure}} at {{time}}.",
+      "unnamedProcedure": "another appointment",
+      "adjust": "Change time"
+    },
+    "offline": "No connection. Showing the agenda saved on this device; what you create or edit will be sent when the internet is back.",
+    "pendingSync": "Waiting to send",
+    "sync": {
+      "title": "Appointment not synced",
+      "message": "Couldn't send the appointment for {{patient}} on {{date}} at {{time}}: {{reason}}",
+      "messageEdit": "Couldn't send an appointment edit: {{reason}}",
+      "unnamedPatient": "unnamed patient",
+      "reasons": {
+        "conflict": "the time conflicts with another appointment.",
+        "notFound": "the appointment no longer exists.",
+        "other": "the server refused the data.",
+        "clinicNotSynced": "its clinic could not be registered."
+      },
+      "clinicTitle": "Clinic not synced",
+      "clinicMessage": "Couldn't send the clinic {{name}}: {{reason}}",
+      "clinicMessageEdit": "Couldn't send a clinic edit: {{reason}}",
+      "clinicReasons": {
+        "duplicatedTaxId": "another clinic already has this CNPJ.",
+        "notFound": "the clinic no longer exists.",
+        "duplicatedName": "another clinic already has this name."
+      }
+    }
+  },
   "home": {
-    "title": "Administranest",
-    "subtitle": "client-mobile is up and running."
+    "greeting": "Hello, Dr. {{name}}"
+  },
+  "pricing": {
+    "onboarding": {
+      "message": "Fill in the fields so the values can be calculated",
+      "loading": "Loading your goals",
+      "loadFailure": "Couldn't load your goals."
+    },
+    "goalForm": {
+      "title": "Goals",
+      "labels": {
+        "monthlyIncomeGoal": "Monthly net income goal (R$)",
+        "weeklyHours": "Available hours per week",
+        "safetyMarginPct": "Safety margin (%)"
+      },
+      "weeklyHoursHint": "Count the hours you are available to work, including travel and idle time, not only the hours you bill.",
+      "save": "Save goals",
+      "saving": "Saving…",
+      "errors": {
+        "required": "Fill in this field",
+        "invalid": "Enter a valid number",
+        "tooManyDecimals": "Use at most 2 decimal places",
+        "tooLarge": "The maximum is R$ 999,999,999,999.99",
+        "notPositive": "The value must be greater than zero",
+        "tooHigh": "A week has at most 168 hours",
+        "outOfRange": "The margin must be between 0% and 100%"
+      },
+      "failures": {
+        "save": "Could not save your goals. Please try again."
+      }
+    }
+  },
+  "deleteOrigin": {
+    "effectsLabel": "When you delete it:",
+    "effects": {
+      "financialEntry": "Its entry leaves the Finance statement.",
+      "suppliesReturn": "The supplies used go back to the stock.",
+      "stockRemoval": "The order's items leave the stock.",
+      "documentRemoval": "The document and its file are deleted.",
+      "historyRemoval": "The appointment leaves the schedule and the history."
+    }
   }
 }

@@ -1,4 +1,45 @@
 {
-  "name": "ClientMobile",
-  "displayName": "ClientMobile"
+  "expo": {
+    "name": "ClientMobile",
+    "slug": "client-mobile",
+    "scheme": "administranest",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.clientmobile",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "O ClientMobile usa a rede local para se conectar ao servidor de desenvolvimento.",
+        "NSBonjourServices": ["_expo-dev-server._tcp", "_http._tcp"]
+      }
+    },
+    "android": {
+      "package": "com.clientmobile"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permita o acesso à câmera para escanear notas fiscais."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permita o acesso às fotos para escolher a imagem de uma nota fiscal."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Permita o acesso à agenda para adicionar um agendamento ao seu calendário."
+        }
+      ],
+      "expo-web-browser"
+    ]
+  }
 }

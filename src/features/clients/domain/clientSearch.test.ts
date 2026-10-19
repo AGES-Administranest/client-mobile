@@ -1,0 +1,118 @@
+import type { Client } from './client';
+import {
+  filterClients,
+  getClientSearchStatus,
+  type ClientSearchSnapshot,
+} from './clientSearch';
+
+function client(name: string, overrides: Partial<Client> = {}): Client {
+  return {
+    id: `id-${name}`,
+    type: 'CLINIC',
+    name,
+    taxId: null,
+    taxIdType: null,
+    contactName: null,
+    email: null,
+    phone: null,
+    addressLine: null,
+    city: null,
+    state: null,
+    serviceDays: [],
+    paymentTermsDays: null,
+    preferredPaymentMethod: null,
+    active: true,
+    createdAt: '2026-09-01T00:00:00.000Z',
+    updatedAt: '2026-09-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
+describe('filterClients', () => {
+  const list = [
+    client('Clínica VetCenter'),
+    client('Hospital Veterinário Pet Care'),
+    client('Clínica Vida Animal'),
+    client('Clínica Desativada', { active: false }),
+  ];
+
+  it('casa parte do nome sem diferenciar maiúsculas', () => {
+    expect(filterClients(list, 'VETCENTER').map(c => c.name)).toEqual([
+      'Clínica VetCenter',
+    ]);
+  });
+
+  it('casa sem acento nos dois sentidos', () => {
+    expect(filterClients(list, 'clinica').map(c => c.name)).toEqual([
+      'Clínica VetCenter',
+      'Clínica Vida Animal',
+    ]);
+    expect(filterClients(list, 'veterinário').map(c => c.name)).toEqual([
+      'Hospital Veterinário Pet Care',
+    ]);
+  });
+
+  it('funciona a partir de 1 caractere (o filtro é local, não há custo de rede)', () => {
+    expect(filterClients(list, 'h').map(c => c.name)).toEqual([
+      'Hospital Veterinário Pet Care',
+    ]);
+  });
+
+  it('nunca oferece tomador inativo', () => {
+    expect(filterClients(list, 'desativada')).toEqual([]);
+  });
+
+  it.each(['', '   '])(
+    'termo vazio (%j) devolve a lista inteira: é o que abre o dropdown sem digitar nada',
+    term => {
+      expect(filterClients(list, term).map(c => c.name)).toEqual([
+        'Clínica VetCenter',
+        'Hospital Veterinário Pet Care',
+        'Clínica Vida Animal',
+      ]);
+    },
+  );
+
+  it('mantém a ordem da lista original', () => {
+    expect(filterClients(list, 'c').map(c => c.name)).toEqual([
+      'Clínica VetCenter',
+      'Hospital Veterinário Pet Care',
+      'Clínica Vida Animal',
+    ]);
+  });
+});
+
+describe('getClientSearchStatus', () => {
+  const base: ClientSearchSnapshot = {
+    paused: false,
+    isLoading: false,
+    hasError: false,
+    resultCount: 2,
+  };
+
+  it.each<[string, Partial<ClientSearchSnapshot>, string]>([
+    [
+      'pausada (tomador já escolhido) não mostra nada',
+      { paused: true },
+      'idle',
+    ],
+    ['carregando a lista', { isLoading: true }, 'loading'],
+    ['erro ao carregar a lista', { hasError: true }, 'error'],
+    ['sem resultados', { resultCount: 0 }, 'empty'],
+    ['com resultados, mesmo sem nada digitado (é o dropdown)', {}, 'results'],
+  ])('%s', (_label, overrides, expected) => {
+    expect(getClientSearchStatus({ ...base, ...overrides })).toBe(expected);
+  });
+
+  it('carregando vence resultados antigos', () => {
+    expect(
+      getClientSearchStatus({ ...base, isLoading: true, resultCount: 3 }),
+    ).toBe('loading');
+  });
+
+  it('erro vence a lista vazia', () => {
+    expect(
+      getClientSearchStatus({ ...base, hasError: true, resultCount: 0 }),
+    ).toBe('error');
+  });
+});

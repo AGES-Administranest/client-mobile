@@ -1,5 +1,7 @@
 module.exports = {
   root: true,
+  // Build output, not source: linting a webpack bundle only yields noise.
+  ignorePatterns: ['dist/', 'web-build/'],
   extends: '@react-native',
   plugins: ['import'],
   rules: {
@@ -13,7 +15,7 @@ module.exports = {
         ],
         pathGroups: [
           {
-            pattern: '{app,features,shared}/**',
+            pattern: '{app,features,shared,theme}/**',
             group: 'internal',
           },
         ],
@@ -47,6 +49,15 @@ module.exports = {
             format: ['camelCase', 'PascalCase'],
           },
         ],
+      },
+    },
+    {
+      // App code runs on React Native, where Node's standard library does not
+      // exist. Tests do run on Node, so they are exempt.
+      files: ['src/**/*.ts', 'src/**/*.tsx'],
+      excludedFiles: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/tests/**'],
+      rules: {
+        'import/no-nodejs-modules': 'error',
       },
     },
     {

@@ -1,9 +1,8 @@
 # client-mobile
 
-Administranest mobile app, built with [React Native](https://reactnative.dev) (TypeScript).
+Administranest mobile app, built with [Expo](https://expo.dev) ([React Native](https://reactnative.dev), TypeScript) — managed workflow.
 
-- **Android** and **iOS**, via React Native CLI
-- **Web**, via [react-native-web](https://necolas.github.io/react-native-web/) + webpack — runs the same app in the browser, like an emulator
+- **Android**, **iOS**, and **Web** all run from the same codebase and the same dev server, via Expo/Metro — no separate bundler for web, no native `android/`/`ios/` folders to keep in sync (Expo generates them on demand).
 
 ## Table of contents
 
@@ -12,23 +11,27 @@ Administranest mobile app, built with [React Native](https://reactnative.dev) (T
 - [Installing dependencies](#installing-dependencies)
 - [Running the app](#running-the-app)
   - [Web](#web-fastest-way-to-check-a-change)
-  - [Android emulator](#android-emulator)
-  - [iOS simulator](#ios-simulator-macos-only)
-  - [Physical device](#physical-device)
+  - [Physical device via Expo Go](#physical-device-via-expo-go)
+  - [Android emulator / native build](#android-emulator--native-build)
+  - [iOS simulator / native build](#ios-simulator--native-build-macos-only)
+  - [Production build](#production-build)
 - [Architecture](#architecture)
+  - [Local notifications](#local-notifications)
   - [Internationalization (i18n)](#internationalization-i18n)
+  - [Authentication](#authentication)
 - [Code style](#code-style)
 - [CI](#ci)
 
 ## Requirements
 
-| Tool                    | Version           | Needed for                         |
-| ----------------------- | ----------------- | ---------------------------------- |
-| Node.js                 | 22 LTS            | Everything                         |
-| npm                     | bundled with Node | Installing dependencies            |
-| Watchman                | latest            | Metro's file watcher (recommended) |
-| Xcode + CocoaPods       | latest            | iOS simulator/device only          |
-| Android Studio + JDK 17 | latest            | Android emulator/device only       |
+| Tool                    | Version           | Needed for                                                          |
+| ----------------------- | ----------------- | ------------------------------------------------------------------- |
+| Node.js                 | 22 LTS            | Everything                                                          |
+| npm                     | bundled with Node | Installing dependencies                                             |
+| Watchman                | latest            | Metro's file watcher (recommended)                                  |
+| **Expo Go** app         | latest            | Fastest way to run on a physical device — no native setup at all    |
+| Xcode + CocoaPods       | latest            | iOS simulator, or a native build (`expo run:ios`) — optional        |
+| Android Studio + JDK 17 | latest            | Android emulator, or a native build (`expo run:android`) — optional |
 
 ### Node — use nvm
 
@@ -47,15 +50,19 @@ nvm use
 
 ### Web
 
-No extra setup — if you have Node, you can run the app in a browser. This is the fastest way to see a UI change without booting an emulator.
+No extra setup — if you have Node, you can run the app in a browser. This is the fastest way to see a UI change without booting an emulator or installing anything mobile-specific.
 
-### Android
+### Physical device (fastest for Android/iOS, no SDK needed)
 
-Follow the **React Native CLI Quickstart** for Android on the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) page (select "React Native CLI", your OS, and target OS "Android"). You'll end up with: Android Studio, an Android SDK, an Android Virtual Device (emulator), and `ANDROID_HOME` set.
+Install [Expo Go](https://expo.dev/go) from the App Store / Play Store. `npm start` prints a QR code — scan it with Expo Go (Android: in-app scanner; iOS: the system Camera app) and the app opens on your phone, hot reload included. No Android Studio, no Xcode, no native build.
 
-### iOS (macOS only)
+### Android emulator or native build (optional)
 
-Same guide, target OS "iOS": Xcode (from the App Store), Xcode Command Line Tools, CocoaPods (via `bundle install`), and an iOS Simulator runtime.
+Only needed if you want an emulator, or a real native build via `expo run:android` (e.g. to test a native module Expo Go doesn't include). Follow the **React Native CLI Quickstart** for Android on the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) page (select "React Native CLI", your OS, target OS "Android") — Android Studio, an SDK, a Virtual Device, `ANDROID_HOME`.
+
+### iOS simulator or native build (optional, macOS only)
+
+Same guide, target OS "iOS": Xcode (App Store), Command Line Tools, CocoaPods (`bundle install`), and a Simulator runtime — only needed for `expo run:ios` or the iOS Simulator.
 
 ## Getting the code
 
@@ -77,15 +84,29 @@ nvm use        # switch to the Node version this repo expects
 npm install
 ```
 
-## Running the app
+Then create your `.env` from the template — the app needs it to reach Cognito:
 
-Metro (React Native's bundler) needs to be running for Android/iOS. Start it in its own terminal and leave it running:
+```sh
+cp .env.example .env
+```
+
+Filling it in is described under [Authentication](#authentication).
+
+## Running the app
 
 ```sh
 npm start
 ```
 
-Then, in another terminal, pick a target:
+Starts the Expo dev server and an interactive terminal. From there, press:
+
+- **`w`** — open in the browser (web)
+- **`a`** — open on a connected Android emulator/device
+- **`i`** — open in the iOS Simulator (macOS only)
+- Or scan the QR code it prints with the **Expo Go** app on your phone — no emulator, no native build
+
+Every target shares the same Metro server and gets hot reload. You can also jump straight to
+one target without the interactive menu:
 
 ### Web (fastest way to check a change)
 
@@ -93,42 +114,75 @@ Then, in another terminal, pick a target:
 npm run web
 ```
 
-Opens a dev server at **http://localhost:8080** — open it in any browser. Hot reload is on, so edits show up without a manual refresh. This does _not_ need Metro running; it uses its own webpack dev server.
+Opens at **http://localhost:8081** in your browser.
 
 > Not every native module works on web (e.g. anything backed by a real native API with no browser equivalent). It's meant for quickly iterating on UI, not as a replacement for testing on Android/iOS.
 
 To produce a static build (e.g. to preview it as a deployed site):
 
 ```sh
-npm run web:build   # outputs to web-build/
+npm run web:build              # with your local .env
+npm run web:build:production   # against AWS, needs .env.prod — see below
 ```
 
-Both commands run the [`webpack.config.js`](./webpack.config.js) at the repo root under the hood (`npm run web` runs `webpack serve`, `npm run web:build` runs `webpack build`) — that's where the dev server port, aliasing of `react-native` to `react-native-web`, and the `web-build/` output path are configured, so check there first if the web build ever needs tweaking.
+Both write to `dist/`.
 
-### Android emulator
+Both commands go through Expo's Metro web bundler — see the `web` key in [`app.json`](./app.json) for its config.
+
+### Physical device via Expo Go
+
+The fastest way to see the app on a real phone with zero native setup:
+
+1. Install **Expo Go** on your device ([App Store](https://apps.apple.com/app/expo-go/id982107779) / [Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent)).
+2. `npm start`, then scan the QR code (iOS: Camera app; Android: the scanner inside Expo Go).
+
+> Expo Go can't run custom native modules that aren't part of the Expo SDK. If the app ever needs one, use a native build (below) instead — Expo will tell you when that's the case.
+
+### Android emulator / native build
 
 1. Open Android Studio → Device Manager → start a virtual device (or plug in a physical device with USB debugging on).
-2. With Metro running:
-   ```sh
+2. ```sh
    npm run android
    ```
+   First run generates the native `android/` project (via `expo prebuild`, automatic) and installs the app — slower than Expo Go, but produces a real native build.
 
-### iOS simulator (macOS only)
+### iOS simulator / native build (macOS only)
 
-1. First run only (and whenever native iOS deps change):
-   ```sh
-   bundle install
-   bundle exec pod install
-   ```
-2. With Metro running:
-   ```sh
+1. ```sh
    npm run ios
    ```
-   This boots the default simulator and installs the app. To pick a specific device, open `ios/ClientMobile.xcworkspace` in Xcode and hit Run, or pass `--simulator "iPhone 16"` to the command above.
+   First run generates the native `ios/` project (via `expo prebuild`, automatic), runs `pod install`, and boots the default simulator. To pick a specific device, pass `--simulator "iPhone 16"`.
 
-### Physical device
+Generated `android/`/`ios/` folders aren't committed (see `.gitignore`) — delete and re-run either command any time to regenerate them cleanly from `app.json`.
 
-Follow the "Physical Device" tab in the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide for your target OS — it covers enabling developer mode / USB debugging and signing for iOS.
+### Production build
+
+Every script runs against your local `.env` by default. Pointing the app at the AWS
+stack is always explicit, through a `:production` script — and that is also the only
+build that offers **Continue with Google**; everywhere else sign in is e-mail and
+password. The production values live in `.env.prod`:
+
+```sh
+cp .env.prod.example .env.prod   # then fill in the production values
+```
+
+```sh
+npm run start:production       # dev server (Expo Go, simulators, web) against AWS
+npm run web:build:production   # static site in dist/
+npm run android:production     # release build on the emulator/device
+npm run ios:production         # Release configuration on the simulator/device
+```
+
+`scripts/with-production-env.js` checks `.env.prod` — every variable present,
+`EXPO_PUBLIC_APP_ENV=production`, no local address — and runs the command with those
+values in the environment, where they win over any `.env*` file. The file is called
+`.env.prod` and not `.env.production` because Expo loads `.env.production` by itself on
+every release build, which would quietly make the plain `web:build` a production one.
+Don't create a `.env.production` for the same reason.
+
+`android:production` signs with the debug key from `expo prebuild`: fine for testing on
+a device, not for the Play Store. Store builds need a real signing setup (EAS Build or a
+release keystore).
 
 ## Architecture
 
@@ -157,6 +211,15 @@ src/
 
 A feature only needs the subfolders it actually uses — don't create empty `domain/`/`services/` just to follow the template.
 
+**`src/features/home`** uses almost every subfolder and is meant as a living reference for the pattern — the `feature-dev`, `feature-mentor`, and `repo-review` skills all point here rather than hardcoding a feature name. If `home` is ever removed or simplified, update this section to point at whichever feature best demonstrates the full pattern next, so those skills keep working without edits:
+
+- `domain/getGreetingPeriod.ts` — a pure function (plus its unit test) with no framework dependency.
+- `hooks/useHomeScreen.ts` — wires the domain rule and the signed-in account (`useAuth()`) together for the screen.
+- `components/AppTitle.tsx`, `components/GreetingCard.tsx` — presentational components, feature-local, receiving already-translated strings as props.
+- `screens/HomeScreen.tsx` — composes the components and hook; the only place that touches `useTranslation`.
+
+`home` no longer has a `services/` folder — its data is the account `features/auth` already holds. For a data layer that calls the API, see `src/features/materials/services` (below, under [Calling the API](#calling-the-api)).
+
 ### Dependency rules
 
 These rules exist so both humans and AI agents can review a diff quickly: **if an import breaks one of these, it's very likely wrong.** They're enforced by ESLint (`no-restricted-imports`), not just documented — `npm run lint` will fail on a violation.
@@ -169,6 +232,15 @@ These rules exist so both humans and AI agents can review a diff quickly: **if a
 ### Path aliases
 
 Imports use `app/*`, `features/*`, and `shared/*` instead of relative `../../..` paths (configured via `babel-plugin-module-resolver` and `tsconfig.json` `paths`). This is also what makes the "public API only" rule easy to lint: a deep cross-feature import is visually obvious (`features/other/screens/...`) instead of hiding behind `../../other/screens/...`.
+
+### Local notifications
+
+Local (on-device) notifications go through [`expo-notifications`](https://docs.expo.dev/versions/latest/sdk/notifications/), wrapped by `src/shared/services/notifications.ts` — `initNotifications()` (called once in `App.tsx`, creates the Android channel), `requestNotificationPermission()`, `scheduleNotification()` and `cancelNotification()`. Features should use that wrapper, not import `expo-notifications` directly.
+
+- **Permission** is required on iOS and on Android 13+; `scheduleNotification()` asks for it on demand, so nothing prompts the user on app start.
+- **Per account:** inventory alerts are stored under the signed-in account's id (`account.id` from `useAuth()`). `App.tsx` keeps `InventoryAlertObserver` mounted inside `AuthProvider`, so signing out or switching accounts cancels the previous person's scheduled notifications.
+- **Web** has no implementation — every function is a no-op there, so the web target keeps building.
+- **Testing:** iOS works in Expo Go. On Android, `expo-notifications` is limited in Expo Go since SDK 53 — use a native/dev build (`npm run android`).
 
 ### Internationalization (i18n)
 
@@ -191,6 +263,149 @@ Strings live in JSON dictionaries under [`src/shared/i18n/locales`](./src/shared
 - **Missing translations** render the key itself instead of blank text, so a gap in a locale file is obvious in the UI.
 
 Adding a language means adding a new JSON file with the same keys as `pt-BR.json` and registering it in `src/shared/i18n/locales/index.ts`.
+
+### Authentication
+
+Auth lives in **`src/features/auth`** and talks straight to **Amazon Cognito**, which
+owns credentials (e-mail, password, confirmation codes). The backend keeps only a local
+mirror of the user, keyed by the token's `sub` — see ADR-02 in the backend repo.
+
+**There is no auth SDK, on purpose.** Cognito's API is a single POST whose operation
+travels in an `X-Amz-Target` header, and every call the app makes (sign in, sign up,
+password reset) is unauthenticated, so none of them need request signing. The one thing
+an SDK would really buy us is SRP, and our user pool enables `USER_PASSWORD_AUTH`, so the
+app does not need it. That leaves `fetch` sufficient — and, more importantly, leaves the
+endpoint a plain variable, which is what lets the same code run against the local
+emulator and against real AWS.
+
+> **Trade-off worth knowing:** `USER_PASSWORD_AUTH` sends the password in the request
+> body (over TLS). SRP would prove knowledge of the password without transmitting it.
+> If the team later decides SRP is required, that is a reason to revisit this choice —
+> it would mean either an SDK or implementing SRP by hand.
+
+#### Configuration
+
+Six `EXPO_PUBLIC_*` variables in `.env`, documented in
+[`.env.example`](./.env.example). They are inlined into the bundle at build time, so
+nothing secret can live there — and nothing needs to, since the Cognito app client is
+public by design.
+
+`EXPO_PUBLIC_APP_ENV` is `development` locally and `production` in `.env.prod`; only `production` shows **Continue with Google** (see
+[Production build](#production-build)). Four of the others point at Cognito.
+`EXPO_PUBLIC_API_URL` points at the Administranest backend: Cognito is where the app signs in, but the user's own record
+lives in our API, created by `POST /auth/session` on the first valid login.
+
+To point the app at the local emulator, run `npm run dev:bootstrap` in the backend repo
+and copy the `COGNITO_CLIENT_ID` and `COGNITO_OAUTH_URL` it writes to
+`backend/.aws-local.env`. The backend itself runs outside Docker (`npm run start:dev`
+there) on port 3000.
+
+On the Android emulator, `localhost` is the emulator, not your machine — use
+`http://10.0.2.2:<port>` for both the Cognito endpoint and the API.
+
+#### What the feature exposes
+
+```ts
+import { signIn, refreshSession, AuthError } from 'features/auth';
+
+try {
+  const session = await signIn(email, password);
+} catch (error) {
+  if (error instanceof AuthError) {
+    // error.code is ours ('INVALID_CREDENTIALS', ...), never an AWS type —
+    // map it to a dictionary key for the message the user sees.
+  }
+}
+```
+
+`domain/` holds the pure parts (session expiry rules, the Cognito-error-to-our-code
+table); `services/` holds the calls. Screens should import from `features/auth` only.
+
+The feature also owns the signed-out flow. `AuthProvider` (wrapped around the app in
+`App.tsx`) holds the session and the account, and exposes
+`useAuth()` → `{ session, account, signIn, signInWithProvider, acceptTerms, signOut }`.
+`App.tsx` renders `AuthFlow` (welcome → login / sign-up → e-mail confirmation) while
+there is no session, `TermsScreen` while the account has not accepted the current terms,
+and the tabs after that.
+
+#### The account in the API
+
+Signing in to Cognito is not enough to use the app: every backend route answers
+`401 USER_NOT_PROVISIONED` until the user's record exists there. So after any sign in —
+password or Google — the provider calls `POST /auth/session` with the id token, and only
+then sets `session` and `account` together; no screen ever sees one without the other.
+If the API refuses, the Cognito tokens are revoked and the error goes to the form.
+
+- **Terms of use (US25).** Sign-up has a required checkbox; after the e-mail is confirmed
+  the account is opened and `POST /auth/terms` records the current `TERMS_VERSION`. An
+  account without consent to that version — someone who came in through Google, or an
+  older version — sees `TermsScreen` before the tabs. Bump `TERMS_VERSION` when the texts
+  change and everyone is asked again. The texts themselves are a separate card.
+- **Same e-mail, two ways in.** A password account and a Google account with one e-mail
+  are two Cognito users; the second gets `409` from the API and the form says to use the
+  method the account was created with (ADR-13, option i). The conflict only surfaces
+  after Cognito authenticated the person, so naming it reveals nothing.
+- **Signing out** is on the account button at the top of the home screen until the
+  Profile tab exists.
+
+#### Calling the API
+
+Every backend route requires `Authorization: Bearer <idToken>` and takes the owner from
+the token — it rejects a `userId` in a body or query with `400`, and answers `404` for
+another account's record. So a feature's services never send `userId`: they take the id
+token as a parameter and pass it to `apiClient` (`shared/services/apiClient`), which
+sends it as the bearer header and throws `ApiError(message, code, status)`. The hook
+reads the token from `useAuth().session.idToken` and hands it to the service — services
+stay framework-free and there is no second session store. See
+`src/features/materials/services/itemService.ts` and `hooks/useMaterialsScreen.ts`.
+
+A `401` (`UNAUTHENTICATED`, `TOKEN_EXPIRED`, `TOKEN_INVALID`, `USER_NOT_PROVISIONED`)
+must reach the screen as an error — never as an empty list. Until the id token is
+refreshed before API calls (see below), the fix for the user is signing in again.
+
+#### Continue with Google
+
+The one place that does not use `fetch` against the Cognito API: social sign-in goes
+through **Cognito federation** (backend ADR-13). `signInWithProvider('Google')` opens
+the user pool's `/oauth2/authorize` with `identity_provider=Google` in an in-app browser
+(`expo-auth-session`), using the **authorization code flow with PKCE** — the app is a
+public client, so the code verifier is what stops an intercepted code from being
+redeemed by someone else. The code is exchanged at `/oauth2/token` and becomes the
+**same `AuthSession`** a password sign in produces: refresh and sign out need nothing
+new, and the backend cannot tell the two apart.
+
+- The return address is `administranest://auth/callback` in a native build,
+  `exp://<host>:8081/--/auth/callback` in Expo Go and `<origin>/auth/callback` on web.
+  Cognito only accepts addresses registered on the app client — the backend bootstrap
+  registers the simulator and web ones; a physical phone on Expo Go needs its LAN
+  address added there.
+- Closing the browser or declining at the provider resolves to `null` and shows no
+  error.
+- The buttons only show up when `EXPO_PUBLIC_APP_ENV=production`. To try the flow
+  locally, set it to `production` in your `.env` for a moment: the Google screen is
+  then a fake IdP from the backend's Compose file — type any e-mail as the user.
+- Sign in with Apple is out of scope for now. Before shipping to the App Store it has to
+  be reconsidered: Apple requires it when an iOS app offers another social login
+  (guideline 4.8). Adding it is one more `SocialProvider` — same flow, see ADR-13.
+
+**Session persistence:** the tokens are saved with AsyncStorage (`localStorage` on the
+web, the app's own storage on iOS/Android) and brought back on the next launch or reload.
+On the way back the id token is refreshed if it expired and the account is reopened with
+`POST /auth/session`; a refresh token Cognito refuses clears the saved session, while
+being offline keeps it for the next try. Signing out clears it.
+
+**Not included yet, by design:** refreshing the id token while the app is open (a session
+that stays open past the token's hour still fails until the next launch) and a navigation
+library (`AuthFlow` switches steps with local state).
+
+#### A note on error messages
+
+`toAuthErrorCode` deliberately maps `UserNotFoundException` and
+`NotAuthorizedException` to the same `INVALID_CREDENTIALS`, and `forgotPassword`
+swallows an unknown e-mail and reports success. Both exist so the forms cannot be used
+to discover which e-mails have an account. Screens must keep this intact: show one
+generic failure message, never "this e-mail is not registered". There are unit tests
+guarding both.
 
 ## Code style
 
