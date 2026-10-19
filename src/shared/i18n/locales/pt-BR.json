@@ -935,6 +935,56 @@
     "account": {
       "menu": "Conta",
       "signOut": "Sair da conta"
+    },
+    "forgot": {
+      "link": "Esqueci minha senha",
+      "title": "Redefinir senha",
+      "emailLabel": "DIGITE SEU EMAIL*",
+      "emailPlaceholder": "exemplo@mail.com",
+      "submit": "Confirmar",
+      "emailNotFound": "E-mail não encontrado. Verifique o endereço ou crie uma conta."
+    },
+    "emailSent": {
+      "title": "E-mail enviado",
+      "heading": "Confira sua caixa de entrada",
+      "description": "Enviamos um link para redefinir sua senha para {{email}}",
+      "hint": "O link é válido por 30 minutos. Se não encontrar o e-mail, verifique a pasta de spam.",
+      "backToLogin": "Voltar ao Login",
+      "resendCountdown": "Não recebeu? Reenviar em {{time}}",
+      "resend": "Reenviar",
+      "haveCode": "Já tenho o código"
+    },
+    "newPassword": {
+      "title": "Redefinir senha",
+      "codeLabel": "CÓDIGO RECEBIDO*",
+      "passwordLabel": "NOVA SENHA*",
+      "confirmationLabel": "CONFIRME NOVA SENHA*",
+      "placeholder": "DIGITE NOVA SENHA",
+      "submit": "Confirmar",
+      "requirementsNotMet": "Sua senha ainda não atende aos requisitos:",
+      "mismatch": "As senhas não coincidem",
+      "match": "As senhas coincidem",
+      "requirements": {
+        "minLength": "Mínimo de 8 caracteres",
+        "uppercase": "Uma letra maiúscula",
+        "lowercase": "Uma letra minúscula",
+        "number": "Um número",
+        "special": "Um caractere especial (!@#$%)"
+      }
+    },
+    "linkExpired": {
+      "title": "Link expirado",
+      "heading": "Este link não é mais válido",
+      "description": "O link de recuperação expirou ou já foi utilizado. Por segurança, ele é válido por apenas 30 minutos.",
+      "hint": "Solicite um novo link para redefinir sua senha.",
+      "requestNew": "Solicitar novo link",
+      "backToLogin": "Voltar ao Login"
+    },
+    "resetSuccess": {
+      "title": "Senha redefinida",
+      "heading": "Senha alterada com sucesso!",
+      "description": "Sua nova senha já está ativa. Use-a para entrar no Administranest.",
+      "goToLogin": "Ir para o Login"
     }
   },
   "partners": {

@@ -16,6 +16,7 @@ const ERROR_KEYS: Record<AuthErrorCode, TranslationKey> = {
   SESSION_EXPIRED: 'auth.errors.sessionExpired',
   ACCOUNT_USES_OTHER_SIGN_IN: 'auth.errors.accountUsesOtherSignIn',
   TOO_MANY_ATTEMPTS: 'auth.errors.tooManyAttempts',
+  EMAIL_NOT_FOUND: 'auth.forgot.emailNotFound',
   NETWORK_UNAVAILABLE: 'auth.errors.networkUnavailable',
   UNKNOWN: 'auth.errors.unknown',
 };

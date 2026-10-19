@@ -935,6 +935,56 @@
     "account": {
       "menu": "Account",
       "signOut": "Sign out"
+    },
+    "forgot": {
+      "link": "Forgot my password",
+      "title": "Reset password",
+      "emailLabel": "ENTER YOUR EMAIL*",
+      "emailPlaceholder": "example@mail.com",
+      "submit": "Confirm",
+      "emailNotFound": "Email not found. Check the address or create an account."
+    },
+    "emailSent": {
+      "title": "Email sent",
+      "heading": "Check your inbox",
+      "description": "We sent a link to reset your password to {{email}}",
+      "hint": "The link is valid for 30 minutes. If you can't find the email, check your spam folder.",
+      "backToLogin": "Back to Login",
+      "resendCountdown": "Didn't get it? Resend in {{time}}",
+      "resend": "Resend",
+      "haveCode": "I already have the code"
+    },
+    "newPassword": {
+      "title": "Reset password",
+      "codeLabel": "RECEIVED CODE*",
+      "passwordLabel": "NEW PASSWORD*",
+      "confirmationLabel": "CONFIRM NEW PASSWORD*",
+      "placeholder": "ENTER NEW PASSWORD",
+      "submit": "Confirm",
+      "requirementsNotMet": "Your password doesn't meet the requirements yet:",
+      "mismatch": "Passwords don't match",
+      "match": "Passwords match",
+      "requirements": {
+        "minLength": "At least 8 characters",
+        "uppercase": "One uppercase letter",
+        "lowercase": "One lowercase letter",
+        "number": "One number",
+        "special": "One special character (!@#$%)"
+      }
+    },
+    "linkExpired": {
+      "title": "Link expired",
+      "heading": "This link is no longer valid",
+      "description": "The recovery link expired or was already used. For security, it is only valid for 30 minutes.",
+      "hint": "Request a new link to reset your password.",
+      "requestNew": "Request new link",
+      "backToLogin": "Back to Login"
+    },
+    "resetSuccess": {
+      "title": "Password reset",
+      "heading": "Password changed successfully!",
+      "description": "Your new password is active. Use it to sign in to Administranest.",
+      "goToLogin": "Go to Login"
     }
   },
   "partners": {

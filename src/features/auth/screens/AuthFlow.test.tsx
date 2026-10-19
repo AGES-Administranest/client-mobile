@@ -58,6 +58,8 @@ function SessionProbe() {
   return null;
 }
 
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+
 async function renderFlow() {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
 
@@ -74,6 +76,7 @@ async function renderFlow() {
     );
   });
 
+  mounted.push(renderer);
   return renderer;
 }
 
@@ -109,6 +112,11 @@ async function type(
     byLabel(renderer, label).props.onChangeText(value);
   });
 }
+
+afterEach(() => {
+  // Unmount so the resend countdown's interval does not outlive the test.
+  act(() => mounted.splice(0).forEach(renderer => renderer.unmount()));
+});
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -409,5 +417,144 @@ describe('terms screen', () => {
     expect(service.signOut).toHaveBeenCalledWith(SESSION);
     expect(sessionSeen).toBeNull();
     expect(accountSeen).toBeNull();
+  });
+});
+
+describe('forgot password', () => {
+  async function openForgotPassword() {
+    const renderer = await renderFlow();
+    await press(renderer, 'Login');
+    await press(renderer, 'Esqueci minha senha');
+    return renderer;
+  }
+
+  async function openNewPassword() {
+    service.forgotPassword.mockResolvedValue();
+    const renderer = await openForgotPassword();
+    await type(renderer, 'DIGITE SEU EMAIL*', 'ana@example.com');
+    await press(renderer, 'Confirmar');
+    await press(renderer, 'Já tenho o código');
+    return renderer;
+  }
+
+  it('rejects a malformed e-mail before calling the service', async () => {
+    const renderer = await openForgotPassword();
+
+    await type(renderer, 'DIGITE SEU EMAIL*', 'not-an-email');
+    await press(renderer, 'Confirmar');
+
+    expect(service.forgotPassword).not.toHaveBeenCalled();
+    expect(texts(renderer)).toContain('Informe um e-mail válido.');
+  });
+
+  it('shows the not-found state only when the service reports it', async () => {
+    service.forgotPassword.mockRejectedValue(new AuthError('EMAIL_NOT_FOUND'));
+    const renderer = await openForgotPassword();
+
+    await type(renderer, 'DIGITE SEU EMAIL*', 'ana@example.com');
+    await press(renderer, 'Confirmar');
+
+    expect(texts(renderer)).toContain(
+      'E-mail não encontrado. Verifique o endereço ou crie uma conta.',
+    );
+  });
+
+  it('keeps the typed e-mail and shows the network message offline', async () => {
+    service.forgotPassword.mockRejectedValue(
+      new AuthError('NETWORK_UNAVAILABLE'),
+    );
+    const renderer = await openForgotPassword();
+
+    await type(renderer, 'DIGITE SEU EMAIL*', 'ana@example.com');
+    await press(renderer, 'Confirmar');
+
+    expect(texts(renderer)).toContain(
+      'Sem conexão. Verifique sua internet e tente novamente.',
+    );
+    expect(byLabel(renderer, 'DIGITE SEU EMAIL*').props.value).toBe(
+      'ana@example.com',
+    );
+  });
+
+  it('confirms the e-mail was sent with the 45s countdown', async () => {
+    service.forgotPassword.mockResolvedValue();
+    const renderer = await openForgotPassword();
+
+    await type(renderer, 'DIGITE SEU EMAIL*', ' ana@example.com ');
+    await press(renderer, 'Confirmar');
+
+    expect(service.forgotPassword).toHaveBeenCalledWith('ana@example.com');
+    expect(texts(renderer)).toContain('E-mail enviado');
+    expect(texts(renderer)).toContain('Enviamos um link para redefinir');
+    expect(
+      byLabel(renderer, 'Não recebeu? Reenviar em 00:45').props.disabled,
+    ).toBe(true);
+  });
+
+  it('explains each unmet requirement and a mismatch, then succeeds', async () => {
+    service.confirmForgotPassword.mockResolvedValue();
+    const renderer = await openNewPassword();
+
+    await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
+    await type(renderer, 'NOVA SENHA*', 'abc');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'abd');
+    await press(renderer, 'Confirmar');
+
+    expect(service.confirmForgotPassword).not.toHaveBeenCalled();
+    expect(texts(renderer)).toContain(
+      'Sua senha ainda não atende aos requisitos:',
+    );
+    expect(texts(renderer)).toContain('As senhas não coincidem');
+
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    expect(texts(renderer)).toContain('As senhas coincidem');
+    await press(renderer, 'Confirmar');
+
+    expect(service.confirmForgotPassword).toHaveBeenCalledWith(
+      'ana@example.com',
+      '123456',
+      'Abcdef1!',
+    );
+    expect(texts(renderer)).toContain('Senha alterada com sucesso!');
+
+    await press(renderer, 'Ir para o Login');
+    expect(texts(renderer)).toContain(
+      'Acesse com o e-mail e a senha da sua conta.',
+    );
+  });
+
+  it('sends the user to the expired link screen', async () => {
+    service.confirmForgotPassword.mockRejectedValue(
+      new AuthError('EXPIRED_CODE'),
+    );
+    const renderer = await openNewPassword();
+
+    await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+
+    expect(texts(renderer)).toContain('Este link não é mais válido');
+
+    await press(renderer, 'Solicitar novo link');
+    expect(byLabel(renderer, 'DIGITE SEU EMAIL*')).toBeDefined();
+  });
+
+  it('keeps the typed passwords when the network fails', async () => {
+    service.confirmForgotPassword.mockRejectedValue(
+      new AuthError('NETWORK_UNAVAILABLE'),
+    );
+    const renderer = await openNewPassword();
+
+    await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+
+    expect(texts(renderer)).toContain(
+      'Sem conexão. Verifique sua internet e tente novamente.',
+    );
+    expect(byLabel(renderer, 'NOVA SENHA*').props.value).toBe('Abcdef1!');
   });
 });

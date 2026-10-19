@@ -1,5 +1,10 @@
 import { ConfirmSignUpScreen } from './ConfirmSignUpScreen';
+import { ForgotPasswordScreen } from './ForgotPasswordScreen';
+import { LinkExpiredScreen } from './LinkExpiredScreen';
 import { LoginScreen } from './LoginScreen';
+import { ResetEmailSentScreen } from './ResetEmailSentScreen';
+import { ResetPasswordScreen } from './ResetPasswordScreen';
+import { ResetSuccessScreen } from './ResetSuccessScreen';
 import { SignUpScreen } from './SignUpScreen';
 import { WelcomeScreen } from './WelcomeScreen';
 import { useAuthFlow } from '../hooks/useAuthFlow';
@@ -12,6 +17,11 @@ export function AuthFlow() {
     goToWelcome,
     goToLogin,
     goToSignUp,
+    goToForgotPassword,
+    resetEmailSent,
+    goToResetPassword,
+    resetLinkExpired,
+    resetSucceeded,
     confirmAfterSignUp,
     confirmAfterLogin,
   } = useAuthFlow();
@@ -22,6 +32,7 @@ export function AuthFlow() {
         <LoginScreen
           onBack={goToWelcome}
           onCreateAccount={goToSignUp}
+          onForgotPassword={goToForgotPassword}
           onUnconfirmed={confirmAfterLogin}
         />
       );
@@ -43,6 +54,39 @@ export function AuthFlow() {
           onBack={step.from === 'login' ? goToLogin : goToSignUp}
         />
       );
+    case 'forgotPassword':
+      return (
+        <ForgotPasswordScreen onBack={goToLogin} onSent={resetEmailSent} />
+      );
+    case 'resetEmailSent':
+      return (
+        <ResetEmailSentScreen
+          email={step.email}
+          onBack={goToForgotPassword}
+          onBackToLogin={goToLogin}
+          onHaveCode={() => goToResetPassword(step.email)}
+        />
+      );
+    case 'resetPassword':
+      return (
+        <ResetPasswordScreen
+          email={step.email}
+          token={step.token}
+          onBack={() => resetEmailSent(step.email)}
+          onSuccess={resetSucceeded}
+          onExpired={() => resetLinkExpired(step.email)}
+        />
+      );
+    case 'linkExpired':
+      return (
+        <LinkExpiredScreen
+          onBack={goToLogin}
+          onRequestNewLink={goToForgotPassword}
+          onBackToLogin={goToLogin}
+        />
+      );
+    case 'resetSuccess':
+      return <ResetSuccessScreen onGoToLogin={goToLogin} />;
     default:
       return <WelcomeScreen onCreateAccount={goToSignUp} onLogin={goToLogin} />;
   }

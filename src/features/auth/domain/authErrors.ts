@@ -9,6 +9,10 @@ export type AuthErrorCode =
   | 'SESSION_EXPIRED'
   | 'ACCOUNT_USES_OTHER_SIGN_IN'
   | 'TOO_MANY_ATTEMPTS'
+  // Never produced today: Cognito and forgotPassword answer the same for known
+  // and unknown e-mails. Kept so the "not found" state appears only if a
+  // service ever reports it explicitly.
+  | 'EMAIL_NOT_FOUND'
   | 'NETWORK_UNAVAILABLE'
   | 'UNKNOWN';
 

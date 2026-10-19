@@ -4,6 +4,11 @@ export type AuthStep =
   | { name: 'welcome' }
   | { name: 'login' }
   | { name: 'signUp' }
+  | { name: 'forgotPassword' }
+  | { name: 'resetEmailSent'; email: string }
+  | { name: 'resetPassword'; email: string; token: string }
+  | { name: 'linkExpired'; email: string }
+  | { name: 'resetSuccess' }
   | {
       name: 'confirm';
       email: string;
@@ -22,6 +27,29 @@ export function useAuthFlow() {
   const goToWelcome = useCallback(() => setStep({ name: 'welcome' }), []);
   const goToLogin = useCallback(() => setStep({ name: 'login' }), []);
   const goToSignUp = useCallback(() => setStep({ name: 'signUp' }), []);
+
+  const goToForgotPassword = useCallback(
+    () => setStep({ name: 'forgotPassword' }),
+    [],
+  );
+  const resetEmailSent = useCallback(
+    (email: string) => setStep({ name: 'resetEmailSent', email }),
+    [],
+  );
+  // The token is empty until the backend decides how it reaches the app.
+  const goToResetPassword = useCallback(
+    (email: string, token = '') =>
+      setStep({ name: 'resetPassword', email, token }),
+    [],
+  );
+  const resetLinkExpired = useCallback(
+    (email: string) => setStep({ name: 'linkExpired', email }),
+    [],
+  );
+  const resetSucceeded = useCallback(
+    () => setStep({ name: 'resetSuccess' }),
+    [],
+  );
 
   const confirmAfterSignUp = useCallback(
     (email: string, password: string) =>
@@ -54,6 +82,11 @@ export function useAuthFlow() {
     goToWelcome,
     goToLogin,
     goToSignUp,
+    goToForgotPassword,
+    resetEmailSent,
+    goToResetPassword,
+    resetLinkExpired,
+    resetSucceeded,
     confirmAfterSignUp,
     confirmAfterLogin,
   };
