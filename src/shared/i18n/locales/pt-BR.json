@@ -805,6 +805,15 @@
     "reports": "Relatórios",
     "clinics": "Clínicas"
   },
+  "serviceInvoices": {
+    "title": "Notas fiscais",
+    "seeAll": "Ver todos",
+    "empty": "Nenhuma nota fiscal registrada ainda.",
+    "error": "Não foi possível carregar as notas fiscais.",
+    "noClient": "Sem tomador",
+    "noIssueDate": "Sem data de emissão",
+    "originalFile": "Arquivo original"
+  },
   "optionsModal": {
     "scanNote": "Escanear nota",
     "typeSupply": "Digitar insumo"

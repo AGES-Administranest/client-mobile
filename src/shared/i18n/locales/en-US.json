@@ -805,6 +805,15 @@
     "reports": "Reports",
     "clinics": "Clinics"
   },
+  "serviceInvoices": {
+    "title": "Invoices",
+    "seeAll": "See all",
+    "empty": "No invoices registered yet.",
+    "error": "Could not load the invoices.",
+    "noClient": "No client",
+    "noIssueDate": "No issue date",
+    "originalFile": "Original file"
+  },
   "optionsModal": {
     "scanNote": "Scan note",
     "typeSupply": "Type supply"
