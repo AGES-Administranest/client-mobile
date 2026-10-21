@@ -13,3 +13,8 @@ export type Invoice = {
   issuedAt: string;
   syncStatus: InvoiceSyncStatus;
 };
+
+export type InvoicePage = {
+  items: Invoice[];
+  hasMore: boolean;
+};
