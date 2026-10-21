@@ -9,6 +9,7 @@ import {
   type AppointmentResult,
 } from 'features/procedures';
 
+import { summarizePeriod } from '../domain/overview';
 import type { StatementPeriod } from '../domain/statement';
 import { fetchAllMonthlyFinancialEntries } from '../services/financialEntryService';
 
@@ -88,9 +89,7 @@ export function useFinanceOverview(
     ])
       .then(([costs, entries, appointments, equipment]) => {
         if (!active) return;
-        const revenue = entries
-          .filter(entry => entry.nature === 'INCOME')
-          .reduce((sum, entry) => sum + entry.amount, 0);
+        const totals = summarizePeriod(entries);
         const work = appointments.reduce(
           (total, appointment) => {
             if (!appointment.endsAt) return total;
@@ -108,11 +107,7 @@ export function useFinanceOverview(
         );
         const hoursWorked = work.minutes / 60;
         setOverview({
-          revenue,
-          professionalExpenses: costs.professionalExpenses,
-          personalExpenses: costs.personalExpenses,
-          netBalance:
-            revenue - costs.professionalExpenses - costs.personalExpenses,
+          ...totals,
           hoursWorked,
           averageHourly: hoursWorked > 0 ? work.billed / hoursWorked : null,
           depreciation: costs.equipmentDepreciation,
