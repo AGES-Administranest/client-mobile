@@ -1,11 +1,19 @@
-// LAYOUT PROVISÓRIO: aguardando imagem de referência
-import { Check, Trash2, X } from 'lucide-react-native';
-import React, { useState } from 'react';
+import {
+  Calendar,
+  Car,
+  CarFront,
+  Check,
+  ChevronDown,
+  Trash2,
+} from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,7 +21,6 @@ import {
   View,
 } from 'react-native';
 
-import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import {
@@ -25,12 +32,31 @@ import {
 import type { Vehicle } from 'features/vehicles';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { formatCurrency } from 'shared/utils/currency';
+import { formatDateInput } from 'shared/utils/inputMasks';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type { TripMode } from '../domain/trip.types';
 import type { TripFormErrors, TripFormValues } from '../domain/validateTripForm';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+function isoToBr(iso: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso?.trim() ?? '');
+  if (match) {
+    const [, y, m, d] = match;
+    return `${d}/${m}/${y}`;
+  }
+  return iso ?? '';
+}
+
+function brToIso(br: string): string {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(br?.trim() ?? '');
+  if (match) {
+    const [, d, m, y] = match;
+    return `${y}-${m}-${d}`;
+  }
+  return br;
+}
 
 export type TripFormSheetPresentationProps = {
   visible: boolean;
@@ -82,6 +108,21 @@ export function TripFormSheetPresentation({
 }: TripFormSheetPresentationProps) {
   const sheet = useSheetAnimation(visible, onClose);
   const [vehicleDropdownOpen, setVehicleDropdownOpen] = useState(false);
+  const [displayDate, setDisplayDate] = useState(() => isoToBr(values.occurredOn));
+
+  useEffect(() => {
+    setDisplayDate(isoToBr(values.occurredOn));
+  }, [values.occurredOn]);
+
+  const handleDateChange = (raw: string) => {
+    const masked = formatDateInput(raw);
+    setDisplayDate(masked);
+    if (masked.length === 10) {
+      onFieldValueChange('occurredOn', brToIso(masked));
+    } else {
+      onFieldValueChange('occurredOn', masked);
+    }
+  };
 
   const clientAutocompleteMessages: ClientAutocompleteMessages = {
     loading: 'Buscando tomador...',
@@ -90,6 +131,20 @@ export function TripFormSheetPresentation({
   };
 
   const selectedVehicle = vehicles.find(v => v.id === values.vehicleId);
+  const vehicleCostPerKmFormatted = selectedVehicle
+    ? formatCurrency(
+        typeof selectedVehicle.costPerKm === 'string'
+          ? parseFloat(selectedVehicle.costPerKm) || 0
+          : selectedVehicle.costPerKm,
+        'pt-BR',
+        { showCents: true },
+      )
+    : null;
+
+  const hasVehicleAndDistance = Boolean(
+    selectedVehicle && values.distanceKm && parseFloat(values.distanceKm) > 0,
+  );
+  const hasRideCost = Boolean(values.cost && parseFloat(values.cost) > 0);
 
   return (
     <Modal
@@ -98,68 +153,79 @@ export function TripFormSheetPresentation({
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View
-        style={[styles.backdrop, { opacity: sheet.progress }]}
-        className="justify-end bg-background-shade"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1 justify-end"
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Fechar"
-          onPress={onClose}
-          className="flex-1"
-        />
+        {/* Overlay escuro semitransparente que cobre a tela inteira por trás */}
+        <Animated.View
+          style={[StyleSheet.absoluteFill, { opacity: sheet.progress }]}
+        >
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
+            onPress={onClose}
+            className="flex-1"
+            style={styles.backdropPressable}
+          />
+        </Animated.View>
 
+        {/* Sheet deslizante ocupando ~90% da tela, cobrindo o cabeçalho */}
         <Animated.View
           {...sheet.panHandlers}
-          style={{
-            maxHeight: SCREEN_HEIGHT * 0.92,
-            ...sheet.sheetStyle,
-          }}
+          style={[
+            {
+              height: SCREEN_HEIGHT * 0.9,
+              maxHeight: SCREEN_HEIGHT * 0.92,
+            },
+            sheet.sheetStyle,
+          ]}
         >
-          <View className="shrink gap-3 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
-            <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
+          <View className="flex-1 rounded-t-[32px] bg-background-modal px-5 pt-3">
+            {/* Alça no Topo */}
+            <View className="mb-3 h-1 w-10 self-center rounded-full bg-[#D8D3CC]" />
 
-            <View className="flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-label-primary">
-                {title}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Fechar"
-                hitSlop={8}
-                onPress={onClose}
-              >
-                <Icon as={X} size={20} className="text-label-tertiary" />
-              </Pressable>
-            </View>
-
-            <View className="h-px bg-details-primary" />
+            {/* Título (sem linha divisória) */}
+            <Text className="mb-3 text-xl font-bold text-label-primary">
+              {title}
+            </Text>
 
             <ScrollView
+              className="flex-1"
+              showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              contentContainerClassName="gap-3 pb-2"
+              contentContainerClassName="gap-3.5 pb-10"
             >
-              {/* Modalidade (Chips) */}
-              <View className="gap-1">
-                <Text className="text-xs font-semibold uppercase text-label-primary">
-                  Modalidade
+              {/* COMO FOI */}
+              <View>
+                <Text className="mb-2 text-[11px] font-bold uppercase tracking-wider text-label-primary">
+                  COMO FOI
                 </Text>
-                <View className="flex-row gap-2">
+                <View className="flex-row gap-3">
                   <Pressable
                     onPress={() => onModeChange('OWN_VEHICLE')}
                     accessibilityRole="button"
                     accessibilityState={{ selected: mode === 'OWN_VEHICLE' }}
                     className={
                       mode === 'OWN_VEHICLE'
-                        ? 'flex-1 items-center rounded-xl bg-button-primary py-3'
-                        : 'flex-1 items-center rounded-xl border border-border-primary bg-white py-3'
+                        ? 'h-12 flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-button-primary'
+                        : 'h-12 flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-border-primary bg-white'
                     }
                   >
+                    <Icon
+                      as={Car}
+                      size={18}
+                      className={
+                        mode === 'OWN_VEHICLE'
+                          ? 'text-label-secondary'
+                          : 'text-label-quartenery'
+                      }
+                    />
                     <Text
                       className={
                         mode === 'OWN_VEHICLE'
-                          ? 'font-semibold text-label-secondary'
-                          : 'text-label-primary'
+                          ? 'font-medium text-label-secondary'
+                          : 'font-medium text-label-primary'
                       }
                     >
                       Veículo próprio
@@ -172,119 +238,116 @@ export function TripFormSheetPresentation({
                     accessibilityState={{ selected: mode === 'RIDE' }}
                     className={
                       mode === 'RIDE'
-                        ? 'flex-1 items-center rounded-xl bg-button-primary py-3'
-                        : 'flex-1 items-center rounded-xl border border-border-primary bg-white py-3'
+                        ? 'h-12 flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-button-primary'
+                        : 'h-12 flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-border-primary bg-white'
                     }
                   >
+                    <Icon
+                      as={CarFront}
+                      size={18}
+                      className={
+                        mode === 'RIDE'
+                          ? 'text-label-secondary'
+                          : 'text-label-quartenery'
+                      }
+                    />
                     <Text
                       className={
                         mode === 'RIDE'
-                          ? 'font-semibold text-label-secondary'
-                          : 'text-label-primary'
+                          ? 'font-medium text-label-secondary'
+                          : 'font-medium text-label-primary'
                       }
                     >
-                      Aplicativo / Táxi
+                      Aplicativo/táxi
                     </Text>
                   </Pressable>
                 </View>
               </View>
 
-              {/* Data (occurredOn) */}
-              <View className="gap-1">
-                <Text className="text-xs font-semibold uppercase text-label-primary">
-                  Data
-                </Text>
-                <TextInput
-                  placeholder="AAAA-MM-DD"
-                  placeholderTextColor={LabelPlaceholder}
-                  value={values.occurredOn}
-                  onChangeText={v => onFieldValueChange('occurredOn', v)}
-                  className="rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary"
-                />
-                {errors.occurredOn ? (
-                  <Text className="text-xs text-alert-primary">
-                    {errors.occurredOn === 'occurredOnRequired'
-                      ? 'Informe a data'
-                      : 'Data inválida (use o formato AAAA-MM-DD)'}
-                  </Text>
-                ) : null}
-              </View>
-
-              {/* Origem */}
-              <View className="gap-1">
-                <Text className="text-xs font-semibold uppercase text-label-primary">
-                  Origem
+              {/* ORIGEM */}
+              <View>
+                <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-label-primary">
+                  ORIGEM
                 </Text>
                 <TextInput
                   placeholder="Ex: Casa"
                   placeholderTextColor={LabelPlaceholder}
                   value={values.origin}
-                  maxLength={200}
+                  maxLength={100}
                   onChangeText={v => onFieldValueChange('origin', v)}
-                  className="rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary"
+                  className="h-12 rounded-2xl border border-border-primary bg-white px-4 text-[15px] text-label-primary"
                 />
                 {errors.origin ? (
-                  <Text className="text-xs text-alert-primary">
+                  <Text className="mt-1 text-xs text-alert-primary">
                     Informe a origem
                   </Text>
                 ) : null}
               </View>
 
-              {/* Destino */}
-              <View className="gap-1">
-                <Text className="text-xs font-semibold uppercase text-label-primary">
-                  Destino
+              {/* DESTINO */}
+              <View>
+                <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-label-primary">
+                  DESTINO
                 </Text>
                 <TextInput
-                  placeholder="Ex: Clínica Veterinária São Francisco"
+                  placeholder="Ex: Clínica VetNova"
                   placeholderTextColor={LabelPlaceholder}
                   value={values.destination}
-                  maxLength={200}
+                  maxLength={100}
                   onChangeText={v => onFieldValueChange('destination', v)}
-                  className="rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary"
+                  className="h-12 rounded-2xl border border-border-primary bg-white px-4 text-[15px] text-label-primary"
                 />
                 {errors.destination ? (
-                  <Text className="text-xs text-alert-primary">
+                  <Text className="mt-1 text-xs text-alert-primary">
                     Informe o destino
                   </Text>
                 ) : null}
               </View>
 
-              {/* Veículo Próprio Fields */}
+              {/* VEÍCULO (quando Veículo Próprio) ou VALOR PAGO (quando Aplicativo) */}
               {mode === 'OWN_VEHICLE' ? (
-                <>
-                  <View className="gap-1">
-                    <Text className="text-xs font-semibold uppercase text-label-primary">
-                      Veículo
-                    </Text>
-                    {isLoadingVehicles ? (
-                      <ActivityIndicator size="small" />
-                    ) : vehicles.length === 0 ? (
-                      <View className="rounded-xl border border-border-primary bg-white p-3">
-                        <Text className="text-sm text-alert-primary">
-                          Nenhum veículo ativo cadastrado. Cadastre um veículo primeiro.
-                        </Text>
-                      </View>
-                    ) : (
-                      <View className="gap-1">
-                        <Pressable
-                          onPress={() => setVehicleDropdownOpen(open => !open)}
-                          accessibilityRole="button"
-                          className="rounded-xl border border-border-primary bg-white px-4 py-3"
+                <View>
+                  <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-label-primary">
+                    VEÍCULO
+                  </Text>
+                  {isLoadingVehicles ? (
+                    <ActivityIndicator size="small" />
+                  ) : vehicles.length === 0 ? (
+                    <View className="rounded-2xl border border-border-primary bg-white p-3.5">
+                      <Text className="text-sm text-alert-primary">
+                        Nenhum veículo ativo cadastrado. Cadastre um veículo primeiro.
+                      </Text>
+                    </View>
+                  ) : (
+                    <View>
+                      <Pressable
+                        onPress={() => setVehicleDropdownOpen(open => !open)}
+                        accessibilityRole="button"
+                        className="h-12 flex-row items-center justify-between rounded-2xl border border-border-primary bg-white px-4"
+                      >
+                        <Text
+                          numberOfLines={1}
+                          className="flex-1 text-[15px] text-label-primary"
+                          style={!selectedVehicle ? { color: LabelPlaceholder } : undefined}
                         >
-                          <Text
-                            className="text-[15px] text-label-primary"
-                            style={!selectedVehicle ? { color: LabelPlaceholder } : undefined}
-                          >
-                            {selectedVehicle
-                              ? `${selectedVehicle.brand} ${selectedVehicle.model} (R$ ${selectedVehicle.costPerKm}/km)`
-                              : 'Selecione um veículo'}
-                          </Text>
-                        </Pressable>
+                          {selectedVehicle
+                            ? `${selectedVehicle.brand} ${selectedVehicle.model} · ${vehicleCostPerKmFormatted}/km`
+                            : 'Selecione um veículo'}
+                        </Text>
+                        <Icon as={ChevronDown} size={18} className="ml-2 text-label-tertiary" />
+                      </Pressable>
 
-                        {vehicleDropdownOpen ? (
-                          <View className="rounded-xl border border-border-primary bg-white">
-                            {vehicles.map((v, index) => (
+                      {vehicleDropdownOpen ? (
+                        <View className="mt-1 overflow-hidden rounded-2xl border border-border-primary bg-white">
+                          {vehicles.map((v, index) => {
+                            const costFormatted = formatCurrency(
+                              typeof v.costPerKm === 'string'
+                                ? parseFloat(v.costPerKm) || 0
+                                : v.costPerKm,
+                              'pt-BR',
+                              { showCents: true },
+                            );
+                            return (
                               <Pressable
                                 key={v.id}
                                 onPress={() => {
@@ -297,92 +360,133 @@ export function TripFormSheetPresentation({
                                     : 'border-t border-border-primary px-4 py-3'
                                 }
                               >
-                                <Text className="text-sm text-label-primary">
+                                <Text className="text-sm font-medium text-label-primary">
                                   {v.brand} {v.model}{' '}
                                   <Text className="text-xs text-label-tertiary">
-                                    (R$ {v.costPerKm}/km)
+                                    · {costFormatted}/km
                                   </Text>
                                 </Text>
                               </Pressable>
-                            ))}
-                          </View>
-                        ) : null}
-                      </View>
-                    )}
-                    {errors.vehicleId ? (
-                      <Text className="text-xs text-alert-primary">
-                        Selecione um veículo
-                      </Text>
-                    ) : null}
-                  </View>
-
-                  <View className="gap-1">
-                    <Text className="text-xs font-semibold uppercase text-label-primary">
-                      Distância (km)
+                            );
+                          })}
+                        </View>
+                      ) : null}
+                    </View>
+                  )}
+                  {errors.vehicleId ? (
+                    <Text className="mt-1 text-xs text-alert-primary">
+                      Selecione um veículo
                     </Text>
-                    <TextInput
-                      placeholder="Ex: 30"
-                      placeholderTextColor={LabelPlaceholder}
-                      value={values.distanceKm}
-                      keyboardType="decimal-pad"
-                      onChangeText={v => onFieldValueChange('distanceKm', v)}
-                      className="rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary"
-                    />
-                    {errors.distanceKm ? (
-                      <Text className="text-xs text-alert-primary">
-                        Informe uma distância válida maior que zero
-                      </Text>
-                    ) : null}
-                  </View>
-                </>
+                  ) : null}
+                </View>
               ) : (
-                /* RIDE (App / Táxi) Fields */
-                <>
-                  <View className="gap-1">
-                    <Text className="text-xs font-semibold uppercase text-label-primary">
-                      Valor pago (R$)
+                /* VALOR PAGO (R$) para RIDE */
+                <View>
+                  <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-label-primary">
+                    VALOR PAGO (R$)
+                  </Text>
+                  <TextInput
+                    placeholder="Ex: 32,90"
+                    placeholderTextColor={LabelPlaceholder}
+                    value={values.cost}
+                    keyboardType="decimal-pad"
+                    onChangeText={v => onFieldValueChange('cost', v)}
+                    className="h-12 rounded-2xl border border-border-primary bg-white px-4 text-[15px] text-label-primary"
+                  />
+                  {errors.cost ? (
+                    <Text className="mt-1 text-xs text-alert-primary">
+                      Informe o valor pago maior que zero
                     </Text>
-                    <TextInput
-                      placeholder="Ex: 35.00"
-                      placeholderTextColor={LabelPlaceholder}
-                      value={values.cost}
-                      keyboardType="decimal-pad"
-                      onChangeText={v => onFieldValueChange('cost', v)}
-                      className="rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary"
-                    />
-                    {errors.cost ? (
-                      <Text className="text-xs text-alert-primary">
-                        Informe o valor pago maior que zero
-                      </Text>
-                    ) : null}
-                  </View>
-
-                  <View className="gap-1">
-                    <Text className="text-xs font-semibold uppercase text-label-primary">
-                      Distância (km) (opcional)
-                    </Text>
-                    <TextInput
-                      placeholder="Ex: 25"
-                      placeholderTextColor={LabelPlaceholder}
-                      value={values.distanceKm}
-                      keyboardType="decimal-pad"
-                      onChangeText={v => onFieldValueChange('distanceKm', v)}
-                      className="rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary"
-                    />
-                    {errors.distanceKm ? (
-                      <Text className="text-xs text-alert-primary">
-                        Distância inválida
-                      </Text>
-                    ) : null}
-                  </View>
-                </>
+                  ) : null}
+                </View>
               )}
 
-              {/* Tomador de serviço (ClientAutocomplete) */}
-              <View className="gap-1">
+              {/* DISTÂNCIA (KM) e DATA lado a lado */}
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-label-primary">
+                    {mode === 'RIDE' ? 'DISTÂNCIA (KM) (OPCIONAL)' : 'DISTÂNCIA (KM)'}
+                  </Text>
+                  <TextInput
+                    placeholder="Ex: 30"
+                    placeholderTextColor={LabelPlaceholder}
+                    value={values.distanceKm}
+                    keyboardType="decimal-pad"
+                    onChangeText={v => onFieldValueChange('distanceKm', v)}
+                    className="h-12 rounded-2xl border border-border-primary bg-white px-4 text-[15px] text-label-primary"
+                  />
+                  {errors.distanceKm ? (
+                    <Text className="mt-1 text-xs text-alert-primary">
+                      Distância inválida
+                    </Text>
+                  ) : null}
+                </View>
+
+                <View className="flex-1">
+                  <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-label-primary">
+                    DATA
+                  </Text>
+                  <View className="h-12 flex-row items-center justify-between rounded-2xl border border-border-primary bg-white px-4">
+                    <TextInput
+                      placeholder="DD/MM/AAAA"
+                      placeholderTextColor={LabelPlaceholder}
+                      value={displayDate}
+                      keyboardType="number-pad"
+                      maxLength={10}
+                      onChangeText={handleDateChange}
+                      className="flex-1 text-[15px] text-label-primary"
+                    />
+                    <Icon as={Calendar} size={18} className="ml-1 text-label-tertiary" />
+                  </View>
+                  {errors.occurredOn ? (
+                    <Text className="mt-1 text-xs text-alert-primary">
+                      {errors.occurredOn === 'occurredOnRequired'
+                        ? 'Informe a data'
+                        : 'Data inválida'}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+
+              {/* Caixa de Prévia: Custo do deslocamento com tom neutro #F4F1EA */}
+              <View className="flex-row items-center justify-between rounded-2xl border border-border-primary/20 bg-[#F4F1EA] p-3.5">
+                <View className="flex-1 pr-2">
+                  <Text className="text-xs font-semibold text-label-primary">
+                    Custo do deslocamento
+                  </Text>
+                  {mode === 'OWN_VEHICLE' ? (
+                    hasVehicleAndDistance ? (
+                      <Text className="mt-0.5 text-xs text-label-tertiary">
+                        {values.distanceKm} km × {vehicleCostPerKmFormatted}/km
+                      </Text>
+                    ) : (
+                      <Text className="mt-0.5 text-xs text-label-tertiary">
+                        Selecione o veículo e a distância
+                      </Text>
+                    )
+                  ) : (
+                    hasRideCost ? (
+                      <Text className="mt-0.5 text-xs text-label-tertiary">
+                        Valor informado
+                      </Text>
+                    ) : (
+                      <Text className="mt-0.5 text-xs text-label-tertiary">
+                        Informe o valor pago
+                      </Text>
+                    )
+                  )}
+                </View>
+                <Text className="text-lg font-bold text-label-primary">
+                  {formatCurrency(previewCost, 'pt-BR', { showCents: true })}
+                </Text>
+              </View>
+
+              {/* TOMADOR (OPCIONAL) com seletor e ChevronDown */}
+              <View>
                 <ClientAutocomplete
-                  label="Tomador de serviço (opcional)"
-                  placeholder="Buscar cliente ou clínica..."
+                  label="TOMADOR (OPCIONAL)"
+                  placeholder="Selecione o tomador"
+                  trailingIcon={ChevronDown}
                   value={clientSearchTerm}
                   status={clientSearchStatus}
                   options={clientSearchOptions}
@@ -392,61 +496,52 @@ export function TripFormSheetPresentation({
                 />
               </View>
 
-              {/* Prévia do Custo */}
-              <View className="mt-1 flex-row items-center justify-between rounded-xl bg-white p-3">
-                <Text className="text-xs font-semibold uppercase text-label-primary">
-                  Custo estimado
-                </Text>
-                <Text className="text-base font-bold text-label-primary">
-                  {formatCurrency(previewCost, 'pt-BR', { showCents: true })}
-                </Text>
-              </View>
-
               {errors.general ? (
                 <Text className="text-sm text-alert-primary">
                   {errors.general}
                 </Text>
               ) : null}
-            </ScrollView>
 
-            {/* Ações */}
-            <View className="gap-2 pt-2">
-              <Button
-                shape="pill"
-                icon={Check}
-                className="h-[49px] w-full"
-                disabled={submitting}
-                onPress={onSubmit}
-              >
-                <Text className="font-semibold text-label-secondary">
-                  {submitting ? 'Salvando...' : 'Confirmar'}
-                </Text>
-              </Button>
-
-              {isEditing && onDelete ? (
-                <Button
-                  shape="pill"
-                  variant="secondary"
-                  icon={Trash2}
-                  className="h-[49px] w-full"
+              {/* Botão Salvar dentro do conteúdo rolável (largura total, marrom escuro, pílula com ícone check) */}
+              <View className="mt-2 gap-2">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Salvar"
                   disabled={submitting}
-                  onPress={onDelete}
+                  onPress={onSubmit}
+                  className="h-14 w-full flex-row items-center justify-center gap-2 rounded-full bg-button-primary active:opacity-90"
                 >
-                  <Text className="font-semibold text-label-secondary">
-                    Excluir deslocamento
+                  <Icon as={Check} size={18} className="text-label-secondary" />
+                  <Text className="text-base font-semibold text-label-secondary">
+                    {submitting ? 'Salvando...' : 'Salvar'}
                   </Text>
-                </Button>
-              ) : null}
-            </View>
+                </Pressable>
+
+                {isEditing && onDelete ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Excluir deslocamento"
+                    disabled={submitting}
+                    onPress={onDelete}
+                    className="h-12 w-full flex-row items-center justify-center gap-2 rounded-full border border-alert-primary bg-white active:opacity-80"
+                  >
+                    <Icon as={Trash2} size={16} className="text-alert-primary" />
+                    <Text className="text-sm font-semibold text-alert-primary">
+                      Excluir deslocamento
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            </ScrollView>
           </View>
         </Animated.View>
-      </Animated.View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
+  backdropPressable: {
+    backgroundColor: 'rgba(50, 48, 48, 0.5)',
   },
 });

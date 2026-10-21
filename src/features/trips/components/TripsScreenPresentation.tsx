@@ -1,11 +1,4 @@
-// LAYOUT PROVISÓRIO: aguardando imagem de referência
-import {
-  ArrowLeft,
-  CarFront,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-} from 'lucide-react-native';
+import { ArrowLeft, CarFront, Plus } from 'lucide-react-native';
 import React from 'react';
 import {
   ActivityIndicator,
@@ -16,7 +9,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card } from 'app/components/ui/card';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -45,6 +37,7 @@ export type TripsScreenPresentationProps = {
   onAddTrip: () => void;
   onBack: () => void;
   vehicleNamesById: Record<string, string>;
+  clientNamesById?: Record<string, string>;
 };
 
 export function TripsScreenPresentation({
@@ -66,44 +59,15 @@ export function TripsScreenPresentation({
   onAddTrip,
   onBack,
   vehicleNamesById,
+  clientNamesById = {},
 }: TripsScreenPresentationProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View className="flex-1 bg-background-modal">
-      {/* Top Header */}
-      <View
-        style={{ paddingTop: Math.max(insets.top, 16) }}
-        className="flex-row items-center justify-between border-b border-border-primary bg-white px-4 pb-3"
-      >
-        <View className="flex-row items-center gap-3">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-            hitSlop={8}
-            onPress={onBack}
-            className="size-9 items-center justify-center rounded-full bg-details-primary active:opacity-70"
-          >
-            <Icon as={ArrowLeft} size={20} className="text-label-primary" />
-          </Pressable>
-          <Text className="text-xl font-bold text-label-primary">
-            Deslocamentos
-          </Text>
-        </View>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Registrar deslocamento"
-          hitSlop={8}
-          onPress={onAddTrip}
-          className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-        >
-          <Icon as={Plus} size={20} className="text-label-secondary" />
-        </Pressable>
-      </View>
-
       <ScrollView
-        contentContainerClassName="gap-4 p-4 pb-12"
+        contentContainerClassName="p-4 pb-28"
+        style={{ paddingTop: Math.max(insets.top, 16) }}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
         }
@@ -118,99 +82,106 @@ export function TripsScreenPresentation({
         }}
         scrollEventThrottle={400}
       >
-        {/* Seletor de Mês (estilo Finanças) */}
-        <Card className="gap-0 rounded-[14px] bg-white p-3">
-          <View className="flex-row items-center justify-between">
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Mês anterior"
-              onPress={onPreviousMonth}
-              className="size-8 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-            >
-              <Icon
-                as={ChevronLeft}
-                size={16}
-                className="text-label-secondary"
-              />
-            </Pressable>
+        {/* Botão de Voltar Redondo e Escuro */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={8}
+          onPress={onBack}
+          className="size-10 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+        >
+          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
+        </Pressable>
 
-            <View className="items-center">
-              <Text className="text-sm font-semibold capitalize text-label-primary">
-                {monthLabel}
-              </Text>
-              {isCurrentMonth ? (
-                <Text className="text-[10px] font-semibold uppercase tracking-[0.6px] text-label-tertiary">
-                  Mês atual
-                </Text>
-              ) : null}
-            </View>
+        {/* Título e Subtítulo */}
+        <View className="mb-4 mt-3">
+          <Text className="text-2xl font-bold text-label-primary">
+            Deslocamentos
+          </Text>
+          <Text className="mt-1 text-sm text-label-tertiary">
+            Quanto você rodou e gastou para atender
+          </Text>
+        </View>
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Próximo mês"
-              onPress={onNextMonth}
-              className="size-8 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-            >
-              <Icon
-                as={ChevronRight}
-                size={16}
-                className="text-label-secondary"
-              />
-            </Pressable>
-          </View>
-        </Card>
-
-        {/* Card de Resumo */}
+        {/* Card de Resumo com Seletor de Mês e Métricas */}
         <TripsSummaryCard
+          monthLabel={monthLabel}
+          isCurrentMonth={isCurrentMonth}
+          onPreviousMonth={onPreviousMonth}
+          onNextMonth={onNextMonth}
           totalKm={totalKm}
           totalCost={totalCost}
           tripsCount={totalTripsCount}
         />
 
-        {/* Lista de Deslocamentos agrupados por data */}
+        {/* Lista de Deslocamentos ou Estado Vazio (sem botão interno) */}
         {groupedTrips.length === 0 && !isLoading ? (
-          <EmptyState
-            icon={CarFront}
-            title="Nenhum deslocamento no período"
-            message="Registre seus deslocamentos para acompanhar a quilometragem e o custo de transporte."
-            action={{
-              label: 'Registrar deslocamento',
-              icon: Plus,
-              onPress: onAddTrip,
-            }}
-          />
+          <View className="mt-4">
+            <EmptyState
+              icon={CarFront}
+              title="Nenhum deslocamento no período"
+              message="Registre seus deslocamentos para acompanhar a quilometragem e o custo de transporte."
+            />
+          </View>
         ) : (
-          <View className="gap-4">
+          <View className="mt-2">
             {groupedTrips.map(group => (
-              <View key={group.date} className="gap-2">
-                <Text className="text-xs font-bold uppercase tracking-wide text-label-tertiary">
+              <View key={group.date} className="mt-4">
+                <Text className="mb-2 text-xs font-bold uppercase tracking-wider text-label-primary">
                   {group.formattedDate}
                 </Text>
 
-                <View className="gap-2">
-                  {group.trips.map(trip => (
-                    <TripListItem
+                <View className="overflow-hidden rounded-2xl border border-[#F0ECE4] bg-white">
+                  {group.trips.map((trip, idx) => (
+                    <View
                       key={trip.id}
-                      trip={trip}
-                      vehicleName={
-                        trip.vehicleId
-                          ? vehicleNamesById[trip.vehicleId]
-                          : undefined
-                      }
-                      onPress={onTripPress}
-                      onDelete={onDeleteTrip}
-                    />
+                      className={idx > 0 ? 'border-t border-[#F0ECE4]' : ''}
+                    >
+                      <TripListItem
+                        trip={trip}
+                        vehicleName={
+                          trip.vehicleId
+                            ? vehicleNamesById[trip.vehicleId]
+                            : undefined
+                        }
+                        clientName={
+                          trip.clientId ? clientNamesById[trip.clientId] : undefined
+                        }
+                        onPress={onTripPress}
+                        onDelete={onDeleteTrip}
+                        showChevron
+                      />
+                    </View>
                   ))}
                 </View>
               </View>
             ))}
 
             {isLoadingMore ? (
-              <ActivityIndicator size="small" className="py-2" />
+              <ActivityIndicator size="small" className="py-4" />
             ) : null}
           </View>
         )}
       </ScrollView>
+
+      {/* Botão Flutuante no Rodapé (sem faixa branca e sem linha separadora) */}
+      <View
+        pointerEvents="box-none"
+        style={{ paddingBottom: Math.max(insets.bottom, 20) }}
+        className="absolute bottom-0 left-0 right-0 px-4"
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Registrar deslocamento"
+          onPress={onAddTrip}
+          className="h-14 w-full flex-row items-center justify-center gap-2 rounded-full bg-button-primary shadow-lg shadow-black/20 active:opacity-90"
+        >
+          <Icon as={Plus} size={20} className="text-label-secondary" />
+          <Text className="text-base font-semibold text-label-secondary">
+            Registrar deslocamento
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

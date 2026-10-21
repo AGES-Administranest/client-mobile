@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { useAuth } from 'features/auth';
+import { useClientNames } from 'features/clients';
 import { useVehicles } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
 import { addMonths } from 'shared/utils/calendar';
@@ -34,7 +35,17 @@ export function TripsScreen({
     };
   });
 
-  const { from, to, monthLabel, isCurrentMonth } = useMemo(() => {
+  useEffect(() => {
+    if (visible) {
+      const now = new Date();
+      setDateState({
+        year: now.getFullYear(),
+        monthIndex: now.getMonth(),
+      });
+    }
+  }, [visible]);
+
+  const { from, to, monthLabel, isCurrentMonth, defaultOccurredOn } = useMemo(() => {
     const { year, monthIndex } = dateState;
     const now = new Date();
     const isCurrent =
@@ -47,16 +58,22 @@ export function TripsScreen({
     const fromDate = `${year}-${monthStr}-01`;
     const toDate = `${year}-${monthStr}-${lastDayStr}`;
 
-    const label = new Intl.DateTimeFormat(locale, {
-      month: 'long',
-      year: 'numeric',
-    }).format(new Date(year, monthIndex, 1));
+    const monthName = new Intl.DateTimeFormat(locale, { month: 'long' }).format(
+      new Date(year, monthIndex, 1),
+    );
+    const capitalizedMonth =
+      monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase();
+    const label = `${capitalizedMonth} ${year}`;
+
+    const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const initialDate = isCurrent ? todayIso : fromDate;
 
     return {
       from: fromDate,
       to: toDate,
       monthLabel: label,
       isCurrentMonth: isCurrent,
+      defaultOccurredOn: initialDate,
     };
   }, [dateState, locale]);
 
@@ -72,6 +89,7 @@ export function TripsScreen({
   const token = sessionToken ?? '';
 
   const { vehicles } = useVehicles({ token, autoFetch: visible });
+  const clientNames = useClientNames();
 
   const vehicleNamesById = useMemo(() => {
     const map: Record<string, string> = {};
@@ -167,13 +185,14 @@ export function TripsScreen({
         onAddTrip={handleAddTrip}
         onBack={onClose}
         vehicleNamesById={vehicleNamesById}
+        clientNamesById={clientNames}
       />
 
       <TripFormSheet
         visible={sheetVisible}
         onClose={() => setSheetVisible(false)}
         trip={selectedTrip}
-        defaultOccurredOn={from}
+        defaultOccurredOn={defaultOccurredOn}
         onSuccess={() => refetch()}
         onDeleted={() => refetch()}
       />

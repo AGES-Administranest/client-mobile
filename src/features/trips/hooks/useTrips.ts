@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
-import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
 import type { QueryTripParams, Trip } from '../domain/trip.types';
 import {
@@ -227,10 +226,14 @@ export function useTrips(options: UseTripsOptions = {}) {
       let formattedDate = date;
       try {
         const [year, month, day] = date.split('-').map(Number);
-        formattedDate = formatDayAndMonth(
-          new Date(year, month - 1, day),
-          locale,
-        );
+        const d = new Date(year, month - 1, day);
+        const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' })
+          .format(d)
+          .replace('.', '');
+        const monthShort = new Intl.DateTimeFormat(locale, { month: 'short' })
+          .format(d)
+          .replace('.', '');
+        formattedDate = `${weekday.toUpperCase()}, ${day} ${monthShort.toUpperCase()}`;
       } catch {
         // Fallback
       }
