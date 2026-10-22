@@ -147,6 +147,26 @@ describe('forgotPassword', () => {
     await expect(forgotPassword('nobody@example.com')).resolves.toBeUndefined();
   });
 
+  it('treats an InvalidParameterException (no verified e-mail, e.g. a Google-only account) as success and warns in dev', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    respondWith(
+      {
+        __type: 'InvalidParameterException',
+        message:
+          'Cannot reset password for the user as there is no registered/verified email',
+      },
+      false,
+    );
+
+    await expect(forgotPassword('google@example.com')).resolves.toBeUndefined();
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('InvalidParameterException'),
+      expect.stringContaining('no registered/verified email'),
+    );
+    warn.mockRestore();
+  });
+
   it('still propagates errors that are not about existence', async () => {
     respondWith({ __type: 'TooManyRequestsException' }, false);
 

@@ -447,6 +447,44 @@ describe('forgot password', () => {
     expect(texts(renderer)).toContain('Informe um e-mail válido.');
   });
 
+  it('goes to the e-mail sent screen when Cognito cannot send a code to the account (InvalidParameterException)', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID = 'test-client';
+    process.env.EXPO_PUBLIC_COGNITO_ENDPOINT = 'http://localhost:4566';
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: () =>
+        Promise.resolve({
+          __type: 'InvalidParameterException',
+          message: 'no registered/verified email',
+        }),
+    }) as unknown as typeof fetch;
+    service.forgotPassword.mockImplementation(
+      jest.requireActual('../services/authService').forgotPassword,
+    );
+    const renderer = await openForgotPassword();
+
+    await type(renderer, 'DIGITE SEU EMAIL*', 'google@example.com');
+    await press(renderer, 'Confirmar');
+
+    expect(texts(renderer)).toContain('E-mail enviado');
+    expect(texts(renderer)).not.toContain('Verifique os dados informados.');
+    globalThis.fetch = originalFetch;
+    warn.mockRestore();
+  });
+
+  it('keeps blocking a badly formatted e-mail on the client, without calling the service', async () => {
+    const renderer = await openForgotPassword();
+
+    await type(renderer, 'DIGITE SEU EMAIL*', 'google@');
+    await press(renderer, 'Confirmar');
+
+    expect(service.forgotPassword).not.toHaveBeenCalled();
+    expect(texts(renderer)).toContain('Informe um e-mail válido.');
+    expect(texts(renderer)).not.toContain('E-mail enviado');
+  });
+
   it('shows the not-found state only when the service reports it', async () => {
     service.forgotPassword.mockRejectedValue(new AuthError('EMAIL_NOT_FOUND'));
     const renderer = await openForgotPassword();
