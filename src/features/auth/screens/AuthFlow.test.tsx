@@ -485,7 +485,7 @@ describe('forgot password', () => {
 
     expect(service.forgotPassword).toHaveBeenCalledWith('ana@example.com');
     expect(texts(renderer)).toContain('E-mail enviado');
-    expect(texts(renderer)).toContain('Enviamos um link para redefinir');
+    expect(texts(renderer)).toContain('Enviamos um código para redefinir');
     expect(
       byLabel(renderer, 'Não recebeu? Reenviar em 00:45').props.disabled,
     ).toBe(true);
@@ -524,7 +524,7 @@ describe('forgot password', () => {
     );
   });
 
-  it('sends the user to the expired link screen', async () => {
+  it('sends the user to the expired code screen', async () => {
     service.confirmForgotPassword.mockRejectedValue(
       new AuthError('EXPIRED_CODE'),
     );
@@ -535,10 +535,87 @@ describe('forgot password', () => {
     await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
     await press(renderer, 'Confirmar');
 
-    expect(texts(renderer)).toContain('Este link não é mais válido');
+    expect(texts(renderer)).toContain('Código expirado');
+    expect(texts(renderer)).toContain('Este código não é mais válido');
+    expect(texts(renderer)).toContain(
+      'O código de recuperação expirou ou já foi utilizado. Por segurança, ele é válido por apenas 1 hora.',
+    );
+    expect(texts(renderer)).not.toContain('Código inválido.');
 
-    await press(renderer, 'Solicitar novo link');
+    await press(renderer, 'Solicitar novo código');
     expect(byLabel(renderer, 'DIGITE SEU EMAIL*')).toBeDefined();
+  });
+
+  it('shows a wrong code inline on the code field and stays on the reset screen', async () => {
+    service.confirmForgotPassword.mockRejectedValue(
+      new AuthError('INVALID_CODE'),
+    );
+    const renderer = await openNewPassword();
+
+    await type(renderer, 'CÓDIGO RECEBIDO*', '000000');
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+
+    expect(service.confirmForgotPassword).toHaveBeenCalledWith(
+      'ana@example.com',
+      '000000',
+      'Abcdef1!',
+    );
+    expect(texts(renderer)).toContain('Código inválido.');
+    expect(texts(renderer)).not.toContain('Código expirado');
+    expect(texts(renderer)).not.toContain('Este código não é mais válido');
+    expect(byLabel(renderer, 'CÓDIGO RECEBIDO*').props.value).toBe('000000');
+    expect(byLabel(renderer, 'NOVA SENHA*').props.value).toBe('Abcdef1!');
+    expect(byLabel(renderer, 'CONFIRME NOVA SENHA*').props.value).toBe(
+      'Abcdef1!',
+    );
+  });
+
+  it('clears the wrong-code message once the code is edited', async () => {
+    service.confirmForgotPassword.mockRejectedValue(
+      new AuthError('INVALID_CODE'),
+    );
+    const renderer = await openNewPassword();
+    await type(renderer, 'CÓDIGO RECEBIDO*', '000000');
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+    expect(texts(renderer)).toContain('Código inválido.');
+
+    await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
+
+    expect(texts(renderer)).not.toContain('Código inválido.');
+  });
+
+  it('sends an expired code and a wrong code to different places', async () => {
+    service.confirmForgotPassword.mockRejectedValueOnce(
+      new AuthError('INVALID_CODE'),
+    );
+    const renderer = await openNewPassword();
+    await type(renderer, 'CÓDIGO RECEBIDO*', '000000');
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+    expect(texts(renderer)).toContain('Código inválido.');
+    expect(texts(renderer)).not.toContain('Código expirado');
+
+    service.confirmForgotPassword.mockRejectedValueOnce(
+      new AuthError('EXPIRED_CODE'),
+    );
+    await press(renderer, 'Confirmar');
+    expect(texts(renderer)).toContain('Código expirado');
+  });
+
+  it('asks for the code: the reset does not call the service without it', async () => {
+    const renderer = await openNewPassword();
+
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+
+    expect(service.confirmForgotPassword).not.toHaveBeenCalled();
+    expect(texts(renderer)).toContain('Campo obrigatório');
   });
 
   it('keeps the typed passwords when the network fails', async () => {

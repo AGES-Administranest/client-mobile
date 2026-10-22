@@ -947,8 +947,8 @@
     "emailSent": {
       "title": "Email sent",
       "heading": "Check your inbox",
-      "description": "We sent a link to reset your password to {{email}}",
-      "hint": "The link is valid for 30 minutes. If you can't find the email, check your spam folder.",
+      "description": "We sent a code to reset your password to {{email}}",
+      "hint": "The code is valid for 1 hour. If you cannot find the e-mail, check your spam folder.",
       "backToLogin": "Back to Login",
       "resendCountdown": "Didn't get it? Resend in {{time}}",
       "resend": "Resend",
@@ -972,12 +972,12 @@
         "special": "One special character (!@#$%)"
       }
     },
-    "linkExpired": {
-      "title": "Link expired",
-      "heading": "This link is no longer valid",
-      "description": "The recovery link expired or was already used. For security, it is only valid for 30 minutes.",
-      "hint": "Request a new link to reset your password.",
-      "requestNew": "Request new link",
+    "codeExpired": {
+      "title": "Code expired",
+      "heading": "This code is no longer valid",
+      "description": "The recovery code has expired or has already been used. For security, it is only valid for 1 hour.",
+      "hint": "Request a new code to reset your password.",
+      "requestNew": "Request a new code",
       "backToLogin": "Back to Login"
     },
     "resetSuccess": {

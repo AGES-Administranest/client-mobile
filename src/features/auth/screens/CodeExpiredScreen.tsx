@@ -8,44 +8,44 @@ import { AuthButton } from '../components/AuthButton';
 import { AuthLayout } from '../components/AuthLayout';
 import { ResultIcon } from '../components/ResultIcon';
 
-type LinkExpiredScreenProps = {
+type CodeExpiredScreenProps = {
   onBack: () => void;
-  onRequestNewLink: () => void;
+  onRequestNewCode: () => void;
   onBackToLogin: () => void;
 };
 
-export function LinkExpiredScreen({
+export function CodeExpiredScreen({
   onBack,
-  onRequestNewLink,
+  onRequestNewCode,
   onBackToLogin,
-}: LinkExpiredScreenProps) {
+}: CodeExpiredScreenProps) {
   const { t } = useTranslation();
 
   return (
     <AuthLayout
-      title={t('auth.linkExpired.title')}
+      title={t('auth.codeExpired.title')}
       backLabel={t('auth.back')}
       onBack={onBack}
     >
       <View className="w-full items-center">
         <ResultIcon icon={Clock} tone="error" />
         <Text className="mt-6 text-lg font-semibold text-label-quartenery">
-          {t('auth.linkExpired.heading')}
+          {t('auth.codeExpired.heading')}
         </Text>
         <Text className="mt-3 text-center text-[15px] text-label-tertiary">
-          {t('auth.linkExpired.description')}
+          {t('auth.codeExpired.description')}
         </Text>
         <Text className="mb-8 mt-4 text-center text-[15px] text-label-tertiary">
-          {t('auth.linkExpired.hint')}
+          {t('auth.codeExpired.hint')}
         </Text>
 
         <AuthButton
-          label={t('auth.linkExpired.requestNew')}
-          onPress={onRequestNewLink}
+          label={t('auth.codeExpired.requestNew')}
+          onPress={onRequestNewCode}
         />
         <AuthButton
           variant="link"
-          label={t('auth.linkExpired.backToLogin')}
+          label={t('auth.codeExpired.backToLogin')}
           onPress={onBackToLogin}
         />
       </View>

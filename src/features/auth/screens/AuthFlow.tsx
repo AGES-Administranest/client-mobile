@@ -1,6 +1,6 @@
+import { CodeExpiredScreen } from './CodeExpiredScreen';
 import { ConfirmSignUpScreen } from './ConfirmSignUpScreen';
 import { ForgotPasswordScreen } from './ForgotPasswordScreen';
-import { LinkExpiredScreen } from './LinkExpiredScreen';
 import { LoginScreen } from './LoginScreen';
 import { ResetEmailSentScreen } from './ResetEmailSentScreen';
 import { ResetPasswordScreen } from './ResetPasswordScreen';
@@ -20,7 +20,7 @@ export function AuthFlow() {
     goToForgotPassword,
     resetEmailSent,
     goToResetPassword,
-    resetLinkExpired,
+    resetCodeExpired,
     resetSucceeded,
     confirmAfterSignUp,
     confirmAfterLogin,
@@ -71,17 +71,16 @@ export function AuthFlow() {
       return (
         <ResetPasswordScreen
           email={step.email}
-          token={step.token}
           onBack={() => resetEmailSent(step.email)}
           onSuccess={resetSucceeded}
-          onExpired={() => resetLinkExpired(step.email)}
+          onExpired={() => resetCodeExpired(step.email)}
         />
       );
-    case 'linkExpired':
+    case 'codeExpired':
       return (
-        <LinkExpiredScreen
+        <CodeExpiredScreen
           onBack={goToLogin}
-          onRequestNewLink={goToForgotPassword}
+          onRequestNewCode={goToForgotPassword}
           onBackToLogin={goToLogin}
         />
       );

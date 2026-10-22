@@ -947,8 +947,8 @@
     "emailSent": {
       "title": "E-mail enviado",
       "heading": "Confira sua caixa de entrada",
-      "description": "Enviamos um link para redefinir sua senha para {{email}}",
-      "hint": "O link é válido por 30 minutos. Se não encontrar o e-mail, verifique a pasta de spam.",
+      "description": "Enviamos um código para redefinir sua senha para {{email}}",
+      "hint": "O código é válido por 1 hora. Se não encontrar o e-mail, verifique a pasta de spam.",
       "backToLogin": "Voltar ao Login",
       "resendCountdown": "Não recebeu? Reenviar em {{time}}",
       "resend": "Reenviar",
@@ -972,12 +972,12 @@
         "special": "Um caractere especial (!@#$%)"
       }
     },
-    "linkExpired": {
-      "title": "Link expirado",
-      "heading": "Este link não é mais válido",
-      "description": "O link de recuperação expirou ou já foi utilizado. Por segurança, ele é válido por apenas 30 minutos.",
-      "hint": "Solicite um novo link para redefinir sua senha.",
-      "requestNew": "Solicitar novo link",
+    "codeExpired": {
+      "title": "Código expirado",
+      "heading": "Este código não é mais válido",
+      "description": "O código de recuperação expirou ou já foi utilizado. Por segurança, ele é válido por apenas 1 hora.",
+      "hint": "Solicite um novo código para redefinir sua senha.",
+      "requestNew": "Solicitar novo código",
       "backToLogin": "Voltar ao Login"
     },
     "resetSuccess": {

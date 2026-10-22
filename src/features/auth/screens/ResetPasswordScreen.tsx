@@ -10,12 +10,6 @@ import { useResetPassword } from '../hooks/useResetPassword';
 
 type ResetPasswordScreenProps = {
   email: string;
-  // TODO(backend): where this comes from depends on the backend decision.
-  // Cognito sends a CODE, not a link, so today the user types it into the extra
-  // field below (token === ''). If the e-mail carries a link, a deep link
-  // handler should open this screen with the token filled in and the field
-  // disappears on its own.
-  token: string;
   onBack: () => void;
   onSuccess: () => void;
   onExpired: () => void;
@@ -23,13 +17,12 @@ type ResetPasswordScreenProps = {
 
 export function ResetPasswordScreen({
   email,
-  token,
   onBack,
   onSuccess,
   onExpired,
 }: ResetPasswordScreenProps) {
   const { t } = useTranslation();
-  const reset = useResetPassword({ email, token, onSuccess, onExpired });
+  const reset = useResetPassword({ email, onSuccess, onExpired });
 
   const requirementItems = reset.requirements.map(
     ({ requirement, status }) => ({
@@ -45,18 +38,22 @@ export function ResetPasswordScreen({
       backLabel={t('auth.back')}
       onBack={onBack}
     >
-      {reset.needsCode ? (
-        <TextField
-          label={t('auth.newPassword.codeLabel')}
-          value={reset.code}
-          onChangeText={reset.changeCode}
-          error={reset.codeMissing ? t('auth.validation.required') : undefined}
-          keyboardType="number-pad"
-          autoComplete="one-time-code"
-          textContentType="oneTimeCode"
-          editable={!reset.isSubmitting}
-        />
-      ) : null}
+      <TextField
+        label={t('auth.newPassword.codeLabel')}
+        value={reset.code}
+        onChangeText={reset.changeCode}
+        error={
+          reset.codeMissing
+            ? t('auth.validation.required')
+            : reset.codeInvalid
+            ? t('auth.errors.invalidCode')
+            : undefined
+        }
+        keyboardType="number-pad"
+        autoComplete="one-time-code"
+        textContentType="oneTimeCode"
+        editable={!reset.isSubmitting}
+      />
 
       <TextField
         label={t('auth.newPassword.passwordLabel')}

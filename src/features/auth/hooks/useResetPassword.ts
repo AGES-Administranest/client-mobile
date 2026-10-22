@@ -13,8 +13,6 @@ import { confirmForgotPassword } from '../services/authService';
 
 type UseResetPasswordOptions = {
   email: string;
-  // The reset code (Cognito) or link token. Empty when the screen has to ask.
-  token: string;
   onSuccess: () => void;
   onExpired: () => void;
 };
@@ -26,7 +24,6 @@ export type RequirementItem = {
 
 export function useResetPassword({
   email,
-  token,
   onSuccess,
   onExpired,
 }: UseResetPasswordOptions) {
@@ -35,8 +32,8 @@ export function useResetPassword({
   const [confirmation, setConfirmationValue] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [codeMissing, setCodeMissing] = useState(false);
+  const [codeInvalid, setCodeInvalid] = useState(false);
 
-  const needsCode = token === '';
   const validation = useMemo(
     () => validateNewPassword(password, confirmation),
     [password, confirmation],
@@ -48,6 +45,11 @@ export function useResetPassword({
         onExpired();
         return true;
       }
+      // Wrong code: stays on this screen with the error on the code field.
+      if (error instanceof AuthError && error.code === 'INVALID_CODE') {
+        setCodeInvalid(true);
+        return true;
+      }
       return false;
     },
     [onExpired],
@@ -57,26 +59,24 @@ export function useResetPassword({
 
   const submit = useCallback(() => {
     setAttempted(true);
-    const missingCode = needsCode && code.trim() === '';
+    const missingCode = code.trim() === '';
     setCodeMissing(missingCode);
+    setCodeInvalid(false);
 
     if (missingCode || !validation.isValid) {
       return;
     }
 
     return run(async () => {
-      await confirmForgotPassword(
-        email,
-        needsCode ? code.trim() : token,
-        password,
-      );
+      await confirmForgotPassword(email, code.trim(), password);
       onSuccess();
     });
-  }, [code, email, needsCode, onSuccess, password, run, token, validation]);
+  }, [code, email, onSuccess, password, run, validation]);
 
   const changeCode = useCallback((value: string) => {
     setCode(value);
     setCodeMissing(false);
+    setCodeInvalid(false);
   }, []);
 
   const requirements: RequirementItem[] = PASSWORD_REQUIREMENTS.map(
@@ -90,9 +90,9 @@ export function useResetPassword({
   );
 
   return {
-    needsCode,
     code,
     codeMissing,
+    codeInvalid,
     changeCode,
     password,
     setPassword: setPasswordValue,
