@@ -1,5 +1,5 @@
 import { FileText } from 'lucide-react-native';
-import { Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Text } from 'app/components/ui/text';
@@ -33,11 +33,18 @@ export function ServiceInvoicesSection({
           </Text>
         </Pressable>
       </View>
-      {status === 'failed' ? (
+      {status === 'loading' ? (
+        <View
+          accessibilityLabel={t('serviceInvoices.loading')}
+          className="items-center py-6"
+        >
+          <ActivityIndicator />
+        </View>
+      ) : status === 'failed' ? (
         <View className="px-4">
           <EmptyState message={t('serviceInvoices.error')} />
         </View>
-      ) : status === 'ready' && invoices.length === 0 ? (
+      ) : invoices.length === 0 ? (
         <View className="px-4">
           <EmptyState icon={FileText} message={t('serviceInvoices.empty')} />
         </View>

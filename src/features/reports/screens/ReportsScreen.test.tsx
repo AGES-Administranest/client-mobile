@@ -1,4 +1,3 @@
-import { Text } from 'react-native';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
@@ -35,25 +34,14 @@ const ACCOUNT: Account = {
   termsVersion: TERMS_VERSION,
 };
 
-function DetailStub({ invoiceId }: { invoiceId: string; onClose: () => void }) {
-  return <Text>{`detail:${invoiceId}`}</Text>;
-}
-
-function ListStub() {
-  return <Text>list</Text>;
-}
-
-async function renderReports() {
+async function renderReports(props: Parameters<typeof ReportsScreen>[0] = {}) {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <I18nProvider>
         <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-          <ReportsScreen
-            InvoiceDetailScreen={DetailStub}
-            InvoiceListScreen={ListStub}
-          />
+          <ReportsScreen {...props} />
         </AuthProvider>
       </I18nProvider>,
     );
@@ -80,7 +68,7 @@ async function press(
   await act(async () => target.props.onPress());
 }
 
-test('shows the invoices section under the title', async () => {
+test('shows the title and the invoices section', async () => {
   const shown = texts(await renderReports());
 
   expect(shown).toContain('Relatórios');
@@ -88,25 +76,20 @@ test('shows the invoices section under the title', async () => {
   expect(shown).toContain('HospVet Sul');
 });
 
-test('tapping a card opens the detail of that invoice', async () => {
-  const renderer = await renderReports();
+test('tapping a card reports which invoice was opened', async () => {
+  const onOpenInvoice = jest.fn();
+  const renderer = await renderReports({ onOpenInvoice });
 
   await press(renderer, 'button');
 
-  expect(texts(renderer)).toContain('detail:invoice-1');
+  expect(onOpenInvoice).toHaveBeenCalledWith('invoice-1');
 });
 
-test('tapping "Ver todos" opens the full list', async () => {
-  const renderer = await renderReports();
+test('tapping "Ver todos" reports that the full list was asked for', async () => {
+  const onSeeAllInvoices = jest.fn();
+  const renderer = await renderReports({ onSeeAllInvoices });
 
   await press(renderer, 'link');
 
-  expect(texts(renderer)).toContain('list');
-});
-
-test('opens nothing before a tap', async () => {
-  const shown = texts(await renderReports());
-
-  expect(shown).not.toContain('detail:invoice-1');
-  expect(shown).not.toContain('"list"');
+  expect(onSeeAllInvoices).toHaveBeenCalledTimes(1);
 });

@@ -805,9 +805,13 @@
     "reports": "Relatórios",
     "clinics": "Clínicas"
   },
+  "reports": {
+    "title": "Relatórios"
+  },
   "serviceInvoices": {
     "title": "Notas fiscais",
     "seeAll": "Ver todos",
+    "loading": "Carregando notas fiscais",
     "empty": "Nenhuma nota fiscal registrada ainda.",
     "error": "Não foi possível carregar as notas fiscais.",
     "noClient": "Sem tomador",

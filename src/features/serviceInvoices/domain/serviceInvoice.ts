@@ -22,15 +22,3 @@ export function formatIssueDate(isoDate: string): string {
   const [, year, month, day] = match;
   return `${day}/${month}/${year}`;
 }
-
-/** Newest issue date first; an invoice without a date goes last. */
-export function sortByIssueDateDesc(
-  invoices: readonly ServiceInvoice[],
-): ServiceInvoice[] {
-  return [...invoices].sort((a, b) => {
-    if (a.issueDate === b.issueDate) return 0;
-    if (a.issueDate === null) return 1;
-    if (b.issueDate === null) return -1;
-    return b.issueDate.localeCompare(a.issueDate);
-  });
-}

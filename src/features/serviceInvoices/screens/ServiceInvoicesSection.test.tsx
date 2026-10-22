@@ -48,7 +48,7 @@ const WITHOUT_FILE: ServiceInvoice = {
 };
 
 async function renderSection(
-  props: Parameters<typeof ServiceInvoicesSection>[0] = {},
+  props: Partial<Parameters<typeof ServiceInvoicesSection>[0]> = {},
 ) {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
 
@@ -56,7 +56,11 @@ async function renderSection(
     renderer = ReactTestRenderer.create(
       <I18nProvider>
         <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-          <ServiceInvoicesSection {...props} />
+          <ServiceInvoicesSection
+            onOpenInvoice={jest.fn()}
+            onSeeAll={jest.fn()}
+            {...props}
+          />
         </AuthProvider>
       </I18nProvider>,
     );
@@ -77,19 +81,18 @@ beforeEach(() => {
   fetchMock.mockReset();
 });
 
-test('asks for the recent invoices with the session token', async () => {
+test('asks for the few most recent invoices with the session token', async () => {
   fetchMock.mockResolvedValue([WITH_FILE]);
 
   await renderSection();
 
-  expect(fetchMock).toHaveBeenCalledWith(SESSION.idToken, expect.any(Number));
+  expect(fetchMock).toHaveBeenCalledWith(SESSION.idToken, 5);
 });
 
 test('shows the title, the see-all link and a card per invoice', async () => {
   fetchMock.mockResolvedValue([WITH_FILE]);
 
-  const renderer = await renderSection();
-  const shown = texts(renderer);
+  const shown = texts(await renderSection());
 
   expect(shown).toContain('Notas fiscais');
   expect(shown).toContain('Ver todos');
@@ -129,6 +132,21 @@ test('shows an error message when loading fails', async () => {
   const shown = texts(await renderSection());
 
   expect(shown).toContain('Não foi possível carregar as notas fiscais.');
+});
+
+test('shows a loading indicator while the invoices are coming', async () => {
+  fetchMock.mockReturnValue(new Promise(() => undefined));
+
+  const renderer = await renderSection();
+
+  expect(
+    renderer.root.findAll(
+      node => node.props.accessibilityLabel === 'Carregando notas fiscais',
+    ).length,
+  ).toBeGreaterThan(0);
+  expect(texts(renderer)).not.toContain(
+    'Nenhuma nota fiscal registrada ainda.',
+  );
 });
 
 test('tapping a card opens that invoice', async () => {

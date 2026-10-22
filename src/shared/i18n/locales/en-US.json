@@ -805,9 +805,13 @@
     "reports": "Reports",
     "clinics": "Clinics"
   },
+  "reports": {
+    "title": "Reports"
+  },
   "serviceInvoices": {
     "title": "Invoices",
     "seeAll": "See all",
+    "loading": "Loading invoices",
     "empty": "No invoices registered yet.",
     "error": "Could not load the invoices.",
     "noClient": "No client",

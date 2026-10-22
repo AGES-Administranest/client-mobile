@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 
@@ -8,20 +8,17 @@ import {
 } from '../domain/serviceInvoice';
 import { fetchRecentServiceInvoices } from '../services/serviceInvoiceService';
 
-export type RecentServiceInvoicesState = {
+type RecentServiceInvoicesState = {
   invoices: ServiceInvoice[];
   status: 'loading' | 'ready' | 'failed';
-  refresh: () => void;
 };
 
-/** The few most recent invoices for the Reports tab. */
 export function useRecentServiceInvoices(): RecentServiceInvoicesState {
   const { session } = useAuth();
   const idToken = session?.idToken ?? null;
   const [invoices, setInvoices] = useState<ServiceInvoice[]>([]);
   const [status, setStatus] =
     useState<RecentServiceInvoicesState['status']>('loading');
-  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     if (!idToken) return;
@@ -38,12 +35,7 @@ export function useRecentServiceInvoices(): RecentServiceInvoicesState {
     return () => {
       isMounted = false;
     };
-  }, [idToken, version]);
+  }, [idToken]);
 
-  const refresh = useCallback(() => {
-    setStatus('loading');
-    setVersion(current => current + 1);
-  }, []);
-
-  return { invoices, status, refresh };
+  return { invoices, status };
 }

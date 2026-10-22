@@ -25,7 +25,7 @@ export function ServiceInvoiceCard({
     <Pressable onPress={onPress} accessibilityRole="button">
       <View
         className={cn(
-          'w-[190px] gap-1 rounded-2xl bg-white p-4 shadow-md shadow-black/10',
+          'w-[141px] gap-1 rounded-2xl bg-white p-4 shadow-md shadow-black/10',
           className,
         )}
       >
