@@ -1,17 +1,13 @@
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  RefreshCw,
-} from 'lucide-react-native';
+import { ArrowDown, ArrowUp, RefreshCw } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 import { Card } from 'app/components/ui/card';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { MonthSelector } from 'shared/components/MonthSelector';
 import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
+import { formatMonthLabel } from 'shared/utils/monthPeriod';
 
 import type { StatementPeriod } from '../domain/statement';
 import type { FinanceOverview } from '../hooks/useFinanceOverview';
@@ -92,11 +88,6 @@ export function FinanceOverviewPanel({
   onRetry,
 }: FinanceOverviewPanelProps) {
   const { t, locale } = useTranslation();
-  const monthLabel = new Date(
-    period.year,
-    period.month - 1,
-    1,
-  ).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
   const amount = (value: number, cents = false) =>
     formatCurrency(value, locale, { showCents: cents });
   const hours = overview?.hoursWorked ?? 0;
@@ -104,34 +95,14 @@ export function FinanceOverviewPanel({
   return (
     <View className="gap-5 px-5 pt-2">
       <Card className="gap-0 rounded-[14px] p-4">
-        <View className="flex-row items-center justify-between">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('finance.previousMonth')}
-            onPress={onPreviousMonth}
-            className="size-8 items-center justify-center rounded-full bg-button-primary"
-          >
-            <Icon as={ArrowLeft} size={16} className="text-label-secondary" />
-          </Pressable>
-          <View className="items-center">
-            <Text className="text-sm capitalize text-label-primary">
-              {monthLabel}
-            </Text>
-            {isCurrentMonth ? (
-              <Text className="text-[10px] font-semibold uppercase tracking-[0.6px] text-label-tertiary">
-                {t('finance.currentMonth')}
-              </Text>
-            ) : null}
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('finance.nextMonth')}
-            onPress={onNextMonth}
-            className="size-8 items-center justify-center rounded-full bg-button-primary"
-          >
-            <Icon as={ArrowRight} size={16} className="text-label-secondary" />
-          </Pressable>
-        </View>
+        <MonthSelector
+          label={formatMonthLabel(period, locale)}
+          caption={isCurrentMonth ? t('finance.currentMonth') : null}
+          previousLabel={t('finance.previousMonth')}
+          nextLabel={t('finance.nextMonth')}
+          onPrevious={onPreviousMonth}
+          onNext={onNextMonth}
+        />
         <Text className="pt-3 text-[11px] font-semibold uppercase tracking-[0.44px] text-label-primary">
           {t('finance.netBalance')}
         </Text>
