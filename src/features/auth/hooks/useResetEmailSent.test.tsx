@@ -5,14 +5,11 @@ import * as authService from '../services/authService';
 
 jest.mock('../services/authService');
 
-const mockRestart = jest.fn();
 jest.mock('./useResendCountdown', () => ({
-  useResendCountdown: () => ({
-    label: '00:00',
-    canResend: true,
-    restart: mockRestart,
-  }),
+  useResendCountdown: () => ({ label: '00:00', canResend: true }),
 }));
+
+const onResent = jest.fn();
 
 const service = jest.mocked(authService);
 
@@ -20,7 +17,7 @@ function mount() {
   const seen = {} as { current: ReturnType<typeof useResetEmailSent> };
 
   function Probe() {
-    seen.current = useResetEmailSent('ana@example.com');
+    seen.current = useResetEmailSent('ana@example.com', 1_000, onResent);
     return null;
   }
 
@@ -36,7 +33,7 @@ beforeEach(() => {
 });
 
 describe('useResetEmailSent', () => {
-  it('restarts the countdown once the e-mail was sent again', async () => {
+  it('reports the resend once the e-mail was sent again', async () => {
     service.forgotPassword.mockResolvedValue();
     const { seen } = mount();
 
@@ -45,10 +42,10 @@ describe('useResetEmailSent', () => {
     });
 
     expect(service.forgotPassword).toHaveBeenCalledWith('ana@example.com');
-    expect(mockRestart).toHaveBeenCalledTimes(1);
+    expect(onResent).toHaveBeenCalledTimes(1);
   });
 
-  it('does not restart the countdown when the screen was left during the call', async () => {
+  it('does not report the resend when the screen was left during the call', async () => {
     let finish: () => void = () => {};
     service.forgotPassword.mockReturnValue(
       new Promise<void>(resolve => {
@@ -67,6 +64,6 @@ describe('useResetEmailSent', () => {
       await pending;
     });
 
-    expect(mockRestart).not.toHaveBeenCalled();
+    expect(onResent).not.toHaveBeenCalled();
   });
 });

@@ -4,8 +4,12 @@ import { useResendCountdown } from './useResendCountdown';
 import { useSubmit } from './useSubmit';
 import { forgotPassword } from '../services/authService';
 
-export function useResetEmailSent(email: string) {
-  const countdown = useResendCountdown();
+export function useResetEmailSent(
+  email: string,
+  sentAt: number,
+  onResent: () => void,
+) {
+  const countdown = useResendCountdown(sentAt);
   const { isSubmitting, errorKey, run } = useSubmit();
   const isMounted = useRef(true);
 
@@ -24,10 +28,10 @@ export function useResetEmailSent(email: string) {
     return run(async () => {
       await forgotPassword(email);
       if (isMounted.current) {
-        countdown.restart();
+        onResent();
       }
     });
-  }, [countdown, email, run]);
+  }, [countdown.canResend, email, onResent, run]);
 
   return {
     countdownLabel: countdown.label,

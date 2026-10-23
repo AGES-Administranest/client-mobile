@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   canResend,
@@ -6,9 +6,8 @@ import {
   secondsUntilResend,
 } from '../domain/passwordReset';
 
-export function useResendCountdown() {
-  const [sentAt, setSentAt] = useState(() => Date.now());
-  const [now, setNow] = useState(sentAt);
+export function useResendCountdown(sentAt: number) {
+  const [now, setNow] = useState(() => Date.now());
 
   const secondsRemaining = secondsUntilResend(sentAt, now);
   const isCounting = !canResend(secondsRemaining);
@@ -23,15 +22,8 @@ export function useResendCountdown() {
     return () => clearInterval(interval);
   }, [isCounting]);
 
-  const restart = useCallback(() => {
-    const current = Date.now();
-    setSentAt(current);
-    setNow(current);
-  }, []);
-
   return {
     label: formatCountdown(secondsRemaining),
     canResend: canResend(secondsRemaining),
-    restart,
   };
 }

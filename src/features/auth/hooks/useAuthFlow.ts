@@ -5,8 +5,8 @@ export type AuthStep =
   | { name: 'login' }
   | { name: 'signUp' }
   | { name: 'forgotPassword'; email?: string }
-  | { name: 'resetEmailSent'; email: string }
-  | { name: 'resetPassword'; email: string }
+  | { name: 'resetEmailSent'; email: string; sentAt: number }
+  | { name: 'resetPassword'; email: string; sentAt: number }
   | { name: 'codeExpired'; email: string }
   | { name: 'resetSuccess' }
   | {
@@ -32,12 +32,25 @@ export function useAuthFlow() {
     (email?: string) => setStep({ name: 'forgotPassword', email }),
     [],
   );
+  // `sentAt` lives in the step so that leaving for the code form and coming
+  // back keeps the cooldown of the e-mail that was actually sent.
   const resetEmailSent = useCallback(
-    (email: string) => setStep({ name: 'resetEmailSent', email }),
+    (email: string, sentAt: number = Date.now()) =>
+      setStep({ name: 'resetEmailSent', email, sentAt }),
+    [],
+  );
+  const resetEmailResent = useCallback(
+    () =>
+      setStep(current =>
+        current.name === 'resetEmailSent'
+          ? { ...current, sentAt: Date.now() }
+          : current,
+      ),
     [],
   );
   const goToResetPassword = useCallback(
-    (email: string) => setStep({ name: 'resetPassword', email }),
+    (email: string, sentAt: number) =>
+      setStep({ name: 'resetPassword', email, sentAt }),
     [],
   );
   const resetCodeExpired = useCallback(
@@ -82,6 +95,7 @@ export function useAuthFlow() {
     goToSignUp,
     goToForgotPassword,
     resetEmailSent,
+    resetEmailResent,
     goToResetPassword,
     resetCodeExpired,
     resetSucceeded,

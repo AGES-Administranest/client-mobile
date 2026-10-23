@@ -114,6 +114,14 @@ async function type(
   });
 }
 
+function restoreEnv(
+  name: 'EXPO_PUBLIC_COGNITO_CLIENT_ID' | 'EXPO_PUBLIC_COGNITO_ENDPOINT',
+  value: string | undefined,
+) {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+}
+
 afterEach(() => {
   // Unmount so the resend countdown's interval does not outlive the test.
   act(() => mounted.splice(0).forEach(renderer => renderer.unmount()));
@@ -449,30 +457,37 @@ describe('forgot password', () => {
   });
 
   it('goes to the e-mail sent screen when Cognito cannot send a code to the account (InvalidParameterException)', async () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID = 'test-client';
-    process.env.EXPO_PUBLIC_COGNITO_ENDPOINT = 'http://localhost:4566';
+    const originalClientId = process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID;
+    const originalEndpoint = process.env.EXPO_PUBLIC_COGNITO_ENDPOINT;
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      json: () =>
-        Promise.resolve({
-          __type: 'InvalidParameterException',
-          message: 'no registered/verified email',
-        }),
-    }) as unknown as typeof fetch;
-    service.forgotPassword.mockImplementation(
-      jest.requireActual('../services/authService').forgotPassword,
-    );
-    const renderer = await openForgotPassword();
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID = 'test-client';
+      process.env.EXPO_PUBLIC_COGNITO_ENDPOINT = 'http://localhost:4566';
+      globalThis.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        json: () =>
+          Promise.resolve({
+            __type: 'InvalidParameterException',
+            message: 'no registered/verified email',
+          }),
+      }) as unknown as typeof fetch;
+      service.forgotPassword.mockImplementation(
+        jest.requireActual('../services/authService').forgotPassword,
+      );
+      const renderer = await openForgotPassword();
 
-    await type(renderer, 'DIGITE SEU EMAIL*', 'google@example.com');
-    await press(renderer, 'Confirmar');
+      await type(renderer, 'DIGITE SEU EMAIL*', 'google@example.com');
+      await press(renderer, 'Confirmar');
 
-    expect(texts(renderer)).toContain('E-mail enviado');
-    expect(texts(renderer)).not.toContain('Verifique os dados informados.');
-    globalThis.fetch = originalFetch;
-    warn.mockRestore();
+      expect(texts(renderer)).toContain('E-mail enviado');
+      expect(texts(renderer)).not.toContain('Verifique os dados informados.');
+    } finally {
+      globalThis.fetch = originalFetch;
+      warn.mockRestore();
+      restoreEnv('EXPO_PUBLIC_COGNITO_CLIENT_ID', originalClientId);
+      restoreEnv('EXPO_PUBLIC_COGNITO_ENDPOINT', originalEndpoint);
+    }
   });
 
   it('keeps blocking a badly formatted e-mail on the client, without calling the service', async () => {
@@ -554,6 +569,73 @@ describe('forgot password', () => {
     expect(byLabel(renderer, 'DIGITE SEU EMAIL*').props.value).toBe('');
   });
 
+  describe('resend cooldown across screens', () => {
+    const SENT_AT = 1_700_000_000_000;
+    let clock = SENT_AT;
+
+    beforeEach(() => {
+      clock = SENT_AT;
+      jest.spyOn(Date, 'now').mockImplementation(() => clock);
+    });
+
+    afterEach(() => {
+      jest.mocked(Date.now).mockRestore();
+    });
+
+    async function sendCode() {
+      service.forgotPassword.mockResolvedValue();
+      const renderer = await openForgotPassword();
+      await type(renderer, 'DIGITE SEU EMAIL*', 'ana@example.com');
+      await press(renderer, 'Confirmar');
+      return renderer;
+    }
+
+    async function goToCodeFormAndBack(
+      renderer: ReactTestRenderer.ReactTestRenderer,
+      waitedSeconds: number,
+    ) {
+      await press(renderer, 'Já tenho o código');
+      clock = SENT_AT + waitedSeconds * 1000;
+      await press(renderer, 'Voltar');
+    }
+
+    it('keeps counting from where it was when coming back before 45s', async () => {
+      const renderer = await sendCode();
+
+      await goToCodeFormAndBack(renderer, 10);
+
+      expect(
+        byLabel(renderer, 'Não recebeu? Reenviar em 00:35').props.disabled,
+      ).toBe(true);
+    });
+
+    it('shows the resend released when coming back after 45s', async () => {
+      const renderer = await sendCode();
+
+      await goToCodeFormAndBack(renderer, 60);
+
+      expect(byLabel(renderer, 'Reenviar').props.disabled).toBe(false);
+    });
+
+    it('starts the cooldown again after resending', async () => {
+      const renderer = await sendCode();
+      clock = SENT_AT + 60_000;
+      await goToCodeFormAndBack(renderer, 60);
+
+      await press(renderer, 'Reenviar');
+
+      expect(service.forgotPassword).toHaveBeenCalledTimes(2);
+      expect(
+        byLabel(renderer, 'Não recebeu? Reenviar em 00:45').props.disabled,
+      ).toBe(true);
+
+      await goToCodeFormAndBack(renderer, 70);
+      expect(
+        byLabel(renderer, 'Não recebeu? Reenviar em 00:35').props.disabled,
+      ).toBe(true);
+    });
+  });
+
   it('explains each unmet requirement and a mismatch, then succeeds', async () => {
     service.confirmForgotPassword.mockResolvedValue();
     const renderer = await openNewPassword();
@@ -615,25 +697,28 @@ describe('forgot password', () => {
         listeners.push(handler);
         return { remove: jest.fn() };
       });
-    service.confirmForgotPassword.mockResolvedValue();
-    const renderer = await openNewPassword();
-    await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
-    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
-    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
-    await press(renderer, 'Confirmar');
-    expect(texts(renderer)).toContain('Senha alterada com sucesso!');
+    try {
+      service.confirmForgotPassword.mockResolvedValue();
+      const renderer = await openNewPassword();
+      await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
+      await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+      await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+      await press(renderer, 'Confirmar');
+      expect(texts(renderer)).toContain('Senha alterada com sucesso!');
 
-    let handled: boolean | null | undefined;
-    await act(async () => {
-      handled = listeners[listeners.length - 1](undefined as never);
-    });
+      let handled: boolean | null | undefined;
+      await act(async () => {
+        handled = listeners[listeners.length - 1](undefined as never);
+      });
 
-    expect(handled).toBe(true);
-    expect(texts(renderer)).toContain(
-      'Acesse com o e-mail e a senha da sua conta.',
-    );
-    expect(texts(renderer)).not.toContain('Redefinir senha');
-    add.mockRestore();
+      expect(handled).toBe(true);
+      expect(texts(renderer)).toContain(
+        'Acesse com o e-mail e a senha da sua conta.',
+      );
+      expect(texts(renderer)).not.toContain('Redefinir senha');
+    } finally {
+      add.mockRestore();
+    }
   });
 
   it('sends the user to the expired code screen', async () => {

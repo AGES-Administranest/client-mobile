@@ -19,6 +19,7 @@ export function AuthFlow() {
     goToSignUp,
     goToForgotPassword,
     resetEmailSent,
+    resetEmailResent,
     goToResetPassword,
     resetCodeExpired,
     resetSucceeded,
@@ -66,16 +67,18 @@ export function AuthFlow() {
       return (
         <ResetEmailSentScreen
           email={step.email}
+          sentAt={step.sentAt}
           onBack={() => goToForgotPassword(step.email)}
           onBackToLogin={goToLogin}
-          onHaveCode={() => goToResetPassword(step.email)}
+          onHaveCode={() => goToResetPassword(step.email, step.sentAt)}
+          onResent={resetEmailResent}
         />
       );
     case 'resetPassword':
       return (
         <ResetPasswordScreen
           email={step.email}
-          onBack={() => resetEmailSent(step.email)}
+          onBack={() => resetEmailSent(step.email, step.sentAt)}
           onSuccess={resetSucceeded}
           onExpired={() => resetCodeExpired(step.email)}
         />

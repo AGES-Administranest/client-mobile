@@ -12,20 +12,24 @@ import { useResetEmailSent } from '../hooks/useResetEmailSent';
 
 type ResetEmailSentScreenProps = {
   email: string;
+  sentAt: number;
   onBack: () => void;
   onBackToLogin: () => void;
   onHaveCode: () => void;
+  onResent: () => void;
 };
 
 export function ResetEmailSentScreen({
   email,
+  sentAt,
   onBack,
   onBackToLogin,
   onHaveCode,
+  onResent,
 }: ResetEmailSentScreenProps) {
   const { t } = useTranslation();
   const { countdownLabel, canResend, resend, isSubmitting, errorKey } =
-    useResetEmailSent(email);
+    useResetEmailSent(email, sentAt, onResent);
 
   return (
     <AuthLayout
