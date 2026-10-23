@@ -965,8 +965,8 @@
       "match": "As senhas coincidem",
       "requirements": {
         "minLength": "Mínimo de 8 caracteres",
-        "uppercase": "Uma letra maiúscula",
-        "lowercase": "Uma letra minúscula",
+        "uppercase": "Uma letra maiúscula (A-Z)",
+        "lowercase": "Uma letra minúscula (a-z)",
         "number": "Um número",
         "special": "Um caractere especial (!@#$%)"
       }

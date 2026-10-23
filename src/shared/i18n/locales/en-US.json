@@ -965,8 +965,8 @@
       "match": "Passwords match",
       "requirements": {
         "minLength": "At least 8 characters",
-        "uppercase": "One uppercase letter",
-        "lowercase": "One lowercase letter",
+        "uppercase": "One uppercase letter (A-Z)",
+        "lowercase": "One lowercase letter (a-z)",
         "number": "One number",
         "special": "One special character (!@#$%)"
       }

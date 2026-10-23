@@ -78,13 +78,48 @@ describe('special character requirement', () => {
     expect(special(password)).toBe(expected);
   });
 
-  it('keeps the other requirements as they were', () => {
+  it('leaves only the length and the number green for accents and symbols outside the policy', () => {
     expect(validateNewPassword('Éé1€€€€€', 'Éé1€€€€€').requirements).toEqual({
       minLength: true,
-      uppercase: true,
-      lowercase: true,
+      uppercase: false,
+      lowercase: false,
       number: true,
       special: false,
+    });
+  });
+});
+
+describe('letter case requirements', () => {
+  const requirements = (password: string) =>
+    validateNewPassword(password, password).requirements;
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  it.each([...LETTERS])('counts %s as uppercase', letter => {
+    expect(requirements(`${letter}bcdef1!`).uppercase).toBe(true);
+  });
+
+  it.each([...LETTERS.toLowerCase()])('counts %s as lowercase', letter => {
+    expect(requirements(`ABCDEF1!${letter}`).lowercase).toBe(true);
+  });
+
+  it.each(['É', 'Ã', 'Ç', 'Ω', 'Ж', 'Ł'])(
+    'does not count %s as uppercase',
+    c => {
+      expect(requirements(`${c}bcdef1!`).uppercase).toBe(false);
+    },
+  );
+
+  it.each(['é', 'ã', 'ç', 'ω', 'ж', 'ł'])(
+    'does not count %s as lowercase',
+    c => {
+      expect(requirements(`ABCDEF1!${c}`).lowercase).toBe(false);
+    },
+  );
+
+  it('keeps uppercase red when the only capital is accented', () => {
+    expect(requirements('Élise1!x')).toMatchObject({
+      uppercase: false,
+      lowercase: true,
     });
   });
 });

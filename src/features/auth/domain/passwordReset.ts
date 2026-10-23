@@ -47,10 +47,13 @@ export function validateNewPassword(
   password: string,
   confirmation: string,
 ): NewPasswordValidation {
+  // Cognito only counts basic Latin letters as upper and lower case (Amazon
+  // Cognito Developer Guide, "Adding user pool password requirements"), so É
+  // or ç would turn the checklist green for a password the pool refuses.
   const requirements: Record<PasswordRequirement, boolean> = {
     minLength: password.length >= PASSWORD_MIN_LENGTH,
-    uppercase: /\p{Lu}/u.test(password),
-    lowercase: /\p{Ll}/u.test(password),
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
     number: /\d/.test(password),
     special: hasSpecialCharacter(password),
   };
