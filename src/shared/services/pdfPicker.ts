@@ -10,8 +10,11 @@ export type PickedPdf = {
   uri: string | null;
   bytes: Uint8Array;
   name: string;
-  mimeType: 'application/pdf';
+  /** What the picker declared, so callers can refuse a file that disagrees. */
+  mimeType: string;
 };
+
+const PDF_MIME_TYPE = 'application/pdf';
 
 // On web the picker hands back the browser File object directly; on native we
 // only get a uri, which expo-file-system reads for us.
@@ -50,7 +53,8 @@ export async function pickPdf(): Promise<PickedPdf | null> {
     uri: (asset as { file?: WebFile }).file ? null : asset.uri,
     bytes,
     name: asset.name,
-    // The picker was opened for PDFs only; the type is not a guess.
-    mimeType: 'application/pdf',
+    // Some pickers declare nothing; the picker was opened for PDFs only, so
+    // an absent type is not a reason to refuse the file.
+    mimeType: asset.mimeType ?? PDF_MIME_TYPE,
   };
 }
