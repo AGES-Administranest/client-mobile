@@ -506,6 +506,14 @@ export function AppointmentDetailScreen({
 
                 <TravelSection
                   editable={syncedEditable}
+                  appointmentId={appointment?.id ?? null}
+                  clientId={appointment?.clientId ?? null}
+                  occurredOn={
+                    appointment?.startsAt
+                      ? appointment.startsAt.slice(0, 10)
+                      : undefined
+                  }
+                  defaultDestination={appointment?.location ?? undefined}
                   texts={{
                     title: t('procedures.detail.travel.title'),
                     emptyMessage: t('procedures.detail.travel.empty'),
