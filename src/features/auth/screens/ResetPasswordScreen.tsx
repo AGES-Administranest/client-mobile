@@ -32,6 +32,13 @@ export function ResetPasswordScreen({
     }),
   );
 
+  let codeError: string | undefined;
+  if (reset.codeMissing) {
+    codeError = t('auth.validation.required');
+  } else if (reset.codeInvalid) {
+    codeError = t('auth.errors.invalidCode');
+  }
+
   return (
     <AuthLayout
       title={t('auth.newPassword.title')}
@@ -42,13 +49,7 @@ export function ResetPasswordScreen({
         label={t('auth.newPassword.codeLabel')}
         value={reset.code}
         onChangeText={reset.changeCode}
-        error={
-          reset.codeMissing
-            ? t('auth.validation.required')
-            : reset.codeInvalid
-            ? t('auth.errors.invalidCode')
-            : undefined
-        }
+        error={codeError}
         keyboardType="number-pad"
         autoComplete="one-time-code"
         textContentType="oneTimeCode"

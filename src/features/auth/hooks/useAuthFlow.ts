@@ -4,7 +4,7 @@ export type AuthStep =
   | { name: 'welcome' }
   | { name: 'login' }
   | { name: 'signUp' }
-  | { name: 'forgotPassword' }
+  | { name: 'forgotPassword'; email?: string }
   | { name: 'resetEmailSent'; email: string }
   | { name: 'resetPassword'; email: string }
   | { name: 'codeExpired'; email: string }
@@ -29,7 +29,7 @@ export function useAuthFlow() {
   const goToSignUp = useCallback(() => setStep({ name: 'signUp' }), []);
 
   const goToForgotPassword = useCallback(
-    () => setStep({ name: 'forgotPassword' }),
+    (email?: string) => setStep({ name: 'forgotPassword', email }),
     [],
   );
   const resetEmailSent = useCallback(

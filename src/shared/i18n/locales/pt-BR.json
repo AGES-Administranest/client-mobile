@@ -941,8 +941,7 @@
       "title": "Redefinir senha",
       "emailLabel": "DIGITE SEU EMAIL*",
       "emailPlaceholder": "exemplo@mail.com",
-      "submit": "Confirmar",
-      "emailNotFound": "E-mail não encontrado. Verifique o endereço ou crie uma conta."
+      "submit": "Confirmar"
     },
     "emailSent": {
       "title": "E-mail enviado",

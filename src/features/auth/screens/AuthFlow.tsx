@@ -32,7 +32,7 @@ export function AuthFlow() {
         <LoginScreen
           onBack={goToWelcome}
           onCreateAccount={goToSignUp}
-          onForgotPassword={goToForgotPassword}
+          onForgotPassword={() => goToForgotPassword()}
           onUnconfirmed={confirmAfterLogin}
         />
       );
@@ -56,13 +56,17 @@ export function AuthFlow() {
       );
     case 'forgotPassword':
       return (
-        <ForgotPasswordScreen onBack={goToLogin} onSent={resetEmailSent} />
+        <ForgotPasswordScreen
+          initialEmail={step.email}
+          onBack={goToLogin}
+          onSent={resetEmailSent}
+        />
       );
     case 'resetEmailSent':
       return (
         <ResetEmailSentScreen
           email={step.email}
-          onBack={goToForgotPassword}
+          onBack={() => goToForgotPassword(step.email)}
           onBackToLogin={goToLogin}
           onHaveCode={() => goToResetPassword(step.email)}
         />
@@ -80,7 +84,7 @@ export function AuthFlow() {
       return (
         <CodeExpiredScreen
           onBack={goToLogin}
-          onRequestNewCode={goToForgotPassword}
+          onRequestNewCode={() => goToForgotPassword(step.email)}
           onBackToLogin={goToLogin}
         />
       );

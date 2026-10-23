@@ -19,7 +19,7 @@ import { Colors } from '../../../theme/colors';
 type AuthLayoutProps = {
   title: string;
   description?: string;
-  /** Without `onBack` the screen has no back button (e.g. the reset success). */
+  /** Left out on purpose where going back would reopen a spent flow (the reset success). */
   backLabel?: string;
   onBack?: () => void;
   children: ReactNode;

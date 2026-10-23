@@ -8,31 +8,22 @@ import { fieldErrorKey } from '../hooks/authMessageKeys';
 import { useForgotPassword } from '../hooks/useForgotPassword';
 
 type ForgotPasswordScreenProps = {
+  initialEmail?: string;
   onBack: () => void;
   onSent: (email: string) => void;
 };
 
 export function ForgotPasswordScreen({
+  initialEmail,
   onBack,
   onSent,
 }: ForgotPasswordScreenProps) {
   const { t } = useTranslation();
-  const {
-    email,
-    emailError,
-    notFound,
-    setEmail,
-    submit,
-    isSubmitting,
-    errorKey,
-  } = useForgotPassword({ onSent });
+  const { email, emailError, setEmail, submit, isSubmitting, errorKey } =
+    useForgotPassword({ initialEmail, onSent });
 
   const emailErrorKey = fieldErrorKey(emailError);
-  const error = notFound
-    ? t('auth.forgot.emailNotFound')
-    : emailErrorKey
-    ? t(emailErrorKey)
-    : undefined;
+  const error = emailErrorKey ? t(emailErrorKey) : undefined;
 
   return (
     <AuthLayout

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { useResendCountdown } from './useResendCountdown';
 import { useSubmit } from './useSubmit';
@@ -7,6 +7,14 @@ import { forgotPassword } from '../services/authService';
 export function useResetEmailSent(email: string) {
   const countdown = useResendCountdown();
   const { isSubmitting, errorKey, run } = useSubmit();
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const resend = useCallback(() => {
     if (!countdown.canResend) {
@@ -15,7 +23,9 @@ export function useResetEmailSent(email: string) {
 
     return run(async () => {
       await forgotPassword(email);
-      countdown.restart();
+      if (isMounted.current) {
+        countdown.restart();
+      }
     });
   }, [countdown, email, run]);
 

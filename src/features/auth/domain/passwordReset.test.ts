@@ -1,5 +1,6 @@
 import {
   canResend,
+  COGNITO_SPECIAL_CHARACTERS,
   formatCountdown,
   requirementStatus,
   secondsUntilResend,
@@ -39,6 +40,52 @@ describe('validateNewPassword requirements', () => {
     const result = validateNewPassword('abcdef1!', 'abcdef1!');
     expect(result.matches).toBe(true);
     expect(result.isValid).toBe(false);
+  });
+});
+
+describe('special character requirement', () => {
+  const special = (password: string) =>
+    validateNewPassword(password, password).requirements.special;
+
+  it('lists exactly the 32 characters the Cognito documentation names', () => {
+    expect([...COGNITO_SPECIAL_CHARACTERS].sort()).toEqual(
+      [
+        ...['^', '$', '*', '.', '[', ']', '{', '}', '(', ')', '?', '"', '!'],
+        ...['@', '#', '%', '&', '/', '\\', ',', '>', '<', "'", ':', ';', '|'],
+        ...['_', '~', '`', '=', '+', '-'],
+      ].sort(),
+    );
+  });
+
+  it.each([...COGNITO_SPECIAL_CHARACTERS])('counts %s', symbol => {
+    expect(special(`Abcdef1${symbol}`)).toBe(true);
+  });
+
+  it.each(['€', '°', '§', '😀', 'ç', 'é', 'Ã', '©', '·'])(
+    'does not count %s',
+    char => {
+      expect(special(`Abcdef1${char}`)).toBe(false);
+    },
+  );
+
+  it.each([
+    ['a space between characters', 'Abcdef 1', true],
+    ['a trailing space', 'Abcdef1 ', false],
+    ['a leading space', ' Abcdef1', false],
+    ['spaces only at the ends', ' Abcdef1 ', false],
+    ['a tab', 'Abcdef\t1', false],
+  ])('treats %s', (_label, password, expected) => {
+    expect(special(password)).toBe(expected);
+  });
+
+  it('keeps the other requirements as they were', () => {
+    expect(validateNewPassword('Éé1€€€€€', 'Éé1€€€€€').requirements).toEqual({
+      minLength: true,
+      uppercase: true,
+      lowercase: true,
+      number: true,
+      special: false,
+    });
   });
 });
 

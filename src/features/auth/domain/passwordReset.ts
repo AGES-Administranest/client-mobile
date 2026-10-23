@@ -1,6 +1,23 @@
 export const PASSWORD_MIN_LENGTH = 8;
 export const RESEND_COOLDOWN_SECONDS = 45;
 
+// The set Cognito accepts as "special character"; anything else (€, °, §,
+// emoji, accented letters) is allowed in a password but does not satisfy the
+// policy. Source: Amazon Cognito Developer Guide, "Adding user pool password
+// requirements".
+export const COGNITO_SPECIAL_CHARACTERS = '^$*.[]{}()?"!@#%&/\\,><\':;|_~`=+-';
+
+const COGNITO_SPECIAL_SET = new Set(COGNITO_SPECIAL_CHARACTERS);
+
+// Cognito counts a space only between other characters. Trimming first is the
+// safe side: it never turns a requirement green that the pool would refuse.
+function hasSpecialCharacter(password: string): boolean {
+  return (
+    [...password].some(char => COGNITO_SPECIAL_SET.has(char)) ||
+    password.trim().includes(' ')
+  );
+}
+
 export type PasswordRequirement =
   | 'minLength'
   | 'uppercase'
@@ -35,7 +52,7 @@ export function validateNewPassword(
     uppercase: /\p{Lu}/u.test(password),
     lowercase: /\p{Ll}/u.test(password),
     number: /\d/.test(password),
-    special: /[^\p{L}\p{N}\s]/u.test(password),
+    special: hasSpecialCharacter(password),
   };
   const meetsRequirements = PASSWORD_REQUIREMENTS.every(
     requirement => requirements[requirement],

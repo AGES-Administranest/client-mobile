@@ -4,6 +4,7 @@ import { useSubmit } from './useSubmit';
 import { AuthError } from '../domain/authErrors';
 import {
   PASSWORD_REQUIREMENTS,
+  NewPasswordValidation,
   PasswordRequirement,
   RequirementStatus,
   requirementStatus,
@@ -21,6 +22,16 @@ export type RequirementItem = {
   requirement: PasswordRequirement;
   status: RequirementStatus;
 };
+
+function confirmationStateOf({
+  confirmationFilled,
+  matches,
+}: NewPasswordValidation) {
+  if (!confirmationFilled) {
+    return 'empty' as const;
+  }
+  return matches ? ('match' as const) : ('mismatch' as const);
+}
 
 export function useResetPassword({
   email,
@@ -100,11 +111,7 @@ export function useResetPassword({
     setConfirmation: setConfirmationValue,
     requirements,
     showRequirementsError: attempted && !validation.meetsRequirements,
-    confirmationState: !validation.confirmationFilled
-      ? ('empty' as const)
-      : validation.matches
-      ? ('match' as const)
-      : ('mismatch' as const),
+    confirmationState: confirmationStateOf(validation),
     submit,
     isSubmitting,
     errorKey,

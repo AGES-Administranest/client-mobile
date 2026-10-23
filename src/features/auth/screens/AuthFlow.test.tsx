@@ -486,18 +486,6 @@ describe('forgot password', () => {
     expect(texts(renderer)).not.toContain('E-mail enviado');
   });
 
-  it('shows the not-found state only when the service reports it', async () => {
-    service.forgotPassword.mockRejectedValue(new AuthError('EMAIL_NOT_FOUND'));
-    const renderer = await openForgotPassword();
-
-    await type(renderer, 'DIGITE SEU EMAIL*', 'ana@example.com');
-    await press(renderer, 'Confirmar');
-
-    expect(texts(renderer)).toContain(
-      'E-mail não encontrado. Verifique o endereço ou crie uma conta.',
-    );
-  });
-
   it('keeps the typed e-mail and shows the network message offline', async () => {
     service.forgotPassword.mockRejectedValue(
       new AuthError('NETWORK_UNAVAILABLE'),
@@ -528,6 +516,42 @@ describe('forgot password', () => {
     expect(
       byLabel(renderer, 'Não recebeu? Reenviar em 00:45').props.disabled,
     ).toBe(true);
+  });
+
+  it('brings the e-mail back when going back from the e-mail sent screen', async () => {
+    service.forgotPassword.mockResolvedValue();
+    const renderer = await openForgotPassword();
+    await type(renderer, 'DIGITE SEU EMAIL*', 'ana@example.com');
+    await press(renderer, 'Confirmar');
+
+    await press(renderer, 'Voltar');
+
+    expect(byLabel(renderer, 'DIGITE SEU EMAIL*').props.value).toBe(
+      'ana@example.com',
+    );
+  });
+
+  it('brings the e-mail back when asking for a new code after it expired', async () => {
+    service.confirmForgotPassword.mockRejectedValue(
+      new AuthError('EXPIRED_CODE'),
+    );
+    const renderer = await openNewPassword();
+    await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+
+    await press(renderer, 'Solicitar novo código');
+
+    expect(byLabel(renderer, 'DIGITE SEU EMAIL*').props.value).toBe(
+      'ana@example.com',
+    );
+  });
+
+  it('opens the forgot password form empty from the login screen', async () => {
+    const renderer = await openForgotPassword();
+
+    expect(byLabel(renderer, 'DIGITE SEU EMAIL*').props.value).toBe('');
   });
 
   it('explains each unmet requirement and a mismatch, then succeeds', async () => {

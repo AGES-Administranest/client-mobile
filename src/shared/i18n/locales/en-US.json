@@ -941,8 +941,7 @@
       "title": "Reset password",
       "emailLabel": "ENTER YOUR EMAIL*",
       "emailPlaceholder": "example@mail.com",
-      "submit": "Confirm",
-      "emailNotFound": "Email not found. Check the address or create an account."
+      "submit": "Confirm"
     },
     "emailSent": {
       "title": "Email sent",
