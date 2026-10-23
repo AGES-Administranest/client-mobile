@@ -15,6 +15,20 @@
     "revenue": "Revenue",
     "professional": "Prof.",
     "personal": "Personal",
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
     "productivityAndFixedCosts": "Productivity and fixed costs",
     "hoursWorked": "Hours worked",
     "hoursValue": "{{hours}}h",
@@ -24,7 +38,8 @@
     "equipmentDepreciation": "Equipment depreciation",
     "equipmentMonthlyCost": "{{count}} items · monthly cost",
     "perMonth": "/month",
-    "overviewError": "Could not load the finance summary."
+    "overviewError": "Could not load the finance summary.",
+    "balanceIncomplete": "May be incomplete until it syncs."
   },
   "calculator": {
     "title": "Hourly rate calculator",
