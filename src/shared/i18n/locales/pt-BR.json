@@ -1333,5 +1333,52 @@
       "documentRemoval": "O documento e o arquivo são apagados.",
       "historyRemoval": "O atendimento sai da agenda e do histórico."
     }
+  },
+  "invoices": {
+    "trigger": "Notas fiscais",
+    "title": "Notas fiscais",
+    "back": "Voltar",
+    "filters": {
+      "searchPlaceholder": "Nome, CNPJ ou número da nota",
+      "period": "Período",
+      "periodRange": "{{from}} até {{to}}",
+      "periodSingle": "{{day}}",
+      "periodFrom": "A partir de {{from}}",
+      "clear": "Limpar",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "invalidRange": "A data inicial não pode ser maior que a final."
+    },
+    "loading": "Carregando notas fiscais...",
+    "loadingMore": "Carregando mais notas",
+    "loadMoreError": "Não foi possível carregar mais notas.",
+    "error": "Não foi possível carregar as notas fiscais.",
+    "empty": "Nenhuma nota fiscal registrada.",
+    "emptyFiltered": "Nenhuma nota fiscal encontrada para o filtro.",
+    "card": {
+      "title": "Nota Fiscal {{number}}",
+      "issuer": "Emitente: {{name}}",
+      "taker": "Tomador: {{name}}"
+    },
+    "status": {
+      "SYNCED": "Sincronizada",
+      "NOT_SYNCED": "Não sincronizada",
+      "ERROR": "Erro no processamento"
+    },
+    "kind": {
+      "PURCHASE": "Compra",
+      "SERVICE": "Serviço"
+    },
+    "detail": {
+      "title": "Nota Fiscal {{number}}",
+      "close": "Fechar",
+      "kind": "Tipo",
+      "issuer": "Emitente",
+      "taker": "Tomador",
+      "takerCnpj": "CNPJ do tomador",
+      "value": "Valor",
+      "issuedAt": "Data de emissão",
+      "status": "Situação"
+    }
   }
 }

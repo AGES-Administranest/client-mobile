@@ -2,13 +2,13 @@ import { FileText, Upload } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 import { ActionButton } from 'app/components/ui';
+import { FullScreenModal } from 'app/components/ui/full-screen-modal';
 import { Icon } from 'app/components/ui/icon';
+import { ScreenHeader } from 'app/components/ui/screen-header';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
-import { FullScreenModal } from '../components/FullScreenModal';
 import { NoticeBanner } from '../components/NoticeBanner';
-import { ScreenHeader } from '../components/ScreenHeader';
 
 type ConfirmFileScreenProps = {
   visible: boolean;
