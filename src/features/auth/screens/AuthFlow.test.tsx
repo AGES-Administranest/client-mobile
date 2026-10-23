@@ -1,3 +1,4 @@
+import { BackHandler } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
@@ -560,6 +561,55 @@ describe('forgot password', () => {
     expect(texts(renderer)).toContain(
       'Acesse com o e-mail e a senha da sua conta.',
     );
+  });
+
+  it('has no back button on the success screen, only "Ir para o Login"', async () => {
+    service.confirmForgotPassword.mockResolvedValue();
+    const renderer = await openNewPassword();
+    expect(
+      renderer.root.findAll(n => n.props.accessibilityLabel === 'Voltar')
+        .length,
+    ).toBeGreaterThan(0);
+
+    await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+
+    expect(texts(renderer)).toContain('Senha alterada com sucesso!');
+    expect(
+      renderer.root.findAll(n => n.props.accessibilityLabel === 'Voltar'),
+    ).toHaveLength(0);
+    expect(byLabel(renderer, 'Ir para o Login')).toBeDefined();
+  });
+
+  it('sends the system back on the success screen to the login, never to the reset form', async () => {
+    const listeners: Array<(event: never) => boolean | null | undefined> = [];
+    const add = jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockImplementation((_event, handler) => {
+        listeners.push(handler);
+        return { remove: jest.fn() };
+      });
+    service.confirmForgotPassword.mockResolvedValue();
+    const renderer = await openNewPassword();
+    await type(renderer, 'CÓDIGO RECEBIDO*', '123456');
+    await type(renderer, 'NOVA SENHA*', 'Abcdef1!');
+    await type(renderer, 'CONFIRME NOVA SENHA*', 'Abcdef1!');
+    await press(renderer, 'Confirmar');
+    expect(texts(renderer)).toContain('Senha alterada com sucesso!');
+
+    let handled: boolean | null | undefined;
+    await act(async () => {
+      handled = listeners[listeners.length - 1](undefined as never);
+    });
+
+    expect(handled).toBe(true);
+    expect(texts(renderer)).toContain(
+      'Acesse com o e-mail e a senha da sua conta.',
+    );
+    expect(texts(renderer)).not.toContain('Redefinir senha');
+    add.mockRestore();
   });
 
   it('sends the user to the expired code screen', async () => {

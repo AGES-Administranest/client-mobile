@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react-native';
-import { View } from 'react-native';
+import { useEffect } from 'react';
+import { BackHandler, View } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
@@ -12,16 +13,24 @@ type ResetSuccessScreenProps = {
   onGoToLogin: () => void;
 };
 
-// Back leads to the login too: the reset flow must not be reachable again.
+// No back button, as in the Figma: "Ir para o Login" is the only way out. The
+// system back (Android) goes to the login too, never back to the reset form.
 export function ResetSuccessScreen({ onGoToLogin }: ResetSuccessScreenProps) {
   const { t } = useTranslation();
 
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        onGoToLogin();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [onGoToLogin]);
+
   return (
-    <AuthLayout
-      title={t('auth.resetSuccess.title')}
-      backLabel={t('auth.back')}
-      onBack={onGoToLogin}
-    >
+    <AuthLayout title={t('auth.resetSuccess.title')}>
       <View className="w-full items-center">
         <ResultIcon icon={Check} />
         <Text className="mt-6 text-lg font-semibold text-label-quartenery">

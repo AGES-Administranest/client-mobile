@@ -19,8 +19,9 @@ import { Colors } from '../../../theme/colors';
 type AuthLayoutProps = {
   title: string;
   description?: string;
-  backLabel: string;
-  onBack: () => void;
+  /** Without `onBack` the screen has no back button (e.g. the reset success). */
+  backLabel?: string;
+  onBack?: () => void;
   children: ReactNode;
 };
 
@@ -54,15 +55,19 @@ export function AuthLayout({
             },
           ]}
         >
-          <Pressable
-            onPress={onBack}
-            accessibilityRole="button"
-            accessibilityLabel={backLabel}
-            hitSlop={8}
-            className="ml-3 h-11 w-11 items-center justify-center"
-          >
-            <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
-          </Pressable>
+          {onBack ? (
+            <Pressable
+              onPress={onBack}
+              accessibilityRole="button"
+              accessibilityLabel={backLabel}
+              hitSlop={8}
+              className="ml-3 h-11 w-11 items-center justify-center"
+            >
+              <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
+            </Pressable>
+          ) : (
+            <View className="ml-3 h-11 w-11" />
+          )}
 
           <View className="w-full px-7 pt-4">
             <Text className="text-[26px] font-bold text-label-quartenery">
