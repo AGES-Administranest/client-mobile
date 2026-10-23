@@ -9,12 +9,11 @@ import {
 } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { FormField } from 'app/components/ui/form-field';
 import { Icon } from 'app/components/ui/icon';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
-
-import { FormField } from './FormField';
-import { NoticeBanner } from './NoticeBanner';
 
 type Value = { text: string; missing?: boolean };
 

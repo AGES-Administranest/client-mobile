@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 
 import { CalculatorScreen } from 'features/calculator';
+import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
 import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
 
@@ -149,11 +150,12 @@ export function FinanceScreen() {
                   onNextMonth={() => shiftMonth(1)}
                   onRetry={overview.retry}
                 />
-                <View className="px-5">
+                <View className="gap-3 px-5">
                   <NewEntryButton
                     label={t('financialEntries.newEntry')}
                     onPress={openOptions}
                   />
+                  <ServiceInvoiceUploadFlow />
                 </View>
                 <View className="gap-3 px-5">
                   <ScopeFilter
