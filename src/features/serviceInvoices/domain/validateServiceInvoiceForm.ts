@@ -12,6 +12,14 @@ export type ServiceInvoiceValidation = {
   input: ServiceInvoiceInput | null;
 };
 
+function startOfDay(date: Date): number {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  ).getTime();
+}
+
 function toIsoDate(masked: string): string | null {
   if (!parseDateInput(masked)) return null;
   const [day, month, year] = masked
@@ -23,6 +31,7 @@ function toIsoDate(masked: string): string | null {
 
 export function validateServiceInvoiceForm(
   values: ServiceInvoiceFormValues,
+  today: Date = new Date(),
 ): ServiceInvoiceValidation {
   const errors: ServiceInvoiceErrors = {};
 
@@ -30,6 +39,9 @@ export function validateServiceInvoiceForm(
   const issueDate = issueDateText === '' ? null : toIsoDate(issueDateText);
   if (issueDateText === '') errors.issueDate = 'required';
   else if (!issueDate) errors.issueDate = 'invalid';
+  else if (parseDateInput(issueDateText)!.getTime() > startOfDay(today)) {
+    errors.issueDate = 'future';
+  }
 
   const amountText = values.amount.trim();
   let amount: number | null = null;

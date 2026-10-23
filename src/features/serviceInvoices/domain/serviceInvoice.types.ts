@@ -21,7 +21,7 @@ export type ServiceInvoiceFormValues = {
 export type ServiceInvoiceField = 'issueDate' | 'amount' | 'clientId';
 
 export type ServiceInvoiceErrors = {
-  issueDate?: 'required' | 'invalid';
+  issueDate?: 'required' | 'invalid' | 'future';
   amount?: 'required' | 'invalid' | 'mustBePositive';
   clientId?: 'required';
 };

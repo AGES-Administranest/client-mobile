@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
-import { useClientSearch, type ClientOption } from 'features/clients';
+import {
+  useClientSearch,
+  type ClientOption,
+  type ClientSearchStatus,
+} from 'features/clients';
 import { formatCurrencyInput, formatDateInput } from 'shared/utils/inputMasks';
 
 import type {
@@ -17,10 +21,29 @@ type UseServiceInvoiceReviewOptions = {
   onConfirmed: () => void;
 };
 
+export type ServiceInvoiceReviewState = {
+  values: ServiceInvoiceFormValues;
+  errors: ServiceInvoiceErrors;
+  isDirty: boolean;
+  client: {
+    term: string;
+    status: ClientSearchStatus;
+    options: ClientOption[];
+  };
+  isSubmitting: boolean;
+  submitFailed: boolean;
+  changeIssueDate: (text: string) => void;
+  changeAmount: (text: string) => void;
+  changeNumber: (text: string) => void;
+  changeClientTerm: (term: string) => void;
+  selectClient: (client: ClientOption) => void;
+  submit: () => Promise<void>;
+};
+
 export function useServiceInvoiceReview({
   initialValues,
   onConfirmed,
-}: UseServiceInvoiceReviewOptions) {
+}: UseServiceInvoiceReviewOptions): ServiceInvoiceReviewState {
   const { session } = useAuth();
   const idToken = session?.idToken ?? null;
   const [values, setValues] = useState(initialValues);

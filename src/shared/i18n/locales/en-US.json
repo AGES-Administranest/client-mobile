@@ -1339,6 +1339,7 @@
     "extracting": "Reading the invoice…",
     "errors": {
       "notPdf": "We only accept PDF invoices. Choose a .pdf file.",
+      "pickFailed": "Couldn't open your files. Try again.",
       "dismiss": "Got it"
     },
     "review": {
@@ -1371,7 +1372,8 @@
       "errors": {
         "issueDate": {
           "required": "Enter the issue date.",
-          "invalid": "Invalid date. Use the format DD/MM/YYYY."
+          "invalid": "Invalid date. Use the format DD/MM/YYYY.",
+          "future": "The issue date can't be in the future."
         },
         "amount": {
           "required": "Enter the total amount.",

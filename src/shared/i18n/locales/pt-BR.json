@@ -1339,6 +1339,7 @@
     "extracting": "Lendo a nota…",
     "errors": {
       "notPdf": "Só aceitamos notas em PDF. Escolha um arquivo .pdf.",
+      "pickFailed": "Não foi possível abrir os arquivos. Tente novamente.",
       "dismiss": "Entendi"
     },
     "review": {
@@ -1371,7 +1372,8 @@
       "errors": {
         "issueDate": {
           "required": "Informe a data de emissão.",
-          "invalid": "Data inválida. Use o formato DD/MM/AAAA."
+          "invalid": "Data inválida. Use o formato DD/MM/AAAA.",
+          "future": "A data de emissão não pode ser futura."
         },
         "amount": {
           "required": "Informe o valor total.",

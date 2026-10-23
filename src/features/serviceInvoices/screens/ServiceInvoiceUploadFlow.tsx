@@ -36,6 +36,13 @@ export function ServiceInvoiceUploadFlow() {
         onDismiss={upload.dismissRejection}
       />
 
+      <MessageOverlay
+        visible={upload.isPickFailed}
+        message={t('serviceInvoices.errors.pickFailed')}
+        actionLabel={t('serviceInvoices.errors.dismiss')}
+        onDismiss={upload.dismissPickFailure}
+      />
+
       {upload.review ? (
         <ServiceInvoiceReviewScreen
           visible={upload.step === 'review'}

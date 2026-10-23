@@ -12,8 +12,34 @@ import { useTranslation, type TranslationKey } from 'shared/i18n';
 
 import { ServiceInvoiceReviewCard } from '../components/ServiceInvoiceReviewCard';
 import type { InitialReview } from '../domain/extractionToFormValues';
-import type { ServiceInvoiceField } from '../domain/serviceInvoice.types';
+import type {
+  ServiceInvoiceErrors,
+  ServiceInvoiceField,
+} from '../domain/serviceInvoice.types';
 import { useServiceInvoiceReview } from '../hooks/useServiceInvoiceReview';
+
+type FieldErrorKeys = {
+  [Field in ServiceInvoiceField]: Record<
+    NonNullable<ServiceInvoiceErrors[Field]>,
+    TranslationKey
+  >;
+};
+
+const FIELD_ERROR_KEYS: FieldErrorKeys = {
+  issueDate: {
+    required: 'serviceInvoices.review.errors.issueDate.required',
+    invalid: 'serviceInvoices.review.errors.issueDate.invalid',
+    future: 'serviceInvoices.review.errors.issueDate.future',
+  },
+  amount: {
+    required: 'serviceInvoices.review.errors.amount.required',
+    invalid: 'serviceInvoices.review.errors.amount.invalid',
+    mustBePositive: 'serviceInvoices.review.errors.amount.mustBePositive',
+  },
+  clientId: {
+    required: 'serviceInvoices.review.errors.clientId.required',
+  },
+};
 
 type ServiceInvoiceReviewScreenProps = {
   visible: boolean;
@@ -41,9 +67,9 @@ export function ServiceInvoiceReviewScreen({
 
   const fieldError = (field: ServiceInvoiceField): string | undefined => {
     const code = review.errors[field];
-    return code
-      ? t(`serviceInvoices.review.errors.${field}.${code}` as TranslationKey)
-      : undefined;
+    if (!code) return undefined;
+    const keys: Record<string, TranslationKey> = FIELD_ERROR_KEYS[field];
+    return t(keys[code]);
   };
 
   return (
