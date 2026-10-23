@@ -8,10 +8,27 @@ import {
   fetchAppointments,
   type AppointmentResult,
 } from 'features/procedures';
+import { onConnectionRestored } from 'shared/services/network';
+import { isNetworkError } from 'shared/utils/network';
 
-import { summarizePeriod } from '../domain/overview';
+import type { FinancialEntry } from '../domain/financialEntry';
+import {
+  calculateMonthlyBalance,
+  type BalanceEntry,
+  type MonthlyBalance,
+} from '../domain/monthlyBalance';
 import type { StatementPeriod } from '../domain/statement';
-import { fetchAllMonthlyFinancialEntries } from '../services/financialEntryService';
+import {
+  entriesFromCache,
+  onBalanceCacheChange,
+  readBalanceCache,
+  saveBalanceAdjustments,
+  saveBalanceEntries,
+} from '../services/balanceCache';
+import {
+  fetchAllMonthlyFinancialEntries,
+  fetchFinancialBalance,
+} from '../services/financialEntryService';
 
 export type FinanceOverview = {
   revenue: number;
@@ -28,6 +45,7 @@ export type FinanceOverviewState = {
   overview: FinanceOverview | null;
   isLoading: boolean;
   hasError: boolean;
+  incomplete: boolean;
   retry: () => void;
 };
 
@@ -56,80 +74,217 @@ async function fetchAllCompletedAppointments(
   }
 }
 
+function toBalanceEntry(
+  entry: FinancialEntry & { pendingSync?: boolean; deletedAt?: string | null },
+): BalanceEntry {
+  return {
+    id: entry.id,
+    nature: entry.nature,
+    scope: entry.scope,
+    amount: entry.amount,
+    accrualDate: entry.accrualDate,
+    categoryName: entry.category.name,
+    deletedAt: entry.deletedAt,
+    pendingSync: entry.pendingSync,
+  };
+}
+
+function withTotals(
+  current: FinanceOverview | null,
+  balance: MonthlyBalance,
+): FinanceOverview {
+  return {
+    revenue: balance.revenue,
+    professionalExpenses: balance.professionalExpenses,
+    personalExpenses: balance.personalExpenses,
+    netBalance: balance.netBalance,
+    hoursWorked: current?.hoursWorked ?? 0,
+    averageHourly: current?.averageHourly ?? null,
+    depreciation: current?.depreciation ?? 0,
+    equipmentCount: current?.equipmentCount ?? 0,
+  };
+}
+
+function localEntries(period: StatementPeriod): BalanceEntry[] {
+  return entriesFromCache(readBalanceCache(period)).map(entry =>
+    toBalanceEntry(entry),
+  );
+}
+
+const EMPTY_OVERVIEW: FinanceOverview = {
+  revenue: 0,
+  professionalExpenses: 0,
+  personalExpenses: 0,
+  netBalance: 0,
+  hoursWorked: 0,
+  averageHourly: null,
+  depreciation: 0,
+  equipmentCount: 0,
+};
+
 export function useFinanceOverview(
   period: StatementPeriod,
 ): FinanceOverviewState {
   const { session } = useAuth();
   const token = session?.idToken;
-  const { month, year } = period;
   const [overview, setOverview] = useState<FinanceOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [incomplete, setIncomplete] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
-    setIsLoading(true);
-    setHasError(false);
+    let request = 0;
 
-    if (!token) {
-      setOverview(null);
-      setHasError(true);
-      setIsLoading(false);
-      return () => {
-        active = false;
-      };
-    }
-
-    Promise.all([
-      fetchFixedCostsSummary(token, { month, year }),
-      fetchAllMonthlyFinancialEntries(token, { month, year }),
-      fetchAllCompletedAppointments(token, { month, year }),
-      equipmentService.summary(token),
-    ])
-      .then(([costs, entries, appointments, equipment]) => {
-        if (!active) return;
-        const totals = summarizePeriod(entries);
-        const work = appointments.reduce(
-          (total, appointment) => {
-            if (!appointment.endsAt) return total;
-            const duration = calculateHoursWorked(
-              appointment.startsAt,
-              appointment.endsAt,
-              appointment.amount,
-            );
-            return {
-              minutes: total.minutes + duration.minutes,
-              billed: total.billed + (Number(appointment.amount) || 0),
-            };
+    const load = () => {
+      const currentRequest = ++request;
+      if (!token) {
+        const cached = readBalanceCache(period);
+        const balance = calculateMonthlyBalance(
+          entriesFromCache(cached).map(entry => toBalanceEntry(entry)),
+          period,
+          {
+            depreciation: cached.depreciation,
+            transport: cached.transport,
           },
-          { minutes: 0, billed: 0 },
         );
-        const hoursWorked = work.minutes / 60;
-        setOverview({
-          ...totals,
-          hoursWorked,
-          averageHourly: hoursWorked > 0 ? work.billed / hoursWorked : null,
-          depreciation: costs.equipmentDepreciation,
-          equipmentCount: equipment.count,
+        if (active && currentRequest === request) {
+          setOverview(current => withTotals(current, balance));
+          setIncomplete(balance.incomplete);
+          setHasError(false);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      const settled = Promise.allSettled([
+        fetchFinancialBalance(token, period),
+        fetchAllMonthlyFinancialEntries(token, period),
+        fetchFixedCostsSummary(token, period),
+        fetchAllCompletedAppointments(token, period),
+        equipmentService.summary(token),
+      ]);
+
+      settled.then(results => {
+        if (!active || currentRequest !== request) return;
+        const [
+          balanceResult,
+          entriesResult,
+          costsResult,
+          appointmentsResult,
+          equipmentResult,
+        ] = results;
+
+        if (entriesResult.status === 'fulfilled') {
+          saveBalanceEntries(period, entriesResult.value);
+        }
+        if (costsResult.status === 'fulfilled') {
+          saveBalanceAdjustments(period, {
+            transport: costsResult.value.transportCost,
+            depreciation: costsResult.value.equipmentDepreciation,
+          });
+        } else if (equipmentResult.status === 'fulfilled') {
+          saveBalanceAdjustments(period, {
+            depreciation: equipmentResult.value.monthlyTotal,
+          });
+        }
+
+        const cached = readBalanceCache(period);
+        setOverview(current => {
+          let next = current;
+          if (appointmentsResult.status === 'fulfilled') {
+            const work = appointmentsResult.value.reduce(
+              (total, appointment) => {
+                if (!appointment.endsAt) return total;
+                const duration = calculateHoursWorked(
+                  appointment.startsAt,
+                  appointment.endsAt,
+                  appointment.amount,
+                );
+                return {
+                  minutes: total.minutes + duration.minutes,
+                  billed: total.billed + (Number(appointment.amount) || 0),
+                };
+              },
+              { minutes: 0, billed: 0 },
+            );
+            const hoursWorked = work.minutes / 60;
+            next = {
+              ...(next ?? EMPTY_OVERVIEW),
+              hoursWorked,
+              averageHourly: hoursWorked > 0 ? work.billed / hoursWorked : null,
+            };
+          }
+          if (costsResult.status === 'fulfilled') {
+            next = {
+              ...(next ?? EMPTY_OVERVIEW),
+              depreciation: costsResult.value.equipmentDepreciation,
+            };
+          }
+          if (equipmentResult.status === 'fulfilled') {
+            next = {
+              ...(next ?? EMPTY_OVERVIEW),
+              equipmentCount: equipmentResult.value.count,
+            };
+          }
+          if (balanceResult.status === 'fulfilled' && balanceResult.value) {
+            return withTotals(next, balanceResult.value);
+          }
+          if (
+            balanceResult.status === 'rejected' &&
+            isNetworkError(balanceResult.reason)
+          ) {
+            return withTotals(
+              next,
+              calculateMonthlyBalance(localEntries(period), period, {
+                depreciation: cached.depreciation,
+                transport: cached.transport,
+              }),
+            );
+          }
+          return next;
         });
-      })
-      .catch(() => {
-        if (active) setHasError(true);
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
+
+        if (balanceResult.status === 'fulfilled') {
+          setIncomplete(false);
+          setHasError(false);
+        } else if (
+          balanceResult.status === 'rejected' &&
+          isNetworkError(balanceResult.reason)
+        ) {
+          setIncomplete(
+            cached.depreciation === null || cached.transport === null,
+          );
+          setHasError(false);
+        } else {
+          setHasError(true);
+        }
+        setIsLoading(false);
       });
+    };
+
+    setHasError(false);
+    load();
+    const stop = onConnectionRestored(() => {
+      if (active) load();
+    });
+    const stopCache = onBalanceCacheChange(() => {
+      if (active) load();
+    });
 
     return () => {
       active = false;
+      stop();
+      stopCache();
     };
-  }, [token, month, year, attempt]);
+  }, [token, period, attempt]);
 
   return {
     overview,
     isLoading,
     hasError,
+    incomplete,
     retry: () => setAttempt(value => value + 1),
   };
 }

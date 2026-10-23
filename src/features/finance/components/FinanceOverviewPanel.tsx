@@ -20,6 +20,7 @@ type FinanceOverviewPanelProps = {
   previousMonthLabel: string;
   nextMonthLabel: string;
   totalizers: readonly TotalizerCardProps[];
+  balanceNotice: string | null;
   overview: FinanceOverview | null;
   hasError: boolean;
   onPreviousMonth: () => void;
@@ -62,6 +63,7 @@ export function FinanceOverviewPanel({
   previousMonthLabel,
   nextMonthLabel,
   totalizers,
+  balanceNotice,
   overview,
   hasError,
   onPreviousMonth,
@@ -85,6 +87,7 @@ export function FinanceOverviewPanel({
         nextMonthLabel={nextMonthLabel}
         onPreviousMonth={onPreviousMonth}
         onNextMonth={onNextMonth}
+        notice={balanceNotice}
       />
 
       <View className="flex-row gap-2.5">

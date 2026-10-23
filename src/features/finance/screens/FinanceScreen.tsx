@@ -196,6 +196,9 @@ export function FinanceScreen() {
                   onPreviousMonth={() => shiftMonth(-1)}
                   onNextMonth={() => shiftMonth(1)}
                   onRetry={overview.retry}
+                  balanceNotice={
+                    overview.incomplete ? t('finance.balanceIncomplete') : null
+                  }
                 />
                 <View className="px-5">
                   <NewEntryButton

@@ -14,6 +14,7 @@ type PeriodBalanceCardProps = {
   isNegative: boolean;
   previousMonthLabel: string;
   nextMonthLabel: string;
+  notice?: string | null;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
 };
@@ -26,6 +27,7 @@ export function PeriodBalanceCard({
   isNegative,
   previousMonthLabel,
   nextMonthLabel,
+  notice = null,
   onPreviousMonth,
   onNextMonth,
 }: PeriodBalanceCardProps) {
@@ -68,6 +70,9 @@ export function PeriodBalanceCard({
       >
         {netBalance}
       </Text>
+      {notice ? (
+        <Text className="pt-1 text-[11px] text-label-tertiary">{notice}</Text>
+      ) : null}
     </Card>
   );
 }

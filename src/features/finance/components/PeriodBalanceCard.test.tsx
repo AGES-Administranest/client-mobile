@@ -88,3 +88,17 @@ test('a positive balance stays in the default color', async () => {
   expect(balance?.props.className).toContain('text-label-primary');
   expect(balance?.props.className).not.toContain('text-alert-primary');
 });
+
+test('shows the incomplete notice only when it is passed', async () => {
+  const quiet = await render();
+  expect(textsOf(quiet.renderer)).not.toContain(
+    'Pode estar incompleto até sincronizar.',
+  );
+
+  const warned = await render({
+    notice: 'Pode estar incompleto até sincronizar.',
+  });
+  expect(textsOf(warned.renderer)).toContain(
+    'Pode estar incompleto até sincronizar.',
+  );
+});

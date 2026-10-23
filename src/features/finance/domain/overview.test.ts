@@ -3,7 +3,6 @@ import {
   formatPeriodLabel,
   isCurrentPeriod,
   shiftPeriod,
-  summarizePeriod,
 } from './overview';
 
 const normalize = (value: string) => value.replace(/ /g, ' ');
@@ -69,45 +68,5 @@ describe('formatOverviewAmount', () => {
   it('follows the locale', () => {
     expect(normalize(formatOverviewAmount(1400, 'en-US'))).toBe('R$1,400');
     expect(normalize(formatOverviewAmount(-10.5, 'en-US'))).toBe('–R$10.50');
-  });
-});
-
-describe('summarizePeriod', () => {
-  it('is zero when the month has no entries', () => {
-    expect(summarizePeriod([])).toEqual({
-      revenue: 0,
-      professionalExpenses: 0,
-      personalExpenses: 0,
-      netBalance: 0,
-    });
-  });
-
-  it('sums income into revenue and splits expenses by scope', () => {
-    expect(
-      summarizePeriod([
-        { nature: 'INCOME', scope: 'PROFESSIONAL', amount: 620 },
-        { nature: 'INCOME', scope: 'PERSONAL', amount: 80 },
-        { nature: 'EXPENSE', scope: 'PROFESSIONAL', amount: 180.1 },
-        { nature: 'EXPENSE', scope: 'PROFESSIONAL', amount: 0.2 },
-        { nature: 'EXPENSE', scope: 'PERSONAL', amount: 900 },
-      ]),
-    ).toEqual({
-      revenue: 700,
-      professionalExpenses: 180.3,
-      personalExpenses: 900,
-      netBalance: -380.3,
-    });
-  });
-
-  it('does not change the entries it received', () => {
-    const entries = [
-      { nature: 'EXPENSE' as const, scope: 'PERSONAL' as const, amount: 10 },
-    ];
-
-    summarizePeriod(entries);
-
-    expect(entries).toEqual([
-      { nature: 'EXPENSE', scope: 'PERSONAL', amount: 10 },
-    ]);
   });
 });

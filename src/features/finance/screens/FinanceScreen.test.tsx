@@ -17,6 +17,7 @@ import {
   fetchAllMonthlyFinancialEntries,
   fetchFinancialCategories,
   fetchFinancialEntries,
+  fetchFinancialBalance,
   updateFinancialEntry,
 } from '../services/financialEntryService';
 
@@ -24,6 +25,17 @@ jest.mock('../services/financialEntryService', () => ({
   createFinancialEntry: jest.fn(),
   deleteFinancialEntry: jest.fn(),
   fetchAllMonthlyFinancialEntries: jest.fn(() => Promise.resolve([])),
+  fetchFinancialBalance: jest.fn(() =>
+    Promise.resolve({
+      revenue: 0,
+      professionalExpenses: 0,
+      personalExpenses: 0,
+      totalExpenses: 0,
+      netBalance: 0,
+      expensesByCategory: [],
+      incomplete: false,
+    }),
+  ),
   fetchFinancialCategories: jest.fn(),
   fetchFinancialEntries: jest.fn(),
   updateFinancialEntry: jest.fn(),
@@ -104,6 +116,9 @@ const fetchMonthEntriesMock =
   fetchAllMonthlyFinancialEntries as jest.MockedFunction<
     typeof fetchAllMonthlyFinancialEntries
   >;
+const fetchBalanceMock = fetchFinancialBalance as jest.MockedFunction<
+  typeof fetchFinancialBalance
+>;
 
 const updateMock = updateFinancialEntry as jest.MockedFunction<
   typeof updateFinancialEntry
@@ -260,6 +275,15 @@ async function renderScreen() {
 beforeEach(() => {
   fetchEntriesMock.mockReset().mockResolvedValue(ENTRIES);
   fetchMonthEntriesMock.mockReset().mockResolvedValue([]);
+  fetchBalanceMock.mockReset().mockResolvedValue({
+    revenue: 0,
+    professionalExpenses: 0,
+    personalExpenses: 0,
+    totalExpenses: 0,
+    netBalance: 0,
+    expensesByCategory: [],
+    incomplete: false,
+  });
   fetchCategoriesMock.mockReset().mockResolvedValue([
     {
       id: 'cat-travel',
@@ -481,19 +505,15 @@ describe('month statement', () => {
   });
 
   test('a negative net balance shows the minus and the alert color', async () => {
-    fetchMonthEntriesMock.mockResolvedValue([
-      entry({
-        nature: 'INCOME',
-        amount: 100,
-        scope: 'PROFESSIONAL',
-      }),
-      entry({
-        id: 'entry-2',
-        nature: 'EXPENSE',
-        amount: 180.08,
-        scope: 'PROFESSIONAL',
-      }),
-    ]);
+    fetchBalanceMock.mockResolvedValue({
+      revenue: 100,
+      professionalExpenses: 180.08,
+      personalExpenses: 0,
+      totalExpenses: 180.08,
+      netBalance: -80.08,
+      expensesByCategory: [],
+      incomplete: false,
+    });
     const renderer = await renderScreen();
     const money = textsOf(renderer).map(text => text.replace(/\u00a0/g, ' '));
 

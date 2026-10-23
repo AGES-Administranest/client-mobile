@@ -1,16 +1,8 @@
 import { formatCurrency } from 'shared/utils/currency';
 
-import type { FinancialEntry } from './financialEntry';
 import { currentPeriod, type StatementPeriod } from './statement';
 
 const MINUS = '–';
-
-export type PeriodTotals = {
-  revenue: number;
-  professionalExpenses: number;
-  personalExpenses: number;
-  netBalance: number;
-};
 
 function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
@@ -45,29 +37,4 @@ export function formatOverviewAmount(value: number, locale: string): string {
     showCents: rounded === 0 || hasCents(rounded),
   });
   return rounded < 0 ? `${MINUS}${formatted}` : formatted;
-}
-
-export function summarizePeriod(
-  entries: readonly Pick<FinancialEntry, 'nature' | 'scope' | 'amount'>[],
-): PeriodTotals {
-  let revenue = 0;
-  let professionalExpenses = 0;
-  let personalExpenses = 0;
-
-  for (const entry of entries) {
-    if (entry.nature === 'INCOME') {
-      revenue = roundMoney(revenue + entry.amount);
-    } else if (entry.scope === 'PROFESSIONAL') {
-      professionalExpenses = roundMoney(professionalExpenses + entry.amount);
-    } else {
-      personalExpenses = roundMoney(personalExpenses + entry.amount);
-    }
-  }
-
-  return {
-    revenue,
-    professionalExpenses,
-    personalExpenses,
-    netBalance: roundMoney(revenue - professionalExpenses - personalExpenses),
-  };
 }
