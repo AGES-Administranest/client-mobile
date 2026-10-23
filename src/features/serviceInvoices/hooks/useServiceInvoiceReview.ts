@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
-import { useClientSearch, type ClientOption } from 'features/clients';
+import {
+  isLocalClientId,
+  useClientSearch,
+  type ClientOption,
+} from 'features/clients';
 import { formatCurrencyInput, formatDateInput } from 'shared/utils/inputMasks';
 
+import type { InitialClient } from '../domain/initialClient';
 import type {
+  ServiceInvoiceConfirmation,
+  ServiceInvoiceDuplicate,
   ServiceInvoiceErrors,
   ServiceInvoiceField,
   ServiceInvoiceFormValues,
@@ -12,13 +19,22 @@ import type {
 import { validateServiceInvoiceForm } from '../domain/validateServiceInvoiceForm';
 import { confirmServiceInvoice } from '../services/serviceInvoiceService';
 
+type DuplicateNotice = {
+  note: ServiceInvoiceDuplicate;
+  view: 'alert' | 'details';
+  /** Closed but kept, so the sheet still has its text while it slides out. */
+  isOpen: boolean;
+};
+
 type UseServiceInvoiceReviewOptions = {
   initialValues: ServiceInvoiceFormValues;
+  initialClient: InitialClient;
   onConfirmed: () => void;
 };
 
 export function useServiceInvoiceReview({
   initialValues,
+  initialClient,
   onConfirmed,
 }: UseServiceInvoiceReviewOptions) {
   const { session } = useAuth();
@@ -26,8 +42,11 @@ export function useServiceInvoiceReview({
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<ServiceInvoiceErrors>({});
   const [selectedClient, setSelectedClient] = useState<ClientOption | null>(
-    null,
+    initialClient.selected
+      ? { id: initialClient.selected.id, name: initialClient.selected.name }
+      : null,
   );
+  const [duplicate, setDuplicate] = useState<DuplicateNotice | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitFailed, setSubmitFailed] = useState(false);
   const isMounted = useRef(true);
@@ -78,9 +97,8 @@ export function useServiceInvoiceReview({
       setSelectedClient({ id: client.id, name: client.name });
       setValues(current => ({ ...current, clientId: client.id }));
       clearError('clientId');
-      clientSearch.onTermChange(client.name);
     },
-    [clearError, clientSearch],
+    [clearError],
   );
 
   // Typing again undoes the choice: the clientId cannot keep pointing at a
@@ -96,33 +114,77 @@ export function useServiceInvoiceReview({
     [clientSearch, selectedClient],
   );
 
-  const submit = useCallback(async () => {
-    if (isSubmittingRef.current) return;
-    const { errors: found, input } = validateServiceInvoiceForm(values);
-    setErrors(found);
-    if (!input) return;
+  const closeDuplicate = useCallback(
+    () => setDuplicate(current => current && { ...current, isOpen: false }),
+    [],
+  );
 
-    isSubmittingRef.current = true;
-    setIsSubmitting(true);
-    setSubmitFailed(false);
-    try {
-      if (!idToken) throw new Error('No active session');
-      await confirmServiceInvoice(idToken, input);
-    } catch {
-      isSubmittingRef.current = false;
-      if (isMounted.current) {
-        setIsSubmitting(false);
-        setSubmitFailed(true);
+  const send = useCallback(
+    async (allowDuplicate: boolean) => {
+      if (isSubmittingRef.current) return;
+      const { errors: found, input } = validateServiceInvoiceForm(values);
+      // A taker registered offline has no real id yet, and the note cannot
+      // point at one the backend has never seen.
+      if (input && isLocalClientId(input.clientId)) {
+        found.clientId = 'pending';
       }
-      return;
-    }
-    isSubmittingRef.current = false;
-    if (isMounted.current) setIsSubmitting(false);
-    onConfirmed();
-  }, [idToken, onConfirmed, values]);
+      setErrors(found);
+      if (!input || found.clientId) {
+        closeDuplicate();
+        return;
+      }
 
+      isSubmittingRef.current = true;
+      setIsSubmitting(true);
+      setSubmitFailed(false);
+      let confirmation: ServiceInvoiceConfirmation;
+      try {
+        if (!idToken) throw new Error('No active session');
+        confirmation = await confirmServiceInvoice(idToken, input, {
+          allowDuplicate,
+        });
+      } catch {
+        isSubmittingRef.current = false;
+        if (isMounted.current) {
+          setIsSubmitting(false);
+          setSubmitFailed(true);
+          closeDuplicate();
+        }
+        return;
+      }
+      isSubmittingRef.current = false;
+      if (isMounted.current) setIsSubmitting(false);
+      if ('duplicateOf' in confirmation) {
+        if (isMounted.current) {
+          setDuplicate({
+            note: confirmation.duplicateOf,
+            view: 'alert',
+            isOpen: true,
+          });
+        }
+        return;
+      }
+      onConfirmed();
+    },
+    [closeDuplicate, idToken, onConfirmed, values],
+  );
+
+  const submit = useCallback(() => send(false), [send]);
+  const saveDuplicateAnyway = useCallback(() => send(true), [send]);
+  const viewDuplicate = useCallback(
+    () => setDuplicate(current => current && { ...current, view: 'details' }),
+    [],
+  );
+  const backToDuplicateAlert = useCallback(
+    () => setDuplicate(current => current && { ...current, view: 'alert' }),
+    [],
+  );
+
+  // The taker the reading linked is not an edit; changing it, clearing it or
+  // typing a search is.
   const isDirty =
-    clientSearch.term !== '' ||
+    values.clientId !== initialValues.clientId ||
+    (values.clientId === null && clientSearch.term !== '') ||
     values.issueDate !== initialValues.issueDate ||
     values.amount !== initialValues.amount ||
     values.number !== initialValues.number;
@@ -132,10 +194,12 @@ export function useServiceInvoiceReview({
     errors,
     isDirty,
     client: {
-      term: clientSearch.term,
+      term: selectedClient?.name ?? clientSearch.term,
       status: clientSearch.status,
       options: clientSearch.options,
+      suggestions: selectedClient ? [] : initialClient.suggestions,
     },
+    duplicate,
     isSubmitting,
     submitFailed,
     changeIssueDate,
@@ -144,5 +208,9 @@ export function useServiceInvoiceReview({
     changeClientTerm,
     selectClient,
     submit,
+    saveDuplicateAnyway,
+    dismissDuplicate: closeDuplicate,
+    viewDuplicate,
+    backToDuplicateAlert,
   };
 }

@@ -1379,7 +1379,8 @@
           "mustBePositive": "O valor precisa ser maior que zero."
         },
         "clientId": {
-          "required": "Escolha o tomador da nota."
+          "required": "Escolha o tomador da nota.",
+          "pending": "Esse tomador ainda aguarda sincronização. Confirme a nota quando houver conexão."
         }
       },
       "confirm": "Confirmar",
@@ -1388,7 +1389,25 @@
       "leaveTitle": "Sair da nota?",
       "leaveMessage": "Os dados preenchidos não foram salvos e vão se perder.",
       "leaveConfirm": "Sair sem salvar",
-      "leaveCancel": "Continuar preenchendo"
+      "leaveCancel": "Continuar preenchendo",
+      "suggestions": "Sugestões de tomador",
+      "registerClient": "Cadastrar novo tomador"
+    },
+    "duplicate": {
+      "title": "Nota parecida encontrada",
+      "detailsTitle": "Nota já registrada",
+      "alert": "Já existe uma nota com o mesmo valor e a mesma data de emissão. Confira antes de salvar de novo.",
+      "fields": {
+        "number": "Número da nota",
+        "issueDate": "Data de emissão",
+        "amount": "Valor total",
+        "client": "Tomador"
+      },
+      "viewExisting": "Ver nota existente",
+      "saveAnyway": "Salvar mesmo assim",
+      "cancel": "Cancelar",
+      "back": "Voltar ao aviso",
+      "close": "Fechar aviso"
     }
   }
 }

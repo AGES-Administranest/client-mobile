@@ -19,7 +19,19 @@ describe('toInitialReview', () => {
         clientId: null,
       },
       readFailed: false,
+      client: { selected: null, suggestions: [] },
+      newClientPrefill: { name: 'Clínica Vet', taxId: '12345678000195' },
     });
+  });
+
+  it('selects the taker the API linked', () => {
+    const review = toInitialReview({
+      status: 'SUCCESS',
+      clientMatch: { id: 'c-1', name: 'Clínica Vet', taxId: '12345678000195' },
+    });
+
+    expect(review.values.clientId).toBe('c-1');
+    expect(review.client.selected?.id).toBe('c-1');
   });
 
   it('keeps only what came on a partial reading', () => {
@@ -33,6 +45,8 @@ describe('toInitialReview', () => {
         clientId: null,
       },
       readFailed: false,
+      client: { selected: null, suggestions: [] },
+      newClientPrefill: { name: '', taxId: '' },
     });
   });
 
@@ -47,6 +61,8 @@ describe('toInitialReview', () => {
     expect(toInitialReview(extraction)).toEqual({
       values: EMPTY_SERVICE_INVOICE_FORM,
       readFailed: true,
+      client: { selected: null, suggestions: [] },
+      newClientPrefill: { name: '', taxId: '' },
     });
   });
 
