@@ -52,3 +52,87 @@ test('rethrows a refused save as an ApiError with its code', async () => {
     code: 'VALIDATION_ERROR',
   });
 });
+
+describe('getHourlyRate (stand-in until the backend serves it)', () => {
+  const OCTOBER = { month: 10, year: 2026 };
+  const SUMMARY = {
+    professionalExpenses: '1225.00',
+    personalExpenses: '860.00',
+    depreciation: '189.08',
+    transport: '350.00',
+    total: '2624.08',
+  };
+
+  function respondTo(routes: Record<string, [number, unknown]>) {
+    fetchMock.mockImplementation(async (url: string) => {
+      const path = Object.keys(routes).find(route => url.includes(route));
+      const [status, body] = path ? routes[path] : [404, {}];
+      return {
+        ok: status >= 200 && status < 300,
+        status,
+        json: async () => body,
+      };
+    });
+  }
+
+  test('calculates from the goals and the fixed costs of the month', async () => {
+    respondTo({
+      '/pricing-settings': [
+        200,
+        { monthlyIncomeGoal: 8000, weeklyHours: 30, safetyMarginPct: 20 },
+      ],
+      '/fixed-costs/summary': [200, SUMMARY],
+    });
+
+    const rate = await pricingService.getHourlyRate(ID_TOKEN, OCTOBER);
+
+    expect(rate).toMatchObject({
+      month: OCTOBER,
+      parts: {
+        fixedCosts: 1399.08,
+        variableCosts: 1225,
+        proLabore: 8000,
+        safetyMargin: 2124.82,
+      },
+      hourlyRate: 98.07,
+      minimumHourlyRate: 81.72,
+    });
+    const urls = fetchMock.mock.calls.map(([url]) => url as string);
+    expect(urls).toContainEqual(
+      expect.stringMatching(/\/fixed-costs\/summary\?month=10&year=2026$/),
+    );
+    for (const [, init] of fetchMock.mock.calls as [string, RequestInit][]) {
+      expect((init.headers as Record<string, string>).Authorization).toBe(
+        `Bearer ${ID_TOKEN}`,
+      );
+    }
+  });
+
+  test('is null while the goals are not configured', async () => {
+    respondTo({
+      '/pricing-settings': [
+        404,
+        { code: 'PRICING_SETTINGS_NOT_FOUND', message: 'Not configured' },
+      ],
+      '/fixed-costs/summary': [200, SUMMARY],
+    });
+
+    await expect(
+      pricingService.getHourlyRate(ID_TOKEN, OCTOBER),
+    ).resolves.toBeNull();
+  });
+
+  test('fails when the fixed costs cannot be read', async () => {
+    respondTo({
+      '/pricing-settings': [
+        200,
+        { monthlyIncomeGoal: 8000, weeklyHours: 30, safetyMarginPct: 20 },
+      ],
+      '/fixed-costs/summary': [500, { code: 'INTERNAL', message: 'Boom' }],
+    });
+
+    await expect(
+      pricingService.getHourlyRate(ID_TOKEN, OCTOBER),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+});

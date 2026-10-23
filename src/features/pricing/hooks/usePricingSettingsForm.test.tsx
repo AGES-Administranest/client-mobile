@@ -168,6 +168,7 @@ test('keeps the draft and shows a failure when saving fails', async () => {
 
 test('does not save without a session', async () => {
   await mount({ initialSettings: SAVED }, null);
+  await fill({ weeklyHours: '40' });
 
   expect(await submit()).toBeNull();
   expect(current.failure).toBe('pricing.goalForm.failures.save');
@@ -183,6 +184,7 @@ test('ignores a save that resolves after unmounting', async () => {
   );
   const onSaved = jest.fn();
   await mount({ initialSettings: SAVED, onSaved });
+  await fill({ weeklyHours: '40' });
 
   let pending: Promise<PricingSettings | null> = Promise.resolve(null);
   act(() => {
@@ -194,5 +196,15 @@ test('ignores a save that resolves after unmounting', async () => {
   resolve(SAVED);
 
   expect(await pending).toBeNull();
+  expect(onSaved).not.toHaveBeenCalled();
+});
+
+test('does not send the same goals again when nothing changed', async () => {
+  const onSaved = jest.fn();
+  await mount({ initialSettings: SAVED, onSaved });
+  await fill({ monthlyIncomeGoal: '8.000' });
+
+  expect(await submit()).toEqual(SAVED);
+  expect(saveSettingsMock).not.toHaveBeenCalled();
   expect(onSaved).not.toHaveBeenCalled();
 });
