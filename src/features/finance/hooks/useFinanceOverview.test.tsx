@@ -71,7 +71,10 @@ const PERIOD = { month: 3, year: 2026 };
 const offline = new NetworkError('offline');
 
 function stored(
-  partial: Pick<FinancialEntry, 'id' | 'nature' | 'scope' | 'amount' | 'accrualDate'> & {
+  partial: Pick<
+    FinancialEntry,
+    'id' | 'nature' | 'scope' | 'amount' | 'accrualDate'
+  > & {
     categoryName: string;
   },
 ): FinancialEntry {
