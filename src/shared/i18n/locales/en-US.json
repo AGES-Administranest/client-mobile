@@ -1333,5 +1333,62 @@
       "documentRemoval": "The document and its file are deleted.",
       "historyRemoval": "The appointment leaves the schedule and the history."
     }
+  },
+  "serviceInvoices": {
+    "trigger": "Send invoice",
+    "extracting": "Reading the invoice…",
+    "errors": {
+      "notPdf": "We only accept PDF invoices. Choose a .pdf file.",
+      "dismiss": "Got it"
+    },
+    "review": {
+      "title": "Review invoice",
+      "back": "Back",
+      "checkData": "Check the data read from the invoice before confirming.",
+      "readFailed": "We could not read the invoice. Fill in the data manually.",
+      "fields": {
+        "issueDate": {
+          "label": "Issue date",
+          "placeholder": "DD/MM/YYYY"
+        },
+        "amount": {
+          "label": "Total amount",
+          "placeholder": "0,00"
+        },
+        "number": {
+          "label": "Invoice number"
+        },
+        "client": {
+          "label": "Client",
+          "placeholder": "Search the client"
+        }
+      },
+      "clientSearch": {
+        "loading": "Searching clients…",
+        "error": "Could not search the clients.",
+        "empty": "No client found"
+      },
+      "errors": {
+        "issueDate": {
+          "required": "Enter the issue date.",
+          "invalid": "Invalid date. Use the format DD/MM/YYYY."
+        },
+        "amount": {
+          "required": "Enter the total amount.",
+          "invalid": "Invalid amount. Use the format 1.234,56.",
+          "mustBePositive": "The amount must be greater than zero."
+        },
+        "clientId": {
+          "required": "Choose the invoice client."
+        }
+      },
+      "confirm": "Confirm",
+      "confirming": "Confirming…",
+      "submitFailed": "Could not confirm the invoice. Try again.",
+      "leaveTitle": "Leave the invoice?",
+      "leaveMessage": "The data you entered has not been saved and will be lost.",
+      "leaveConfirm": "Leave without saving",
+      "leaveCancel": "Keep editing"
+    }
   }
 }

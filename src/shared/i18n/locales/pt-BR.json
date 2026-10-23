@@ -1333,5 +1333,62 @@
       "documentRemoval": "O documento e o arquivo são apagados.",
       "historyRemoval": "O atendimento sai da agenda e do histórico."
     }
+  },
+  "serviceInvoices": {
+    "trigger": "Enviar nota fiscal",
+    "extracting": "Lendo a nota…",
+    "errors": {
+      "notPdf": "Só aceitamos notas em PDF. Escolha um arquivo .pdf.",
+      "dismiss": "Entendi"
+    },
+    "review": {
+      "title": "Revisar nota fiscal",
+      "back": "Voltar",
+      "checkData": "Confira os dados lidos da nota antes de confirmar.",
+      "readFailed": "Não conseguimos ler a nota. Preencha os dados manualmente.",
+      "fields": {
+        "issueDate": {
+          "label": "Data de emissão",
+          "placeholder": "DD/MM/AAAA"
+        },
+        "amount": {
+          "label": "Valor total",
+          "placeholder": "0,00"
+        },
+        "number": {
+          "label": "Número da nota"
+        },
+        "client": {
+          "label": "Tomador",
+          "placeholder": "Busque o tomador"
+        }
+      },
+      "clientSearch": {
+        "loading": "Buscando tomadores…",
+        "error": "Não foi possível buscar os tomadores.",
+        "empty": "Nenhum tomador encontrado"
+      },
+      "errors": {
+        "issueDate": {
+          "required": "Informe a data de emissão.",
+          "invalid": "Data inválida. Use o formato DD/MM/AAAA."
+        },
+        "amount": {
+          "required": "Informe o valor total.",
+          "invalid": "Valor inválido. Use o formato 1.234,56.",
+          "mustBePositive": "O valor precisa ser maior que zero."
+        },
+        "clientId": {
+          "required": "Escolha o tomador da nota."
+        }
+      },
+      "confirm": "Confirmar",
+      "confirming": "Confirmando…",
+      "submitFailed": "Não foi possível confirmar a nota. Tente novamente.",
+      "leaveTitle": "Sair da nota?",
+      "leaveMessage": "Os dados preenchidos não foram salvos e vão se perder.",
+      "leaveConfirm": "Sair sem salvar",
+      "leaveCancel": "Continuar preenchendo"
+    }
   }
 }
