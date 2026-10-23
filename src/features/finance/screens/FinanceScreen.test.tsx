@@ -816,27 +816,3 @@ test('opens the vehicles screen from the header icon', async () => {
 
   expect(JSON.stringify(textsOf())).not.toContain('VEÍCULOS');
 });
-
-describe('service invoice upload button', () => {
-  const originalEnv = process.env.EXPO_PUBLIC_APP_ENV;
-
-  afterEach(() => {
-    process.env.EXPO_PUBLIC_APP_ENV = originalEnv;
-  });
-
-  test('is offered outside a production build', async () => {
-    process.env.EXPO_PUBLIC_APP_ENV = 'development';
-
-    const renderer = await renderScreen();
-
-    expect(textsOf(renderer)).toContain('Enviar nota fiscal');
-  });
-
-  test('is hidden in a production build, until the endpoints exist', async () => {
-    process.env.EXPO_PUBLIC_APP_ENV = 'production';
-
-    const renderer = await renderScreen();
-
-    expect(textsOf(renderer)).not.toContain('Enviar nota fiscal');
-  });
-});

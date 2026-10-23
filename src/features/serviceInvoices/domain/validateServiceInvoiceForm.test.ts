@@ -9,10 +9,8 @@ const VALID: ServiceInvoiceFormValues = {
   clientId: 'client-1',
 };
 
-const TODAY = new Date(2030, 5, 15, 14, 30);
-
 function validate(overrides: Partial<ServiceInvoiceFormValues> = {}) {
-  return validateServiceInvoiceForm({ ...VALID, ...overrides }, TODAY);
+  return validateServiceInvoiceForm({ ...VALID, ...overrides });
 }
 
 describe('validateServiceInvoiceForm', () => {
@@ -61,43 +59,6 @@ describe('validateServiceInvoiceForm', () => {
         expect(validate({ issueDate }).errors.issueDate).toBe('invalid');
       },
     );
-
-    it.each([
-      ['today', '15/06/2030'],
-      ['yesterday', '14/06/2030'],
-      ['a date long ago, as there is no lower bound', '01/01/1900'],
-    ])('accepts %s', (_label, issueDate) => {
-      expect(validate({ issueDate }).errors.issueDate).toBeUndefined();
-    });
-
-    it.each([
-      ['tomorrow', '16/06/2030'],
-      ['next year', '15/06/2031'],
-    ])('rejects %s as in the future', (_label, issueDate) => {
-      const result = validate({ issueDate });
-
-      expect(result.errors.issueDate).toBe('future');
-      expect(result.input).toBeNull();
-    });
-
-    it('does not let the time of day move the boundary', () => {
-      const earlyToday = new Date(2030, 5, 15, 0, 0, 1);
-      const lateToday = new Date(2030, 5, 15, 23, 59, 59);
-      const values = { ...VALID, issueDate: '15/06/2030' };
-
-      expect(
-        validateServiceInvoiceForm(values, earlyToday).errors.issueDate,
-      ).toBeUndefined();
-      expect(
-        validateServiceInvoiceForm(values, lateToday).errors.issueDate,
-      ).toBeUndefined();
-      expect(
-        validateServiceInvoiceForm(
-          { ...values, issueDate: '16/06/2030' },
-          lateToday,
-        ).errors.issueDate,
-      ).toBe('future');
-    });
 
     it('keeps the first day of the month on the same month', () => {
       expect(validate({ issueDate: '01/03/2026' }).input?.issueDate).toBe(

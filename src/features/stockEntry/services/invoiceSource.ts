@@ -19,12 +19,7 @@ export class PickError extends Error {
   }
 }
 
-// The presigned policy takes the type we declare, not the picker's: pinning
-// it keeps a PDF the picker labels oddly uploadable, as it always was.
-export async function pickPdf(): Promise<PickedFile | null> {
-  const picked = await pickSharedPdf();
-  return picked && { ...picked, mimeType: 'application/pdf' };
-}
+export const pickPdf: () => Promise<PickedFile | null> = pickSharedPdf;
 
 /**
  * Opens the system photo library so the user can pick a picture of an invoice

@@ -17,12 +17,9 @@ export type ServiceInvoiceUploadState = {
   step: UploadStep;
   /** The picked file was not a PDF. */
   isFileRejected: boolean;
-  /** The picker itself broke, as opposed to the person cancelling it. */
-  isPickFailed: boolean;
   review: InitialReview | null;
   start: () => void;
   dismissRejection: () => void;
-  dismissPickFailure: () => void;
   closeReview: () => void;
 };
 
@@ -31,7 +28,6 @@ export function useServiceInvoiceUpload(): ServiceInvoiceUploadState {
   const idToken = session?.idToken ?? null;
   const [step, setStep] = useState<UploadStep>('idle');
   const [isFileRejected, setIsFileRejected] = useState(false);
-  const [isPickFailed, setIsPickFailed] = useState(false);
   const [review, setReview] = useState<InitialReview | null>(null);
   const isMounted = useRef(true);
   const isBusy = useRef(false);
@@ -47,19 +43,9 @@ export function useServiceInvoiceUpload(): ServiceInvoiceUploadState {
     if (isBusy.current) return;
     isBusy.current = true;
     setIsFileRejected(false);
-    setIsPickFailed(false);
     setStep('picking');
     try {
-      let file: Awaited<ReturnType<typeof pickPdf>>;
-      try {
-        file = await pickPdf();
-      } catch {
-        if (isMounted.current) {
-          setIsPickFailed(true);
-          setStep('idle');
-        }
-        return;
-      }
+      const file = await pickPdf();
       if (!isMounted.current) return;
       if (file === null) {
         setStep('idle');
@@ -93,11 +79,9 @@ export function useServiceInvoiceUpload(): ServiceInvoiceUploadState {
   return {
     step,
     isFileRejected,
-    isPickFailed,
     review,
     start,
     dismissRejection: useCallback(() => setIsFileRejected(false), []),
-    dismissPickFailure: useCallback(() => setIsPickFailed(false), []),
     closeReview: useCallback(() => {
       setReview(null);
       setStep('idle');

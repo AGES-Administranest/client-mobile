@@ -7,10 +7,7 @@ import {
 } from 'react-native';
 
 import { CalculatorScreen } from 'features/calculator';
-import {
-  isServiceInvoiceUploadEnabled,
-  ServiceInvoiceUploadFlow,
-} from 'features/serviceInvoices';
+import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
 import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
 
@@ -158,9 +155,7 @@ export function FinanceScreen() {
                     label={t('financialEntries.newEntry')}
                     onPress={openOptions}
                   />
-                  {isServiceInvoiceUploadEnabled() ? (
-                    <ServiceInvoiceUploadFlow />
-                  ) : null}
+                  <ServiceInvoiceUploadFlow />
                 </View>
                 <View className="gap-3 px-5">
                   <ScopeFilter
