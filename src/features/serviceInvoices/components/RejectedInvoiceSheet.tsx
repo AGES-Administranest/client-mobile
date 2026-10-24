@@ -1,4 +1,4 @@
-import { Trash2, X } from 'lucide-react-native';
+import { Check, Trash2 } from 'lucide-react-native';
 
 import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
@@ -47,7 +47,7 @@ export function RejectedInvoiceSheet({
           </Button>
           <Button
             shape="pill"
-            icon={X}
+            icon={Check}
             className="h-[49px] w-full"
             onPress={onKeep}
           >
