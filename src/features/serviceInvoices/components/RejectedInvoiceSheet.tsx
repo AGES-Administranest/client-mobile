@@ -16,7 +16,8 @@ type RejectedInvoiceSheetProps = {
 };
 
 // Not the shared ConfirmSheet: it always paints the confirm brown and the
-// cancel red, and here red belongs to the one action that deletes.
+// cancel red, and here red belongs to the one action that deletes. Same
+// palette as it: `secondary` is button-secondary, the default is button-primary.
 export function RejectedInvoiceSheet({
   visible,
   title,
@@ -37,7 +38,7 @@ export function RejectedInvoiceSheet({
         <>
           <Button
             shape="pill"
-            variant="destructive"
+            variant="secondary"
             icon={Trash2}
             className="h-[49px] w-full"
             onPress={onDiscard}
@@ -46,14 +47,11 @@ export function RejectedInvoiceSheet({
           </Button>
           <Button
             shape="pill"
-            variant="outline"
             icon={X}
-            className="h-[49px] w-full border-border-primary bg-white"
+            className="h-[49px] w-full"
             onPress={onKeep}
           >
-            <Text className="font-semibold text-label-primary">
-              {keepLabel}
-            </Text>
+            <Text className="font-semibold">{keepLabel}</Text>
           </Button>
         </>
       }

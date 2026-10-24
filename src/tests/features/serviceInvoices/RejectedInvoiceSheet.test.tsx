@@ -45,18 +45,23 @@ function button(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
 }
 
 describe('RejectedInvoiceSheet', () => {
-  it('paints red only the action that deletes', () => {
+  it('uses the palette of the confirm sheet: button-secondary red for the action that deletes, the default brown for keeping', () => {
     const { renderer } = render();
 
     const discard = renderer.root.find(
       node =>
-        node.props.variant === 'destructive' &&
+        node.props.variant === 'secondary' &&
         typeof node.props.onPress === 'function',
     );
     const keep = renderer.root.find(
       node =>
-        node.props.variant === 'outline' &&
-        typeof node.props.onPress === 'function',
+        node.props.variant === undefined &&
+        typeof node.props.onPress === 'function' &&
+        node.props.icon !== undefined &&
+        node.findAll(
+          n =>
+            typeof n.type === 'string' && n.props.children === 'Manter na fila',
+        ).length > 0,
     );
 
     expect(
@@ -72,11 +77,15 @@ describe('RejectedInvoiceSheet', () => {
       ),
     ).toHaveLength(1);
     expect(
-      renderer.root.findAll(node => node.props.variant === 'secondary'),
+      renderer.root.findAll(
+        node =>
+          node.props.variant === 'destructive' ||
+          node.props.variant === 'outline',
+      ),
     ).toHaveLength(0);
   });
 
-  it('discards only from the destructive button', () => {
+  it('discards only from the red button', () => {
     const { renderer, onDiscard, onKeep } = render();
 
     act(() => button(renderer, 'Descartar nota').props.onPress());
