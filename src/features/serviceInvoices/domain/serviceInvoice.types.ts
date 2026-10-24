@@ -60,3 +60,48 @@ export type ServiceInvoiceConfirmation =
   | { duplicateOf: ServiceInvoiceDuplicate };
 
 export type ConfirmServiceInvoiceOptions = { allowDuplicate?: boolean };
+
+// Provisional, like the rest of this file: there is no /service-invoices/sync
+// in the backend yet. The batch follows /financial-entries/sync (a result per
+// item) and the id is the app's (ADR-09), which is what makes a resend safe.
+export type ServiceInvoiceSyncItem = {
+  id: string;
+  /** `YYYY-MM-DD` */
+  issueDate: string;
+  amount: number;
+  number?: string;
+  clientId: string;
+  fileName: string;
+  fileHash: string;
+  fileBytesSize: number;
+};
+
+/** What a reading of the PDF found, which the typed data never yields to. */
+export type ServiceInvoiceReading = {
+  issueDate?: string;
+  amount?: number;
+  number?: string;
+};
+
+export type ServiceInvoiceSyncResult = {
+  id: string;
+  status: 'applied' | 'ignored' | 'conflict';
+  financialEntryId?: string;
+  code?: string;
+  reading?: ServiceInvoiceReading;
+};
+
+/** The body of `POST /service-invoices/:id/upload-url` (backend #71). */
+export type ServiceInvoiceUploadRequest = {
+  filename: string;
+  fileMimeType: string;
+  fileHash: string;
+  fileBytesSize: number;
+};
+
+/** The presigned POST that comes back: send `fields`, then the file. */
+export type ServiceInvoiceUploadTarget = {
+  url: string;
+  fields: Record<string, string>;
+  expiresAt: number;
+};

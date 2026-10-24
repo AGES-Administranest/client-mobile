@@ -7,11 +7,18 @@ import {
   useServiceInvoiceReview,
   type ServiceInvoiceReviewState,
 } from 'features/serviceInvoices/hooks/useServiceInvoiceReview';
+import { queueManualServiceInvoice } from 'features/serviceInvoices/services/offlineServiceInvoiceStore';
 import { confirmServiceInvoice } from 'features/serviceInvoices/services/serviceInvoiceService';
 
 jest.mock('features/serviceInvoices/services/serviceInvoiceService', () => ({
   confirmServiceInvoice: jest.fn(),
 }));
+jest.mock(
+  'features/serviceInvoices/services/offlineServiceInvoiceStore',
+  () => ({
+    queueManualServiceInvoice: jest.fn(),
+  }),
+);
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn(),
 }));
@@ -21,6 +28,14 @@ jest.mock('features/auth/services/accountApi', () => ({}));
 
 const confirmMock = jest.mocked(confirmServiceInvoice);
 const fetchClientsMock = jest.mocked(fetchClients);
+const queueMock = jest.mocked(queueManualServiceInvoice);
+
+const MANUAL_PDF = {
+  uri: 'file:///cache/nota.pdf',
+  bytes: new Uint8Array([1]),
+  name: 'nota.pdf',
+  mimeType: 'application/pdf',
+};
 
 const SESSION = {
   idToken: 'id-token',
@@ -47,7 +62,7 @@ const DUPLICATE: ServiceInvoiceConfirmation = {
 
 const onConfirmed = jest.fn();
 
-function mount() {
+function mount({ manual = false }: { manual?: boolean } = {}) {
   const seen = {} as { current: ServiceInvoiceReviewState };
 
   function Probe() {
@@ -62,6 +77,7 @@ function mount() {
         selected: { id: 'client-1', name: 'Clínica Vet Sul', taxId: '' },
         suggestions: [],
       },
+      manualFile: manual ? MANUAL_PDF : null,
       onConfirmed,
     });
     return null;
@@ -146,6 +162,61 @@ describe('useServiceInvoiceReview, leaving during a confirmation', () => {
       expect.anything(),
       { allowDuplicate: true },
     );
+    expect(onConfirmed).not.toHaveBeenCalled();
+  });
+});
+
+describe('useServiceInvoiceReview, a note typed by hand', () => {
+  it('queues the note on the device instead of confirming it', async () => {
+    queueMock.mockResolvedValue({ id: 'saved-1' } as Awaited<
+      ReturnType<typeof queueManualServiceInvoice>
+    >);
+    const { seen } = mount({ manual: true });
+
+    await act(async () => {
+      await seen.current.submit();
+    });
+
+    expect(queueMock).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({ amount: 1850, clientId: 'client-1' }),
+      MANUAL_PDF,
+    );
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(onConfirmed).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the failure and keeps the review when it cannot be saved', async () => {
+    queueMock.mockRejectedValue(new Error('disk full'));
+    const { seen } = mount({ manual: true });
+
+    await act(async () => {
+      await seen.current.submit();
+    });
+
+    expect(seen.current.submitFailed).toBe(true);
+    expect(onConfirmed).not.toHaveBeenCalled();
+  });
+
+  it('does not report the note when the screen was left while it was saved', async () => {
+    let finish: (value: { id: string }) => void = () => {};
+    queueMock.mockReturnValue(
+      new Promise(resolve => {
+        finish = resolve as typeof finish;
+      }),
+    );
+    const { seen, renderer } = mount({ manual: true });
+
+    let pending!: Promise<void>;
+    act(() => {
+      pending = seen.current.submit();
+    });
+    act(() => renderer.unmount());
+    await act(async () => {
+      finish({ id: 'saved-1' });
+      await pending;
+    });
+
     expect(onConfirmed).not.toHaveBeenCalled();
   });
 });

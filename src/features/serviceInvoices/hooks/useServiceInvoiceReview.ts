@@ -7,8 +7,10 @@ import {
   type ClientOption,
   type ClientSearchStatus,
 } from 'features/clients';
+import type { PickedPdf } from 'shared/services/pdfPicker';
 import { formatCurrencyInput, formatDateInput } from 'shared/utils/inputMasks';
 
+import { isWithinServiceInvoiceSizeLimit } from '../domain/acceptedFile';
 import type { InitialClient } from '../domain/initialClient';
 import type {
   ExtractedClient,
@@ -19,6 +21,7 @@ import type {
   ServiceInvoiceFormValues,
 } from '../domain/serviceInvoice.types';
 import { validateServiceInvoiceForm } from '../domain/validateServiceInvoiceForm';
+import { queueManualServiceInvoice } from '../services/offlineServiceInvoiceStore';
 import { confirmServiceInvoice } from '../services/serviceInvoiceService';
 
 export type DuplicateNotice = {
@@ -31,6 +34,8 @@ export type DuplicateNotice = {
 type UseServiceInvoiceReviewOptions = {
   initialValues: ServiceInvoiceFormValues;
   initialClient: InitialClient;
+  /** Set when the note is typed by hand: it is queued with this PDF instead of confirmed. */
+  manualFile?: PickedPdf | null;
   onConfirmed: () => void;
 };
 
@@ -47,6 +52,8 @@ export type ServiceInvoiceReviewState = {
   duplicate: DuplicateNotice | null;
   isSubmitting: boolean;
   submitFailed: boolean;
+  /** The PDF of a note typed by hand is over what the backend accepts. */
+  fileTooLarge: boolean;
   changeIssueDate: (text: string) => void;
   changeAmount: (text: string) => void;
   changeNumber: (text: string) => void;
@@ -62,10 +69,12 @@ export type ServiceInvoiceReviewState = {
 export function useServiceInvoiceReview({
   initialValues,
   initialClient,
+  manualFile = null,
   onConfirmed,
 }: UseServiceInvoiceReviewOptions): ServiceInvoiceReviewState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<ServiceInvoiceErrors>({});
   const [selectedClient, setSelectedClient] = useState<ClientOption | null>(
@@ -76,6 +85,7 @@ export function useServiceInvoiceReview({
   const [duplicate, setDuplicate] = useState<DuplicateNotice | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitFailed, setSubmitFailed] = useState(false);
+  const [fileTooLarge, setFileTooLarge] = useState(false);
   const isMounted = useRef(true);
   const isSubmittingRef = useRef(false);
   const clientSearch = useClientSearch({
@@ -149,10 +159,17 @@ export function useServiceInvoiceReview({
   const send = useCallback(
     async (allowDuplicate: boolean) => {
       if (isSubmittingRef.current) return;
+      // The backend would refuse it on the sync, long after the person left.
+      const tooLarge =
+        manualFile !== null &&
+        !isWithinServiceInvoiceSizeLimit(manualFile.bytes.length);
+      setFileTooLarge(tooLarge);
+      if (tooLarge) return;
       const { errors: found, input } = validateServiceInvoiceForm(values);
-      // A taker registered offline has no real id yet, and the note cannot
-      // point at one the backend has never seen.
-      if (input && isLocalClientId(input.clientId)) {
+      // A taker registered offline has no real id yet, and a note confirmed now
+      // cannot point at one the backend has never seen. A note typed by hand
+      // waits in the queue, which swaps the id once the taker has synced.
+      if (input && !manualFile && isLocalClientId(input.clientId)) {
         found.clientId = 'pending';
       }
       setErrors(found);
@@ -166,10 +183,20 @@ export function useServiceInvoiceReview({
       setSubmitFailed(false);
       let confirmation: ServiceInvoiceConfirmation;
       try {
-        if (!idToken) throw new Error('No active session');
-        confirmation = await confirmServiceInvoice(idToken, input, {
-          allowDuplicate,
-        });
+        if (manualFile) {
+          if (!userId) throw new Error('No active session');
+          const { id } = await queueManualServiceInvoice(
+            userId,
+            input,
+            manualFile,
+          );
+          confirmation = { id };
+        } else {
+          if (!idToken) throw new Error('No active session');
+          confirmation = await confirmServiceInvoice(idToken, input, {
+            allowDuplicate,
+          });
+        }
       } catch {
         isSubmittingRef.current = false;
         if (isMounted.current) {
@@ -193,7 +220,7 @@ export function useServiceInvoiceReview({
       }
       if (isMounted.current) onConfirmed();
     },
-    [closeDuplicate, idToken, onConfirmed, values],
+    [closeDuplicate, idToken, manualFile, onConfirmed, userId, values],
   );
 
   const submit = useCallback(() => send(false), [send]);
@@ -229,6 +256,7 @@ export function useServiceInvoiceReview({
     duplicate,
     isSubmitting,
     submitFailed,
+    fileTooLarge,
     changeIssueDate,
     changeAmount,
     changeNumber,
