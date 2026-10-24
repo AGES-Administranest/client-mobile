@@ -7,18 +7,15 @@ export type CalculateTripCostParams = {
   cost?: number | string | null;
 };
 
-/**
- * Calculates trip cost:
- * - For OWN_VEHICLE: distanceKm * costPerKm rounded half-up to 2 decimals.
- * - For RIDE: the fare paid (cost), minimum 0.
- */
 export function calculateTripCost(params: CalculateTripCostParams): number {
   if (params.mode === 'RIDE') {
     const rawCost =
       typeof params.cost === 'string'
         ? parseFloat(params.cost.replace(',', '.'))
         : params.cost;
-    return Number.isFinite(rawCost) && rawCost != null ? Math.max(0, rawCost) : 0;
+    return Number.isFinite(rawCost) && rawCost != null
+      ? Math.max(0, rawCost)
+      : 0;
   }
 
   const rawDistance =

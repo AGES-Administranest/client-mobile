@@ -5,11 +5,15 @@ import {
   fetchTripById,
   fetchTrips,
   removeTrip,
-  syncTrips,
   tripService,
   updateTrip,
 } from './tripService';
-import type { CreateTripDto, Trip, TripListResponse, UpdateTripDto } from '../domain/trip.types';
+import type {
+  CreateTripDto,
+  Trip,
+  TripListResponse,
+  UpdateTripDto,
+} from '../domain/trip.types';
 
 jest.mock('shared/services/apiClient', () => ({
   apiClient: {
@@ -118,14 +122,13 @@ describe('tripService', () => {
     expect(result).toEqual(MOCK_TRIP);
   });
 
-  it('syncTrips calls POST /trips/sync', async () => {
-    (apiClient.post as jest.Mock).mockResolvedValue([MOCK_TRIP]);
+  it('never sends appointmentId or clientId, which the API rejects', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue(MOCK_LIST_RESPONSE);
 
-    const result = await syncTrips('test-token', [{ id: '1' }]);
-    expect(apiClient.post).toHaveBeenCalledWith('/trips/sync', [{ id: '1' }], {
-      token: 'test-token',
-    });
-    expect(result).toEqual([MOCK_TRIP]);
+    await fetchTrips('test-token', { from: '2026-10-24', to: '2026-10-24' });
+
+    const url = (apiClient.get as jest.Mock).mock.calls[0][0] as string;
+    expect(url).toBe('/trips?from=2026-10-24&to=2026-10-24');
   });
 
   it('exposes tripService object with all methods', () => {
@@ -134,6 +137,5 @@ describe('tripService', () => {
     expect(tripService.create).toBe(createTrip);
     expect(tripService.update).toBe(updateTrip);
     expect(tripService.remove).toBe(removeTrip);
-    expect(tripService.sync).toBe(syncTrips);
   });
 });

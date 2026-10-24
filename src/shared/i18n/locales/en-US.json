@@ -24,7 +24,8 @@
     "equipmentDepreciation": "Equipment depreciation",
     "equipmentMonthlyCost": "{{count}} items · monthly cost",
     "perMonth": "/month",
-    "overviewError": "Could not load the finance summary."
+    "overviewError": "Could not load the finance summary.",
+    "openTrips": "Open trips"
   },
   "calculator": {
     "title": "Hourly rate calculator",
@@ -1100,7 +1101,38 @@
         "vehiclePlaceholder": "Select a vehicle",
         "distanceLabel": "Distance (km)",
         "distancePlaceholder": "E.g. 34",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "ownVehicle": "Own vehicle",
+        "ride": "Ride-hailing / Taxi",
+        "noVehicles": "You have no vehicles registered yet.",
+        "addVehicle": "+ Register vehicle",
+        "costLabel": "Amount paid (R$)",
+        "costPlaceholder": "e.g. 35.00",
+        "distanceOptionalLabel": "Distance (km) (optional)",
+        "originLabel": "Origin",
+        "originPlaceholder": "e.g. Home",
+        "destinationLabel": "Destination",
+        "destinationPlaceholder": "e.g. Clinic",
+        "estimatedCost": "Estimated cost:",
+        "saving": "Saving...",
+        "defaultOrigin": "Home",
+        "vehicleOption": "{{name}} ({{costPerKm}}/km)",
+        "deleteTrip": "Delete trip",
+        "deleteConfirm": {
+          "title": "Delete trip",
+          "message": "Remove this trip from the appointment? Its expense will also be removed from Finance.",
+          "confirm": "Delete",
+          "cancel": "Cancel"
+        },
+        "errors": {
+          "originRequired": "Enter the origin",
+          "destinationRequired": "Enter the destination",
+          "vehicleRequired": "Select a car",
+          "distanceInvalid": "Enter a distance greater than zero, up to 5,000 km, with at most 2 decimal places",
+          "costInvalid": "Enter an amount greater than zero, up to R$ 10,000, with at most 2 decimal places",
+          "saveFailed": "Unable to save the trip. Please try again.",
+          "deleteFailed": "Unable to delete the trip. Please try again."
+        }
       },
       "cancellationReason": "Cancellation reason"
     },
@@ -1332,6 +1364,92 @@
       "stockRemoval": "The order's items leave the stock.",
       "documentRemoval": "The document and its file are deleted.",
       "historyRemoval": "The appointment leaves the schedule and the history."
+    }
+  },
+  "trips": {
+    "title": "Trips",
+    "subtitle": "How far you drove and what you spent to get to work",
+    "back": "Back",
+    "add": "Register trip",
+    "empty": {
+      "title": "No trips in this period",
+      "message": "Register your trips to track mileage and transport cost."
+    },
+    "summary": {
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "currentMonth": "CURRENT MONTH",
+      "costInMonth": "COST THIS MONTH",
+      "kmDriven": "KM DRIVEN",
+      "tripsCount": "TRIPS"
+    },
+    "item": {
+      "ownVehicle": "Own vehicle",
+      "ride": "Ride",
+      "pending": "pending",
+      "delete": "Delete trip"
+    },
+    "form": {
+      "newTitle": "New trip",
+      "editTitle": "Edit trip",
+      "close": "Close",
+      "modeLabel": "HOW",
+      "ownVehicle": "Own vehicle",
+      "ride": "Ride-hailing/taxi",
+      "origin": "ORIGIN",
+      "originPlaceholder": "e.g. Home",
+      "destination": "DESTINATION",
+      "destinationPlaceholder": "e.g. VetNova Clinic",
+      "vehicle": "VEHICLE",
+      "vehiclePlaceholder": "Select a vehicle",
+      "noVehicles": "No active vehicle registered. Register a vehicle first.",
+      "cost": "AMOUNT PAID (R$)",
+      "costPlaceholder": "e.g. 32.90",
+      "distance": "DISTANCE (KM)",
+      "distanceOptional": "DISTANCE (KM) (OPTIONAL)",
+      "distancePlaceholder": "e.g. 30",
+      "date": "DATE",
+      "datePlaceholder": "DD/MM/YYYY",
+      "previewTitle": "Trip cost",
+      "previewFormula": "{{distance}} km × {{costPerKm}}/km",
+      "previewPickVehicle": "Select the vehicle and the distance",
+      "previewInformed": "Amount entered",
+      "previewInformCost": "Enter the amount paid",
+      "client": "CLIENT (OPTIONAL)",
+      "clientPlaceholder": "Select the client",
+      "clientLoading": "Searching clients...",
+      "clientEmpty": "No client found",
+      "clientError": "Unable to search clients",
+      "save": "Save",
+      "saving": "Saving...",
+      "delete": "Delete trip",
+      "vehicleOption": "{{name}} · {{costPerKm}}/km"
+    },
+    "errors": {
+      "occurredOnRequired": "Enter the date",
+      "occurredOnInvalid": "Invalid date",
+      "originRequired": "Enter the origin",
+      "originMaxLength": "Origin must be at most 200 characters",
+      "destinationRequired": "Enter the destination",
+      "destinationMaxLength": "Destination must be at most 200 characters",
+      "vehicleRequired": "Select a vehicle",
+      "distanceRequired": "Enter the distance",
+      "distanceInvalid": "Enter a distance greater than zero, up to 5,000 km, with at most 2 decimal places",
+      "costRequired": "Enter the amount paid",
+      "costInvalid": "Enter an amount greater than zero, up to R$ 10,000, with at most 2 decimal places",
+      "saveFailed": "Unable to save the trip. Please try again.",
+      "deleteFailed": "Unable to delete the trip. Please try again."
+    },
+    "deleteConfirm": {
+      "title": "Delete trip",
+      "message": "Are you sure you want to delete this trip? Its expense will also be removed from Finance.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "sync": {
+      "rejectedTitle": "Sync failed",
+      "rejectedMessage": "One of your trips could not be synced with the server. Check its data and try again.",
+      "rejectedConfirm": "Got it"
     }
   }
 }

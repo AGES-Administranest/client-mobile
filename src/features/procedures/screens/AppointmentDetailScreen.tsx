@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 import { Button } from 'app/components/ui/button';
+import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { DeleteOriginDialog } from 'app/components/ui/delete-origin-dialog';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -37,7 +38,9 @@ import {
   useExportToCalendar,
 } from 'features/appointments';
 import { SupplySelectorSheet, useSupplySelector } from 'features/stock';
+import { useAppointmentTrips, useTripRowTexts } from 'features/trips';
 import { useTranslation } from 'shared/i18n';
+import { toCalendarDate } from 'shared/utils/calendar';
 import { formatCurrency } from 'shared/utils/currency';
 import { originDeletionEffects } from 'shared/utils/originDeletion';
 import { Colors } from 'theme/colors';
@@ -96,6 +99,38 @@ export function AppointmentDetailScreen({
   const translateX = useRef(new Animated.Value(SCREEN_WIDTH)).current;
   const detail = useAppointmentDetail(appointmentId);
   const { appointment } = detail;
+  const appointmentTrips = useAppointmentTrips({
+    appointmentId: appointment?.id ?? null,
+    clientId: appointment?.clientId ?? null,
+    occurredOn: appointment?.startsAt
+      ? toCalendarDate(appointment.startsAt)
+      : null,
+    defaultOrigin: t('procedures.detail.travel.defaultOrigin'),
+    defaultDestination: appointment?.location ?? '',
+  });
+  const tripVehicleNames = useMemo(
+    () =>
+      Object.fromEntries(
+        appointmentTrips.vehicles.map(vehicle => [
+          vehicle.id,
+          `${vehicle.brand} ${vehicle.model}`,
+        ]),
+      ),
+    [appointmentTrips.vehicles],
+  );
+  const tripRowTexts = useTripRowTexts({ vehicleNamesById: tripVehicleNames });
+  const tripVehicleLabel = (
+    vehicle: (typeof appointmentTrips.vehicles)[number],
+  ) =>
+    t('procedures.detail.travel.vehicleOption', {
+      name: `${vehicle.brand} ${vehicle.model}`,
+      costPerKm: formatCurrency(Number(vehicle.costPerKm) || 0, locale, {
+        showCents: true,
+      }),
+    });
+  const selectedTripVehicle = appointmentTrips.vehicles.find(
+    vehicle => vehicle.id === appointmentTrips.selectedVehicleId,
+  );
   const selector = useSupplySelector();
   const [selectorVisible, setSelectorVisible] = useState(false);
   const [amountSheetVisible, setAmountSheetVisible] = useState(false);
@@ -506,29 +541,88 @@ export function AppointmentDetailScreen({
 
                 <TravelSection
                   editable={syncedEditable}
-                  appointmentId={appointment?.id ?? null}
-                  clientId={appointment?.clientId ?? null}
-                  occurredOn={
-                    appointment?.startsAt
-                      ? appointment.startsAt.slice(0, 10)
-                      : undefined
-                  }
-                  defaultDestination={appointment?.location ?? undefined}
                   texts={{
                     title: t('procedures.detail.travel.title'),
                     emptyMessage: t('procedures.detail.travel.empty'),
                     register: t('procedures.detail.travel.register'),
                     collapse: t('procedures.detail.travel.collapse'),
+                    ownVehicle: t('procedures.detail.travel.ownVehicle'),
+                    ride: t('procedures.detail.travel.ride'),
+                    noVehicles: t('procedures.detail.travel.noVehicles'),
+                    addVehicle: t('procedures.detail.travel.addVehicle'),
                     vehicleLabel: t('procedures.detail.travel.vehicleLabel'),
                     vehiclePlaceholder: t(
                       'procedures.detail.travel.vehiclePlaceholder',
                     ),
                     distanceLabel: t('procedures.detail.travel.distanceLabel'),
+                    distanceOptionalLabel: t(
+                      'procedures.detail.travel.distanceOptionalLabel',
+                    ),
                     distancePlaceholder: t(
                       'procedures.detail.travel.distancePlaceholder',
                     ),
+                    costLabel: t('procedures.detail.travel.costLabel'),
+                    costPlaceholder: t(
+                      'procedures.detail.travel.costPlaceholder',
+                    ),
+                    originLabel: t('procedures.detail.travel.originLabel'),
+                    originPlaceholder: t(
+                      'procedures.detail.travel.originPlaceholder',
+                    ),
+                    destinationLabel: t(
+                      'procedures.detail.travel.destinationLabel',
+                    ),
+                    destinationPlaceholder: t(
+                      'procedures.detail.travel.destinationPlaceholder',
+                    ),
+                    estimatedCost: t('procedures.detail.travel.estimatedCost'),
                     confirm: t('procedures.detail.travel.confirm'),
+                    saving: t('procedures.detail.travel.saving'),
                   }}
+                  rows={appointmentTrips.trips.map(trip => ({
+                    trip,
+                    texts: tripRowTexts(trip),
+                  }))}
+                  vehicleOptions={appointmentTrips.vehicles.map(vehicle => ({
+                    id: vehicle.id,
+                    label: tripVehicleLabel(vehicle),
+                  }))}
+                  selectedVehicleLabel={
+                    selectedTripVehicle
+                      ? tripVehicleLabel(selectedTripVehicle)
+                      : null
+                  }
+                  hasNoVehicles={appointmentTrips.hasNoVehicles}
+                  expanded={appointmentTrips.expanded}
+                  mode={appointmentTrips.mode}
+                  origin={appointmentTrips.origin}
+                  destination={appointmentTrips.destination}
+                  distanceKm={appointmentTrips.distanceKm}
+                  cost={appointmentTrips.cost}
+                  previewCost={formatCurrency(
+                    appointmentTrips.previewCost,
+                    locale,
+                    { showCents: true },
+                  )}
+                  submitting={appointmentTrips.submitting}
+                  errorMessage={
+                    appointmentTrips.error
+                      ? t(
+                          `procedures.detail.travel.errors.${appointmentTrips.error}`,
+                        )
+                      : null
+                  }
+                  onToggleExpanded={appointmentTrips.toggleExpanded}
+                  onModeChange={appointmentTrips.setMode}
+                  onOriginChange={appointmentTrips.setOrigin}
+                  onDestinationChange={appointmentTrips.setDestination}
+                  onSelectVehicle={appointmentTrips.setSelectedVehicleId}
+                  onDistanceKmChange={appointmentTrips.setDistanceKm}
+                  onCostChange={appointmentTrips.setCost}
+                  onConfirm={() => {
+                    appointmentTrips.confirm().catch(() => undefined);
+                  }}
+                  onDeleteTrip={appointmentTrips.askToDelete}
                 />
 
                 <SupplyCostSummary
@@ -591,6 +685,17 @@ export function AppointmentDetailScreen({
         onAdjust={form.dismissConflict}
       />
 
+      <ConfirmSheet
+        visible={appointmentTrips.tripToDelete !== null}
+        title={t('procedures.detail.travel.deleteConfirm.title')}
+        message={t('procedures.detail.travel.deleteConfirm.message')}
+        confirmLabel={t('procedures.detail.travel.deleteConfirm.confirm')}
+        cancelLabel={t('procedures.detail.travel.deleteConfirm.cancel')}
+        onConfirm={() => {
+          appointmentTrips.confirmDelete().catch(() => undefined);
+        }}
+        onCancel={() => appointmentTrips.askToDelete(null)}
+      />
       <DeleteOriginDialog
         visible={deleteVisible}
         title={t('procedures.detail.deleteConfirm')}

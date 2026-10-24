@@ -36,7 +36,7 @@ export function FinanceHeader({
           <Pressable
             onPress={onTripsPress}
             accessibilityRole="button"
-            accessibilityLabel={tripsLabel ?? 'Deslocamentos'}
+            accessibilityLabel={tripsLabel}
             hitSlop={8}
             className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
           >

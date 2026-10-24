@@ -1,8 +1,8 @@
 import type { TripMode } from './trip.types';
 
 export const PLACE_MAX_LENGTH = 200;
-export const MAX_DISTANCE_KM = 99999;
-export const MAX_RIDE_COST = 999999;
+export const MAX_DISTANCE_KM = 5000;
+export const MAX_RIDE_COST = 10000;
 export const DISTANCE_DECIMAL_PLACES = 2;
 export const COST_DECIMAL_PLACES = 2;
 
@@ -18,7 +18,7 @@ export function parseDecimalInput(
 }
 
 export type TripFormValues = {
-  occurredOn: string; // YYYY-MM-DD
+  occurredOn: string;
   origin: string;
   destination: string;
   mode: TripMode;
@@ -42,14 +42,16 @@ export type TripFormErrorCode =
   | 'costRequired'
   | 'costInvalid';
 
+export type TripSubmitErrorCode = 'saveFailed' | 'deleteFailed';
+
 export type TripFormErrors = Partial<
   Record<keyof TripFormValues, TripFormErrorCode>
 > & {
-  general?: string;
+  general?: TripSubmitErrorCode;
 };
 
 export const EMPTY_TRIP_FORM: TripFormValues = {
-  occurredOn: new Date().toISOString().slice(0, 10),
+  occurredOn: '',
   origin: '',
   destination: '',
   mode: 'OWN_VEHICLE',
@@ -112,7 +114,6 @@ export function validateTripForm(values: TripFormValues): TripFormErrors {
       }
     }
 
-    // distanceKm is optional for RIDE, but if filled, must be valid
     if (values.distanceKm?.trim()) {
       const distance = parseDecimalInput(
         values.distanceKm,

@@ -1,16 +1,18 @@
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { useTranslation } from 'shared/i18n';
 
 import { useTripSync } from '../hooks/useTripSync';
 
 export function TripSyncObserver() {
+  const { t } = useTranslation();
   const { rejection, dismissRejection } = useTripSync();
 
   return (
     <ConfirmSheet
       visible={rejection !== null}
-      title="Falha na sincronização"
-      message="Não foi possível sincronizar um dos seus deslocamentos com o servidor. Verifique os dados e tente novamente."
-      confirmLabel="Entendi"
+      title={t('trips.sync.rejectedTitle')}
+      message={t('trips.sync.rejectedMessage')}
+      confirmLabel={t('trips.sync.rejectedConfirm')}
       onConfirm={dismissRejection}
       onCancel={dismissRejection}
     />

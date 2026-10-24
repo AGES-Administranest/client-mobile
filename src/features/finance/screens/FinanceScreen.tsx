@@ -131,7 +131,7 @@ export function FinanceScreen() {
               title={t('finance.title')}
               calculatorLabel={t('finance.openCalculator')}
               vehicleLabel={t('vehicles.openVehicles')}
-              tripsLabel="Deslocamentos"
+              tripsLabel={t('finance.openTrips')}
               onVehiclePress={() => setVehiclesVisible(true)}
               onCalculatorPress={() => setCalculatorVisible(true)}
               onTripsPress={() => setTripsVisible(true)}
@@ -228,6 +228,10 @@ export function FinanceScreen() {
       <TripsScreen
         visible={tripsVisible}
         onClose={() => setTripsVisible(false)}
+        onTripsChanged={() => {
+          statement.reload();
+          overview.retry();
+        }}
       />
     </View>
   );

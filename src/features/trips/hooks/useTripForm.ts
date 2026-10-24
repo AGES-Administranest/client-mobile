@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import { useClientSearch } from 'features/clients';
@@ -7,8 +7,8 @@ import { isNetworkError } from 'shared/utils/network';
 
 import { calculateTripCost } from '../domain/calculateTripCost';
 import type { Trip, TripMode } from '../domain/trip.types';
+import { buildInitialTripValues } from '../domain/tripFormValues';
 import {
-  EMPTY_TRIP_FORM,
   isTripFormValid,
   parseDecimalInput,
   validateTripForm,
@@ -26,73 +26,35 @@ import { tripService } from '../services/tripService';
 
 export type UseTripFormOptions = {
   trip?: Trip | null;
+  clientName?: string;
   appointmentId?: string | null;
   clientId?: string | null;
   defaultOccurredOn?: string;
   defaultOrigin?: string;
   defaultDestination?: string;
-  token?: string;
   active?: boolean;
   onSuccess?: (savedTrip: Trip) => void;
   onDeleted?: (tripId: string) => void;
 };
 
 export function useTripForm(options: UseTripFormOptions = {}) {
-  const {
-    trip,
-    appointmentId,
-    clientId: initialClientId,
-    defaultOccurredOn,
-    defaultOrigin,
-    defaultDestination,
-    token: propToken,
-    active = true,
-    onSuccess,
-    onDeleted,
-  } = options;
+  const { trip, clientName, active = true, onSuccess, onDeleted } = options;
 
-  let sessionToken: string | undefined;
-  let currentUserId: string | null = null;
-  try {
-    const auth = useAuth();
-    sessionToken = auth.session?.idToken;
-    currentUserId = auth.account?.id ?? null;
-  } catch {
-    sessionToken = undefined;
-  }
-  const token = propToken ?? sessionToken ?? '';
-  const userId = currentUserId ?? 'anonymous';
+  const { session, account } = useAuth();
+  const token = session?.idToken ?? '';
+  const userId = account?.id ?? 'anonymous';
 
   const { vehicles, isLoading: isLoadingVehicles } = useVehicles({
     token,
     autoFetch: active,
   });
 
-  const [values, setValues] = useState<TripFormValues>(() => {
-    if (trip) {
-      return {
-        occurredOn: trip.occurredOn,
-        origin: trip.origin,
-        destination: trip.destination,
-        mode: trip.mode,
-        vehicleId: trip.vehicleId ?? '',
-        distanceKm: trip.distanceKm != null ? String(trip.distanceKm) : '',
-        cost: trip.mode === 'RIDE' ? String(trip.cost) : '',
-        clientId: trip.clientId ?? null,
-        appointmentId: trip.appointmentId ?? null,
-      };
-    }
-    return {
-      ...EMPTY_TRIP_FORM,
-      occurredOn:
-        defaultOccurredOn ?? new Date().toISOString().slice(0, 10),
-      origin: defaultOrigin ?? '',
-      destination: defaultDestination ?? '',
-      clientId: initialClientId ?? null,
-      appointmentId: appointmentId ?? null,
-    };
-  });
+  const latestOptions = useRef(options);
+  latestOptions.current = options;
 
+  const [values, setValues] = useState<TripFormValues>(() =>
+    buildInitialTripValues(options, new Date()),
+  );
   const [errors, setErrors] = useState<TripFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [isClientSearchPaused, setIsClientSearchPaused] = useState(
@@ -103,59 +65,34 @@ export function useTripForm(options: UseTripFormOptions = {}) {
     active,
     paused: isClientSearchPaused,
   });
+  const setClientSearchTerm = clientSearch.onTermChange;
+  const latestSetClientSearchTerm = useRef(setClientSearchTerm);
+  latestSetClientSearchTerm.current = setClientSearchTerm;
 
-  // Re-sync form when trip or active changes
   useEffect(() => {
-    if (trip) {
-      setValues({
-        occurredOn: trip.occurredOn,
-        origin: trip.origin,
-        destination: trip.destination,
-        mode: trip.mode,
-        vehicleId: trip.vehicleId ?? '',
-        distanceKm: trip.distanceKm != null ? String(trip.distanceKm) : '',
-        cost: trip.mode === 'RIDE' ? String(trip.cost) : '',
-        clientId: trip.clientId ?? null,
-        appointmentId: trip.appointmentId ?? null,
-      });
-      setIsClientSearchPaused(Boolean(trip.clientId));
-      setErrors({});
-    } else if (active) {
-      setValues(prev => ({
-        ...prev,
-        occurredOn:
-          defaultOccurredOn ??
-          prev.occurredOn ??
-          new Date().toISOString().slice(0, 10),
-        origin: prev.origin || (defaultOrigin ?? ''),
-        destination: prev.destination || (defaultDestination ?? ''),
-        clientId: prev.clientId ?? initialClientId ?? null,
-        appointmentId: prev.appointmentId ?? appointmentId ?? null,
-      }));
-    }
-  }, [
-    trip,
-    active,
-    defaultOccurredOn,
-    defaultOrigin,
-    defaultDestination,
-    initialClientId,
-    appointmentId,
-  ]);
+    if (!active) return;
+    const initial = buildInitialTripValues(latestOptions.current, new Date());
+    setValues(initial);
+    setErrors({});
+    setIsClientSearchPaused(Boolean(initial.clientId));
+    latestSetClientSearchTerm.current(initial.clientId ? clientName ?? '' : '');
+  }, [active, trip, clientName]);
 
   const selectedVehicle = useMemo(
     () => vehicles.find(v => v.id === values.vehicleId) ?? null,
     [vehicles, values.vehicleId],
   );
 
-  const previewCost = useMemo(() => {
-    return calculateTripCost({
-      mode: values.mode,
-      distanceKm: values.distanceKm,
-      costPerKm: selectedVehicle?.costPerKm,
-      cost: values.cost,
-    });
-  }, [values.mode, values.distanceKm, selectedVehicle?.costPerKm, values.cost]);
+  const previewCost = useMemo(
+    () =>
+      calculateTripCost({
+        mode: values.mode,
+        distanceKm: values.distanceKm,
+        costPerKm: selectedVehicle?.costPerKm,
+        cost: values.cost,
+      }),
+    [values.mode, values.distanceKm, selectedVehicle?.costPerKm, values.cost],
+  );
 
   const setFieldValue = useCallback(
     <K extends keyof TripFormValues>(field: K, value: TripFormValues[K]) => {
@@ -184,26 +121,21 @@ export function useTripForm(options: UseTripFormOptions = {}) {
   const onSelectClient = useCallback(
     (option: { id: string; name: string }) => {
       setValues(prev => ({ ...prev, clientId: option.id }));
-      clientSearch.onTermChange(option.name);
+      setClientSearchTerm(option.name);
       setIsClientSearchPaused(true);
-      setErrors(prev => {
-        const next = { ...prev };
-        delete next.clientId;
-        return next;
-      });
     },
-    [clientSearch],
+    [setClientSearchTerm],
   );
 
   const onClientSearchTermChange = useCallback(
     (term: string) => {
       setIsClientSearchPaused(false);
-      clientSearch.onTermChange(term);
+      setClientSearchTerm(term);
       if (!term.trim()) {
         setValues(prev => ({ ...prev, clientId: null }));
       }
     },
-    [clientSearch],
+    [setClientSearchTerm],
   );
 
   const submit = useCallback(async (): Promise<Trip | null> => {
@@ -234,26 +166,22 @@ export function useTripForm(options: UseTripFormOptions = {}) {
             : undefined,
       };
 
-      let savedTrip: Trip;
-
       if (token) {
         try {
-          if (trip && !trip.id.startsWith('local:')) {
-            savedTrip = await tripService.update(token, trip.id, dto);
-          } else {
-            savedTrip = await tripService.create(token, dto);
-          }
-          onSuccess?.(savedTrip);
-          return savedTrip;
+          const saved =
+            trip && !trip.id.startsWith('local:')
+              ? await tripService.update(token, trip.id, dto)
+              : await tripService.create(token, dto);
+          onSuccess?.(saved);
+          return saved;
         } catch (apiErr) {
-          // If network error, fallback to offline store
           if (!isNetworkError(apiErr)) {
             throw apiErr;
           }
         }
       }
 
-      // Offline flow
+      let savedTrip: Trip;
       if (trip) {
         await queueTripUpdate(userId, trip.id, dto, previewCost);
         savedTrip = {
@@ -270,9 +198,8 @@ export function useTripForm(options: UseTripFormOptions = {}) {
 
       onSuccess?.(savedTrip);
       return savedTrip;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setErrors(prev => ({ ...prev, general: message }));
+    } catch {
+      setErrors(prev => ({ ...prev, general: 'saveFailed' }));
       return null;
     } finally {
       setSubmitting(false);
@@ -298,9 +225,8 @@ export function useTripForm(options: UseTripFormOptions = {}) {
       await queueTripDelete(userId, trip.id);
       onDeleted?.(trip.id);
       return true;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setErrors(prev => ({ ...prev, general: message }));
+    } catch {
+      setErrors(prev => ({ ...prev, general: 'deleteFailed' }));
       return false;
     } finally {
       setSubmitting(false);

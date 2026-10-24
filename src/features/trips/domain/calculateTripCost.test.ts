@@ -7,7 +7,6 @@ describe('calculateTripCost', () => {
       distanceKm: 30,
       costPerKm: 0.4719,
     });
-    // 30 * 0.4719 = 14.157 -> 14.16
     expect(cost).toBe(14.16);
   });
 
@@ -17,7 +16,6 @@ describe('calculateTripCost', () => {
       distanceKm: '32.5',
       costPerKm: '0.4719',
     });
-    // 32.5 * 0.4719 = 15.33675 -> 15.34
     expect(costDot).toBe(15.34);
 
     const costComma = calculateTripCost({

@@ -62,11 +62,7 @@ export async function saveTripCache(
   userId: string,
   trips: Trip[],
 ): Promise<void> {
-  try {
-    await writeJson(cacheKey(userId), trips);
-  } catch {
-    // Cache write error ignored
-  }
+  await writeJson(cacheKey(userId), trips).catch(() => undefined);
 }
 
 export function loadTripOutbox(
@@ -96,9 +92,7 @@ export async function queueTripCreate(
   notifyOfflineTripsChanged();
 }
 
-function loadResolvedTripIds(
-  userId: string,
-): Promise<Record<string, string>> {
+function loadResolvedTripIds(userId: string): Promise<Record<string, string>> {
   return readJson<Record<string, string>>(resolvedKey(userId), {});
 }
 
@@ -175,9 +169,7 @@ export async function findOfflineTrip(
   if (isLocalTripId(tripId)) {
     const clientGeneratedId = clientGeneratedIdOfTrip(tripId);
     const create = queue.find(
-      op =>
-        op.kind === 'create' &&
-        op.clientGeneratedId === clientGeneratedId,
+      op => op.kind === 'create' && op.clientGeneratedId === clientGeneratedId,
     );
     return create && create.kind === 'create'
       ? pendingCreateToTrip(

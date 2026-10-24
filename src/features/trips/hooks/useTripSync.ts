@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { useAuth } from 'features/auth';
@@ -27,11 +27,15 @@ export function useTripSync(): TripSyncState {
 
   const [rejections, setRejections] = useState<TripSyncRejection[]>([]);
 
+  const syncing = useRef(false);
+
   const sync = useCallback(async () => {
-    if (!idToken || !userId) return;
+    if (!idToken || !userId || syncing.current) return;
+    syncing.current = true;
     try {
       await syncPendingTrips(idToken, userId);
     } finally {
+      syncing.current = false;
       setRejections(await loadTripRejections(userId));
     }
   }, [idToken, userId]);

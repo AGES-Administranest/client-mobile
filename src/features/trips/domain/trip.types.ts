@@ -38,8 +38,6 @@ export type QueryTripParams = {
   to?: string;
   page?: number;
   pageSize?: number;
-  appointmentId?: string;
-  clientId?: string;
 };
 
 export type TripListResponse = {

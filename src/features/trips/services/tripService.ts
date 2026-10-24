@@ -17,8 +17,6 @@ export function fetchTrips(
   if (params.to) query.set('to', params.to);
   if (params.page != null) query.set('page', String(params.page));
   if (params.pageSize != null) query.set('pageSize', String(params.pageSize));
-  if (params.appointmentId) query.set('appointmentId', params.appointmentId);
-  if (params.clientId) query.set('clientId', params.clientId);
 
   const queryStr = query.toString();
   return apiClient.get<TripListResponse>(
@@ -47,18 +45,10 @@ export function removeTrip(token: string, id: string): Promise<Trip> {
   return apiClient.delete<Trip>(`/trips/${id}`, { token });
 }
 
-export function syncTrips(
-  token: string,
-  operations: unknown[],
-): Promise<Trip[]> {
-  return apiClient.post<Trip[]>('/trips/sync', operations, { token });
-}
-
 export const tripService = {
   list: fetchTrips,
   getById: fetchTripById,
   create: createTrip,
   update: updateTrip,
   remove: removeTrip,
-  sync: syncTrips,
 };

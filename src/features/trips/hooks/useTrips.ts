@@ -40,21 +40,14 @@ export function useTrips(options: UseTripsOptions = {}) {
     locale = 'pt-BR',
   } = options;
 
-  let sessionToken: string | undefined;
-  let currentUserId: string | null = null;
-  try {
-    const auth = useAuth();
-    sessionToken = auth.session?.idToken;
-    currentUserId = auth.account?.id ?? null;
-  } catch {
-    sessionToken = undefined;
-  }
-  const token = propToken ?? sessionToken ?? '';
-  const userId = currentUserId ?? 'anonymous';
+  const { session, account } = useAuth();
+  const token = propToken ?? session?.idToken ?? '';
+  const userId = account?.id ?? 'anonymous';
 
   const [trips, setTrips] = useState<Trip[]>([]);
   const [totalKm, setTotalKm] = useState('0.00');
   const [totalCost, setTotalCost] = useState('0.00');
+  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,10 +57,7 @@ export function useTrips(options: UseTripsOptions = {}) {
   const isFetchingRef = useRef(false);
 
   const fetchPage = useCallback(
-    async (
-      targetPage: number,
-      isLoadMore = false,
-    ): Promise<Trip[]> => {
+    async (targetPage: number, isLoadMore = false): Promise<Trip[]> => {
       if (isFetchingRef.current) return [];
       isFetchingRef.current = true;
 
@@ -82,8 +72,6 @@ export function useTrips(options: UseTripsOptions = {}) {
         const params: QueryTripParams = {
           from,
           to,
-          appointmentId,
-          clientId,
           page: targetPage,
           pageSize,
         };
@@ -105,7 +93,6 @@ export function useTrips(options: UseTripsOptions = {}) {
               await saveTripCache(userId, serverItems);
             }
           } catch {
-            // If offline, load from cache
             const cached = await loadTripCache(userId);
             serverItems = cached;
           }
@@ -113,13 +100,11 @@ export function useTrips(options: UseTripsOptions = {}) {
           serverItems = await loadTripCache(userId);
         }
 
-        // Merge with offline outbox
         const allItemsWithOffline = await loadTripsWithOffline(
           userId,
           serverItems,
         );
 
-        // Filter in-memory if query params present and offline fallback
         let filtered = allItemsWithOffline;
         if (from) {
           filtered = filtered.filter(t => t.occurredOn >= from);
@@ -134,7 +119,6 @@ export function useTrips(options: UseTripsOptions = {}) {
           filtered = filtered.filter(t => t.clientId === clientId);
         }
 
-        // Sort latest day first
         filtered.sort((a, b) => b.occurredOn.localeCompare(a.occurredOn));
 
         if (isLoadMore) {
@@ -148,12 +132,11 @@ export function useTrips(options: UseTripsOptions = {}) {
         }
 
         setPage(targetPage);
+        setTotal(Math.max(totalCount, filtered.length));
         setHasMore(
-          totalCount > targetPage * pageSize ||
-            serverItems.length === pageSize,
+          totalCount > targetPage * pageSize || serverItems.length === pageSize,
         );
 
-        // Recalculate totals if offline or not returned
         if (
           serverTotalKm === '0.00' &&
           serverTotalCost === '0.00' &&
@@ -203,7 +186,6 @@ export function useTrips(options: UseTripsOptions = {}) {
     }
   }, [autoFetch, refetch]);
 
-  // Subscribe to offline changes
   useEffect(() => {
     const unsubscribe = subscribeOfflineTrips(() => {
       refetch().catch(() => {});
@@ -211,7 +193,6 @@ export function useTrips(options: UseTripsOptions = {}) {
     return unsubscribe;
   }, [refetch]);
 
-  // Group trips by date
   const groupedTrips = useMemo<TripGroup[]>(() => {
     const groupsMap = new Map<string, Trip[]>();
 
@@ -235,7 +216,7 @@ export function useTrips(options: UseTripsOptions = {}) {
           .replace('.', '');
         formattedDate = `${weekday.toUpperCase()}, ${day} ${monthShort.toUpperCase()}`;
       } catch {
-        // Fallback
+        formattedDate = date;
       }
 
       result.push({
@@ -253,6 +234,7 @@ export function useTrips(options: UseTripsOptions = {}) {
     groupedTrips,
     totalKm,
     totalCost,
+    total,
     isLoading,
     isLoadingMore,
     hasMore,

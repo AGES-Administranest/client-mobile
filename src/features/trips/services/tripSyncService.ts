@@ -8,7 +8,10 @@ import {
   saveTripOutbox,
   saveTripRejections,
 } from './offlineTripStore';
-import type { PendingTripOperation, TripSyncRejection } from '../domain/offlineTrips';
+import type {
+  PendingTripOperation,
+  TripSyncRejection,
+} from '../domain/offlineTrips';
 import type { Trip } from '../domain/trip.types';
 
 export type TripSyncResult = {
@@ -77,68 +80,27 @@ export async function syncPendingTrips(
   const rejections = await loadTripRejections(userId);
   const newRejections: TripSyncRejection[] = [];
 
-  // Try batch endpoint POST /trips/sync first as required by US14 contract
-  let batchSyncSuccessful = false;
-  try {
-    const creates = queue.filter(op => op.kind === 'create');
-    if (creates.length === queue.length && creates.length > 0) {
-      // Contract batch format
-      const batchPayload = creates.map(op => ({
-        ...op.payload,
-        id: op.clientGeneratedId,
-      }));
-      const results = await apiClient.post<Trip[]>(
-        '/trips/sync',
-        batchPayload,
-        { token: idToken },
-      );
-      if (Array.isArray(results)) {
-        for (let i = 0; i < creates.length; i++) {
-          const item = results[i];
-          if (item?.id) {
-            await saveResolvedTripId(
-              userId,
-              creates[i].clientGeneratedId,
-              item.id,
-            );
-          }
-        }
-        synced = creates.length;
-        batchSyncSuccessful = true;
-        await saveTripOutbox(userId, []);
-        notifyOfflineTripsChanged();
-        return { synced, rejected: 0, pending: 0 };
+  for (const operation of queue) {
+    try {
+      await sendIndividualOperation(idToken, userId, operation);
+      synced++;
+    } catch (err) {
+      if (isPermanentRejection(err)) {
+        newRejections.push({
+          operation,
+          code: err instanceof ApiError ? err.code : null,
+        });
+      } else {
+        remaining.push(operation);
       }
-    }
-  } catch (err) {
-    // If /trips/sync is not available (404/500/etc), proceed with individual operations
-    if (isPermanentRejection(err)) {
-      // Keep going to individual fallback or reject
     }
   }
 
-  if (!batchSyncSuccessful) {
-    for (const operation of queue) {
-      try {
-        await sendIndividualOperation(idToken, userId, operation);
-        synced++;
-      } catch (err) {
-        if (isPermanentRejection(err)) {
-          newRejections.push({
-            operation,
-            code: err instanceof ApiError ? err.code : null,
-          });
-        } else {
-          // Network error or server transient error: keep in outbox
-          remaining.push(operation);
-        }
-      }
-    }
-
-    await saveTripOutbox(userId, remaining);
-    if (newRejections.length > 0) {
-      await saveTripRejections(userId, [...rejections, ...newRejections]);
-    }
+  await saveTripOutbox(userId, remaining);
+  if (newRejections.length > 0) {
+    await saveTripRejections(userId, [...rejections, ...newRejections]);
+  }
+  if (synced > 0 || newRejections.length > 0) {
     notifyOfflineTripsChanged();
   }
 
