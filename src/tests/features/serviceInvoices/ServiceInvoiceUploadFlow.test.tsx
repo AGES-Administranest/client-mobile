@@ -195,6 +195,22 @@ describe('file selection', () => {
     expect(texts(renderer)).not.toContain('Revisar nota fiscal');
   });
 
+  it('refuses a file named .pdf whose declared type is not a PDF', async () => {
+    const renderer = await renderFlow();
+    pickPdfMock.mockResolvedValue({
+      ...pdf('nota.pdf'),
+      mimeType: 'image/png',
+    });
+
+    await press(renderer, 'Enviar nota fiscal');
+
+    expect(texts(renderer)).toContain(
+      'Só aceitamos notas em PDF. Escolha um arquivo .pdf.',
+    );
+    expect(extractMock).not.toHaveBeenCalled();
+    expect(texts(renderer)).not.toContain('Revisar nota fiscal');
+  });
+
   it('asks the picker for a PDF only', async () => {
     const renderer = await renderFlow();
     extractMock.mockResolvedValue({ status: 'SUCCESS' });
