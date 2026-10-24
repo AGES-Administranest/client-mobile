@@ -8,12 +8,15 @@ import { BackgroundPrimary } from 'theme/colors';
 type FullScreenModalProps = {
   visible: boolean;
   onRequestClose: () => void;
+  /** iOS: o fim da saída; só então outro Modal pode abrir. */
+  onDismiss?: () => void;
   children: ReactNode;
 };
 
 export function FullScreenModal({
   visible,
   onRequestClose,
+  onDismiss,
   children,
 }: FullScreenModalProps) {
   const insets = useSafeAreaInsets();
@@ -24,6 +27,7 @@ export function FullScreenModal({
       animationType="slide"
       statusBarTranslucent
       onRequestClose={onRequestClose}
+      onDismiss={onDismiss}
     >
       <View
         className="flex-1"
