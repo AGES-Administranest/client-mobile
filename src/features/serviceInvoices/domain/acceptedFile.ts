@@ -16,3 +16,10 @@ export function isAcceptedServiceInvoiceFile({
   const declared = mimeType?.trim().toLowerCase();
   return !declared || declared === PDF_MIME_TYPE;
 }
+
+/** The backend's ceiling (SERVICE_INVOICE_UPLOAD): over it, the upload is refused. */
+export const MAX_SERVICE_INVOICE_FILE_BYTES = 15 * 1024 * 1024;
+
+export function isWithinServiceInvoiceSizeLimit(bytesSize: number): boolean {
+  return bytesSize <= MAX_SERVICE_INVOICE_FILE_BYTES;
+}

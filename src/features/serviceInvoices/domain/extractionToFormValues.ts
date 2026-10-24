@@ -65,3 +65,13 @@ export function toInitialReview(
     newClientPrefill,
   };
 }
+
+/** A note typed from scratch, with no reading behind it to apologize for. */
+export function toManualReview(): InitialReview {
+  return {
+    values: EMPTY_SERVICE_INVOICE_FORM,
+    readFailed: false,
+    client: { selected: null, suggestions: [] },
+    newClientPrefill: { name: '', taxId: '' },
+  };
+}
