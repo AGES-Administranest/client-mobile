@@ -22,7 +22,7 @@ export function fixedCostsTotal(summary: FixedCostsSummary): number {
 
 export type TransportCostError = 'required' | 'notNumeric' | 'negative';
 
-// transport_monthly é decimal(14,2): 14 dígitos no total, 12 inteiros e 2
+// transport_cost_monthly é decimal(14,2): 14 dígitos no total, 12 inteiros e 2
 // centavos. Acima disso o number perde precisão e o valor mostrado deixa de
 // ser o digitado.
 export const MAX_CURRENCY_DIGITS = 14;
