@@ -25,6 +25,51 @@ import type { ServiceInvoiceField } from '../domain/serviceInvoice.types';
 import { useClientRegistration } from '../hooks/useClientRegistration';
 import { useServiceInvoiceReview } from '../hooks/useServiceInvoiceReview';
 
+type ClinicErrorKeys = {
+  [Field in ClinicField]: Record<
+    NonNullable<ClinicDraftErrors[Field]>,
+    TranslationKey
+  >;
+};
+
+const CLINIC_ERROR_KEYS: ClinicErrorKeys = {
+  name: {
+    required: 'clinics.newClinic.errors.name.required',
+    tooShort: 'clinics.newClinic.errors.name.tooShort',
+  },
+  cnpj: {
+    required: 'clinics.newClinic.errors.cnpj.required',
+    invalid: 'clinics.newClinic.errors.cnpj.invalid',
+    duplicated: 'clinics.newClinic.errors.cnpj.duplicated',
+  },
+  addressLine: {
+    required: 'clinics.newClinic.errors.addressLine.required',
+    tooShort: 'clinics.newClinic.errors.addressLine.tooShort',
+  },
+  city: {
+    required: 'clinics.newClinic.errors.city.required',
+    tooShort: 'clinics.newClinic.errors.city.tooShort',
+    invalid: 'clinics.newClinic.errors.city.invalid',
+  },
+  state: {
+    required: 'clinics.newClinic.errors.state.required',
+    invalid: 'clinics.newClinic.errors.state.invalid',
+  },
+  phone: {
+    required: 'clinics.newClinic.errors.phone.required',
+    invalid: 'clinics.newClinic.errors.phone.invalid',
+  },
+  email: {
+    required: 'clinics.newClinic.errors.email.required',
+    invalid: 'clinics.newClinic.errors.email.invalid',
+  },
+  contactName: {
+    required: 'clinics.newClinic.errors.contactName.required',
+    tooShort: 'clinics.newClinic.errors.contactName.tooShort',
+    invalid: 'clinics.newClinic.errors.contactName.invalid',
+  },
+};
+
 type ServiceInvoiceReviewScreenProps = {
   visible: boolean;
   initial: InitialReview;
@@ -61,23 +106,31 @@ export function ServiceInvoiceReviewScreen({
       : undefined;
   };
 
-  const clinicFieldTexts = Object.fromEntries(
-    CLINIC_FIELDS.map(field => [
-      field,
-      {
-        label: t(`clinics.newClinic.fields.${field}.label`),
-        placeholder: t(`clinics.newClinic.fields.${field}.placeholder`),
-      },
-    ]),
-  ) as Record<ClinicField, ClinicFieldTexts>;
+  const fieldTexts = (field: ClinicField): ClinicFieldTexts => ({
+    label: t(`clinics.newClinic.fields.${field}.label`),
+    placeholder: t(`clinics.newClinic.fields.${field}.placeholder`),
+  });
+  const clinicFieldTexts: Record<ClinicField, ClinicFieldTexts> = {
+    name: fieldTexts('name'),
+    cnpj: fieldTexts('cnpj'),
+    addressLine: fieldTexts('addressLine'),
+    city: fieldTexts('city'),
+    state: fieldTexts('state'),
+    phone: fieldTexts('phone'),
+    email: fieldTexts('email'),
+    contactName: fieldTexts('contactName'),
+  };
 
-  const toClinicFieldErrors = (errors: ClinicDraftErrors) =>
-    Object.fromEntries(
-      Object.entries(errors).map(([field, code]) => [
-        field,
-        t(`clinics.newClinic.errors.${field}.${code}` as TranslationKey),
-      ]),
-    ) as Partial<Record<ClinicField, string>>;
+  const toClinicFieldErrors = (errors: ClinicDraftErrors) => {
+    const messages: Partial<Record<ClinicField, string>> = {};
+    for (const field of CLINIC_FIELDS) {
+      const code = errors[field];
+      if (!code) continue;
+      const keys: Record<string, TranslationKey> = CLINIC_ERROR_KEYS[field];
+      messages[field] = t(keys[code]);
+    }
+    return messages;
+  };
 
   const newClinic = registration.form;
 

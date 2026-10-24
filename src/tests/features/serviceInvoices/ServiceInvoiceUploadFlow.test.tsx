@@ -578,6 +578,18 @@ describe('taker linked by the reading', () => {
   });
 });
 
+describe('taker search', () => {
+  it('says so when the taker list cannot be loaded', async () => {
+    fetchClientsMock.mockRejectedValue(new Error('offline'));
+    const renderer = await openWith(FULL_READING);
+
+    await type(renderer, 'Tomador', 'Clín');
+    await focus(renderer, 'Tomador');
+
+    expect(texts(renderer)).toContain('Não foi possível buscar os tomadores.');
+  });
+});
+
 describe('suggested takers', () => {
   const SUGGESTIONS = [
     LINKED,
@@ -801,6 +813,9 @@ describe('registering a new taker', () => {
     await press(renderer, 'Confirmar');
 
     expect(registerSheet(renderer).props.visible).toBe(true);
+    expect(texts(renderer)).toContain(
+      'Não foi possível salvar a clínica. Tente novamente.',
+    );
     expect(field(renderer, 'Nome da clínica').props.value).toBe('Clínica Nova');
   });
 

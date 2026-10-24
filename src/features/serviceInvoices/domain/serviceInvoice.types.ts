@@ -1,6 +1,5 @@
 // Provisional: the NFSe endpoints are not in the backend yet. The extraction
 // mirrors what the backend's NFSe reader returns (feat/us01-nfse-extraction).
-/** A registered taker, as the reading API links or suggests it. */
 export type ExtractedClient = { id: string; name: string; taxId: string };
 
 export type ServiceInvoiceExtraction = {
@@ -10,7 +9,6 @@ export type ServiceInvoiceExtraction = {
   amount?: number;
   number?: string;
   taker?: { name?: string; taxId?: string };
-  /** The registered taker the API linked by the CNPJ on the note. */
   clientMatch?: ExtractedClient;
   clientSuggestions?: ExtractedClient[];
 };
@@ -47,7 +45,6 @@ export const EMPTY_SERVICE_INVOICE_FORM: ServiceInvoiceFormValues = {
   clientId: null,
 };
 
-/** The note already registered that looks like the one being confirmed. */
 export type ServiceInvoiceDuplicate = {
   id: string;
   number?: string;

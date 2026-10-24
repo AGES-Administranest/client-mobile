@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
+import { Card } from 'app/components/ui/card';
 import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
 
@@ -50,6 +51,7 @@ export function DuplicateInvoiceSheet({
   onSaveAnyway,
   onCancel,
 }: DuplicateInvoiceSheetProps) {
+  const saveLabel = isSaving ? labels.saving : labels.saveAnyway;
   const rows: [string, string][] = [
     [labels.fields.number, summary.number],
     [labels.fields.issueDate, summary.issueDate],
@@ -73,29 +75,31 @@ export function DuplicateInvoiceSheet({
               disabled={isSaving}
               onPress={onSaveAnyway}
             >
-              <Text className="font-semibold">
-                {isSaving ? labels.saving : labels.saveAnyway}
+              <Text className="font-semibold">{saveLabel}</Text>
+            </Button>
+            <Button
+              shape="pill"
+              variant="outline"
+              icon={Eye}
+              className="h-[49px] w-full border-border-primary bg-white"
+              disabled={isSaving}
+              onPress={onViewExisting}
+            >
+              <Text className="font-semibold text-label-primary">
+                {labels.viewExisting}
               </Text>
             </Button>
             <Button
               shape="pill"
-              variant="secondary"
-              icon={Eye}
-              className="h-[49px] w-full"
-              disabled={isSaving}
-              onPress={onViewExisting}
-            >
-              <Text className="font-semibold">{labels.viewExisting}</Text>
-            </Button>
-            <Button
-              shape="pill"
-              variant="secondary"
+              variant="outline"
               icon={X}
-              className="h-[49px] w-full"
+              className="h-[49px] w-full border-border-primary bg-white"
               disabled={isSaving}
               onPress={onCancel}
             >
-              <Text className="font-semibold">{labels.cancel}</Text>
+              <Text className="font-semibold text-label-primary">
+                {labels.cancel}
+              </Text>
             </Button>
           </>
         ) : (
@@ -113,7 +117,7 @@ export function DuplicateInvoiceSheet({
       {view === 'alert' ? (
         <NoticeBanner tone="warning" message={labels.alert} />
       ) : null}
-      <View className="gap-3 rounded-2xl bg-white p-4">
+      <Card className="gap-3">
         {rows
           .filter(([, value]) => value !== '')
           .map(([label, value]) => (
@@ -124,7 +128,7 @@ export function DuplicateInvoiceSheet({
               <Text className="text-[15px] text-label-primary">{value}</Text>
             </View>
           ))}
-      </View>
+      </Card>
     </BottomSheet>
   );
 }

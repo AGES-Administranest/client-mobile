@@ -5,11 +5,13 @@ import {
   isLocalClientId,
   useClientSearch,
   type ClientOption,
+  type ClientSearchStatus,
 } from 'features/clients';
 import { formatCurrencyInput, formatDateInput } from 'shared/utils/inputMasks';
 
 import type { InitialClient } from '../domain/initialClient';
 import type {
+  ExtractedClient,
   ServiceInvoiceConfirmation,
   ServiceInvoiceDuplicate,
   ServiceInvoiceErrors,
@@ -19,7 +21,7 @@ import type {
 import { validateServiceInvoiceForm } from '../domain/validateServiceInvoiceForm';
 import { confirmServiceInvoice } from '../services/serviceInvoiceService';
 
-type DuplicateNotice = {
+export type DuplicateNotice = {
   note: ServiceInvoiceDuplicate;
   view: 'alert' | 'details';
   /** Closed but kept, so the sheet still has its text while it slides out. */
@@ -32,11 +34,36 @@ type UseServiceInvoiceReviewOptions = {
   onConfirmed: () => void;
 };
 
+export type ServiceInvoiceReviewState = {
+  values: ServiceInvoiceFormValues;
+  errors: ServiceInvoiceErrors;
+  isDirty: boolean;
+  client: {
+    term: string;
+    status: ClientSearchStatus;
+    options: ClientOption[];
+    suggestions: ExtractedClient[];
+  };
+  duplicate: DuplicateNotice | null;
+  isSubmitting: boolean;
+  submitFailed: boolean;
+  changeIssueDate: (text: string) => void;
+  changeAmount: (text: string) => void;
+  changeNumber: (text: string) => void;
+  changeClientTerm: (term: string) => void;
+  selectClient: (client: ClientOption) => void;
+  submit: () => Promise<void>;
+  saveDuplicateAnyway: () => Promise<void>;
+  dismissDuplicate: () => void;
+  viewDuplicate: () => void;
+  backToDuplicateAlert: () => void;
+};
+
 export function useServiceInvoiceReview({
   initialValues,
   initialClient,
   onConfirmed,
-}: UseServiceInvoiceReviewOptions) {
+}: UseServiceInvoiceReviewOptions): ServiceInvoiceReviewState {
   const { session } = useAuth();
   const idToken = session?.idToken ?? null;
   const [values, setValues] = useState(initialValues);
@@ -164,7 +191,7 @@ export function useServiceInvoiceReview({
         }
         return;
       }
-      onConfirmed();
+      if (isMounted.current) onConfirmed();
     },
     [closeDuplicate, idToken, onConfirmed, values],
   );
@@ -180,8 +207,8 @@ export function useServiceInvoiceReview({
     [],
   );
 
-  // The taker the reading linked is not an edit; changing it, clearing it or
-  // typing a search is.
+  // A taker the reading linked came with the review, so it is not something
+  // the person changed.
   const isDirty =
     values.clientId !== initialValues.clientId ||
     (values.clientId === null && clientSearch.term !== '') ||

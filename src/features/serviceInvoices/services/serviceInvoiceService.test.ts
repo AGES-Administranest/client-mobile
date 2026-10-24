@@ -95,6 +95,19 @@ describe('extractServiceInvoice', () => {
   );
 });
 
+describe('extractServiceInvoice, duplicate scenario', () => {
+  it.each(['nota-duplicada.pdf', 'nota-duplicate.pdf'])(
+    'comes with a linked taker and the sentinel amount for %s',
+    async name => {
+      const reading = await extract(name);
+
+      expect(reading.amount).toBe(7777.77);
+      expect(reading.clientMatch).toMatchObject({ id: 'stand-in-client-1' });
+      expect(reading.clientSuggestions).toBeUndefined();
+    },
+  );
+});
+
 describe('confirmServiceInvoice', () => {
   it('creates the note for an ordinary reading', async () => {
     const { amount } = await extract('nota.pdf');

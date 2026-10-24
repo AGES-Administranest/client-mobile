@@ -19,7 +19,8 @@ import type {
 //   "...vinculado..." / "...match..."  -> a full reading, taker linked
 //   "...sugestao..." / "...suggestion..." -> a full reading, 2-3 suggested takers
 //   "...novo..." / "...new..."         -> a full reading, taker not registered
-//   "...duplicada..." / "...duplicate..." -> the confirmation reports a duplicate
+//   "...duplicada..." / "...duplicate..." -> a linked taker, and the
+//                                         confirmation reports a duplicate
 //   anything else                      -> a full reading
 // The takers below are made up: they do not exist in the backend, so linking
 // one only works against the stand-in.
@@ -75,7 +76,11 @@ export function extractServiceInvoice(
     return settle({ status: 'PARTIAL', issueDate: '2026-03-15' });
   }
   if (/duplicada|duplicate/i.test(file.name)) {
-    return settle({ ...FULL_READING, amount: DUPLICATE_AMOUNT });
+    return settle({
+      ...FULL_READING,
+      amount: DUPLICATE_AMOUNT,
+      clientMatch: LINKED_CLIENT,
+    });
   }
   if (/vinculado|match/i.test(file.name)) {
     return settle({ ...FULL_READING, clientMatch: LINKED_CLIENT });

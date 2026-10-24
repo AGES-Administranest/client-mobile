@@ -20,15 +20,34 @@ type UseClientRegistrationOptions = {
  * the next one only opens once the previous one reports it has left. iOS drops
  * a Modal presented while another is still leaving, without an error.
  */
+export type ClientRegistrationState = {
+  form: ReturnType<typeof useNewClinicForm>;
+  isReviewShown: boolean;
+  isRegisterShown: boolean;
+  open: () => void;
+  cancel: () => void;
+  submit: () => Promise<void>;
+  onReviewLeft: () => void;
+  onRegisterLeft: () => void;
+};
+
 export function useClientRegistration({
   prefill,
   onCreated,
-}: UseClientRegistrationOptions) {
+}: UseClientRegistrationOptions): ClientRegistrationState {
   const form = useNewClinicForm();
+  const isMounted = useRef(true);
   const [stage, setStage] = useState<Stage>('review');
   const [shown, setShown] = useState<Stage | 'none'>('review');
   const stageRef = useRef(stage);
   stageRef.current = stage;
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Only iOS reports a full-screen Modal leaving (onDismiss); elsewhere there
   // is nothing to wait for.
@@ -50,7 +69,7 @@ export function useClientRegistration({
 
   const submit = useCallback(async () => {
     const created = await form.submit();
-    if (!created) return;
+    if (!created || !isMounted.current) return;
     onCreated(created);
     goTo('review');
   }, [form, goTo, onCreated]);
