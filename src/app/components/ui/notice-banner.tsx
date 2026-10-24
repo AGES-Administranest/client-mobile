@@ -1,4 +1,4 @@
-import { Info, TriangleAlert } from 'lucide-react-native';
+import { Info, TriangleAlert, type LucideIcon } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 import { Icon } from 'app/components/ui/icon';
@@ -21,6 +21,12 @@ type NoticeBannerProps = {
   message: string;
   actionLabel?: string;
   onAction?: () => void;
+  /**
+   * 'below' (padrão) é o botão largo sob o aviso; 'inline' é a pílula pequena
+   * à direita, dentro do aviso, como o "Tentar novamente" do resumo financeiro.
+   */
+  actionPlacement?: 'below' | 'inline';
+  actionIcon?: LucideIcon;
 };
 
 export function NoticeBanner({
@@ -28,13 +34,21 @@ export function NoticeBanner({
   message,
   actionLabel,
   onAction,
+  actionPlacement = 'below',
+  actionIcon,
 }: NoticeBannerProps) {
   const colors = TONES[tone];
+  const hasAction = Boolean(actionLabel && onAction);
+  const isInline = hasAction && actionPlacement === 'inline';
 
   return (
     <View className="gap-2">
       <View
-        className={cn('flex-row items-start gap-2 rounded-lg p-3', colors.box)}
+        className={cn(
+          'flex-row gap-2 rounded-lg p-3',
+          isInline ? 'items-center' : 'items-start',
+          colors.box,
+        )}
       >
         <Icon
           as={tone === 'info' ? Info : TriangleAlert}
@@ -44,8 +58,26 @@ export function NoticeBanner({
         <Text className={cn('flex-1 text-xs leading-4', colors.text)}>
           {message}
         </Text>
+        {isInline ? (
+          <Pressable
+            onPress={onAction}
+            accessibilityRole="button"
+            className="flex-row items-center gap-1 rounded-full bg-button-primary px-3 py-2"
+          >
+            {actionIcon ? (
+              <Icon
+                as={actionIcon}
+                size={14}
+                className="text-label-secondary"
+              />
+            ) : null}
+            <Text className="text-xs font-semibold text-label-secondary">
+              {actionLabel}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
-      {actionLabel && onAction ? (
+      {hasAction && !isInline ? (
         <Pressable
           onPress={onAction}
           accessibilityRole="button"

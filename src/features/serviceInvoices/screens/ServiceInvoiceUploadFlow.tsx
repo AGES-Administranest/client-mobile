@@ -1,8 +1,7 @@
-import { Trash2, Upload } from 'lucide-react-native';
+import { Eye, Upload } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { ActionButton } from 'app/components/ui';
-import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { Icon } from 'app/components/ui/icon';
 import { LoadingOverlay } from 'app/components/ui/loading-overlay';
 import { MessageOverlay } from 'app/components/ui/message-overlay';
@@ -11,6 +10,7 @@ import { useTranslation, type TranslationKey } from 'shared/i18n';
 
 import { ServiceInvoiceReviewScreen } from './ServiceInvoiceReviewScreen';
 import { OfflineNoticeSheet } from '../components/OfflineNoticeSheet';
+import { RejectedInvoiceSheet } from '../components/RejectedInvoiceSheet';
 import { toDuplicateSummary } from '../domain/duplicateSummary';
 import {
   isKnownRejectionCode,
@@ -86,6 +86,8 @@ export function ServiceInvoiceUploadFlow() {
             { count: rejected },
           )}
           actionLabel={t('serviceInvoices.pending.review')}
+          actionIcon={Eye}
+          actionPlacement="inline"
           onAction={pending.reopenRejection}
         />
       ) : null}
@@ -94,6 +96,7 @@ export function ServiceInvoiceUploadFlow() {
           tone="alert"
           message={t('serviceInvoices.pending.discardLeftFile')}
           actionLabel={t('serviceInvoices.sync.dismiss')}
+          actionPlacement="inline"
           onAction={pending.dismissDiscardNotice}
         />
       ) : null}
@@ -127,9 +130,10 @@ export function ServiceInvoiceUploadFlow() {
         onClosed={upload.onOfflineClosed}
       />
 
-      <ConfirmSheet
+      <RejectedInvoiceSheet
         visible={rejection !== null && rejectionSummary !== null}
         title={t('serviceInvoices.sync.title')}
+        closeLabel={t('serviceInvoices.sync.keep')}
         message={
           rejectionSummary
             ? t('serviceInvoices.sync.message', {
@@ -137,13 +141,12 @@ export function ServiceInvoiceUploadFlow() {
                 amount: rejectionSummary.amount,
                 reason: t(reasonKeyOf(rejection?.rejection?.code ?? null)),
               })
-            : undefined
+            : ''
         }
-        confirmLabel={t('serviceInvoices.sync.discard')}
-        confirmIcon={Trash2}
-        cancelLabel={t('serviceInvoices.sync.keep')}
-        onConfirm={pending.discardRejection}
-        onCancel={pending.keepRejection}
+        discardLabel={t('serviceInvoices.sync.discard')}
+        keepLabel={t('serviceInvoices.sync.keep')}
+        onDiscard={pending.discardRejection}
+        onKeep={pending.keepRejection}
       />
 
       {upload.review ? (
