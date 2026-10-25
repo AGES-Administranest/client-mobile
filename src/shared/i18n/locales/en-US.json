@@ -623,15 +623,10 @@
     "newEntry": "New entry",
     "options": {
       "title": "New entry",
-      "descriptionWithStockWriteOff": "Upload the invoice or order as a PDF, fill it in by hand or write off a stock item",
+      "descriptionWithStockWriteOff": "Upload the service invoice as a PDF, fill it in by hand or write off a stock item",
       "sendDocument": "Upload document (PDF)",
       "manual": "Manual entry",
       "stockWriteOff": "Stock write-off"
-    },
-    "documentSoon": {
-      "title": "PDF upload coming soon",
-      "message": "For now, record the income or the expense with a manual entry.",
-      "ok": "Got it"
     },
     "categories": {
       "professionalFees": "Professional fees",
@@ -1493,7 +1488,6 @@
     }
   },
   "serviceInvoices": {
-    "trigger": "Send invoice",
     "extracting": "Reading the invoice…",
     "errors": {
       "notPdf": "We only accept PDF invoices. Choose a .pdf file.",

@@ -1,6 +1,7 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { ActionButton } from 'app/components/ui';
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
 import { LoadingOverlay } from 'app/components/ui/loading-overlay';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
@@ -8,7 +9,10 @@ import type { Client } from 'features/clients/domain/client';
 import { fetchClients } from 'features/clients/services/clientService';
 import { NewClinicSheet } from 'features/clinics';
 import { createClient } from 'features/clinics/services/clientService';
-import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
+import {
+  ServiceInvoiceUploadFlow,
+  useServiceInvoiceUpload,
+} from 'features/serviceInvoices';
 import {
   confirmServiceInvoice,
   discardServiceInvoiceDraft,
@@ -50,6 +54,25 @@ const createClientMock = createClient as jest.MockedFunction<
 const fetchClientsMock = fetchClients as jest.MockedFunction<
   typeof fetchClients
 >;
+
+// Finance starts the upload from its "Novo lançamento" sheet; here a button
+// stands in for it, idle again only when the flow is.
+function Harness({ onInvoiceConfirmed }: { onInvoiceConfirmed?: () => void }) {
+  const upload = useServiceInvoiceUpload();
+  return (
+    <>
+      <ActionButton
+        label="Enviar nota fiscal"
+        disabled={upload.step !== 'idle'}
+        onPress={upload.start}
+      />
+      <ServiceInvoiceUploadFlow
+        upload={upload}
+        onInvoiceConfirmed={onInvoiceConfirmed}
+      />
+    </>
+  );
+}
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -116,7 +139,7 @@ async function renderFlow(onInvoiceConfirmed?: () => void) {
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-            <ServiceInvoiceUploadFlow onInvoiceConfirmed={onInvoiceConfirmed} />
+            <Harness onInvoiceConfirmed={onInvoiceConfirmed} />
           </AuthProvider>
         </I18nProvider>
       </SafeAreaProvider>,

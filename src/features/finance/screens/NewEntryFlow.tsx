@@ -2,7 +2,6 @@ import { FileText, PackageMinus, Pencil } from 'lucide-react-native';
 import { useRef, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 
-import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { cn } from 'app/lib/utils';
 import { OutputAdjustmentSheet } from 'features/stock';
@@ -13,6 +12,8 @@ import { NewEntryButton } from '../components/NewEntryButton';
 import type { FinancialEntry } from '../domain/financialEntry';
 
 type NewEntryFlowProps = {
+  /** The PDF choice: the screen starts the NFSe upload once the options have left. */
+  onSendDocument: () => void;
   onEntrySaved?: (entry: FinancialEntry) => void;
   showButton?: boolean;
   containerClassName?: string;
@@ -20,6 +21,7 @@ type NewEntryFlowProps = {
 };
 
 export function NewEntryFlow({
+  onSendDocument,
   onEntrySaved,
   showButton = true,
   containerClassName,
@@ -27,7 +29,6 @@ export function NewEntryFlow({
 }: NewEntryFlowProps) {
   const { t } = useTranslation();
   const [optionsVisible, setOptionsVisible] = useState(false);
-  const [documentSoonVisible, setDocumentSoonVisible] = useState(false);
   // Continua montado depois de fechar, para a animação de saída rodar.
   const [formOpenedOnce, setFormOpenedOnce] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
@@ -91,7 +92,7 @@ export function NewEntryFlow({
           {
             label: t('financialEntries.options.sendDocument'),
             icon: FileText,
-            onPress: () => choose(() => setDocumentSoonVisible(true)),
+            onPress: () => choose(onSendDocument),
           },
           {
             label: t('financialEntries.options.manual'),
@@ -104,16 +105,6 @@ export function NewEntryFlow({
             onPress: () => choose(openStockWriteOff),
           },
         ]}
-      />
-
-      {/* O upload de PDF depende das US01/US10: até lá o toque recebe este aviso. */}
-      <ConfirmSheet
-        visible={documentSoonVisible}
-        title={t('financialEntries.documentSoon.title')}
-        message={t('financialEntries.documentSoon.message')}
-        confirmLabel={t('financialEntries.documentSoon.ok')}
-        onConfirm={() => setDocumentSoonVisible(false)}
-        onCancel={() => setDocumentSoonVisible(false)}
       />
 
       {formOpenedOnce ? (

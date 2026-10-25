@@ -623,15 +623,10 @@
     "newEntry": "Novo lançamento",
     "options": {
       "title": "Novo lançamento",
-      "descriptionWithStockWriteOff": "Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque",
+      "descriptionWithStockWriteOff": "Envie a nota fiscal em PDF, preencha à mão ou dê baixa em um item do estoque",
       "sendDocument": "Enviar documento (PDF)",
       "manual": "Lançamento manual",
       "stockWriteOff": "Baixa no estoque"
-    },
-    "documentSoon": {
-      "title": "Envio de PDF em breve",
-      "message": "Por enquanto, registre a entrada ou a saída pelo lançamento manual.",
-      "ok": "Entendi"
     },
     "categories": {
       "professionalFees": "Honorários",
@@ -1493,7 +1488,6 @@
     }
   },
   "serviceInvoices": {
-    "trigger": "Enviar nota fiscal",
     "extracting": "Lendo a nota…",
     "errors": {
       "notPdf": "Só aceitamos notas em PDF. Escolha um arquivo .pdf.",

@@ -2,13 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { ActionButton } from 'app/components/ui';
 import { FullScreenModal as FullScreenModalType } from 'app/components/ui/full-screen-modal';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import type { Client } from 'features/clients/domain/client';
 import { fetchClients } from 'features/clients/services/clientService';
 import { NewClinicSheet as NewClinicSheetType } from 'features/clinics';
 import { createClient } from 'features/clinics/services/clientService';
-import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
+import {
+  ServiceInvoiceUploadFlow,
+  useServiceInvoiceUpload,
+} from 'features/serviceInvoices';
 import { OfflineNoticeSheet } from 'features/serviceInvoices/components/OfflineNoticeSheet';
 import type { PendingServiceInvoice } from 'features/serviceInvoices/domain/offlineServiceInvoices';
 import {
@@ -66,6 +70,25 @@ const connectionMock = jest.mocked(onConnectionRestored);
 const removePdfMock = jest.mocked(removePendingPdf);
 const readPdfMock = jest.mocked(readPendingPdf);
 const savePdfMock = jest.mocked(savePendingPdf);
+
+// Finance starts the upload from its "Novo lançamento" sheet; here a button
+// stands in for it, idle again only when the flow is.
+function Harness({ onInvoiceConfirmed }: { onInvoiceConfirmed?: () => void }) {
+  const upload = useServiceInvoiceUpload();
+  return (
+    <>
+      <ActionButton
+        label="Enviar nota fiscal"
+        disabled={upload.step !== 'idle'}
+        onPress={upload.start}
+      />
+      <ServiceInvoiceUploadFlow
+        upload={upload}
+        onInvoiceConfirmed={onInvoiceConfirmed}
+      />
+    </>
+  );
+}
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -176,7 +199,7 @@ async function renderFlow() {
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-            <ServiceInvoiceUploadFlow />
+            <Harness />
           </AuthProvider>
         </I18nProvider>
       </SafeAreaProvider>,
