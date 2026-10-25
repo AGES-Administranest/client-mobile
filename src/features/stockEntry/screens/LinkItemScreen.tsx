@@ -2,12 +2,14 @@ import { PackagePlus, Quote, Search } from 'lucide-react-native';
 import { useEffect, type ReactNode } from 'react';
 import { ScrollView, TextInput, View } from 'react-native';
 
+import { FullScreenModal } from 'app/components/ui/full-screen-modal';
 import { Icon } from 'app/components/ui/icon';
 import {
   ItemModal,
   type ItemDraft,
   type ItemPrefill,
 } from 'app/components/ui/item-modal/item-modal';
+import { ScreenHeader } from 'app/components/ui/screen-header';
 import { Text } from 'app/components/ui/text';
 import { CATEGORY_OPTIONS, UNIT_OPTIONS } from 'features/materials';
 import { useSupplySelector } from 'features/stock';
@@ -15,9 +17,7 @@ import { useTranslation } from 'shared/i18n';
 import { LabelPlaceholder } from 'theme/colors';
 
 import { CatalogOption } from '../components/CatalogOption';
-import { FullScreenModal } from '../components/FullScreenModal';
 import { NoticeBanner } from '../components/NoticeBanner';
-import { ScreenHeader } from '../components/ScreenHeader';
 import type { LinkedItem } from '../domain/review';
 
 type Candidate = { itemId: string; name: string; unit: string };

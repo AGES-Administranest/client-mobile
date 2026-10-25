@@ -25,7 +25,8 @@
     "equipmentMonthlyCost": "{{count}} equipamentos · custo mensal",
     "perMonth": "/mês",
     "overviewError": "Não foi possível carregar o resumo financeiro.",
-    "openTrips": "Abrir deslocamentos"
+    "openTrips": "Abrir deslocamentos",
+    "balanceIncomplete": "Pode estar incompleto até sincronizar."
   },
   "calculator": {
     "title": "Calculadora de hora",
@@ -937,6 +938,55 @@
     "account": {
       "menu": "Conta",
       "signOut": "Sair da conta"
+    },
+    "forgot": {
+      "link": "Esqueci minha senha",
+      "title": "Redefinir senha",
+      "emailLabel": "DIGITE SEU EMAIL*",
+      "emailPlaceholder": "exemplo@mail.com",
+      "submit": "Confirmar"
+    },
+    "emailSent": {
+      "title": "E-mail enviado",
+      "heading": "Confira sua caixa de entrada",
+      "description": "Enviamos um código para redefinir sua senha para {{email}}",
+      "hint": "O código é válido por 1 hora. Se não encontrar o e-mail, verifique a pasta de spam.",
+      "backToLogin": "Voltar ao Login",
+      "resendCountdown": "Não recebeu? Reenviar em {{time}}",
+      "resend": "Reenviar",
+      "haveCode": "Já tenho o código"
+    },
+    "newPassword": {
+      "title": "Redefinir senha",
+      "codeLabel": "CÓDIGO RECEBIDO*",
+      "passwordLabel": "NOVA SENHA*",
+      "confirmationLabel": "CONFIRME NOVA SENHA*",
+      "placeholder": "DIGITE NOVA SENHA",
+      "submit": "Confirmar",
+      "requirementsNotMet": "Sua senha ainda não atende aos requisitos:",
+      "mismatch": "As senhas não coincidem",
+      "match": "As senhas coincidem",
+      "requirements": {
+        "minLength": "Mínimo de 8 caracteres",
+        "uppercase": "Uma letra maiúscula (A-Z)",
+        "lowercase": "Uma letra minúscula (a-z)",
+        "number": "Um número",
+        "special": "Um caractere especial (!@#$%)"
+      }
+    },
+    "codeExpired": {
+      "title": "Código expirado",
+      "heading": "Este código não é mais válido",
+      "description": "O código de recuperação expirou ou já foi utilizado. Por segurança, ele é válido por apenas 1 hora.",
+      "hint": "Solicite um novo código para redefinir sua senha.",
+      "requestNew": "Solicitar novo código",
+      "backToLogin": "Voltar ao Login"
+    },
+    "resetSuccess": {
+      "title": "Senha redefinida",
+      "heading": "Senha alterada com sucesso!",
+      "description": "Sua nova senha já está ativa. Use-a para entrar no Administranest.",
+      "goToLogin": "Ir para o Login"
     }
   },
   "partners": {
@@ -1526,6 +1576,53 @@
       "rejectedTitle": "Falha na sincronização",
       "rejectedMessage": "Não foi possível sincronizar um dos seus deslocamentos com o servidor. Verifique os dados e tente novamente.",
       "rejectedConfirm": "Entendi"
+    }
+  },
+  "invoices": {
+    "trigger": "Notas fiscais",
+    "title": "Notas fiscais",
+    "back": "Voltar",
+    "filters": {
+      "searchPlaceholder": "Nome, CNPJ ou número da nota",
+      "period": "Período",
+      "periodRange": "{{from}} até {{to}}",
+      "periodSingle": "{{day}}",
+      "periodFrom": "A partir de {{from}}",
+      "clear": "Limpar",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "invalidRange": "A data inicial não pode ser maior que a final."
+    },
+    "loading": "Carregando notas fiscais...",
+    "loadingMore": "Carregando mais notas",
+    "loadMoreError": "Não foi possível carregar mais notas.",
+    "error": "Não foi possível carregar as notas fiscais.",
+    "empty": "Nenhuma nota fiscal registrada.",
+    "emptyFiltered": "Nenhuma nota fiscal encontrada para o filtro.",
+    "card": {
+      "title": "Nota Fiscal {{number}}",
+      "issuer": "Emitente: {{name}}",
+      "taker": "Tomador: {{name}}"
+    },
+    "status": {
+      "SYNCED": "Sincronizada",
+      "NOT_SYNCED": "Não sincronizada",
+      "ERROR": "Erro no processamento"
+    },
+    "kind": {
+      "PURCHASE": "Compra",
+      "SERVICE": "Serviço"
+    },
+    "detail": {
+      "title": "Nota Fiscal {{number}}",
+      "close": "Fechar",
+      "kind": "Tipo",
+      "issuer": "Emitente",
+      "taker": "Tomador",
+      "takerCnpj": "CNPJ do tomador",
+      "value": "Valor",
+      "issuedAt": "Data de emissão",
+      "status": "Situação"
     }
   }
 }
