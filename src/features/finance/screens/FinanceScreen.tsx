@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 
 import { HourlyRateScreen } from 'features/pricing';
+import { TripsScreen } from 'features/trips';
 import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
 import {
@@ -48,6 +49,7 @@ export function FinanceScreen() {
   const { t, locale } = useTranslation();
   const [calculatorVisible, setCalculatorVisible] = useState(false);
   const [vehiclesVisible, setVehiclesVisible] = useState(false);
+  const [tripsVisible, setTripsVisible] = useState(false);
   const [scope, setScope] = useState<StatementScope>('all');
   const [period, setPeriod] = useState(() => currentPeriod(new Date()));
   const statement = useFinancialStatement({ period, scope });
@@ -132,8 +134,10 @@ export function FinanceScreen() {
               title={t('finance.title')}
               calculatorLabel={t('finance.openCalculator')}
               vehicleLabel={t('vehicles.openVehicles')}
+              tripsLabel={t('finance.openTrips')}
               onVehiclePress={() => setVehiclesVisible(true)}
               onCalculatorPress={() => setCalculatorVisible(true)}
+              onTripsPress={() => setTripsVisible(true)}
             />
             <ScrollView
               className="flex-1"
@@ -249,6 +253,14 @@ export function FinanceScreen() {
       <VehiclesScreen
         visible={vehiclesVisible}
         onClose={() => setVehiclesVisible(false)}
+      />
+      <TripsScreen
+        visible={tripsVisible}
+        onClose={() => setTripsVisible(false)}
+        onTripsChanged={() => {
+          statement.reload();
+          overview.retry();
+        }}
       />
     </View>
   );

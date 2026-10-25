@@ -1,3 +1,5 @@
+import type { LucideIcon } from 'lucide-react-native';
+
 import {
   SearchSelect,
   type SearchSelectMessages,
@@ -17,6 +19,8 @@ type ClientAutocompleteProps = {
   status: ClientSearchStatus;
   options: ClientOption[];
   messages: ClientAutocompleteMessages;
+  trailingIcon?: LucideIcon;
+  className?: string;
   onChangeText: (value: string) => void;
   onSelect: (option: ClientOption) => void;
 };
@@ -29,6 +33,8 @@ export function ClientAutocomplete({
   status,
   options,
   messages,
+  trailingIcon,
+  className,
   onChangeText,
   onSelect,
 }: ClientAutocompleteProps) {
@@ -46,6 +52,8 @@ export function ClientAutocomplete({
       status={status}
       options={options.map(toSearchSelectOption)}
       messages={messages}
+      trailingIcon={trailingIcon}
+      className={className}
       onChangeText={onChangeText}
       onSelect={selectPickedClient}
     />
