@@ -4,6 +4,7 @@ export type {
   InvoicePage,
   InvoiceSyncStatus,
 } from './domain/invoice.types';
+export { isInvoiceListAvailable } from './services/availability';
 export {
   InvoicesScreen,
   type InvoicesScreenProps,

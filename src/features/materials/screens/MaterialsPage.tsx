@@ -29,7 +29,7 @@ import {
   type EquipmentFormTarget,
   type EquipmentFormTexts,
 } from 'features/equipment';
-import { InvoicesScreen } from 'features/invoices';
+import { InvoicesScreen, isInvoiceListAvailable } from 'features/invoices';
 import { StockEntryFlow } from 'features/stockEntry';
 import { useTranslation } from 'shared/i18n';
 import type { TranslationKey } from 'shared/i18n/dictionary';
@@ -407,15 +407,19 @@ export function MaterialsScreen() {
             ))}
           </ScrollView>
           <StockEntryFlow onTypeItem={openCreate} />
-          <ActionButton
-            label={t('invoices.trigger')}
-            icon={<Icon as={FileText} size={16} />}
-            onPress={() => setIsInvoicesOpen(true)}
-          />
-          <InvoicesScreen
-            visible={isInvoicesOpen}
-            onClose={() => setIsInvoicesOpen(false)}
-          />
+          {isInvoiceListAvailable() && (
+            <>
+              <ActionButton
+                label={t('invoices.trigger')}
+                icon={<Icon as={FileText} size={16} />}
+                onPress={() => setIsInvoicesOpen(true)}
+              />
+              <InvoicesScreen
+                visible={isInvoicesOpen}
+                onClose={() => setIsInvoicesOpen(false)}
+              />
+            </>
+          )}
           <Button
             shape="pill"
             icon={Plus}
