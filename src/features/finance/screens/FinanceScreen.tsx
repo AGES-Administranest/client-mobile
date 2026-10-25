@@ -6,8 +6,16 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 
-import { CalculatorScreen } from 'features/calculator';
+import { HourlyRateScreen } from 'features/pricing';
+import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
+import { TripsScreen } from 'features/trips';
+import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
+import {
+  formatMonthLabel,
+  relativeMonth,
+  shiftMonth,
+} from 'shared/utils/monthPeriod';
 
 import { EntryDetailFlow } from './EntryDetailFlow';
 import { NewEntryFlow } from './NewEntryFlow';
@@ -18,6 +26,7 @@ import { ScopeFilter } from '../components/ScopeFilter';
 import { StatementList, type StatementItem } from '../components/StatementList';
 import { defaultCategoryKey } from '../domain/financialCategory';
 import type { FinancialEntry } from '../domain/financialEntry';
+import { formatOverviewAmount } from '../domain/overview';
 import {
   STATEMENT_SCOPES,
   currentPeriod,
@@ -40,6 +49,8 @@ const LOAD_MORE_THRESHOLD_PX = 200;
 export function FinanceScreen() {
   const { t, locale } = useTranslation();
   const [calculatorVisible, setCalculatorVisible] = useState(false);
+  const [vehiclesVisible, setVehiclesVisible] = useState(false);
+  const [tripsVisible, setTripsVisible] = useState(false);
   const [scope, setScope] = useState<StatementScope>('all');
   const [period, setPeriod] = useState(() => currentPeriod(new Date()));
   const statement = useFinancialStatement({ period, scope });
@@ -91,13 +102,10 @@ export function FinanceScreen() {
     scope === 'all'
       ? null
       : t(`financialEntries.statement.noResults.${SCOPE_KEYS[scope]}`);
-  const today = currentPeriod(new Date());
-  const isCurrentMonth =
-    period.month === today.month && period.year === today.year;
-  const shiftMonth = (offset: number) => {
-    const date = new Date(period.year, period.month - 1 + offset, 1);
-    setPeriod({ month: date.getMonth() + 1, year: date.getFullYear() });
-  };
+  const totals = overview.overview;
+  const displayAmount = (value: number | undefined) =>
+    value === undefined ? '—' : formatOverviewAmount(value, locale);
+  const isCurrentMonth = relativeMonth(period, new Date()) === 'current';
 
   const loadMoreNearStatementEnd = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -126,9 +134,11 @@ export function FinanceScreen() {
             <FinanceHeader
               title={t('finance.title')}
               calculatorLabel={t('finance.openCalculator')}
-              vehicleLabel={t('finance.entryOptionsLabel')}
-              onVehiclePress={openOptions}
+              vehicleLabel={t('vehicles.openVehicles')}
+              tripsLabel={t('finance.openTrips')}
+              onVehiclePress={() => setVehiclesVisible(true)}
               onCalculatorPress={() => setCalculatorVisible(true)}
+              onTripsPress={() => setTripsVisible(true)}
             />
             <ScrollView
               className="flex-1"
@@ -138,20 +148,47 @@ export function FinanceScreen() {
             >
               <View className="gap-4 pb-6 pt-2">
                 <FinanceOverviewPanel
-                  period={period}
+                  monthLabel={formatMonthLabel(period, locale)}
+                  currentMonthLabel={
+                    isCurrentMonth ? t('finance.currentMonth') : null
+                  }
+                  netBalanceLabel={t('finance.netBalance')}
+                  netBalance={displayAmount(totals?.netBalance)}
+                  isNegativeBalance={(totals?.netBalance ?? 0) < 0}
+                  previousMonthLabel={t('finance.previousMonth')}
+                  nextMonthLabel={t('finance.nextMonth')}
+                  totalizers={[
+                    {
+                      title: t('finance.revenue'),
+                      value: displayAmount(totals?.revenue),
+                      type: 'income',
+                    },
+                    {
+                      title: t('finance.professional'),
+                      value: displayAmount(totals?.professionalExpenses),
+                      type: 'expense',
+                    },
+                    {
+                      title: t('finance.personal'),
+                      value: displayAmount(totals?.personalExpenses),
+                      type: 'expense',
+                    },
+                  ]}
                   overview={overview.overview}
-                  isLoading={overview.isLoading}
                   hasError={overview.hasError}
-                  isCurrentMonth={isCurrentMonth}
-                  onPreviousMonth={() => shiftMonth(-1)}
-                  onNextMonth={() => shiftMonth(1)}
+                  onPreviousMonth={() => setPeriod(shiftMonth(period, -1))}
+                  onNextMonth={() => setPeriod(shiftMonth(period, 1))}
                   onRetry={overview.retry}
+                  balanceNotice={
+                    overview.incomplete ? t('finance.balanceIncomplete') : null
+                  }
                 />
-                <View className="px-5">
+                <View className="gap-3 px-5">
                   <NewEntryButton
                     label={t('financialEntries.newEntry')}
                     onPress={openOptions}
                   />
+                  <ServiceInvoiceUploadFlow />
                 </View>
                 <View className="gap-3 px-5">
                   <ScopeFilter
@@ -211,9 +248,21 @@ export function FinanceScreen() {
         }}
         onFinished={() => setOpenEntry(null)}
       />
-      <CalculatorScreen
+      <HourlyRateScreen
         visible={calculatorVisible}
         onClose={() => setCalculatorVisible(false)}
+      />
+      <VehiclesScreen
+        visible={vehiclesVisible}
+        onClose={() => setVehiclesVisible(false)}
+      />
+      <TripsScreen
+        visible={tripsVisible}
+        onClose={() => setTripsVisible(false)}
+        onTripsChanged={() => {
+          statement.reload();
+          overview.retry();
+        }}
       />
     </View>
   );

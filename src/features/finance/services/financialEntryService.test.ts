@@ -6,6 +6,7 @@ import {
   deleteFinancialEntry,
   fetchFinancialCategories,
   fetchFinancialEntries,
+  fetchFinancialBalance,
   updateFinancialEntry,
 } from './financialEntryService';
 import type {
@@ -382,5 +383,54 @@ describe('editing and deleting a saved entry', () => {
       status: 409,
       code: 'FINANCIAL_ENTRY_DELETE_VIA_ORIGIN',
     });
+  });
+});
+
+describe('fetchFinancialBalance', () => {
+  it('asks for the month with the id token and reads the decimal strings', async () => {
+    respond(200, {
+      totalIncome: '1000.00',
+      totalExpenses: '199.25',
+      professionalExpenses: '174.10',
+      personalExpenses: '25.15',
+      netBalance: '800.75',
+      expensesByCategory: {
+        items: [
+          { category: 'SUPPLIES', subtotal: '100.10' },
+          { category: 'TRAVEL', subtotal: '40.00' },
+          { category: 'FIXED_COSTS', subtotal: '30.00' },
+          { category: 'TAXES_AND_FEES', subtotal: '20.00' },
+          { category: 'OTHER', subtotal: '9.15' },
+        ],
+        total: '199.25',
+      },
+    });
+
+    await expect(
+      fetchFinancialBalance(ID_TOKEN, { month: 3, year: 2026 }),
+    ).resolves.toEqual({
+      revenue: 1000,
+      professionalExpenses: 174.1,
+      personalExpenses: 25.15,
+      totalExpenses: 199.25,
+      netBalance: 800.75,
+      incomplete: false,
+      expensesByCategory: [
+        { category: 'SUPPLIES', subtotal: 100.1 },
+        { category: 'TRAVEL', subtotal: 40 },
+        { category: 'FIXED_COSTS', subtotal: 30 },
+        { category: 'TAXES_AND_FEES', subtotal: 20 },
+        { category: 'OTHER', subtotal: 9.15 },
+      ],
+    });
+
+    const { url, init, headers } = sentRequest();
+    expect(init.method).toBe('GET');
+    expect(url.pathname).toBe('/financial-balance');
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      month: '3',
+      year: '2026',
+    });
+    expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
   });
 });

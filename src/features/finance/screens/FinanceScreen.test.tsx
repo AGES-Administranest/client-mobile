@@ -14,8 +14,10 @@ import { STATEMENT_PAGE_SIZE } from '../domain/statement';
 import {
   createFinancialEntry,
   deleteFinancialEntry,
+  fetchAllMonthlyFinancialEntries,
   fetchFinancialCategories,
   fetchFinancialEntries,
+  fetchFinancialBalance,
   updateFinancialEntry,
 } from '../services/financialEntryService';
 
@@ -23,6 +25,17 @@ jest.mock('../services/financialEntryService', () => ({
   createFinancialEntry: jest.fn(),
   deleteFinancialEntry: jest.fn(),
   fetchAllMonthlyFinancialEntries: jest.fn(() => Promise.resolve([])),
+  fetchFinancialBalance: jest.fn(() =>
+    Promise.resolve({
+      revenue: 0,
+      professionalExpenses: 0,
+      personalExpenses: 0,
+      totalExpenses: 0,
+      netBalance: 0,
+      expensesByCategory: [],
+      incomplete: false,
+    }),
+  ),
   fetchFinancialCategories: jest.fn(),
   fetchFinancialEntries: jest.fn(),
   updateFinancialEntry: jest.fn(),
@@ -99,6 +112,13 @@ const fetchCategoriesMock = fetchFinancialCategories as jest.MockedFunction<
 const fetchEntriesMock = fetchFinancialEntries as jest.MockedFunction<
   typeof fetchFinancialEntries
 >;
+const fetchMonthEntriesMock =
+  fetchAllMonthlyFinancialEntries as jest.MockedFunction<
+    typeof fetchAllMonthlyFinancialEntries
+  >;
+const fetchBalanceMock = fetchFinancialBalance as jest.MockedFunction<
+  typeof fetchFinancialBalance
+>;
 
 const updateMock = updateFinancialEntry as jest.MockedFunction<
   typeof updateFinancialEntry
@@ -170,6 +190,18 @@ function textsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
 // O Pressable aparece duas vezes na árvore (o componente e o View nativo):
 // o nativo não tem onPress. Uma linha do extrato também é um botão com a
 // categoria escrita, mas tem o próprio nome (accessibilityLabel): fica de fora.
+function buttonByLabel(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  label: string,
+) {
+  return renderer.root.find(
+    node =>
+      node.props.accessibilityLabel === label &&
+      typeof node.props.onPress === 'function' &&
+      typeof node.type !== 'string',
+  );
+}
+
 function pressByText(
   renderer: ReactTestRenderer.ReactTestRenderer,
   text: string,
@@ -242,6 +274,16 @@ async function renderScreen() {
 
 beforeEach(() => {
   fetchEntriesMock.mockReset().mockResolvedValue(ENTRIES);
+  fetchMonthEntriesMock.mockReset().mockResolvedValue([]);
+  fetchBalanceMock.mockReset().mockResolvedValue({
+    revenue: 0,
+    professionalExpenses: 0,
+    personalExpenses: 0,
+    totalExpenses: 0,
+    netBalance: 0,
+    expensesByCategory: [],
+    incomplete: false,
+  });
   fetchCategoriesMock.mockReset().mockResolvedValue([
     {
       id: 'cat-travel',
@@ -414,6 +456,11 @@ describe('month statement', () => {
     const renderer = await renderScreen();
 
     expect(textsOf(renderer)).toContain('Nenhum lançamento neste mês');
+    const money = textsOf(renderer).map(text => text.replace(/\u00a0/g, ' '));
+    expect(money.filter(text => text === 'R$ 0,00')).toHaveLength(4);
+    expect(money).toEqual(
+      expect.arrayContaining(['Saldo líquido', 'Receitas', 'Prof.', 'Pessoal']),
+    );
 
     const emptyState = renderer.root.findByType(EmptyState);
     const emptyAction = emptyState.find(
@@ -425,6 +472,62 @@ describe('month statement', () => {
     await act(async () => emptyAction.props.onPress());
 
     expect(textsOf(renderer)).toContain('Lançamento manual');
+  });
+
+  test('moving the month reloads the statement and keeps future months open', async () => {
+    const renderer = await renderScreen();
+    const next = buttonByLabel(renderer, 'Próximo mês');
+
+    expect(textsOf(renderer)).toContain('Agosto 2026');
+    expect(textsOf(renderer)).toContain('Mês atual');
+    expect(next.props.disabled).toBeFalsy();
+
+    await act(async () => next.props.onPress());
+
+    expect(fetchEntriesMock).toHaveBeenLastCalledWith(
+      'id-token',
+      { period: { month: 9, year: 2026 }, scope: 'all' },
+      1,
+    );
+    expect(fetchMonthEntriesMock).toHaveBeenLastCalledWith('id-token', {
+      month: 9,
+      year: 2026,
+    });
+    expect(textsOf(renderer)).toContain('Setembro 2026');
+    expect(textsOf(renderer)).not.toContain('Mês atual');
+
+    await act(async () =>
+      buttonByLabel(renderer, 'Mês anterior').props.onPress(),
+    );
+
+    expect(textsOf(renderer)).toContain('Agosto 2026');
+    expect(textsOf(renderer)).toContain('Mês atual');
+  });
+
+  test('a negative net balance shows the minus and the alert color', async () => {
+    fetchBalanceMock.mockResolvedValue({
+      revenue: 100,
+      professionalExpenses: 180.08,
+      personalExpenses: 0,
+      totalExpenses: 180.08,
+      netBalance: -80.08,
+      expensesByCategory: [],
+      incomplete: false,
+    });
+    const renderer = await renderScreen();
+    const money = textsOf(renderer).map(text => text.replace(/\u00a0/g, ' '));
+
+    expect(money).toEqual(
+      expect.arrayContaining(['R$ 100', 'R$ 180,08', 'R$ 0,00', '–R$ 80,08']),
+    );
+    const balance = renderer.root
+      .findAllByType('Text' as never)
+      .find(
+        node =>
+          String(node.props.children).replace(/\u00a0/g, ' ') === '–R$ 80,08',
+      );
+
+    expect(balance?.props.className).toContain('text-alert-primary');
   });
 
   test('a failed load can be tried again', async () => {
@@ -770,4 +873,49 @@ describe('entry detail', () => {
     );
     expect(open.props.disabled).toBe(true);
   });
+});
+
+test('opens the vehicles screen from the header icon', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer;
+
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <StockSyncProvider>
+              <FinanceScreen />
+            </StockSyncProvider>
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
+    );
+  });
+
+  const textsOf = () =>
+    renderer!.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children);
+
+  expect(JSON.stringify(textsOf())).not.toContain('VEÍCULOS');
+
+  const openVehicles = renderer!.root.find(
+    node =>
+      node.props.accessibilityLabel === 'Abrir veículos' &&
+      typeof node.props.onPress === 'function',
+  );
+
+  await act(async () => openVehicles.props.onPress());
+
+  expect(JSON.stringify(textsOf())).toContain('VEÍCULOS');
+
+  const back = renderer!.root.find(
+    node =>
+      node.props.accessibilityLabel === 'Voltar' &&
+      typeof node.props.onPress === 'function',
+  );
+
+  await act(async () => back.props.onPress());
+
+  expect(JSON.stringify(textsOf())).not.toContain('VEÍCULOS');
 });

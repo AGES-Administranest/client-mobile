@@ -21,16 +21,25 @@ export const DetailsPrimary = '#F0F0F7';
 export const DetailsSecondary = withOpacity('#FADE84', 50);
 export const DetailsTertiary = '#FADE84';
 export const DetailsFinish = '#C2E6CB';
+export const DetailsWarm = '#F6F1EC';
 
 export const LabelPrimary = '#000000';
 export const LabelSecondary = '#FFFFFF';
 export const LabelTertiary = '#777777';
 export const LabelQuartenery = '#594236';
+export const LabelMuted = '#736961';
+export const LabelBody = '#38332E';
 export const LabelPlaceholder = withOpacity('#111111', 50);
 
 export const BorderPrimary = '#D4D4D4';
+export const BorderWarm = '#DDD5CC';
 
 export const AlertPrimary = '#D95743';
+
+// Hourly calculator composition bar (US20). Pró-labore uses ButtonPrimary.
+export const ChartFixedCosts = '#A07E62';
+export const ChartVariableCosts = '#D2BBA0';
+export const ChartSafetyMargin = '#8C9A5B';
 
 export const Colors = {
   button: {
@@ -47,18 +56,27 @@ export const Colors = {
     secondary: DetailsSecondary,
     tertiary: DetailsTertiary,
     finish: DetailsFinish,
+    warm: DetailsWarm,
   },
   label: {
     primary: LabelPrimary,
     secondary: LabelSecondary,
     tertiary: LabelTertiary,
     quartenery: LabelQuartenery,
+    muted: LabelMuted,
+    body: LabelBody,
     placeholder: LabelPlaceholder,
   },
   border: {
     primary: BorderPrimary,
+    warm: BorderWarm,
   },
   alert: {
     primary: AlertPrimary,
+  },
+  chart: {
+    fixedCosts: ChartFixedCosts,
+    variableCosts: ChartVariableCosts,
+    safetyMargin: ChartSafetyMargin,
   },
 } as const;

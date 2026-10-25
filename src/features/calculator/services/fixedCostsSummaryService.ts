@@ -2,7 +2,7 @@ import { ApiError, apiClient } from 'shared/services/apiClient';
 
 import type { FixedCostsSummary } from '../domain/fixedCostsSummary';
 
-let lastLoadedSummary: FixedCostsSummary | null = null;
+type FixedCostsPeriod = { month: number; year: number };
 
 function requireToken(idToken: string): void {
   if (!idToken) {
@@ -12,7 +12,7 @@ function requireToken(idToken: string): void {
 
 export async function fetchFixedCostsSummary(
   idToken: string,
-  period?: { month: number; year: number },
+  period?: FixedCostsPeriod,
 ): Promise<FixedCostsSummary> {
   requireToken(idToken);
   const query = period ? `?month=${period.month}&year=${period.year}` : '';
@@ -23,30 +23,27 @@ export async function fetchFixedCostsSummary(
     transport: string | number;
     total: string | number;
   }>(`/fixed-costs/summary${query}`, { token: idToken });
-  lastLoadedSummary = {
+  return {
     professionalExpenses: Number(result.professionalExpenses),
     personalExpenses: Number(result.personalExpenses),
     equipmentDepreciation: Number(result.depreciation),
     transportCost: Number(result.transport),
     total: Number(result.total),
   };
-  return lastLoadedSummary;
 }
 
+// The PATCH answers only with the transport, so the summary is read again
+// for the month on screen to bring the backend total along.
 export async function updateTransportCost(
   idToken: string,
   monthlyAmount: number,
+  period?: FixedCostsPeriod,
 ): Promise<FixedCostsSummary> {
   requireToken(idToken);
-  const current = lastLoadedSummary ?? (await fetchFixedCostsSummary(idToken));
-  const automatic =
-    current.professionalExpenses +
-    current.personalExpenses +
-    current.equipmentDepreciation;
-  lastLoadedSummary = {
-    ...current,
-    transportCost: monthlyAmount,
-    total: Math.round((automatic + monthlyAmount) * 100) / 100,
-  };
-  return lastLoadedSummary;
+  await apiClient.patch(
+    '/pricing-settings/transport',
+    { transportCostMonthly: monthlyAmount },
+    { token: idToken },
+  );
+  return fetchFixedCostsSummary(idToken, period);
 }
