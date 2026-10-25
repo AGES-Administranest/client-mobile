@@ -13,13 +13,12 @@ const TEXTS: PricingSettingsFormProps['texts'] = {
     weeklyHours: 'Horas disponíveis por semana',
     safetyMarginPct: 'Margem de segurança (%)',
   },
-  weeklyHoursHint: 'Inclua os períodos ociosos.',
-  saveLabel: 'Salvar metas',
-  savingLabel: 'Salvando…',
+  hints: { weeklyHours: 'Inclua os períodos ociosos.' },
+  placeholders: { weeklyHours: 'Ex.: 30' },
 };
 
 async function render(overrides: Partial<PricingSettingsFormProps> = {}) {
-  const spies = { onChangeField: jest.fn(), onSubmit: jest.fn() };
+  const spies = { onChangeField: jest.fn(), onBlurField: jest.fn() };
   let renderer!: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
@@ -49,17 +48,10 @@ async function render(overrides: Partial<PricingSettingsFormProps> = {}) {
       node =>
         node.type === TextInput && node.props.accessibilityLabel === label,
     );
-  const saveButton = () =>
-    renderer.root.find(
-      node =>
-        typeof node.props.onPress === 'function' &&
-        node.props.disabled !== undefined,
-    );
-
-  return { spies, texts, input, saveButton };
+  return { spies, texts, input };
 }
 
-test('shows the Metas section with each field, its value and the idle-time hint', async () => {
+test('shows the Metas section with each field, its value and the hints it was given', async () => {
   const { texts, input } = await render();
 
   expect(texts()).toEqual(
@@ -69,9 +61,9 @@ test('shows the Metas section with each field, its value and the idle-time hint'
       'Horas disponíveis por semana',
       'Margem de segurança (%)',
       'Inclua os períodos ociosos.',
-      'Salvar metas',
     ]),
   );
+  expect(texts()).not.toContain('Salvar metas');
   expect(input('Horas disponíveis por semana').props.value).toBe('30');
 });
 
@@ -107,36 +99,33 @@ test('shows the validation messages under their fields', async () => {
   ).not.toContain('border-alert-primary');
 });
 
-test('submits on save', async () => {
-  const { spies, saveButton } = await render();
+test('reports which field lost focus, so the calculator can save it', async () => {
+  const { spies, input } = await render();
 
   await act(async () => {
-    saveButton().props.onPress();
+    input('Horas disponíveis por semana').props.onBlur();
   });
 
-  expect(spies.onSubmit).toHaveBeenCalledTimes(1);
+  expect(spies.onBlurField).toHaveBeenCalledWith('weeklyHours');
 });
 
 test('locks the form while saving and shows the failure message', async () => {
-  const { texts, input, saveButton } = await render({
+  const { texts, input } = await render({
     isSaving: true,
     failureMessage: 'Não foi possível salvar as metas.',
   });
 
-  expect(texts()).toEqual(
-    expect.arrayContaining(['Salvando…', 'Não foi possível salvar as metas.']),
-  );
-  expect(saveButton().props.disabled).toBe(true);
+  expect(texts()).toContain('Não foi possível salvar as metas.');
   expect(input('Margem de segurança (%)').props.editable).toBe(false);
 });
 
-test('starts every empty field showing 0, as the Figma initial state', async () => {
+test('shows the placeholder it was given, and 0 for the others', async () => {
   const { input } = await render({
     draft: { monthlyIncomeGoal: '', weeklyHours: '', safetyMarginPct: '' },
   });
 
-  for (const label of Object.values(TEXTS.labels)) {
-    expect(input(label).props.value).toBe('');
-    expect(input(label).props.placeholder).toBe('0');
-  }
+  expect(input('Horas disponíveis por semana').props.placeholder).toBe(
+    'Ex.: 30',
+  );
+  expect(input('Margem de segurança (%)').props.placeholder).toBe('0');
 });

@@ -1,12 +1,14 @@
-import { PackageSearch, Plus, Trash2 } from 'lucide-react-native';
+import { FileText, PackageSearch, Plus, Trash2 } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
+import { ActionButton } from 'app/components/ui';
 import { Button } from 'app/components/ui/button';
 import { MaterialCard } from 'app/components/ui/card';
 import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { EmptyState } from 'app/components/ui/empty-state';
+import { Icon } from 'app/components/ui/icon';
 import type { StockItem } from 'app/components/ui/item-modal/domain/itemModal';
 import { ItemModal } from 'app/components/ui/item-modal/item-modal';
 import type {
@@ -27,6 +29,7 @@ import {
   type EquipmentFormTarget,
   type EquipmentFormTexts,
 } from 'features/equipment';
+import { InvoicesScreen } from 'features/invoices';
 import { StockEntryFlow } from 'features/stockEntry';
 import { useTranslation } from 'shared/i18n';
 import type { TranslationKey } from 'shared/i18n/dictionary';
@@ -270,6 +273,7 @@ function EquipmentSegment() {
 export function MaterialsScreen() {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
+  const [isInvoicesOpen, setIsInvoicesOpen] = useState(false);
 
   const [modalMode, setModalMode] = useState<ItemModalMode | null>(null);
   const [modalItem, setModalItem] = useState<StockItem | null>(null);
@@ -403,6 +407,15 @@ export function MaterialsScreen() {
             ))}
           </ScrollView>
           <StockEntryFlow onTypeItem={openCreate} />
+          <ActionButton
+            label={t('invoices.trigger')}
+            icon={<Icon as={FileText} size={16} />}
+            onPress={() => setIsInvoicesOpen(true)}
+          />
+          <InvoicesScreen
+            visible={isInvoicesOpen}
+            onClose={() => setIsInvoicesOpen(false)}
+          />
           <Button
             shape="pill"
             icon={Plus}
