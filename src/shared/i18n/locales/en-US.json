@@ -1566,6 +1566,42 @@
       "cancel": "Cancel",
       "back": "Back to the warning",
       "close": "Close warning"
+    },
+    "offline": {
+      "title": "No connection",
+      "close": "Close",
+      "message": "Without a connection, the app can't read the invoice automatically. You can type the data in by hand: the invoice is saved on this device and sent when the connection is back.",
+      "manual": "Register manually"
+    },
+    "manual": {
+      "banner": "Manual entry: the invoice and the PDF {{file}} are saved on this device and sent when there is a connection.",
+      "save": "Save invoice",
+      "saving": "Saving…",
+      "saveFailed": "Couldn't save the invoice on this device. Try again.",
+      "fileTooLarge": "The PDF is over 15 MB, the accepted limit. Go back and choose another file."
+    },
+    "pending": {
+      "waitingOne": "1 invoice waiting to be sent",
+      "waitingOther": "{{count}} invoices waiting to be sent",
+      "rejectedOne": "1 invoice couldn't be sent",
+      "rejectedOther": "{{count}} invoices couldn't be sent",
+      "loadFailed": "Couldn't read the invoices saved on this device.",
+      "review": "View invoice",
+      "discardLeftFile": "The invoice was discarded, but its PDF couldn't be deleted from this device."
+    },
+    "sync": {
+      "title": "Invoice not sent",
+      "message": "The invoice dated {{date}}, for {{amount}}, wasn't sent: {{reason}}",
+      "dismiss": "Got it",
+      "reasons": {
+        "clientNotSynced": "the taker couldn't be registered.",
+        "fileMissing": "the PDF is no longer on this device.",
+        "other": "the server refused the data.",
+        "fileDuplicated": "this PDF was already sent before.",
+        "fileTooLarge": "the PDF is over the 15 MB limit."
+      },
+      "discard": "Discard invoice",
+      "keep": "Keep in queue"
     }
   },
   "trips": {

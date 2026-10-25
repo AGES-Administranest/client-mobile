@@ -16,6 +16,7 @@ import {
   type ClinicFieldTexts,
 } from 'features/clinics';
 import { useTranslation, type TranslationKey } from 'shared/i18n';
+import type { PickedPdf } from 'shared/services/pdfPicker';
 
 import { DuplicateInvoiceSheet } from '../components/DuplicateInvoiceSheet';
 import { ServiceInvoiceReviewCard } from '../components/ServiceInvoiceReviewCard';
@@ -73,18 +74,22 @@ const CLINIC_ERROR_KEYS: ClinicErrorKeys = {
 type ServiceInvoiceReviewScreenProps = {
   visible: boolean;
   initial: InitialReview;
+  /** The PDF of a note typed by hand, which is saved on the device instead of confirmed. */
+  manualFile?: PickedPdf | null;
   onClose: () => void;
 };
 
 export function ServiceInvoiceReviewScreen({
   visible,
   initial,
+  manualFile = null,
   onClose,
 }: ServiceInvoiceReviewScreenProps) {
   const { t } = useTranslation();
   const review = useServiceInvoiceReview({
     initialValues: initial.values,
     initialClient: initial.client,
+    manualFile,
     onConfirmed: onClose,
   });
   const registration = useClientRegistration({
@@ -134,6 +139,38 @@ export function ServiceInvoiceReviewScreen({
 
   const newClinic = registration.form;
 
+  const banner = (): { tone: 'warning' | 'info'; message: string } => {
+    if (initial.readFailed) {
+      return {
+        tone: 'warning',
+        message: t('serviceInvoices.review.readFailed'),
+      };
+    }
+    if (manualFile) {
+      return {
+        tone: 'info',
+        message: t('serviceInvoices.manual.banner', { file: manualFile.name }),
+      };
+    }
+    return { tone: 'info', message: t('serviceInvoices.review.checkData') };
+  };
+  const { tone, message } = banner();
+
+  const isManual = manualFile !== null;
+  const submitLabelKey = (): TranslationKey => {
+    if (review.isSubmitting) {
+      return isManual
+        ? 'serviceInvoices.manual.saving'
+        : 'serviceInvoices.review.confirming';
+    }
+    return isManual
+      ? 'serviceInvoices.manual.save'
+      : 'serviceInvoices.review.confirm';
+  };
+  const failedKey: TranslationKey = isManual
+    ? 'serviceInvoices.manual.saveFailed'
+    : 'serviceInvoices.review.submitFailed';
+
   return (
     <Fragment>
       <FullScreenModal
@@ -156,17 +193,7 @@ export function ServiceInvoiceReviewScreen({
             contentContainerClassName="gap-4 px-4 pb-4"
             keyboardShouldPersistTaps="handled"
           >
-            {initial.readFailed ? (
-              <NoticeBanner
-                tone="warning"
-                message={t('serviceInvoices.review.readFailed')}
-              />
-            ) : (
-              <NoticeBanner
-                tone="info"
-                message={t('serviceInvoices.review.checkData')}
-              />
-            )}
+            <NoticeBanner tone={tone} message={message} />
 
             <ServiceInvoiceReviewCard
               labels={{
@@ -208,21 +235,21 @@ export function ServiceInvoiceReviewScreen({
               onRegisterClient={registration.open}
             />
 
-            {review.submitFailed ? (
+            {review.fileTooLarge ? (
               <NoticeBanner
                 tone="alert"
-                message={t('serviceInvoices.review.submitFailed')}
+                message={t('serviceInvoices.manual.fileTooLarge')}
               />
+            ) : null}
+
+            {review.submitFailed ? (
+              <NoticeBanner tone="alert" message={t(failedKey)} />
             ) : null}
           </ScrollView>
 
           <View className="px-4 pb-4">
             <ActionButton
-              label={
-                review.isSubmitting
-                  ? t('serviceInvoices.review.confirming')
-                  : t('serviceInvoices.review.confirm')
-              }
+              label={t(submitLabelKey())}
               icon={<Icon as={Check} size={16} />}
               disabled={review.isSubmitting}
               onPress={review.submit}

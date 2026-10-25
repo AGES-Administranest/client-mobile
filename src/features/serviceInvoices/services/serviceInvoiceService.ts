@@ -6,6 +6,10 @@ import type {
   ServiceInvoiceConfirmation,
   ServiceInvoiceExtraction,
   ServiceInvoiceInput,
+  ServiceInvoiceSyncItem,
+  ServiceInvoiceSyncResult,
+  ServiceInvoiceUploadRequest,
+  ServiceInvoiceUploadTarget,
 } from '../domain/serviceInvoice.types';
 
 // STAND-IN: the NFSe upload, extraction and confirmation endpoints are still
@@ -114,4 +118,62 @@ export function confirmServiceInvoice(
     });
   }
   return settle({ id: `stand-in-${Date.now()}` });
+}
+
+// STAND-IN for the offline sync. Backend #71 has the upload (`upload-url`, then
+// the POST to the bucket) but no /service-invoices/sync yet, and its
+// `/uploaded` reads the PDF, so a note typed by hand never calls it.
+const REFUSED_NUMBER = 'erro';
+const DIFFERENT_READING_NUMBER = 'leitura';
+
+export function requestServiceInvoiceUpload(
+  _idToken: string,
+  invoiceId: string,
+  request: ServiceInvoiceUploadRequest,
+): Promise<ServiceInvoiceUploadTarget> {
+  return settle({
+    url: 'https://stand-in.invalid/bucket',
+    fields: {
+      key: `stand-in/${invoiceId}/original`,
+      'Content-Type': request.fileMimeType,
+    },
+    expiresAt: Date.now() + 10 * 60 * 1000,
+  });
+}
+
+export function sendServiceInvoicePdf(
+  _target: ServiceInvoiceUploadTarget,
+  _bytes: Uint8Array,
+): Promise<void> {
+  return settle(undefined);
+}
+
+/**
+ * The scenarios come from the note's number: "erro" is refused, "leitura"
+ * comes back with a reading that differs from what was typed, and anything
+ * else is applied, with the id of the income entry the backend would record.
+ */
+export function syncServiceInvoices(
+  _idToken: string,
+  items: ServiceInvoiceSyncItem[],
+): Promise<ServiceInvoiceSyncResult[]> {
+  return settle(
+    items.map((item): ServiceInvoiceSyncResult => {
+      if (item.number === REFUSED_NUMBER) {
+        return {
+          id: item.id,
+          status: 'conflict',
+          code: 'SERVICE_INVOICE_SYNC_REJECTED',
+        };
+      }
+      return {
+        id: item.id,
+        status: 'applied',
+        financialEntryId: `stand-in-entry-${item.id}`,
+        ...(item.number === DIFFERENT_READING_NUMBER
+          ? { reading: { amount: item.amount + 100 } }
+          : {}),
+      };
+    }),
+  );
 }

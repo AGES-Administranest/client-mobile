@@ -1,4 +1,8 @@
-import { isAcceptedServiceInvoiceFile } from './acceptedFile';
+import {
+  isAcceptedServiceInvoiceFile,
+  isWithinServiceInvoiceSizeLimit,
+  MAX_SERVICE_INVOICE_FILE_BYTES,
+} from './acceptedFile';
 
 describe('isAcceptedServiceInvoiceFile', () => {
   it.each([
@@ -45,5 +49,21 @@ describe('isAcceptedServiceInvoiceFile', () => {
         mimeType: 'application/pdf',
       }),
     ).toBe(false);
+  });
+});
+
+describe('isWithinServiceInvoiceSizeLimit', () => {
+  const FIFTEEN_MB = 15 * 1024 * 1024;
+
+  it('uses the 15 MB the backend accepts', () => {
+    expect(MAX_SERVICE_INVOICE_FILE_BYTES).toBe(FIFTEEN_MB);
+  });
+
+  it.each([0, 1, FIFTEEN_MB - 1, FIFTEEN_MB])('accepts %p bytes', bytes => {
+    expect(isWithinServiceInvoiceSizeLimit(bytes)).toBe(true);
+  });
+
+  it.each([FIFTEEN_MB + 1, FIFTEEN_MB * 2])('refuses %p bytes', bytes => {
+    expect(isWithinServiceInvoiceSizeLimit(bytes)).toBe(false);
   });
 });

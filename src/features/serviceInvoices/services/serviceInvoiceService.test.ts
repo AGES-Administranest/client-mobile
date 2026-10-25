@@ -3,7 +3,11 @@ import type { PickedPdf } from 'shared/services/pdfPicker';
 import {
   confirmServiceInvoice,
   extractServiceInvoice,
+  requestServiceInvoiceUpload,
+  sendServiceInvoicePdf,
+  syncServiceInvoices,
 } from './serviceInvoiceService';
+import type { ServiceInvoiceSyncItem } from '../domain/serviceInvoice.types';
 
 const INPUT = {
   issueDate: '2026-03-15',
@@ -140,5 +144,80 @@ describe('confirmServiceInvoice', () => {
     await extract('nota-duplicada.pdf');
 
     expect(await confirm(1850)).toEqual({ id: expect.any(String) });
+  });
+});
+
+describe('offline sync stand-ins', () => {
+  const ITEM: ServiceInvoiceSyncItem = {
+    id: 'app-id-1',
+    issueDate: '2026-03-15',
+    amount: 1850,
+    number: '2026/0042',
+    clientId: 'client-1',
+    fileName: 'nota.pdf',
+    fileHash: 'a'.repeat(64),
+    fileBytesSize: 1024,
+  };
+
+  async function sync(...items: ServiceInvoiceSyncItem[]) {
+    const results = syncServiceInvoices('token', items);
+    await jest.runAllTimersAsync();
+    return results;
+  }
+
+  it('answers an upload target for the app id, like upload-url of backend #71', async () => {
+    const pending = requestServiceInvoiceUpload('token', 'app-id-1', {
+      filename: 'nota.pdf',
+      fileMimeType: 'application/pdf',
+      fileHash: 'a'.repeat(64),
+      fileBytesSize: 1024,
+    });
+    await jest.runAllTimersAsync();
+    const target = await pending;
+
+    expect(target.fields.key).toContain('app-id-1');
+    expect(target.fields['Content-Type']).toBe('application/pdf');
+    expect(target.expiresAt).toBeGreaterThan(Date.now());
+  });
+
+  it('takes the PDF without answering anything', async () => {
+    const sending = sendServiceInvoicePdf(
+      { url: 'u', fields: {}, expiresAt: 1 },
+      new Uint8Array([1]),
+    );
+    await jest.runAllTimersAsync();
+
+    await expect(sending).resolves.toBeUndefined();
+  });
+
+  it('applies a note and names the income entry it generated', async () => {
+    expect(await sync(ITEM)).toEqual([
+      {
+        id: 'app-id-1',
+        status: 'applied',
+        financialEntryId: 'stand-in-entry-app-id-1',
+      },
+    ]);
+  });
+
+  it('refuses the note numbered "erro", and only that one', async () => {
+    const results = await sync(ITEM, {
+      ...ITEM,
+      id: 'app-id-2',
+      number: 'erro',
+    });
+
+    expect(results.map(result => result.status)).toEqual([
+      'applied',
+      'conflict',
+    ]);
+    expect(results[1].code).toBe('SERVICE_INVOICE_SYNC_REJECTED');
+  });
+
+  it('answers a different reading for the note numbered "leitura"', async () => {
+    const [result] = await sync({ ...ITEM, number: 'leitura' });
+
+    expect(result.status).toBe('applied');
+    expect(result.reading).toEqual({ amount: 1950 });
   });
 });

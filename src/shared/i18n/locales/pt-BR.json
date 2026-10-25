@@ -1566,6 +1566,42 @@
       "cancel": "Cancelar",
       "back": "Voltar ao aviso",
       "close": "Fechar aviso"
+    },
+    "offline": {
+      "title": "Sem conexão",
+      "close": "Fechar",
+      "message": "Sem conexão, o app não consegue ler a nota automaticamente. Você pode cadastrar os dados à mão: a nota fica salva neste aparelho e é enviada quando a conexão voltar.",
+      "manual": "Cadastrar manualmente"
+    },
+    "manual": {
+      "banner": "Cadastro manual: a nota e o PDF {{file}} ficam salvos neste aparelho e são enviados quando houver conexão.",
+      "save": "Salvar nota",
+      "saving": "Salvando…",
+      "saveFailed": "Não foi possível salvar a nota neste aparelho. Tente novamente.",
+      "fileTooLarge": "O PDF passa de 15 MB, o limite aceito. Volte e escolha outro arquivo."
+    },
+    "pending": {
+      "waitingOne": "1 nota aguardando envio",
+      "waitingOther": "{{count}} notas aguardando envio",
+      "rejectedOne": "1 nota não pôde ser enviada",
+      "rejectedOther": "{{count}} notas não puderam ser enviadas",
+      "loadFailed": "Não foi possível ler as notas guardadas neste aparelho.",
+      "review": "Ver nota",
+      "discardLeftFile": "A nota foi descartada, mas o PDF não pôde ser apagado deste aparelho."
+    },
+    "sync": {
+      "title": "Nota não enviada",
+      "message": "A nota de {{date}}, no valor de {{amount}}, não foi enviada: {{reason}}",
+      "dismiss": "Entendi",
+      "reasons": {
+        "clientNotSynced": "o tomador não pôde ser cadastrado.",
+        "fileMissing": "o PDF não está mais neste aparelho.",
+        "other": "o servidor recusou os dados.",
+        "fileDuplicated": "este PDF já foi enviado antes.",
+        "fileTooLarge": "o PDF passa do limite de 15 MB."
+      },
+      "discard": "Descartar nota",
+      "keep": "Manter na fila"
     }
   },
   "trips": {

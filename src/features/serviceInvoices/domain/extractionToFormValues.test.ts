@@ -1,4 +1,4 @@
-import { toInitialReview } from './extractionToFormValues';
+import { toInitialReview, toManualReview } from './extractionToFormValues';
 import { EMPTY_SERVICE_INVOICE_FORM } from './serviceInvoice.types';
 
 describe('toInitialReview', () => {
@@ -83,5 +83,16 @@ describe('toInitialReview', () => {
     expect(
       toInitialReview({ status: 'SUCCESS', amount: 10.005 }).values.amount,
     ).toBe('10,01');
+  });
+});
+
+describe('toManualReview', () => {
+  it('opens empty without claiming that a reading failed', () => {
+    expect(toManualReview()).toEqual({
+      values: EMPTY_SERVICE_INVOICE_FORM,
+      readFailed: false,
+      client: { selected: null, suggestions: [] },
+      newClientPrefill: { name: '', taxId: '' },
+    });
   });
 });
