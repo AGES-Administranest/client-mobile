@@ -12,6 +12,7 @@ import { ActionButton } from 'app/components/ui';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
 import { Icon } from 'app/components/ui/icon';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { ScreenHeader } from 'app/components/ui/screen-header';
 import { Text } from 'app/components/ui/text';
 import { backendUnitLabel } from 'features/materials';
@@ -34,7 +35,6 @@ import {
   type Formatters,
 } from './reviewPresenter';
 import { AttentionCounter } from '../components/AttentionCounter';
-import { NoticeBanner } from '../components/NoticeBanner';
 import { ReviewHeaderCard } from '../components/ReviewHeaderCard';
 import { ReviewLineCard } from '../components/ReviewLineCard';
 import { SaveStatusBar } from '../components/SaveStatusBar';

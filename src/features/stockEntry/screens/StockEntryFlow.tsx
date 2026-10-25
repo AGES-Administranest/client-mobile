@@ -4,13 +4,13 @@ import { View } from 'react-native';
 
 import { ActionButton } from 'app/components/ui';
 import { Icon } from 'app/components/ui/icon';
+import { LoadingOverlay } from 'app/components/ui/loading-overlay';
+import { MessageOverlay } from 'app/components/ui/message-overlay';
 import { useTranslation } from 'shared/i18n';
 
 import { EntriesScreen } from './EntriesScreen';
 import { ReviewScreen } from './ReviewScreen';
 import { UploadFlowScreens } from './UploadFlowScreens';
-import { LoadingOverlay } from '../components/LoadingOverlay';
-import { MessageOverlay } from '../components/MessageOverlay';
 import { useEntries } from '../hooks/useEntries';
 import { useEntryReview } from '../hooks/useEntryReview';
 import { useUploadFlow } from '../hooks/useUploadFlow';

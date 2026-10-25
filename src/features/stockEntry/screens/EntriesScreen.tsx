@@ -7,6 +7,7 @@ import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
 import { Icon } from 'app/components/ui/icon';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { ScreenHeader } from 'app/components/ui/screen-header';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
@@ -14,7 +15,6 @@ import { formatCurrency } from 'shared/utils/currency';
 
 import { entryCardView, type EntryCardView } from './entriesPresenter';
 import { EntryCard, type EntryAction } from '../components/EntryCard';
-import { NoticeBanner } from '../components/NoticeBanner';
 import type { DraftSummary } from '../domain/draft';
 import type { EntriesState } from '../hooks/useEntries';
 

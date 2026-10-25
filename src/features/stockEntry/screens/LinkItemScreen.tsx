@@ -9,6 +9,7 @@ import {
   type ItemDraft,
   type ItemPrefill,
 } from 'app/components/ui/item-modal/item-modal';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { ScreenHeader } from 'app/components/ui/screen-header';
 import { Text } from 'app/components/ui/text';
 import { CATEGORY_OPTIONS, UNIT_OPTIONS } from 'features/materials';
@@ -17,7 +18,6 @@ import { useTranslation } from 'shared/i18n';
 import { LabelPlaceholder } from 'theme/colors';
 
 import { CatalogOption } from '../components/CatalogOption';
-import { NoticeBanner } from '../components/NoticeBanner';
 import type { LinkedItem } from '../domain/review';
 
 type Candidate = { itemId: string; name: string; unit: string };

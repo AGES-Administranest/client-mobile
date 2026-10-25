@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 
 import { HourlyRateScreen } from 'features/pricing';
+import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
 import { TripsScreen } from 'features/trips';
 import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
@@ -182,11 +183,12 @@ export function FinanceScreen() {
                     overview.incomplete ? t('finance.balanceIncomplete') : null
                   }
                 />
-                <View className="px-5">
+                <View className="gap-3 px-5">
                   <NewEntryButton
                     label={t('financialEntries.newEntry')}
                     onPress={openOptions}
                   />
+                  <ServiceInvoiceUploadFlow />
                 </View>
                 <View className="gap-3 px-5">
                   <ScopeFilter

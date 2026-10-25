@@ -4,11 +4,10 @@ import { Pressable, View } from 'react-native';
 import { ActionButton } from 'app/components/ui';
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
 import { Icon } from 'app/components/ui/icon';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { ScreenHeader } from 'app/components/ui/screen-header';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
-
-import { NoticeBanner } from '../components/NoticeBanner';
 
 type ConfirmFileScreenProps = {
   visible: boolean;
