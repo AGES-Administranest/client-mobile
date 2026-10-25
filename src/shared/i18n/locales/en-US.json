@@ -1459,5 +1459,52 @@
       "documentRemoval": "The document and its file are deleted.",
       "historyRemoval": "The appointment leaves the schedule and the history."
     }
+  },
+  "invoices": {
+    "trigger": "Invoices",
+    "title": "Invoices",
+    "back": "Back",
+    "filters": {
+      "searchPlaceholder": "Name, CNPJ or invoice number",
+      "period": "Period",
+      "periodRange": "{{from}} to {{to}}",
+      "periodSingle": "{{day}}",
+      "periodFrom": "From {{from}}",
+      "clear": "Clear",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "invalidRange": "The start date cannot be after the end date."
+    },
+    "loading": "Loading invoices...",
+    "loadingMore": "Loading more invoices",
+    "loadMoreError": "Could not load more invoices.",
+    "error": "Could not load the invoices.",
+    "empty": "No invoices registered.",
+    "emptyFiltered": "No invoices found for the filter.",
+    "card": {
+      "title": "Invoice {{number}}",
+      "issuer": "Issuer: {{name}}",
+      "taker": "Customer: {{name}}"
+    },
+    "status": {
+      "SYNCED": "Synced",
+      "NOT_SYNCED": "Not synced",
+      "ERROR": "Processing error"
+    },
+    "kind": {
+      "PURCHASE": "Purchase",
+      "SERVICE": "Service"
+    },
+    "detail": {
+      "title": "Invoice {{number}}",
+      "close": "Close",
+      "kind": "Type",
+      "issuer": "Issuer",
+      "taker": "Customer",
+      "takerCnpj": "Customer CNPJ",
+      "value": "Amount",
+      "issuedAt": "Issue date",
+      "status": "Status"
+    }
   }
 }
