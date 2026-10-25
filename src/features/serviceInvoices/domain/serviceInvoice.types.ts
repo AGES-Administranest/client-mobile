@@ -1,5 +1,7 @@
 // Provisional: the NFSe endpoints are not in the backend yet. The extraction
 // mirrors what the backend's NFSe reader returns (feat/us01-nfse-extraction).
+export type ExtractedClient = { id: string; name: string; taxId: string };
+
 export type ServiceInvoiceExtraction = {
   status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
   /** `YYYY-MM-DD` */
@@ -7,6 +9,8 @@ export type ServiceInvoiceExtraction = {
   amount?: number;
   number?: string;
   taker?: { name?: string; taxId?: string };
+  clientMatch?: ExtractedClient;
+  clientSuggestions?: ExtractedClient[];
 };
 
 export type ServiceInvoiceFormValues = {
@@ -23,7 +27,7 @@ export type ServiceInvoiceField = 'issueDate' | 'amount' | 'clientId';
 export type ServiceInvoiceErrors = {
   issueDate?: 'required' | 'invalid';
   amount?: 'required' | 'invalid' | 'mustBePositive';
-  clientId?: 'required';
+  clientId?: 'required' | 'pending';
 };
 
 /** What the confirmation sends: dates as `YYYY-MM-DD`, the amount as a number. */
@@ -40,3 +44,19 @@ export const EMPTY_SERVICE_INVOICE_FORM: ServiceInvoiceFormValues = {
   number: '',
   clientId: null,
 };
+
+export type ServiceInvoiceDuplicate = {
+  id: string;
+  number?: string;
+  /** `YYYY-MM-DD` */
+  issueDate: string;
+  amount: number;
+  clientName: string;
+};
+
+/** A duplicate comes back instead of the new note until the person insists. */
+export type ServiceInvoiceConfirmation =
+  | { id: string }
+  | { duplicateOf: ServiceInvoiceDuplicate };
+
+export type ConfirmServiceInvoiceOptions = { allowDuplicate?: boolean };

@@ -1,10 +1,13 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { FullScreenModal } from 'app/components/ui/full-screen-modal';
 import { LoadingOverlay } from 'app/components/ui/loading-overlay';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import type { Client } from 'features/clients/domain/client';
 import { fetchClients } from 'features/clients/services/clientService';
+import { NewClinicSheet } from 'features/clinics';
+import { createClient } from 'features/clinics/services/clientService';
 import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
 import {
   confirmServiceInvoice,
@@ -21,6 +24,9 @@ jest.mock('features/serviceInvoices/services/serviceInvoiceService', () => ({
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn(),
 }));
+jest.mock('features/clinics/services/clientService', () => ({
+  createClient: jest.fn(),
+}));
 // A sessão entra pronta pelo AuthProvider; nada de auth pode ir à rede.
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
@@ -32,6 +38,9 @@ const extractMock = extractServiceInvoice as jest.MockedFunction<
 >;
 const confirmMock = confirmServiceInvoice as jest.MockedFunction<
   typeof confirmServiceInvoice
+>;
+const createClientMock = createClient as jest.MockedFunction<
+  typeof createClient
 >;
 const fetchClientsMock = fetchClients as jest.MockedFunction<
   typeof fetchClients
@@ -90,6 +99,7 @@ beforeEach(() => {
   confirmMock.mockReset();
   fetchClientsMock.mockReset();
   fetchClientsMock.mockResolvedValue([CLINIC]);
+  createClientMock.mockReset();
   confirmMock.mockResolvedValue({ id: 'invoice-1' });
 });
 
@@ -434,11 +444,11 @@ describe('review', () => {
 
     await press(renderer, 'Confirmar');
 
-    expect(confirmMock).toHaveBeenCalledWith('id-token', {
-      issueDate: '2026-03-15',
-      amount: 1850,
-      clientId: 'client-1',
-    });
+    expect(confirmMock).toHaveBeenCalledWith(
+      'id-token',
+      { issueDate: '2026-03-15', amount: 1850, clientId: 'client-1' },
+      { allowDuplicate: false },
+    );
     expect(texts(renderer)).not.toContain('Revisar nota fiscal');
   });
 
@@ -505,5 +515,441 @@ describe('review', () => {
 
     expect(texts(renderer)).not.toContain('Revisar nota fiscal');
     expect(confirmMock).not.toHaveBeenCalled();
+  });
+});
+
+const FULL_READING = {
+  status: 'SUCCESS' as const,
+  issueDate: '2026-03-15',
+  amount: 1850,
+  number: '2026/0042',
+  taker: { name: 'Clínica Nova', taxId: '11222333000181' },
+};
+
+const LINKED = {
+  id: 'client-1',
+  name: 'Clínica Vet Sul',
+  taxId: '11222333000181',
+};
+
+async function openWith(
+  extraction: Parameters<typeof extractMock.mockResolvedValue>[0],
+) {
+  extractMock.mockResolvedValue(extraction);
+  const renderer = await renderFlow();
+  await startWith(renderer, 'nota.pdf');
+  return renderer;
+}
+
+describe('taker linked by the reading', () => {
+  it('opens with the linked taker selected and confirms it untouched', async () => {
+    const renderer = await openWith({ ...FULL_READING, clientMatch: LINKED });
+
+    expect(field(renderer, 'Tomador').props.value).toBe('Clínica Vet Sul');
+
+    await press(renderer, 'Confirmar');
+
+    expect(confirmMock).toHaveBeenCalledWith(
+      'id-token',
+      expect.objectContaining({ clientId: 'client-1' }),
+      { allowDuplicate: false },
+    );
+  });
+
+  it('goes back at once when only the linked taker is there', async () => {
+    const renderer = await openWith({ ...FULL_READING, clientMatch: LINKED });
+
+    await back(renderer);
+
+    expect(texts(renderer)).not.toContain('Sair da nota?');
+    expect(texts(renderer)).not.toContain('Revisar nota fiscal');
+  });
+
+  it('lets the person swap the linked taker', async () => {
+    fetchClientsMock.mockResolvedValue([
+      CLINIC,
+      { ...CLINIC, id: 'client-2', name: 'Pet Norte' },
+    ]);
+    const renderer = await openWith({ ...FULL_READING, clientMatch: LINKED });
+
+    await type(renderer, 'Tomador', 'Pet');
+    await focus(renderer, 'Tomador');
+    await press(renderer, 'Pet Norte');
+    await press(renderer, 'Confirmar');
+
+    expect(confirmMock).toHaveBeenCalledWith(
+      'id-token',
+      expect.objectContaining({ clientId: 'client-2' }),
+      { allowDuplicate: false },
+    );
+  });
+
+  it('counts swapping the linked taker as an edit', async () => {
+    const renderer = await openWith({ ...FULL_READING, clientMatch: LINKED });
+
+    await type(renderer, 'Tomador', 'Outra');
+    await back(renderer);
+
+    expect(texts(renderer)).toContain('Sair da nota?');
+  });
+});
+
+describe('taker search', () => {
+  it('says so when the taker list cannot be loaded', async () => {
+    fetchClientsMock.mockRejectedValue(new Error('offline'));
+    const renderer = await openWith(FULL_READING);
+
+    await type(renderer, 'Tomador', 'Clín');
+    await focus(renderer, 'Tomador');
+
+    expect(texts(renderer)).toContain('Não foi possível buscar os tomadores.');
+  });
+});
+
+describe('suggested takers', () => {
+  const SUGGESTIONS = [
+    LINKED,
+    { id: 'client-2', name: 'Pet Norte', taxId: '22333444000155' },
+  ];
+
+  it('lists the suggestions and selects one with a tap', async () => {
+    const renderer = await openWith({
+      ...FULL_READING,
+      clientSuggestions: SUGGESTIONS,
+    });
+
+    expect(field(renderer, 'Tomador').props.value).toBe('');
+    expect(texts(renderer)).toContain('Sugestões de tomador');
+
+    await press(renderer, 'Pet Norte');
+
+    expect(field(renderer, 'Tomador').props.value).toBe('Pet Norte');
+    expect(texts(renderer)).not.toContain('Sugestões de tomador');
+    await press(renderer, 'Confirmar');
+    expect(confirmMock).toHaveBeenCalledWith(
+      'id-token',
+      expect.objectContaining({ clientId: 'client-2' }),
+      { allowDuplicate: false },
+    );
+  });
+
+  it('keeps the free search available and counts the pick as an edit', async () => {
+    const renderer = await openWith({
+      ...FULL_READING,
+      clientSuggestions: SUGGESTIONS,
+    });
+
+    await press(renderer, 'Pet Norte');
+    await back(renderer);
+
+    expect(texts(renderer)).toContain('Sair da nota?');
+  });
+});
+
+describe('registering a new taker', () => {
+  const NEW_CLIENT: Client = {
+    ...CLINIC,
+    id: 'client-new',
+    name: 'Clínica Nova',
+    taxId: '11222333000181',
+    taxIdType: 'CNPJ',
+  };
+
+  function reviewModal(renderer: ReactTestRenderer.ReactTestRenderer) {
+    return renderer.root.findByType(FullScreenModal);
+  }
+
+  function registerSheet(renderer: ReactTestRenderer.ReactTestRenderer) {
+    return renderer.root.findByType(NewClinicSheet);
+  }
+
+  function leaveReview(renderer: ReactTestRenderer.ReactTestRenderer) {
+    return act(async () => {
+      reviewModal(renderer).props.onDismiss();
+    });
+  }
+
+  function leaveRegister(renderer: ReactTestRenderer.ReactTestRenderer) {
+    return act(async () => {
+      registerSheet(renderer).props.onClosed();
+    });
+  }
+
+  function hasField(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    label: string,
+  ) {
+    return (
+      renderer.root.findAll(node => node.props?.accessibilityLabel === label)
+        .length > 0
+    );
+  }
+
+  async function openRegister(renderer: ReactTestRenderer.ReactTestRenderer) {
+    await press(renderer, 'Cadastrar novo tomador');
+    await leaveReview(renderer);
+  }
+
+  async function fillRest(renderer: ReactTestRenderer.ReactTestRenderer) {
+    await type(renderer, 'Endereço', 'Rua das Hortênsias, 340');
+    await type(renderer, 'Cidade', 'Campinas');
+    await type(renderer, 'UF', 'SP');
+    await type(renderer, 'Contato', '1134567890');
+    await type(renderer, 'E-mail', 'contato@vetnova.com.br');
+    await type(renderer, 'Responsável', 'Dr. André Matos');
+  }
+
+  it('does not stack the registration over the review', async () => {
+    const renderer = await openWith(FULL_READING);
+
+    await press(renderer, 'Cadastrar novo tomador');
+
+    expect(reviewModal(renderer).props.visible).toBe(false);
+    expect(registerSheet(renderer).props.visible).toBe(false);
+
+    await leaveReview(renderer);
+
+    expect(registerSheet(renderer).props.visible).toBe(true);
+  });
+
+  it('opens filled with the name and CNPJ read from the note', async () => {
+    const renderer = await openWith(FULL_READING);
+
+    await openRegister(renderer);
+
+    expect(field(renderer, 'Nome da clínica').props.value).toBe('Clínica Nova');
+    expect(field(renderer, 'CNPJ').props.value).toBe('11.222.333/0001-81');
+  });
+
+  it('opens with the fields the note lacked left empty', async () => {
+    const renderer = await openWith({ status: 'PARTIAL' });
+
+    await openRegister(renderer);
+
+    expect(field(renderer, 'Nome da clínica').props.value).toBe('');
+    expect(field(renderer, 'CNPJ').props.value).toBe('');
+  });
+
+  it('on save, reopens the review with what was typed and the new taker', async () => {
+    createClientMock.mockResolvedValue(NEW_CLIENT);
+    const renderer = await openWith(FULL_READING);
+    await type(renderer, 'Valor total', '200000');
+    await type(renderer, 'Número da nota', '77');
+
+    await openRegister(renderer);
+    expect(hasField(renderer, 'Valor total')).toBe(false);
+    await fillRest(renderer);
+    await press(renderer, 'Confirmar');
+    await leaveRegister(renderer);
+
+    expect(reviewModal(renderer).props.visible).toBe(true);
+    expect(registerSheet(renderer).props.visible).toBe(false);
+    expect(field(renderer, 'Valor total').props.value).toBe('2.000,00');
+    expect(field(renderer, 'Número da nota').props.value).toBe('77');
+    expect(field(renderer, 'Data de emissão').props.value).toBe('15/03/2026');
+    expect(field(renderer, 'Tomador').props.value).toBe('Clínica Nova');
+
+    await press(renderer, 'Confirmar');
+    expect(confirmMock).toHaveBeenCalledWith(
+      'id-token',
+      expect.objectContaining({ clientId: 'client-new', amount: 2000 }),
+      { allowDuplicate: false },
+    );
+  });
+
+  it('counts the new taker as an edit', async () => {
+    createClientMock.mockResolvedValue(NEW_CLIENT);
+    const renderer = await openWith(FULL_READING);
+    await openRegister(renderer);
+    await fillRest(renderer);
+    await press(renderer, 'Confirmar');
+    await leaveRegister(renderer);
+
+    await back(renderer);
+
+    expect(texts(renderer)).toContain('Sair da nota?');
+  });
+
+  it('keeps the suggestions and the errors while the review is hidden', async () => {
+    const renderer = await openWith({
+      ...FULL_READING,
+      amount: undefined,
+      clientSuggestions: [LINKED],
+    });
+    await press(renderer, 'Confirmar');
+
+    await openRegister(renderer);
+    await act(async () => {
+      registerSheet(renderer).props.onClose();
+    });
+    await leaveRegister(renderer);
+
+    expect(texts(renderer)).toContain('Informe o valor total.');
+    expect(texts(renderer)).toContain('Sugestões de tomador');
+  });
+
+  it('on cancel, reopens the review exactly as it was', async () => {
+    const renderer = await openWith(FULL_READING);
+    await type(renderer, 'Valor total', '200000');
+    await type(renderer, 'Tomador', 'Clín');
+
+    await openRegister(renderer);
+    expect(hasField(renderer, 'Valor total')).toBe(false);
+    expect(hasField(renderer, 'Tomador')).toBe(false);
+    await act(async () => {
+      registerSheet(renderer).props.onClose();
+    });
+    await leaveRegister(renderer);
+
+    expect(createClientMock).not.toHaveBeenCalled();
+    expect(reviewModal(renderer).props.visible).toBe(true);
+    expect(field(renderer, 'Valor total').props.value).toBe('2.000,00');
+    expect(field(renderer, 'Tomador').props.value).toBe('Clín');
+  });
+
+  it('keeps the review as it was after a cancel with nothing edited', async () => {
+    const renderer = await openWith(FULL_READING);
+    await openRegister(renderer);
+    await act(async () => {
+      registerSheet(renderer).props.onClose();
+    });
+    await leaveRegister(renderer);
+
+    await back(renderer);
+
+    expect(texts(renderer)).not.toContain('Sair da nota?');
+  });
+
+  it('keeps the registration open with the draft when saving fails', async () => {
+    createClientMock.mockRejectedValue(new Error('boom'));
+    const renderer = await openWith(FULL_READING);
+    await openRegister(renderer);
+    await fillRest(renderer);
+
+    await press(renderer, 'Confirmar');
+
+    expect(registerSheet(renderer).props.visible).toBe(true);
+    expect(texts(renderer)).toContain(
+      'Não foi possível salvar a clínica. Tente novamente.',
+    );
+    expect(field(renderer, 'Nome da clínica').props.value).toBe('Clínica Nova');
+  });
+
+  it('refuses a taker still queued offline instead of sending its local id', async () => {
+    createClientMock.mockResolvedValue({
+      ...NEW_CLIENT,
+      id: 'local:abc',
+    });
+    const renderer = await openWith(FULL_READING);
+    await openRegister(renderer);
+    await fillRest(renderer);
+    await press(renderer, 'Confirmar');
+    await leaveRegister(renderer);
+
+    await press(renderer, 'Confirmar');
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(texts(renderer)).toContain(
+      'Esse tomador ainda aguarda sincronização. Confirme a nota quando houver conexão.',
+    );
+  });
+});
+
+describe('duplicate note', () => {
+  const DUPLICATE = {
+    id: 'invoice-0',
+    number: '2026/0031',
+    issueDate: '2026-03-15',
+    amount: 1850,
+    clientName: 'Clínica Vet Sul',
+  };
+
+  async function confirmDuplicate() {
+    confirmMock.mockResolvedValueOnce({ duplicateOf: DUPLICATE });
+    const renderer = await openWith({ ...FULL_READING, clientMatch: LINKED });
+    await press(renderer, 'Confirmar');
+    return renderer;
+  }
+
+  it('warns with the data of the similar note', async () => {
+    const renderer = await confirmDuplicate();
+
+    const shown = texts(renderer);
+    expect(shown).toContain('Nota parecida encontrada');
+    expect(shown).toContain('2026/0031');
+    expect(shown).toContain('15/03/2026');
+    expect(shown.replace(/\s/g, ' ')).toContain('R$ 1.850,00');
+    expect(shown).toContain('Clínica Vet Sul');
+    expect(texts(renderer)).toContain('Revisar nota fiscal');
+  });
+
+  it('saves anyway by confirming again with the duplicate allowed', async () => {
+    const renderer = await confirmDuplicate();
+    confirmMock.mockResolvedValueOnce({ id: 'invoice-1' });
+
+    await press(renderer, 'Salvar mesmo assim');
+
+    expect(confirmMock).toHaveBeenLastCalledWith(
+      'id-token',
+      expect.objectContaining({ clientId: 'client-1' }),
+      { allowDuplicate: true },
+    );
+    expect(texts(renderer)).not.toContain('Revisar nota fiscal');
+  });
+
+  it('sends "Salvar mesmo assim" once when tapped twice', async () => {
+    const renderer = await confirmDuplicate();
+    let finish: (value: { id: string }) => void = () => {};
+    confirmMock.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    const button = renderer.root.findAll(
+      node =>
+        typeof node.props?.onPress === 'function' &&
+        node.findAll(
+          child =>
+            typeof child.type === 'string' &&
+            child.props?.children === 'Salvar mesmo assim',
+        ).length > 0,
+    );
+    const save = button[button.length - 1];
+
+    await act(async () => {
+      save.props.onPress();
+      save.props.onPress();
+    });
+
+    expect(confirmMock).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      finish({ id: 'invoice-1' });
+    });
+  });
+
+  it('cancels the warning and keeps the review as it was', async () => {
+    const renderer = await confirmDuplicate();
+
+    await press(renderer, 'Cancelar');
+
+    expect(texts(renderer)).not.toContain('Nota parecida encontrada');
+    expect(texts(renderer)).toContain('Revisar nota fiscal');
+    expect(field(renderer, 'Valor total').props.value).toBe('1.850,00');
+    expect(field(renderer, 'Tomador').props.value).toBe('Clínica Vet Sul');
+    expect(confirmMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the existing note read-only and goes back to the warning', async () => {
+    const renderer = await confirmDuplicate();
+
+    await press(renderer, 'Ver nota existente');
+
+    expect(texts(renderer)).toContain('Nota já registrada');
+    expect(texts(renderer)).toContain('2026/0031');
+    expect(confirmMock).toHaveBeenCalledTimes(1);
+
+    await press(renderer, 'Voltar ao aviso');
+
+    expect(texts(renderer)).toContain('Nota parecida encontrada');
   });
 });

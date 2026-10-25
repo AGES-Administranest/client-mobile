@@ -1537,7 +1537,8 @@
           "mustBePositive": "The amount must be greater than zero."
         },
         "clientId": {
-          "required": "Choose the invoice client."
+          "required": "Choose the invoice client.",
+          "pending": "This taker is still waiting to sync. Confirm the invoice once you are online."
         }
       },
       "confirm": "Confirm",
@@ -1546,7 +1547,25 @@
       "leaveTitle": "Leave the invoice?",
       "leaveMessage": "The data you entered has not been saved and will be lost.",
       "leaveConfirm": "Leave without saving",
-      "leaveCancel": "Keep editing"
+      "leaveCancel": "Keep editing",
+      "suggestions": "Suggested takers",
+      "registerClient": "Register new taker"
+    },
+    "duplicate": {
+      "title": "Similar invoice found",
+      "detailsTitle": "Invoice already registered",
+      "alert": "An invoice with the same amount and issue date already exists. Check it before saving again.",
+      "fields": {
+        "number": "Invoice number",
+        "issueDate": "Issue date",
+        "amount": "Total amount",
+        "client": "Taker"
+      },
+      "viewExisting": "View existing invoice",
+      "saveAnyway": "Save anyway",
+      "cancel": "Cancel",
+      "back": "Back to the warning",
+      "close": "Close warning"
     }
   },
   "trips": {
