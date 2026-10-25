@@ -6,7 +6,11 @@ import { I18nProvider } from 'shared/i18n';
 import type { MonthPeriod } from 'shared/utils/monthPeriod';
 
 import { HourlyRateScreen } from './HourlyRateScreen';
-import { calculateHourlyRate } from '../domain/hourlyRate';
+import {
+  OCTOBER_40_HOURS_HOURLY_RATE,
+  OCTOBER_HOURLY_RATE,
+  SEPTEMBER_HOURLY_RATE,
+} from '../domain/hourlyRate.fixture';
 import { pricingService } from '../services/pricingService';
 
 jest.mock('features/auth/services/authService', () => ({}));
@@ -68,17 +72,9 @@ const SUMMARY = {
   total: 2624.08,
 };
 
-function rateFor(
-  month: MonthPeriod,
-  { variableCosts = 1225, settings = SETTINGS, fixedCosts = 1399.08 } = {},
-) {
-  return calculateHourlyRate({
-    month,
-    settings,
-    fixedCosts,
-    variableCosts,
-    calculatedAt: NOW,
-  });
+// The answer of the backend for that month, calculated "now".
+function rateFor(month: MonthPeriod, rate = OCTOBER_HOURLY_RATE) {
+  return { ...rate, month, calculatedAt: NOW.toISOString() };
 }
 
 const nbsp = (value: string) => value.replace(' ', '\u00a0');
@@ -158,7 +154,10 @@ beforeEach(() => {
   getHourlyRate
     .mockReset()
     .mockImplementation(async (_token, month: MonthPeriod) =>
-      rateFor(month, { variableCosts: month.month === 9 ? 980 : 1225 }),
+      rateFor(
+        month,
+        month.month === 9 ? SEPTEMBER_HOURLY_RATE : OCTOBER_HOURLY_RATE,
+      ),
     );
   saveSettings
     .mockReset()
@@ -261,7 +260,7 @@ describe('configured', () => {
     getHourlyRate.mockResolvedValueOnce(rateFor(OCTOBER));
     const { texts, typeAndBlur } = await renderScreen();
     getHourlyRate.mockResolvedValueOnce(
-      rateFor(OCTOBER, { settings: { ...SETTINGS, weeklyHours: 40 } }),
+      rateFor(OCTOBER, OCTOBER_40_HOURS_HOURLY_RATE),
     );
 
     await typeAndBlur('Horas disponíveis por semana', '40');

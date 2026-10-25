@@ -4,7 +4,11 @@ import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import type { MonthPeriod } from 'shared/utils/monthPeriod';
 
 import { useHourlyRate } from './useHourlyRate';
-import { calculateHourlyRate } from '../domain/hourlyRate';
+import type { HourlyRate } from '../domain/hourlyRate';
+import {
+  OCTOBER_HOURLY_RATE,
+  SEPTEMBER_HOURLY_RATE,
+} from '../domain/hourlyRate.fixture';
 import { pricingService } from '../services/pricingService';
 
 jest.mock('../services/pricingService', () => ({
@@ -36,14 +40,11 @@ const ACCOUNT: Account = {
 const OCTOBER = { month: 10, year: 2026 };
 const SEPTEMBER = { month: 9, year: 2026 };
 
-function rateFor(month: MonthPeriod, variableCosts = 1225) {
-  return calculateHourlyRate({
-    month,
-    settings: { monthlyIncomeGoal: 8000, weeklyHours: 30, safetyMarginPct: 20 },
-    fixedCosts: 1399.08,
-    variableCosts,
-    calculatedAt: new Date('2026-10-19T20:42:00.000Z'),
-  });
+function rateFor(month: MonthPeriod, variableCosts?: number): HourlyRate {
+  const rate = month.month === 9 ? SEPTEMBER_HOURLY_RATE : OCTOBER_HOURLY_RATE;
+  return variableCosts === undefined
+    ? { ...rate, month }
+    : { ...rate, month, parts: { ...rate.parts, variableCosts } };
 }
 
 let current: ReturnType<typeof useHourlyRate>;
@@ -115,9 +116,7 @@ test('does not call the API without a session', async () => {
 });
 
 test('recalculates with the costs of the month that was picked', async () => {
-  getHourlyRate.mockImplementation(async (_token, month) =>
-    rateFor(month, month.month === 9 ? 980 : 1225),
-  );
+  getHourlyRate.mockImplementation(async (_token, month) => rateFor(month));
   await mount(OCTOBER, SESSION);
 
   await changeMonth(SEPTEMBER);
@@ -151,7 +150,7 @@ test('ignores the answer of a month the person already left', async () => {
     }),
   );
   await mount(OCTOBER, SESSION);
-  getHourlyRate.mockResolvedValueOnce(rateFor(SEPTEMBER, 980));
+  getHourlyRate.mockResolvedValueOnce(rateFor(SEPTEMBER));
   await changeMonth(SEPTEMBER);
 
   await act(async () => answerOctober(rateFor(OCTOBER)));

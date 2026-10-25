@@ -22,55 +22,63 @@ export type HourlyRate = {
   calculatedAt: string;
 };
 
-type HourlyRateInput = {
-  month: MonthPeriod;
-  settings: PricingSettings;
-  fixedCosts: number;
-  variableCosts: number;
-  calculatedAt: Date;
+// The parts in the order of `HOURLY_RATE_PARTS`, as GET /pricing/hourly-rate
+// names them.
+const PART_BY_KEY = {
+  FIXED_COSTS: 'fixedCosts',
+  VARIABLE_COSTS: 'variableCosts',
+  OWNER_DRAW: 'proLabore',
+  SAFETY_MARGIN: 'safetyMargin',
+} as const satisfies Record<string, HourlyRatePart>;
+
+export type HourlyRatePartKey = keyof typeof PART_BY_KEY;
+
+// GET /pricing/hourly-rate. Every amount comes as a decimal string with 2
+// places; `label` is for developers, the app shows its own text per part.
+export type HourlyRateResponse = {
+  month: number;
+  year: number;
+  items: {
+    key: HourlyRatePartKey;
+    label: string;
+    amount: string;
+    percentOfTotal: string;
+  }[];
+  total: string;
+  productiveHours: string;
+  hourlyRate: string;
+  minimumHourlyRate: string;
+  calculatedAt: string;
 };
 
-const WEEKS_IN_A_YEAR = 52;
-const MONTHS_IN_A_YEAR = 12;
-
-const roundCents = (value: number) => Math.round(value * 100) / 100;
-
-// A month has 52 / 12 weeks, so 30 h a week give the Figma's 130 h.
-export function productiveHoursPerMonth(weeklyHours: number): number {
-  return (weeklyHours * WEEKS_IN_A_YEAR) / MONTHS_IN_A_YEAR;
-}
-
-// The margin applies to costs plus pró-labore, and both rates divide by the
-// unrounded hours so 40 h a week does not drift by a cent.
-export function calculateHourlyRate({
-  month,
-  settings,
-  fixedCosts,
-  variableCosts,
-  calculatedAt,
-}: HourlyRateInput): HourlyRate {
-  const proLabore = settings.monthlyIncomeGoal;
-  const withoutMargin = roundCents(fixedCosts + variableCosts + proLabore);
-  const safetyMargin = roundCents(
-    (withoutMargin * settings.safetyMarginPct) / 100,
+// The backend does the math (US20); this only turns its strings into numbers.
+// `percentOfTotal` is left out: the breakdown shows one decimal, and rounding
+// the backend's two decimals again could stop adding up to 100.
+export function toHourlyRate(
+  response: HourlyRateResponse,
+  settings: PricingSettings,
+): HourlyRate {
+  const amounts = new Map(
+    response.items.map(item => [PART_BY_KEY[item.key], Number(item.amount)]),
   );
-  const total = roundCents(withoutMargin + safetyMargin);
-  const hours = productiveHoursPerMonth(settings.weeklyHours);
+  const parts = {} as Record<HourlyRatePart, number>;
+  for (const part of HOURLY_RATE_PARTS) {
+    const amount = amounts.get(part);
+    if (amount === undefined) {
+      throw new Error(`Hourly rate response without the ${part} part`);
+    }
+    parts[part] = amount;
+  }
 
   return {
-    month,
+    month: { month: response.month, year: response.year },
     settings,
-    parts: {
-      fixedCosts: roundCents(fixedCosts),
-      variableCosts: roundCents(variableCosts),
-      proLabore,
-      safetyMargin,
-    },
-    total,
-    productiveHours: hours,
-    hourlyRate: hours > 0 ? roundCents(total / hours) : 0,
-    minimumHourlyRate: hours > 0 ? roundCents(withoutMargin / hours) : 0,
-    calculatedAt: calculatedAt.toISOString(),
+    parts,
+    total: Number(response.total),
+    productiveHours: Number(response.productiveHours),
+    hourlyRate: Number(response.hourlyRate),
+    minimumHourlyRate: Number(response.minimumHourlyRate),
+    calculatedAt: response.calculatedAt,
   };
 }
 

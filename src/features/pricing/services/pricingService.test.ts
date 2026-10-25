@@ -53,15 +53,27 @@ test('rethrows a refused save as an ApiError with its code', async () => {
   });
 });
 
-describe('getHourlyRate (stand-in until the backend serves it)', () => {
+describe('getHourlyRate', () => {
   const OCTOBER = { month: 10, year: 2026 };
-  const SUMMARY = {
-    professionalExpenses: '1225.00',
-    personalExpenses: '860.00',
-    depreciation: '189.08',
-    transport: '350.00',
-    total: '2624.08',
+  const RESPONSE = {
+    month: 10,
+    year: 2026,
+    items: [
+      { key: 'FIXED_COSTS', amount: '1399.08' },
+      { key: 'VARIABLE_COSTS', amount: '1225.00' },
+      { key: 'OWNER_DRAW', amount: '8000.00' },
+      { key: 'SAFETY_MARGIN', amount: '2124.82' },
+    ].map(item => ({ ...item, label: item.key, percentOfTotal: '0.00' })),
+    total: '12748.90',
+    productiveHours: '130.00',
+    hourlyRate: '98.07',
+    minimumHourlyRate: '81.72',
+    calculatedAt: '2026-10-19T20:42:00.000Z',
   };
+  const NOT_CONFIGURED: [number, unknown] = [
+    404,
+    { code: 'PRICING_SETTINGS_NOT_FOUND', message: 'Not configured' },
+  ];
 
   function respondTo(routes: Record<string, [number, unknown]>) {
     fetchMock.mockImplementation(async (url: string) => {
@@ -75,19 +87,20 @@ describe('getHourlyRate (stand-in until the backend serves it)', () => {
     });
   }
 
-  test('calculates from the goals and the fixed costs of the month', async () => {
+  test('reads the rate of the month from the backend, with the goals', async () => {
     respondTo({
       '/pricing-settings': [
         200,
         { monthlyIncomeGoal: 8000, weeklyHours: 30, safetyMarginPct: 20 },
       ],
-      '/fixed-costs/summary': [200, SUMMARY],
+      '/pricing/hourly-rate': [200, RESPONSE],
     });
 
     const rate = await pricingService.getHourlyRate(ID_TOKEN, OCTOBER);
 
     expect(rate).toMatchObject({
       month: OCTOBER,
+      settings: { monthlyIncomeGoal: 8000, weeklyHours: 30 },
       parts: {
         fixedCosts: 1399.08,
         variableCosts: 1225,
@@ -99,7 +112,10 @@ describe('getHourlyRate (stand-in until the backend serves it)', () => {
     });
     const urls = fetchMock.mock.calls.map(([url]) => url as string);
     expect(urls).toContainEqual(
-      expect.stringMatching(/\/fixed-costs\/summary\?month=10&year=2026$/),
+      expect.stringMatching(/\/pricing\/hourly-rate\?month=10&year=2026$/),
+    );
+    expect(urls).not.toContainEqual(
+      expect.stringContaining('/fixed-costs/summary'),
     );
     for (const [, init] of fetchMock.mock.calls as [string, RequestInit][]) {
       expect((init.headers as Record<string, string>).Authorization).toBe(
@@ -110,11 +126,8 @@ describe('getHourlyRate (stand-in until the backend serves it)', () => {
 
   test('is null while the goals are not configured', async () => {
     respondTo({
-      '/pricing-settings': [
-        404,
-        { code: 'PRICING_SETTINGS_NOT_FOUND', message: 'Not configured' },
-      ],
-      '/fixed-costs/summary': [200, SUMMARY],
+      '/pricing-settings': NOT_CONFIGURED,
+      '/pricing/hourly-rate': NOT_CONFIGURED,
     });
 
     await expect(
@@ -122,13 +135,13 @@ describe('getHourlyRate (stand-in until the backend serves it)', () => {
     ).resolves.toBeNull();
   });
 
-  test('fails when the fixed costs cannot be read', async () => {
+  test('fails when the rate cannot be read', async () => {
     respondTo({
       '/pricing-settings': [
         200,
         { monthlyIncomeGoal: 8000, weeklyHours: 30, safetyMarginPct: 20 },
       ],
-      '/fixed-costs/summary': [500, { code: 'INTERNAL', message: 'Boom' }],
+      '/pricing/hourly-rate': [500, { code: 'INTERNAL', message: 'Boom' }],
     });
 
     await expect(
