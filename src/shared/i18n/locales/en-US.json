@@ -33,7 +33,6 @@
     "back": "Back",
     "fixedCosts": {
       "title": "Monthly fixed costs",
-      "professional": "Professional expenses (month)",
       "personal": "Personal expenses (month)",
       "depreciation": "Equipment depreciation",
       "transport": "Transport/vehicle cost",
@@ -48,7 +47,9 @@
         "negative": "The amount cannot be negative.",
         "generic": "Could not save. The previous value was kept.",
         "session": "Your session expired. Sign in again."
-      }
+      },
+      "transportPlaceholder": "E.g.: 350",
+      "openList": "See fixed costs list"
     }
   },
   "inventory": {
@@ -1267,9 +1268,24 @@
   },
   "pricing": {
     "onboarding": {
-      "message": "Fill in the fields so the values can be calculated",
-      "loading": "Loading your goals",
-      "loadFailure": "Couldn't load your goals."
+      "title": "Set up your fees",
+      "message": "To calculate your hourly rate, we need to know how much you want to earn, how much time you have available and which safety margin you want.",
+      "goals": {
+        "monthlyIncomeGoal": {
+          "title": "Monthly income goal (R$)",
+          "caption": "Owner's draw + desired profit"
+        },
+        "weeklyHours": {
+          "title": "Available hours per week",
+          "caption": "Include idle periods too"
+        },
+        "safetyMarginPct": {
+          "title": "Safety margin (%)",
+          "caption": "Reserve for the unexpected, from 0 to 100%"
+        }
+      },
+      "action": "Set up",
+      "footnote": "Fixed costs, depreciation and the month's expenses already registered go into the calculation automatically."
     },
     "goalForm": {
       "title": "Goals",
@@ -1278,9 +1294,6 @@
         "weeklyHours": "Available hours per week",
         "safetyMarginPct": "Safety margin (%)"
       },
-      "weeklyHoursHint": "Count the hours you are available to work, including travel and idle time, not only the hours you bill.",
-      "save": "Save goals",
-      "saving": "Saving…",
       "errors": {
         "required": "Fill in this field",
         "invalid": "Enter a valid number",
@@ -1292,6 +1305,69 @@
       },
       "failures": {
         "save": "Could not save your goals. Please try again."
+      }
+    },
+    "setup": {
+      "title": "Set up fees",
+      "subtitle": "Fill in your goals and check the month's costs. Then we calculate your hourly rate.",
+      "hints": {
+        "monthlyIncomeGoal": "Includes the owner's draw and the desired profit",
+        "weeklyHours": "Count your available hours, idle ones included. Must be greater than zero.",
+        "safetyMarginPct": "Between 0 and 100%"
+      },
+      "placeholders": {
+        "monthlyIncomeGoal": "E.g.: 8,000",
+        "weeklyHours": "E.g.: 30",
+        "safetyMarginPct": "E.g.: 20"
+      },
+      "save": "Save and calculate",
+      "saving": "Saving…",
+      "footnote": "You can change this later, in the calculator itself."
+    },
+    "hourlyRate": {
+      "loading": "Calculating your hourly rate",
+      "refreshing": "Recalculating your hourly rate",
+      "loadFailure": "Could not calculate your hourly rate.",
+      "month": {
+        "previousButton": "Previous month",
+        "nextButton": "Next month",
+        "current": "Current month",
+        "previous": "Previous month",
+        "next": "Next month"
+      },
+      "title": "Your hourly rate",
+      "marginChip": "{{margin}}% margin",
+      "valueLabel": "Your hourly rate: {{value}}",
+      "description": "The month's costs, owner's draw and margin divided by your productive hours",
+      "minimum": "Minimum (no margin)",
+      "productiveHours": "Productive hours",
+      "hoursValue": "{{hours}} h",
+      "updatedAt": "Updated on {{date}} at {{time}}",
+      "showBreakdown": "See calculation breakdown",
+      "hideBreakdown": "Hide breakdown",
+      "breakdown": {
+        "title": "Monthly total breakdown",
+        "shareOfTotal": "{{share}}% of total",
+        "parts": {
+          "fixedCosts": {
+            "label": "Fixed costs",
+            "caption": "The month's fixed costs + depreciation"
+          },
+          "variableCosts": {
+            "label": "Variable costs",
+            "caption": "The month's professional expenses"
+          },
+          "proLabore": {
+            "label": "Owner's draw",
+            "caption": "Your monthly income goal"
+          },
+          "safetyMargin": {
+            "label": "Safety margin",
+            "caption": "{{margin}}% on costs + owner's draw"
+          }
+        },
+        "explanationTitle": "How is the hourly rate calculated?",
+        "explanation": "We add the fixed costs, the month's variable costs and the owner's draw, and apply the safety margin to that total. The result is divided by the month's productive hours: available hours per week × 52 weeks ÷ 12 months. The minimum is the same math without the margin."
       }
     }
   },

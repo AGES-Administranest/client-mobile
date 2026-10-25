@@ -6,10 +6,11 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 
-import { CalculatorScreen } from 'features/calculator';
+import { HourlyRateScreen } from 'features/pricing';
 import { TripsScreen } from 'features/trips';
 import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
+import { relativeMonth, shiftMonth } from 'shared/utils/monthPeriod';
 
 import { EntryDetailFlow } from './EntryDetailFlow';
 import { NewEntryFlow } from './NewEntryFlow';
@@ -95,13 +96,7 @@ export function FinanceScreen() {
     scope === 'all'
       ? null
       : t(`financialEntries.statement.noResults.${SCOPE_KEYS[scope]}`);
-  const today = currentPeriod(new Date());
-  const isCurrentMonth =
-    period.month === today.month && period.year === today.year;
-  const shiftMonth = (offset: number) => {
-    const date = new Date(period.year, period.month - 1 + offset, 1);
-    setPeriod({ month: date.getMonth() + 1, year: date.getFullYear() });
-  };
+  const isCurrentMonth = relativeMonth(period, new Date()) === 'current';
 
   const loadMoreNearStatementEnd = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -149,8 +144,8 @@ export function FinanceScreen() {
                   isLoading={overview.isLoading}
                   hasError={overview.hasError}
                   isCurrentMonth={isCurrentMonth}
-                  onPreviousMonth={() => shiftMonth(-1)}
-                  onNextMonth={() => shiftMonth(1)}
+                  onPreviousMonth={() => setPeriod(shiftMonth(period, -1))}
+                  onNextMonth={() => setPeriod(shiftMonth(period, 1))}
                   onRetry={overview.retry}
                 />
                 <View className="px-5">
@@ -217,7 +212,7 @@ export function FinanceScreen() {
         }}
         onFinished={() => setOpenEntry(null)}
       />
-      <CalculatorScreen
+      <HourlyRateScreen
         visible={calculatorVisible}
         onClose={() => setCalculatorVisible(false)}
       />
