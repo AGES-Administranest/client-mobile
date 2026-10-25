@@ -21,6 +21,7 @@ import {
   discardServiceInvoiceDraft,
   extractServiceInvoice,
   newServiceInvoiceId,
+  resumeDraftHoldingFile,
 } from '../services/serviceInvoiceService';
 
 export type UploadStep =
@@ -65,24 +66,49 @@ async function pickAcceptedPdf(): Promise<PickResult> {
 }
 
 type ReadResult =
-  | { status: 'read'; extraction: ServiceInvoiceExtraction }
+  | {
+      status: 'read';
+      invoiceId: string;
+      extraction: ServiceInvoiceExtraction;
+    }
   | { status: 'refused'; refusal: FileRefusal }
-  | { status: 'unreachable' };
+  | { status: 'unreachable'; invoiceId: string };
 
 async function readNote(
   idToken: string | null,
   invoiceId: string,
   file: PickedPdf,
 ): Promise<ReadResult> {
-  if (!idToken) return { status: 'unreachable' };
+  if (!idToken) return { status: 'unreachable', invoiceId };
   try {
     const extraction = await extractServiceInvoice(idToken, invoiceId, file);
-    return { status: 'read', extraction };
+    return { status: 'read', invoiceId, extraction };
   } catch (error) {
-    const refusal =
-      error instanceof ApiError ? fileRefusalOf(error.code) : null;
-    return refusal ? { status: 'refused', refusal } : { status: 'unreachable' };
+    return readRefusal(idToken, invoiceId, file, error);
   }
+}
+
+/**
+ * A PDF held by a draft nobody discarded goes on under that draft, as if the
+ * person had never left it; held by a confirmed note, it is refused.
+ */
+async function readRefusal(
+  idToken: string,
+  invoiceId: string,
+  file: PickedPdf,
+  error: unknown,
+): Promise<ReadResult> {
+  try {
+    const resumed = await resumeDraftHoldingFile(idToken, error, file);
+    if (resumed) return { status: 'read', ...resumed };
+  } catch {
+    return { status: 'unreachable', invoiceId };
+  }
+
+  const refusal = error instanceof ApiError ? fileRefusalOf(error.code) : null;
+  return refusal
+    ? { status: 'refused', refusal }
+    : { status: 'unreachable', invoiceId };
 }
 
 export function useServiceInvoiceUpload(): ServiceInvoiceUploadState {
@@ -136,16 +162,19 @@ export function useServiceInvoiceUpload(): ServiceInvoiceUploadState {
         return;
       }
 
-      const id = newServiceInvoiceId();
       setStep('extracting');
-      const result = await readNote(idToken, id, picked.file);
+      const result = await readNote(
+        idToken,
+        newServiceInvoiceId(),
+        picked.file,
+      );
       if (!isMounted.current) return;
       if (result.status === 'refused') {
         refuse(result.refusal);
         return;
       }
 
-      setInvoiceId(id);
+      setInvoiceId(result.invoiceId);
       mayHaveDraft.current = true;
       if (result.status === 'read') {
         setReview(toInitialReview(result.extraction));

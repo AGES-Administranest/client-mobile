@@ -17,6 +17,7 @@ import {
   confirmServiceInvoice,
   discardServiceInvoiceDraft,
   extractServiceInvoice,
+  resumeDraftHoldingFile,
 } from 'features/serviceInvoices/services/serviceInvoiceService';
 import { I18nProvider } from 'shared/i18n';
 import { ApiError } from 'shared/services/apiClient';
@@ -28,6 +29,7 @@ jest.mock('features/serviceInvoices/services/serviceInvoiceService', () => ({
   extractServiceInvoice: jest.fn(),
   confirmServiceInvoice: jest.fn(),
   discardServiceInvoiceDraft: jest.fn(async () => undefined),
+  resumeDraftHoldingFile: jest.fn(),
 }));
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn(),
@@ -48,6 +50,7 @@ const confirmMock = confirmServiceInvoice as jest.MockedFunction<
   typeof confirmServiceInvoice
 >;
 const discardMock = jest.mocked(discardServiceInvoiceDraft);
+const resumeMock = jest.mocked(resumeDraftHoldingFile);
 const createClientMock = createClient as jest.MockedFunction<
   typeof createClient
 >;
@@ -126,6 +129,7 @@ beforeEach(() => {
   extractMock.mockReset();
   confirmMock.mockReset();
   discardMock.mockClear();
+  resumeMock.mockReset().mockResolvedValue(null);
   fetchClientsMock.mockReset();
   fetchClientsMock.mockResolvedValue([CLINIC]);
   createClientMock.mockReset();
@@ -438,6 +442,37 @@ describe('a file the backend refuses', () => {
 
     expect(texts(renderer)).toContain(message);
     expect(texts(renderer)).not.toContain('Revisar nota fiscal');
+  });
+
+  it('picks up a draft left behind with the same PDF, and confirms under its id', async () => {
+    extractMock.mockRejectedValue(
+      new ApiError('dup', 'SERVICE_INVOICE_FILE_DUPLICATED', 409, {
+        serviceInvoiceId: 'old-draft',
+      }),
+    );
+    resumeMock.mockResolvedValue({
+      invoiceId: 'old-draft',
+      extraction: {
+        status: 'SUCCESS',
+        issueDate: '2026-03-15',
+        amount: 1850,
+        clientMatch: { id: 'client-1', name: 'Clínica Vet Sul', taxId: '' },
+      },
+    });
+    const renderer = await renderFlow();
+
+    await startWith(renderer, 'nota.pdf');
+    expect(texts(renderer)).not.toContain('Este PDF já foi enviado antes.');
+    expect(field(renderer, 'Valor total').props.value).toBe('1.850,00');
+
+    await press(renderer, 'Confirmar');
+
+    expect(confirmMock).toHaveBeenCalledWith(
+      'id-token',
+      'old-draft',
+      expect.objectContaining({ amount: 1850 }),
+      { allowDuplicate: false },
+    );
   });
 
   it('refuses a PDF over 15 MB before sending it', async () => {

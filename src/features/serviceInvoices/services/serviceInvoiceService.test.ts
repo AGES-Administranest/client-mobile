@@ -6,6 +6,7 @@ import {
   discardServiceInvoiceDraft,
   extractServiceInvoice,
   fetchServiceInvoiceStatus,
+  resumeDraftHoldingFile,
 } from './serviceInvoiceService';
 
 jest.mock('shared/services/apiClient', () => ({
@@ -300,5 +301,90 @@ describe('discardServiceInvoiceDraft', () => {
     await discardServiceInvoiceDraft('id-token', 'inv-1');
 
     expect(remove).not.toHaveBeenCalled();
+  });
+});
+
+describe('resumeDraftHoldingFile', () => {
+  const alreadySent = (details: Record<string, unknown> | null) =>
+    new ApiError('dup', 'SERVICE_INVOICE_FILE_DUPLICATED', 409, details);
+
+  it('reopens a draft that was already read as it stands, without sending the file again', async () => {
+    get.mockResolvedValue({
+      id: 'old-draft',
+      status: 'DRAFT',
+      uploadedAt: '2026-10-25T20:00:00.000Z',
+      review: { status: 'SUCCESS', issueDate: '2026-10-13', amount: 1500 },
+    });
+
+    const resumed = await resumeDraftHoldingFile(
+      'id-token',
+      alreadySent({ serviceInvoiceId: 'old-draft' }),
+      FILE,
+    );
+
+    expect(get).toHaveBeenCalledWith('/service-invoices/old-draft', {
+      token: 'id-token',
+    });
+    expect(resumed).toEqual({
+      invoiceId: 'old-draft',
+      extraction: {
+        status: 'SUCCESS',
+        issueDate: '2026-10-13',
+        amount: 1500,
+      },
+    });
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it('sends the file again to a draft whose upload never finished', async () => {
+    get.mockResolvedValue({
+      id: 'old-draft',
+      status: 'DRAFT',
+      review: { status: 'PENDING' },
+    });
+    answerUpload({ status: 'SUCCESS', amount: 1500 });
+
+    const resumed = await resumeDraftHoldingFile(
+      'id-token',
+      alreadySent({ serviceInvoiceId: 'old-draft' }),
+      FILE,
+    );
+
+    expect(post.mock.calls[0][0]).toBe(
+      '/service-invoices/old-draft/upload-url',
+    );
+    expect(resumed?.invoiceId).toBe('old-draft');
+    expect(resumed?.extraction.amount).toBe(1500);
+  });
+
+  it.each(['CONFIRMED', 'CANCELLED'])(
+    'leaves a file held by a %s note refused',
+    async status => {
+      get.mockResolvedValue({
+        id: 'old',
+        status,
+        review: { status: 'SUCCESS' },
+      });
+
+      expect(
+        await resumeDraftHoldingFile(
+          'id-token',
+          alreadySent({ serviceInvoiceId: 'old' }),
+          FILE,
+        ),
+      ).toBeNull();
+    },
+  );
+
+  it.each([
+    [
+      'another refusal',
+      new ApiError('big', 'SERVICE_INVOICE_FILE_TOO_LARGE', 413),
+    ],
+    ['a refusal that does not say which note', alreadySent(null)],
+    ['a network failure', new TypeError('Network request failed')],
+  ])('does not look for a draft on %s', async (_case, error) => {
+    expect(await resumeDraftHoldingFile('id-token', error, FILE)).toBeNull();
+    expect(get).not.toHaveBeenCalled();
   });
 });

@@ -19,6 +19,8 @@ import type {
   ServiceInvoiceStatus,
 } from '../domain/serviceInvoice.types';
 
+const FILE_DUPLICATED = 'SERVICE_INVOICE_FILE_DUPLICATED';
+
 type ClientOptionResponse = { id: string; name: string; taxId?: string };
 
 /** The backend's NfseReviewDto, as far as the app reads it. */
@@ -31,6 +33,13 @@ type ReviewResponse = {
   clientMatch?: ClientOptionResponse;
   clientSuggestions?: ClientOptionResponse[];
   partial?: { pagesRead: number; totalPages: number };
+};
+
+/** The backend's ServiceInvoiceDetailDto. */
+type DetailResponse = {
+  status: ServiceInvoiceStatus;
+  uploadedAt?: string;
+  review: ReviewResponse;
 };
 
 type DuplicateResponse = {
@@ -126,16 +135,60 @@ export async function fetchServiceInvoiceStatus(
   idToken: string,
   invoiceId: string,
 ): Promise<ServiceInvoiceStatus | null> {
+  const note = await fetchServiceInvoice(idToken, invoiceId);
+  return note?.status ?? null;
+}
+
+async function fetchServiceInvoice(
+  idToken: string,
+  invoiceId: string,
+): Promise<DetailResponse | null> {
   try {
-    const { status } = await apiClient.get<{ status: ServiceInvoiceStatus }>(
+    return await apiClient.get<DetailResponse>(
       `/service-invoices/${invoiceId}`,
       { token: idToken },
     );
-    return status;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
     throw error;
   }
+}
+
+/** A note the upload goes on with: a new one, or a draft left behind. */
+export type UploadedServiceInvoice = {
+  invoiceId: string;
+  extraction: ServiceInvoiceExtraction;
+};
+
+/**
+ * Picks up the draft that holds a file refused as already sent: a review the
+ * app never got to discard, as when it was closed halfway. A draft already
+ * read reopens as it stands, since the backend does not take its file again;
+ * one whose upload never finished gets the file now. Null for a confirmed note.
+ */
+export async function resumeDraftHoldingFile(
+  idToken: string,
+  refusal: unknown,
+  file: UploadableFile,
+): Promise<UploadedServiceInvoice | null> {
+  const holderId = fileHolderOf(refusal);
+  if (!holderId) return null;
+
+  const holder = await fetchServiceInvoice(idToken, holderId);
+  if (holder?.status !== 'DRAFT') return null;
+
+  const extraction = holder.uploadedAt
+    ? toExtraction(holder.review)
+    : await extractServiceInvoice(idToken, holderId, file);
+  return { invoiceId: holderId, extraction };
+}
+
+function fileHolderOf(error: unknown): string | null {
+  if (!(error instanceof ApiError) || error.code !== FILE_DUPLICATED) {
+    return null;
+  }
+  const holderId = error.details?.serviceInvoiceId;
+  return typeof holderId === 'string' ? holderId : null;
 }
 
 /** Frees the PDF of a note the person left, so it can be sent again. */
