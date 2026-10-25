@@ -73,5 +73,9 @@ export function formatStatementDate(
   accrualDate: string,
   locale: string,
 ): string {
-  return formatDayAndMonth(new Date(accrualDate), locale);
+  const date = new Date(accrualDate);
+  return formatDayAndMonth(
+    new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    locale,
+  );
 }

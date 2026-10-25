@@ -46,6 +46,18 @@ describe('updateTransportCost', () => {
     });
   });
 
+  it('reads the summary again for the month on screen', async () => {
+    patch.mockResolvedValue({});
+    get.mockResolvedValue(serverSummary);
+
+    await updateTransportCost('token', 450, { month: 10, year: 2026 });
+
+    expect(get).toHaveBeenCalledWith(
+      '/fixed-costs/summary?month=10&year=2026',
+      { token: 'token' },
+    );
+  });
+
   it('sends zero as zero', async () => {
     patch.mockResolvedValue({});
     get.mockResolvedValue({ ...serverSummary, transport: '0.00' });
