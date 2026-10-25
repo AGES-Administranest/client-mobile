@@ -1,108 +1,72 @@
 import {
-  calculateHourlyRate,
   percentShares,
-  productiveHoursPerMonth,
   shareOfTotal,
+  toHourlyRate,
+  type HourlyRateResponse,
 } from './hourlyRate';
+import { OCTOBER_HOURLY_RATE } from './hourlyRate.fixture';
 
-const OCTOBER = { month: 10, year: 2026 };
-const CALCULATED_AT = new Date('2026-10-19T20:42:00.000Z');
-const SETTINGS = {
-  monthlyIncomeGoal: 8000,
-  weeklyHours: 30,
-  safetyMarginPct: 20,
+const SETTINGS = OCTOBER_HOURLY_RATE.settings;
+
+// GET /pricing/hourly-rate for the Figma October.
+const OCTOBER_RESPONSE: HourlyRateResponse = {
+  month: 10,
+  year: 2026,
+  items: [
+    {
+      key: 'FIXED_COSTS',
+      label: 'Fixed costs',
+      amount: '1399.08',
+      percentOfTotal: '10.97',
+    },
+    {
+      key: 'VARIABLE_COSTS',
+      label: 'Variable costs',
+      amount: '1225.00',
+      percentOfTotal: '9.61',
+    },
+    {
+      key: 'OWNER_DRAW',
+      label: "Owner's draw",
+      amount: '8000.00',
+      percentOfTotal: '62.75',
+    },
+    {
+      key: 'SAFETY_MARGIN',
+      label: 'Safety margin',
+      amount: '2124.82',
+      percentOfTotal: '16.67',
+    },
+  ],
+  total: '12748.90',
+  productiveHours: '130.00',
+  hourlyRate: '98.07',
+  minimumHourlyRate: '81.72',
+  calculatedAt: '2026-10-19T20:42:00.000Z',
 };
 
-function calculate(
-  overrides: Partial<Parameters<typeof calculateHourlyRate>[0]> = {},
-) {
-  return calculateHourlyRate({
-    month: OCTOBER,
-    settings: SETTINGS,
-    fixedCosts: 1399.08,
-    variableCosts: 1225,
-    calculatedAt: CALCULATED_AT,
-    ...overrides,
-  });
-}
-
-test('matches the Figma example for October', () => {
-  expect(calculate()).toEqual({
-    month: OCTOBER,
-    settings: SETTINGS,
-    parts: {
-      fixedCosts: 1399.08,
-      variableCosts: 1225,
-      proLabore: 8000,
-      safetyMargin: 2124.82,
-    },
-    total: 12748.9,
-    productiveHours: 130,
-    hourlyRate: 98.07,
-    minimumHourlyRate: 81.72,
-    calculatedAt: '2026-10-19T20:42:00.000Z',
-  });
+test('turns the backend answer for the Figma October into numbers', () => {
+  expect(toHourlyRate(OCTOBER_RESPONSE, SETTINGS)).toEqual(OCTOBER_HOURLY_RATE);
 });
 
-test('recalculates with the costs of another month (the Figma September)', () => {
-  const september = calculate({
-    month: { month: 9, year: 2026 },
-    variableCosts: 980,
-  });
+test('finds each part by its key, whatever the order of the items', () => {
+  const reversed = {
+    ...OCTOBER_RESPONSE,
+    items: [...OCTOBER_RESPONSE.items].reverse(),
+  };
 
-  expect(september.parts.safetyMargin).toBe(2075.82);
-  expect(september.hourlyRate).toBe(95.81);
-  expect(september.minimumHourlyRate).toBe(79.84);
+  expect(toHourlyRate(reversed, SETTINGS).parts).toEqual(
+    OCTOBER_HOURLY_RATE.parts,
+  );
 });
 
-it.each([
-  [30, 130],
-  [40, 173.33],
-  [1, 4.33],
-  [168, 728],
-])('turns %p h a week into %p productive hours a month', (weekly, monthly) => {
-  expect(productiveHoursPerMonth(weekly)).toBeCloseTo(monthly, 2);
-});
+test('refuses an answer without one of the four parts', () => {
+  const withoutMargin = {
+    ...OCTOBER_RESPONSE,
+    items: OCTOBER_RESPONSE.items.filter(item => item.key !== 'SAFETY_MARGIN'),
+  };
 
-it.each([
-  [0, 10624.08, 81.72],
-  [100, 21248.16, 163.45],
-  [12.5, 11952.09, 91.94],
-])(
-  'with a %p%% margin the total is %p and the hour %p',
-  (margin, total, hourly) => {
-    const result = calculate({
-      settings: { ...SETTINGS, safetyMarginPct: margin },
-    });
-
-    expect(result.total).toBe(total);
-    expect(result.hourlyRate).toBe(hourly);
-    expect(result.minimumHourlyRate).toBe(81.72);
-  },
-);
-
-test('a margin of zero makes both rates equal', () => {
-  const result = calculate({ settings: { ...SETTINGS, safetyMarginPct: 0 } });
-
-  expect(result.parts.safetyMargin).toBe(0);
-  expect(result.hourlyRate).toBe(result.minimumHourlyRate);
-});
-
-test('a month with no costs still charges the pró-labore', () => {
-  const result = calculate({ fixedCosts: 0, variableCosts: 0 });
-
-  expect(result.total).toBe(9600);
-  expect(result.hourlyRate).toBe(73.85);
-});
-
-test('divides by the unrounded hours of a 40 h week', () => {
-  const result = calculate({
-    settings: { ...SETTINGS, weeklyHours: 40, safetyMarginPct: 0 },
-    fixedCosts: 0,
-    variableCosts: 0,
-  });
-
-  expect(result.hourlyRate).toBe(46.15);
+  expect(() => toHourlyRate(withoutMargin, SETTINGS)).toThrow('safetyMargin');
 });
 
 it.each([
