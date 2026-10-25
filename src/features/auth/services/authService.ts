@@ -108,6 +108,21 @@ export async function forgotPassword(email: string): Promise<void> {
     if (error instanceof AuthError && error.code === 'INVALID_CREDENTIALS') {
       return;
     }
+    // Same answer for every account, even one Cognito cannot send a code to
+    // (e.g. created only with Google): the backend rule is not to reveal
+    // whether an e-mail exists or how it signs in.
+    if (
+      error instanceof AuthError &&
+      error.code === 'INVALID_PASSWORD_FORMAT'
+    ) {
+      if (__DEV__) {
+        console.warn(
+          '[forgotPassword] InvalidParameterException treated as sent:',
+          error.message,
+        );
+      }
+      return;
+    }
     throw error;
   }
 }
