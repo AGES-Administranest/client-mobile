@@ -2,6 +2,8 @@ import { ApiError, apiClient } from 'shared/services/apiClient';
 
 import type { FixedCostsSummary } from '../domain/fixedCostsSummary';
 
+type FixedCostsPeriod = { month: number; year: number };
+
 function requireToken(idToken: string): void {
   if (!idToken) {
     throw new ApiError('No active session', 'UNAUTHENTICATED', 401);
@@ -10,7 +12,7 @@ function requireToken(idToken: string): void {
 
 export async function fetchFixedCostsSummary(
   idToken: string,
-  period?: { month: number; year: number },
+  period?: FixedCostsPeriod,
 ): Promise<FixedCostsSummary> {
   requireToken(idToken);
   const query = period ? `?month=${period.month}&year=${period.year}` : '';
@@ -21,7 +23,6 @@ export async function fetchFixedCostsSummary(
     transport: string | number;
     total: string | number;
   }>(`/fixed-costs/summary${query}`, { token: idToken });
-
   return {
     professionalExpenses: Number(result.professionalExpenses),
     personalExpenses: Number(result.personalExpenses),
@@ -31,9 +32,12 @@ export async function fetchFixedCostsSummary(
   };
 }
 
+// The PATCH answers only with the transport, so the summary is read again
+// for the month on screen to bring the backend total along.
 export async function updateTransportCost(
   idToken: string,
   monthlyAmount: number,
+  period?: FixedCostsPeriod,
 ): Promise<FixedCostsSummary> {
   requireToken(idToken);
   await apiClient.patch(
@@ -41,5 +45,5 @@ export async function updateTransportCost(
     { transportCostMonthly: monthlyAmount },
     { token: idToken },
   );
-  return fetchFixedCostsSummary(idToken);
+  return fetchFixedCostsSummary(idToken, period);
 }

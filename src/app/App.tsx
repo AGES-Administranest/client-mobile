@@ -28,6 +28,7 @@ import { PartnersScreen } from 'features/partners';
 import { ReportsScreen } from 'features/reports';
 import { ServiceInvoiceSyncObserver } from 'features/serviceInvoices';
 import { StockSyncProvider } from 'features/stock';
+import { TripSyncObserver } from 'features/trips';
 import { I18nProvider } from 'shared/i18n';
 import { initNotifications } from 'shared/services';
 
@@ -128,6 +129,7 @@ function AppContent() {
       <Screen />
       {/* Fora das abas: a fila offline sobe mesmo com outra aba aberta. */}
       <AppointmentSyncObserver />
+      <TripSyncObserver />
       <ServiceInvoiceSyncObserver />
       <View style={tabBarWrapperStyle}>
         <TabBar value={tab} onValueChange={setTab} className="mx-4 mb-[25px]" />

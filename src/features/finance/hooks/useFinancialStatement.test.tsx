@@ -16,6 +16,10 @@ import {
   type StatementFilters,
   type StatementScope,
 } from '../domain/statement';
+import {
+  clearBalanceCache,
+  rememberPendingEntry,
+} from '../services/balanceCache';
 import { fetchFinancialEntries } from '../services/financialEntryService';
 
 jest.mock('../services/financialEntryService', () => ({
@@ -87,9 +91,11 @@ function Probe({ filters }: { filters: StatementFilters }) {
   return null;
 }
 
+let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+
 async function mount(filters: StatementFilters = AUGUST) {
   await act(async () => {
-    ReactTestRenderer.create(
+    renderer = ReactTestRenderer.create(
       <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
         <Probe filters={filters} />
       </AuthProvider>,
@@ -100,7 +106,13 @@ async function mount(filters: StatementFilters = AUGUST) {
 const ids = () => current.entries.map(e => e.id);
 
 beforeEach(() => {
+  clearBalanceCache();
   fetchEntriesMock.mockReset();
+});
+
+afterEach(() => {
+  if (renderer) act(() => renderer?.unmount());
+  renderer = undefined;
 });
 
 test('loads the first page of the month and knows it is the last one', async () => {
@@ -229,6 +241,20 @@ test.each([
   expect(current.failure).toBe(`financialEntries.statement.failures.${key}`);
   expect(current.entries).toEqual([]);
   expect(current.hasMore).toBe(false);
+});
+
+test('without connection the statement shows the same local entries the balance uses', async () => {
+  rememberPendingEntry(AUGUST.period, {
+    ...entry('pending'),
+    pendingSync: true,
+  });
+  fetchEntriesMock.mockRejectedValue(new TypeError('Network request failed'));
+
+  await mount();
+
+  expect(current.status).toBe('ready');
+  expect(current.failure).toBeNull();
+  expect(ids()).toEqual(['pending']);
 });
 
 test('reload fetches page 1 again after a failure', async () => {
