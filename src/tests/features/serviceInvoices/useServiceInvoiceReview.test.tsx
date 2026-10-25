@@ -67,6 +67,7 @@ function mount({ manual = false }: { manual?: boolean } = {}) {
 
   function Probe() {
     seen.current = useServiceInvoiceReview({
+      invoiceId: 'invoice-1',
       initialValues: {
         issueDate: '15/03/2026',
         amount: '1.850,00',
@@ -159,6 +160,7 @@ describe('useServiceInvoiceReview, leaving during a confirmation', () => {
 
     expect(confirmMock).toHaveBeenLastCalledWith(
       'id-token',
+      'invoice-1',
       expect.anything(),
       { allowDuplicate: true },
     );
@@ -179,6 +181,7 @@ describe('useServiceInvoiceReview, a note typed by hand', () => {
 
     expect(queueMock).toHaveBeenCalledWith(
       'user-1',
+      'invoice-1',
       expect.objectContaining({ amount: 1850, clientId: 'client-1' }),
       MANUAL_PDF,
     );

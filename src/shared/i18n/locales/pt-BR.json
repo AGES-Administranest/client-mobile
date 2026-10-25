@@ -1497,6 +1497,8 @@
     "extracting": "Lendo a nota…",
     "errors": {
       "notPdf": "Só aceitamos notas em PDF. Escolha um arquivo .pdf.",
+      "tooLarge": "O PDF passa de 15 MB, o limite aceito. Escolha outro arquivo.",
+      "alreadySent": "Este PDF já foi enviado antes.",
       "dismiss": "Entendi"
     },
     "review": {
@@ -1598,10 +1600,12 @@
         "fileMissing": "o PDF não está mais neste aparelho.",
         "other": "o servidor recusou os dados.",
         "fileDuplicated": "este PDF já foi enviado antes.",
-        "fileTooLarge": "o PDF passa do limite de 15 MB."
+        "fileTooLarge": "o PDF passa do limite de 15 MB.",
+        "possibleDuplicate": "já existe uma nota parecida, com o mesmo valor e data ou o mesmo número e tomador."
       },
       "discard": "Descartar nota",
-      "keep": "Manter na fila"
+      "keep": "Manter na fila",
+      "sendAnyway": "Enviar mesmo assim"
     }
   },
   "trips": {

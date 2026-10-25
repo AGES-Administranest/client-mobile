@@ -11,8 +11,10 @@ import { useTranslation, type TranslationKey } from 'shared/i18n';
 import { ServiceInvoiceReviewScreen } from './ServiceInvoiceReviewScreen';
 import { OfflineNoticeSheet } from '../components/OfflineNoticeSheet';
 import { RejectedInvoiceSheet } from '../components/RejectedInvoiceSheet';
+import type { FileRefusal } from '../domain/acceptedFile';
 import { toDuplicateSummary } from '../domain/duplicateSummary';
 import {
+  canSendAnyway,
   isKnownRejectionCode,
   type KnownRejectionCode,
 } from '../domain/offlineServiceInvoices';
@@ -25,6 +27,14 @@ const REJECTION_REASON_KEYS: Record<KnownRejectionCode, TranslationKey> = {
   SERVICE_INVOICE_FILE_TOO_LARGE: 'serviceInvoices.sync.reasons.fileTooLarge',
   CLIENT_NOT_SYNCED: 'serviceInvoices.sync.reasons.clientNotSynced',
   PENDING_FILE_MISSING: 'serviceInvoices.sync.reasons.fileMissing',
+  SERVICE_INVOICE_POSSIBLE_DUPLICATE:
+    'serviceInvoices.sync.reasons.possibleDuplicate',
+};
+
+const FILE_REFUSAL_KEYS: Record<FileRefusal, TranslationKey> = {
+  notPdf: 'serviceInvoices.errors.notPdf',
+  tooLarge: 'serviceInvoices.errors.tooLarge',
+  alreadySent: 'serviceInvoices.errors.alreadySent',
 };
 
 const OTHER_REASON_KEY: TranslationKey = 'serviceInvoices.sync.reasons.other';
@@ -35,12 +45,19 @@ function reasonKeyOf(code: string | null): TranslationKey {
     : OTHER_REASON_KEY;
 }
 
+type ServiceInvoiceUploadFlowProps = {
+  /** For the screen behind to reload its totals. */
+  onInvoiceConfirmed?: () => void;
+};
+
 /**
  * Pick a PDF, read it, review it: the NFSe counterpart of the stock entry flow.
  * Without a connection the reading is not available, so the same review is
  * offered for typing the note by hand, to be sent once the connection is back.
  */
-export function ServiceInvoiceUploadFlow() {
+export function ServiceInvoiceUploadFlow({
+  onInvoiceConfirmed,
+}: ServiceInvoiceUploadFlowProps) {
   const { t } = useTranslation();
   const upload = useServiceInvoiceUpload();
   const pending = usePendingServiceInvoices();
@@ -113,10 +130,12 @@ export function ServiceInvoiceUploadFlow() {
       />
 
       <MessageOverlay
-        visible={upload.isFileRejected}
-        message={t('serviceInvoices.errors.notPdf')}
+        visible={upload.fileRefusal !== null}
+        message={
+          upload.fileRefusal ? t(FILE_REFUSAL_KEYS[upload.fileRefusal]) : ''
+        }
         actionLabel={t('serviceInvoices.errors.dismiss')}
-        onDismiss={upload.dismissRejection}
+        onDismiss={upload.dismissFileRefusal}
       />
 
       <OfflineNoticeSheet
@@ -145,16 +164,29 @@ export function ServiceInvoiceUploadFlow() {
         }
         discardLabel={t('serviceInvoices.sync.discard')}
         keepLabel={t('serviceInvoices.sync.keep')}
+        sendAnyway={
+          rejection && canSendAnyway(rejection)
+            ? {
+                label: t('serviceInvoices.sync.sendAnyway'),
+                onPress: pending.sendRejectionAnyway,
+              }
+            : undefined
+        }
         onDiscard={pending.discardRejection}
         onKeep={pending.keepRejection}
       />
 
-      {upload.review ? (
+      {upload.review && upload.invoiceId ? (
         <ServiceInvoiceReviewScreen
           visible={upload.step === 'review'}
+          invoiceId={upload.invoiceId}
           initial={upload.review}
           manualFile={upload.manualFile}
-          onClose={upload.closeReview}
+          onClose={upload.leaveReview}
+          onConfirmed={() => {
+            upload.finishReview();
+            onInvoiceConfirmed?.();
+          }}
         />
       ) : null}
     </View>

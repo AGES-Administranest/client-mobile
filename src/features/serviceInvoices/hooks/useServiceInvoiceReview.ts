@@ -32,6 +32,7 @@ export type DuplicateNotice = {
 };
 
 type UseServiceInvoiceReviewOptions = {
+  invoiceId: string;
   initialValues: ServiceInvoiceFormValues;
   initialClient: InitialClient;
   /** Set when the note is typed by hand: it is queued with this PDF instead of confirmed. */
@@ -67,6 +68,7 @@ export type ServiceInvoiceReviewState = {
 };
 
 export function useServiceInvoiceReview({
+  invoiceId,
   initialValues,
   initialClient,
   manualFile = null,
@@ -187,15 +189,19 @@ export function useServiceInvoiceReview({
           if (!userId) throw new Error('No active session');
           const { id } = await queueManualServiceInvoice(
             userId,
+            invoiceId,
             input,
             manualFile,
           );
           confirmation = { id };
         } else {
           if (!idToken) throw new Error('No active session');
-          confirmation = await confirmServiceInvoice(idToken, input, {
-            allowDuplicate,
-          });
+          confirmation = await confirmServiceInvoice(
+            idToken,
+            invoiceId,
+            input,
+            { allowDuplicate },
+          );
         }
       } catch {
         isSubmittingRef.current = false;
@@ -220,7 +226,15 @@ export function useServiceInvoiceReview({
       }
       if (isMounted.current) onConfirmed();
     },
-    [closeDuplicate, idToken, manualFile, onConfirmed, userId, values],
+    [
+      closeDuplicate,
+      idToken,
+      invoiceId,
+      manualFile,
+      onConfirmed,
+      userId,
+      values,
+    ],
   );
 
   const submit = useCallback(() => send(false), [send]);

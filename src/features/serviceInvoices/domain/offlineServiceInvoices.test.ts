@@ -1,4 +1,5 @@
 import {
+  canSendAnyway,
   countPending,
   firstRejection,
   firstUnseenRejection,
@@ -7,7 +8,7 @@ import {
   nextToSend,
   readingDifference,
   toPendingServiceInvoice,
-  toSyncItem,
+  toServiceInvoiceInput,
   type PendingServiceInvoice,
 } from './offlineServiceInvoices';
 
@@ -55,20 +56,55 @@ describe('toPendingServiceInvoice', () => {
   });
 });
 
-describe('toSyncItem', () => {
-  it('sends the app id with the typed data and the real taker id', () => {
+describe('toServiceInvoiceInput', () => {
+  it('confirms the typed data with the real taker id', () => {
     expect(
-      toSyncItem(invoice('id-1', { clientId: 'local:abc' }), 'real-1'),
+      toServiceInvoiceInput(
+        invoice('id-1', { clientId: 'local:abc' }),
+        'real-1',
+      ),
     ).toEqual({
-      id: 'id-1',
       issueDate: '2026-03-15',
       amount: 1850,
       number: '2026/0042',
       clientId: 'real-1',
-      fileName: 'nota.pdf',
-      fileHash: FILE.hash,
-      fileBytesSize: 1024,
     });
+  });
+
+  it('leaves the number out when none was typed', () => {
+    expect(
+      toServiceInvoiceInput(invoice('id-1', { number: undefined }), 'c-1'),
+    ).not.toHaveProperty('number');
+  });
+});
+
+describe('canSendAnyway', () => {
+  it('lets the person overrule a similar note', () => {
+    expect(
+      canSendAnyway(
+        invoice('a', {
+          rejection: {
+            code: 'SERVICE_INVOICE_POSSIBLE_DUPLICATE',
+            acknowledged: true,
+          },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it.each([['SERVICE_INVOICE_FILE_DUPLICATED'], ['CLIENT_NOT_SYNCED'], [null]])(
+    'does not for a %p refusal',
+    code => {
+      expect(
+        canSendAnyway(
+          invoice('a', { rejection: { code, acknowledged: false } }),
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it('does not for a note still waiting', () => {
+    expect(canSendAnyway(invoice('a'))).toBe(false);
   });
 });
 

@@ -11,15 +11,19 @@ import { createClient } from 'features/clinics/services/clientService';
 import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
 import {
   confirmServiceInvoice,
+  discardServiceInvoiceDraft,
   extractServiceInvoice,
 } from 'features/serviceInvoices/services/serviceInvoiceService';
 import { I18nProvider } from 'shared/i18n';
+import { ApiError } from 'shared/services/apiClient';
 import { pickPdf } from 'shared/services/pdfPicker';
 
 jest.mock('shared/services/pdfPicker', () => ({ pickPdf: jest.fn() }));
 jest.mock('features/serviceInvoices/services/serviceInvoiceService', () => ({
+  newServiceInvoiceId: jest.fn(() => 'invoice-1'),
   extractServiceInvoice: jest.fn(),
   confirmServiceInvoice: jest.fn(),
+  discardServiceInvoiceDraft: jest.fn(async () => undefined),
 }));
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn(),
@@ -39,6 +43,7 @@ const extractMock = extractServiceInvoice as jest.MockedFunction<
 const confirmMock = confirmServiceInvoice as jest.MockedFunction<
   typeof confirmServiceInvoice
 >;
+const discardMock = jest.mocked(discardServiceInvoiceDraft);
 const createClientMock = createClient as jest.MockedFunction<
   typeof createClient
 >;
@@ -97,20 +102,21 @@ beforeEach(() => {
   pickPdfMock.mockReset();
   extractMock.mockReset();
   confirmMock.mockReset();
+  discardMock.mockClear();
   fetchClientsMock.mockReset();
   fetchClientsMock.mockResolvedValue([CLINIC]);
   createClientMock.mockReset();
   confirmMock.mockResolvedValue({ id: 'invoice-1' });
 });
 
-async function renderFlow() {
+async function renderFlow(onInvoiceConfirmed?: () => void) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-            <ServiceInvoiceUploadFlow />
+            <ServiceInvoiceUploadFlow onInvoiceConfirmed={onInvoiceConfirmed} />
           </AuthProvider>
         </I18nProvider>
       </SafeAreaProvider>,
@@ -339,6 +345,7 @@ describe('reading', () => {
 
     expect(extractMock).toHaveBeenCalledWith(
       'id-token',
+      'invoice-1',
       expect.objectContaining({ name: 'nota.pdf' }),
     );
     expect(field(renderer, 'Data de emissão').props.value).toBe('15/03/2026');
@@ -379,16 +386,50 @@ describe('reading', () => {
     expect(field(renderer, 'Data de emissão').props.editable).toBe(true);
   });
 
-  it('treats a reading that breaks like a failed one', async () => {
-    extractMock.mockRejectedValue(new Error('network'));
+  it('saves a note it could not send on the device, under the same id', async () => {
+    extractMock.mockRejectedValue(new TypeError('Network request failed'));
     const renderer = await renderFlow();
 
     await startWith(renderer, 'nota.pdf');
 
     expect(texts(renderer)).toContain(
-      'Não conseguimos ler a nota. Preencha os dados manualmente.',
+      'Cadastro manual: a nota e o PDF nota.pdf ficam salvos neste aparelho e são enviados quando houver conexão.',
     );
     expect(field(renderer, 'Valor total').props.value).toBe('');
+    expect(texts(renderer)).toContain('Salvar nota');
+  });
+});
+
+describe('a file the backend refuses', () => {
+  it.each([
+    ['SERVICE_INVOICE_FILE_DUPLICATED', 'Este PDF já foi enviado antes.'],
+    [
+      'SERVICE_INVOICE_FILE_TOO_LARGE',
+      'O PDF passa de 15 MB, o limite aceito. Escolha outro arquivo.',
+    ],
+  ])('says why on a %s, without opening the review', async (code, message) => {
+    extractMock.mockRejectedValue(new ApiError('no', code, 409));
+    const renderer = await renderFlow();
+
+    await startWith(renderer, 'nota.pdf');
+
+    expect(texts(renderer)).toContain(message);
+    expect(texts(renderer)).not.toContain('Revisar nota fiscal');
+  });
+
+  it('refuses a PDF over 15 MB before sending it', async () => {
+    const renderer = await renderFlow();
+    pickPdfMock.mockResolvedValue({
+      ...pdf('nota.pdf'),
+      bytes: new Uint8Array(15 * 1024 * 1024 + 1),
+    });
+
+    await press(renderer, 'Enviar nota fiscal');
+
+    expect(texts(renderer)).toContain(
+      'O PDF passa de 15 MB, o limite aceito. Escolha outro arquivo.',
+    );
+    expect(extractMock).not.toHaveBeenCalled();
   });
 });
 
@@ -446,6 +487,7 @@ describe('review', () => {
 
     expect(confirmMock).toHaveBeenCalledWith(
       'id-token',
+      'invoice-1',
       { issueDate: '2026-03-15', amount: 1850, clientId: 'client-1' },
       { allowDuplicate: false },
     );
@@ -516,6 +558,31 @@ describe('review', () => {
     expect(texts(renderer)).not.toContain('Revisar nota fiscal');
     expect(confirmMock).not.toHaveBeenCalled();
   });
+
+  it('discards the draft on the way out, so the same PDF can be sent again', async () => {
+    const renderer = await openEmptyReview();
+
+    await back(renderer);
+
+    expect(discardMock).toHaveBeenCalledWith('id-token', 'invoice-1');
+  });
+
+  it('keeps the confirmed note and tells the screen behind', async () => {
+    const onInvoiceConfirmed = jest.fn();
+    const renderer = await renderFlow(onInvoiceConfirmed);
+    extractMock.mockResolvedValue({ status: 'FAILED' });
+    await startWith(renderer, 'nota.pdf');
+    await type(renderer, 'Data de emissão', '15032026');
+    await type(renderer, 'Valor total', '185000');
+    await type(renderer, 'Tomador', 'Clínica');
+    await focus(renderer, 'Tomador');
+    await press(renderer, 'Clínica Vet Sul');
+
+    await press(renderer, 'Confirmar');
+
+    expect(onInvoiceConfirmed).toHaveBeenCalledTimes(1);
+    expect(discardMock).not.toHaveBeenCalled();
+  });
 });
 
 const FULL_READING = {
@@ -551,6 +618,7 @@ describe('taker linked by the reading', () => {
 
     expect(confirmMock).toHaveBeenCalledWith(
       'id-token',
+      'invoice-1',
       expect.objectContaining({ clientId: 'client-1' }),
       { allowDuplicate: false },
     );
@@ -579,6 +647,7 @@ describe('taker linked by the reading', () => {
 
     expect(confirmMock).toHaveBeenCalledWith(
       'id-token',
+      'invoice-1',
       expect.objectContaining({ clientId: 'client-2' }),
       { allowDuplicate: false },
     );
@@ -628,6 +697,7 @@ describe('suggested takers', () => {
     await press(renderer, 'Confirmar');
     expect(confirmMock).toHaveBeenCalledWith(
       'id-token',
+      'invoice-1',
       expect.objectContaining({ clientId: 'client-2' }),
       { allowDuplicate: false },
     );
@@ -752,6 +822,7 @@ describe('registering a new taker', () => {
     await press(renderer, 'Confirmar');
     expect(confirmMock).toHaveBeenCalledWith(
       'id-token',
+      'invoice-1',
       expect.objectContaining({ clientId: 'client-new', amount: 2000 }),
       { allowDuplicate: false },
     );
@@ -891,6 +962,7 @@ describe('duplicate note', () => {
 
     expect(confirmMock).toHaveBeenLastCalledWith(
       'id-token',
+      'invoice-1',
       expect.objectContaining({ clientId: 'client-1' }),
       { allowDuplicate: true },
     );

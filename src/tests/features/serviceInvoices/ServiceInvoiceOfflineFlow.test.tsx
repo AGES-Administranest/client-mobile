@@ -35,11 +35,11 @@ jest.mock('features/serviceInvoices/services/pendingPdfStore', () => ({
   removePendingPdf: jest.fn(),
 }));
 jest.mock('features/serviceInvoices/services/serviceInvoiceService', () => ({
+  newServiceInvoiceId: jest.fn(() => 'app-generated-id'),
   extractServiceInvoice: jest.fn(),
   confirmServiceInvoice: jest.fn(),
-  requestServiceInvoiceUpload: jest.fn(),
-  sendServiceInvoicePdf: jest.fn(),
-  syncServiceInvoices: jest.fn(),
+  fetchServiceInvoiceStatus: jest.fn(),
+  discardServiceInvoiceDraft: jest.fn(async () => undefined),
 }));
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn(),
@@ -163,7 +163,10 @@ beforeEach(async () => {
   ].forEach(mock => mock.mockReset());
   isOnlineMock.mockResolvedValue(false);
   fetchClientsMock.mockResolvedValue([CLINIC]);
-  readPdfMock.mockResolvedValue(new Uint8Array([1, 2, 3]));
+  readPdfMock.mockResolvedValue({
+    uri: 'file:///documents/a.pdf',
+    bytes: new Uint8Array([1, 2, 3]),
+  });
 });
 
 async function renderFlow() {
@@ -505,6 +508,10 @@ describe('notes waiting to be sent', () => {
     ['SERVICE_INVOICE_FILE_TOO_LARGE', 'o PDF passa do limite de 15 MB.'],
     ['CLIENT_NOT_SYNCED', 'o tomador não pôde ser cadastrado.'],
     ['PENDING_FILE_MISSING', 'o PDF não está mais neste aparelho.'],
+    [
+      'SERVICE_INVOICE_POSSIBLE_DUPLICATE',
+      'já existe uma nota parecida, com o mesmo valor e data ou o mesmo número e tomador.',
+    ],
   ])('tells the reason of a %s refusal', async (code, reason) => {
     await seedOutbox(
       pendingNote('a', { rejection: { code, acknowledged: false } }),
@@ -540,6 +547,44 @@ describe('notes waiting to be sent', () => {
     expect(texts(renderer)).toContain(
       'Não foi possível ler as notas guardadas neste aparelho.',
     );
+  });
+});
+
+describe('a note refused as similar to another one', () => {
+  const similarNote = () =>
+    pendingNote('a', {
+      rejection: {
+        code: 'SERVICE_INVOICE_POSSIBLE_DUPLICATE',
+        acknowledged: false,
+      },
+    });
+
+  it('can be sent anyway, back in line and accepting the similar one', async () => {
+    await seedOutbox(similarNote());
+    const renderer = await renderFlow();
+
+    await press(renderer, 'Enviar mesmo assim');
+
+    const [note] = await storedOutbox();
+    expect(note.rejection).toBeUndefined();
+    expect(note.allowDuplicate).toBe(true);
+    expect(texts(renderer)).not.toContain('Nota não enviada');
+    expect(texts(renderer)).toContain('1 nota aguardando envio');
+  });
+
+  it('is the only refusal that offers it', async () => {
+    await seedOutbox(
+      pendingNote('a', {
+        rejection: {
+          code: 'SERVICE_INVOICE_FILE_DUPLICATED',
+          acknowledged: false,
+        },
+      }),
+    );
+    const renderer = await renderFlow();
+
+    expect(texts(renderer)).toContain('Nota não enviada');
+    expect(texts(renderer)).not.toContain('Enviar mesmo assim');
   });
 });
 

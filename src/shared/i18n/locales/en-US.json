@@ -1497,6 +1497,8 @@
     "extracting": "Reading the invoice…",
     "errors": {
       "notPdf": "We only accept PDF invoices. Choose a .pdf file.",
+      "tooLarge": "The PDF is over the 15 MB limit. Choose another file.",
+      "alreadySent": "This PDF was already sent before.",
       "dismiss": "Got it"
     },
     "review": {
@@ -1598,10 +1600,12 @@
         "fileMissing": "the PDF is no longer on this device.",
         "other": "the server refused the data.",
         "fileDuplicated": "this PDF was already sent before.",
-        "fileTooLarge": "the PDF is over the 15 MB limit."
+        "fileTooLarge": "the PDF is over the 15 MB limit.",
+        "possibleDuplicate": "there is a similar invoice, with the same amount and date or the same number and taker."
       },
       "discard": "Discard invoice",
-      "keep": "Keep in queue"
+      "keep": "Keep in queue",
+      "sendAnyway": "Send anyway"
     }
   },
   "trips": {
