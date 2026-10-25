@@ -15,20 +15,6 @@
     "revenue": "Receitas",
     "professional": "Prof.",
     "personal": "Pessoal",
-    "months": {
-      "january": "Janeiro",
-      "february": "Fevereiro",
-      "march": "Março",
-      "april": "Abril",
-      "may": "Maio",
-      "june": "Junho",
-      "july": "Julho",
-      "august": "Agosto",
-      "september": "Setembro",
-      "october": "Outubro",
-      "november": "Novembro",
-      "december": "Dezembro"
-    },
     "productivityAndFixedCosts": "Produtividade e custos fixos",
     "hoursWorked": "Horas trabalhadas",
     "hoursValue": "{{hours}}h",
@@ -47,7 +33,6 @@
     "back": "Voltar",
     "fixedCosts": {
       "title": "Custos fixos mensais",
-      "professional": "Despesas profissionais (mês)",
       "personal": "Despesas pessoais (mês)",
       "depreciation": "Depreciação de equipamentos",
       "transport": "Custo de transporte/veículo",
@@ -62,7 +47,9 @@
         "negative": "O valor não pode ser negativo.",
         "generic": "Não foi possível salvar. O valor anterior foi mantido.",
         "session": "Sua sessão expirou. Entre novamente."
-      }
+      },
+      "transportPlaceholder": "Ex.: 350",
+      "openList": "Ver lista de custos fixos"
     }
   },
   "inventory": {
@@ -1250,9 +1237,24 @@
   },
   "pricing": {
     "onboarding": {
-      "message": "Preencha os campos para que os valores sejam calculados",
-      "loading": "Carregando suas metas",
-      "loadFailure": "Não foi possível carregar suas metas."
+      "title": "Configure seus honorários",
+      "message": "Para calcular o valor da sua hora, precisamos saber quanto você quer ganhar, quanto tempo tem disponível e qual margem de segurança deseja.",
+      "goals": {
+        "monthlyIncomeGoal": {
+          "title": "Meta de renda mensal (R$)",
+          "caption": "Pró-labore + lucro desejado"
+        },
+        "weeklyHours": {
+          "title": "Horas disponíveis por semana",
+          "caption": "Considere também os períodos ociosos"
+        },
+        "safetyMarginPct": {
+          "title": "Margem de segurança (%)",
+          "caption": "Reserva para imprevistos, de 0 a 100%"
+        }
+      },
+      "action": "Configurar",
+      "footnote": "Custos fixos, depreciação e despesas do mês já cadastrados entram no cálculo automaticamente."
     },
     "goalForm": {
       "title": "Metas",
@@ -1261,9 +1263,6 @@
         "weeklyHours": "Horas disponíveis por semana",
         "safetyMarginPct": "Margem de segurança (%)"
       },
-      "weeklyHoursHint": "Conte as horas em que você fica disponível para trabalhar, incluindo deslocamentos e períodos ociosos, não só as horas que você cobra.",
-      "save": "Salvar metas",
-      "saving": "Salvando…",
       "errors": {
         "required": "Preencha este campo",
         "invalid": "Digite um número válido",
@@ -1275,6 +1274,69 @@
       },
       "failures": {
         "save": "Não foi possível salvar as metas. Tente novamente."
+      }
+    },
+    "setup": {
+      "title": "Configurar honorários",
+      "subtitle": "Preencha suas metas e confira os custos do mês. Depois disso, calculamos o valor da sua hora.",
+      "hints": {
+        "monthlyIncomeGoal": "Inclui o pró-labore e o lucro desejado",
+        "weeklyHours": "Conte as horas disponíveis, inclusive as ociosas. Deve ser maior que zero.",
+        "safetyMarginPct": "Entre 0 e 100%"
+      },
+      "placeholders": {
+        "monthlyIncomeGoal": "Ex.: 8.000",
+        "weeklyHours": "Ex.: 30",
+        "safetyMarginPct": "Ex.: 20"
+      },
+      "save": "Salvar e calcular",
+      "saving": "Salvando…",
+      "footnote": "Você pode alterar esses dados depois, na própria calculadora."
+    },
+    "hourlyRate": {
+      "loading": "Calculando o valor da sua hora",
+      "refreshing": "Recalculando o valor da sua hora",
+      "loadFailure": "Não foi possível calcular o valor da sua hora.",
+      "month": {
+        "previousButton": "Mês anterior",
+        "nextButton": "Próximo mês",
+        "current": "Mês atual",
+        "previous": "Mês anterior",
+        "next": "Próximo mês"
+      },
+      "title": "Valor da sua hora",
+      "marginChip": "{{margin}}% de margem",
+      "valueLabel": "Valor da sua hora: {{value}}",
+      "description": "Custos do mês, pró-labore e margem divididos pelas suas horas produtivas",
+      "minimum": "Mínimo (sem margem)",
+      "productiveHours": "Horas produtivas",
+      "hoursValue": "{{hours}} h",
+      "updatedAt": "Atualizado em {{date}} às {{time}}",
+      "showBreakdown": "Ver detalhamento do cálculo",
+      "hideBreakdown": "Ocultar detalhamento",
+      "breakdown": {
+        "title": "Composição do total mensal",
+        "shareOfTotal": "{{share}}% do total",
+        "parts": {
+          "fixedCosts": {
+            "label": "Custos fixos",
+            "caption": "Custos fixos do mês + depreciação"
+          },
+          "variableCosts": {
+            "label": "Custos variáveis",
+            "caption": "Despesas profissionais do mês"
+          },
+          "proLabore": {
+            "label": "Pró-labore",
+            "caption": "Sua meta de renda mensal"
+          },
+          "safetyMargin": {
+            "label": "Margem de segurança",
+            "caption": "{{margin}}% sobre custos + pró-labore"
+          }
+        },
+        "explanationTitle": "Como o valor da hora é calculado?",
+        "explanation": "Somamos os custos fixos, os custos variáveis do mês e o pró-labore e aplicamos a margem de segurança sobre esse total. O resultado é dividido pelas horas produtivas do mês: horas disponíveis por semana × 52 semanas ÷ 12 meses. O mínimo é a mesma conta sem a margem."
       }
     }
   },

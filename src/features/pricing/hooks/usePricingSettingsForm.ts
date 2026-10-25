@@ -10,6 +10,7 @@ import type {
   PricingSettingsField,
 } from '../domain/pricing.types';
 import {
+  PRICING_SETTINGS_FIELDS,
   toPricingSettingsDraft,
   validatePricingSettings,
 } from '../domain/validatePricingSettings';
@@ -76,6 +77,17 @@ export function usePricingSettingsForm({
     }
 
     setErrors({});
+    // The calculator saves on every blur; leaving a field untouched should
+    // not send the same goals again.
+    const unchanged =
+      savedSettings !== null &&
+      PRICING_SETTINGS_FIELDS.every(
+        field => savedSettings[field] === validation.settings[field],
+      );
+    if (unchanged) {
+      return savedSettings;
+    }
+
     if (!idToken) {
       setFailure('pricing.goalForm.failures.save');
       return null;
@@ -97,7 +109,7 @@ export function usePricingSettingsForm({
     } finally {
       if (isMounted.current) setIsSaving(false);
     }
-  }, [draft, idToken, onSaved]);
+  }, [draft, idToken, onSaved, savedSettings]);
 
   return {
     draft,

@@ -6,9 +6,14 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 
-import { CalculatorScreen } from 'features/calculator';
+import { HourlyRateScreen } from 'features/pricing';
 import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
+import {
+  formatMonthLabel,
+  relativeMonth,
+  shiftMonth,
+} from 'shared/utils/monthPeriod';
 
 import { EntryDetailFlow } from './EntryDetailFlow';
 import { NewEntryFlow } from './NewEntryFlow';
@@ -19,12 +24,7 @@ import { ScopeFilter } from '../components/ScopeFilter';
 import { StatementList, type StatementItem } from '../components/StatementList';
 import { defaultCategoryKey } from '../domain/financialCategory';
 import type { FinancialEntry } from '../domain/financialEntry';
-import {
-  formatOverviewAmount,
-  formatPeriodLabel,
-  isCurrentPeriod,
-  shiftPeriod,
-} from '../domain/overview';
+import { formatOverviewAmount } from '../domain/overview';
 import {
   STATEMENT_SCOPES,
   currentPeriod,
@@ -43,21 +43,6 @@ const SCOPE_KEYS = {
 } as const;
 
 const LOAD_MORE_THRESHOLD_PX = 200;
-
-const MONTH_KEYS = [
-  'finance.months.january',
-  'finance.months.february',
-  'finance.months.march',
-  'finance.months.april',
-  'finance.months.may',
-  'finance.months.june',
-  'finance.months.july',
-  'finance.months.august',
-  'finance.months.september',
-  'finance.months.october',
-  'finance.months.november',
-  'finance.months.december',
-] as const;
 
 export function FinanceScreen() {
   const { t, locale } = useTranslation();
@@ -117,9 +102,7 @@ export function FinanceScreen() {
   const totals = overview.overview;
   const displayAmount = (value: number | undefined) =>
     value === undefined ? '—' : formatOverviewAmount(value, locale);
-  const shiftMonth = (offset: number) => {
-    setPeriod(current => shiftPeriod(current, offset));
-  };
+  const isCurrentMonth = relativeMonth(period, new Date()) === 'current';
 
   const loadMoreNearStatementEnd = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -160,14 +143,9 @@ export function FinanceScreen() {
             >
               <View className="gap-4 pb-6 pt-2">
                 <FinanceOverviewPanel
-                  monthLabel={formatPeriodLabel(
-                    period,
-                    t(MONTH_KEYS[period.month - 1]),
-                  )}
+                  monthLabel={formatMonthLabel(period, locale)}
                   currentMonthLabel={
-                    isCurrentPeriod(period, new Date())
-                      ? t('finance.currentMonth')
-                      : null
+                    isCurrentMonth ? t('finance.currentMonth') : null
                   }
                   netBalanceLabel={t('finance.netBalance')}
                   netBalance={displayAmount(totals?.netBalance)}
@@ -193,8 +171,8 @@ export function FinanceScreen() {
                   ]}
                   overview={overview.overview}
                   hasError={overview.hasError}
-                  onPreviousMonth={() => shiftMonth(-1)}
-                  onNextMonth={() => shiftMonth(1)}
+                  onPreviousMonth={() => setPeriod(shiftMonth(period, -1))}
+                  onNextMonth={() => setPeriod(shiftMonth(period, 1))}
                   onRetry={overview.retry}
                   balanceNotice={
                     overview.incomplete ? t('finance.balanceIncomplete') : null
@@ -264,7 +242,7 @@ export function FinanceScreen() {
         }}
         onFinished={() => setOpenEntry(null)}
       />
-      <CalculatorScreen
+      <HourlyRateScreen
         visible={calculatorVisible}
         onClose={() => setCalculatorVisible(false)}
       />
