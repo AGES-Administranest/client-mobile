@@ -24,7 +24,8 @@
     "equipmentDepreciation": "Equipment depreciation",
     "equipmentMonthlyCost": "{{count}} items · monthly cost",
     "perMonth": "/month",
-    "overviewError": "Could not load the finance summary."
+    "overviewError": "Could not load the finance summary.",
+    "balanceIncomplete": "May be incomplete until it syncs."
   },
   "calculator": {
     "title": "Hourly rate calculator",

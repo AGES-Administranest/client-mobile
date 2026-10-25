@@ -9,7 +9,11 @@ import {
 import { HourlyRateScreen } from 'features/pricing';
 import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
-import { relativeMonth, shiftMonth } from 'shared/utils/monthPeriod';
+import {
+  formatMonthLabel,
+  relativeMonth,
+  shiftMonth,
+} from 'shared/utils/monthPeriod';
 
 import { EntryDetailFlow } from './EntryDetailFlow';
 import { NewEntryFlow } from './NewEntryFlow';
@@ -20,6 +24,7 @@ import { ScopeFilter } from '../components/ScopeFilter';
 import { StatementList, type StatementItem } from '../components/StatementList';
 import { defaultCategoryKey } from '../domain/financialCategory';
 import type { FinancialEntry } from '../domain/financialEntry';
+import { formatOverviewAmount } from '../domain/overview';
 import {
   STATEMENT_SCOPES,
   currentPeriod,
@@ -94,6 +99,9 @@ export function FinanceScreen() {
     scope === 'all'
       ? null
       : t(`financialEntries.statement.noResults.${SCOPE_KEYS[scope]}`);
+  const totals = overview.overview;
+  const displayAmount = (value: number | undefined) =>
+    value === undefined ? '—' : formatOverviewAmount(value, locale);
   const isCurrentMonth = relativeMonth(period, new Date()) === 'current';
 
   const loadMoreNearStatementEnd = (
@@ -135,14 +143,40 @@ export function FinanceScreen() {
             >
               <View className="gap-4 pb-6 pt-2">
                 <FinanceOverviewPanel
-                  period={period}
+                  monthLabel={formatMonthLabel(period, locale)}
+                  currentMonthLabel={
+                    isCurrentMonth ? t('finance.currentMonth') : null
+                  }
+                  netBalanceLabel={t('finance.netBalance')}
+                  netBalance={displayAmount(totals?.netBalance)}
+                  isNegativeBalance={(totals?.netBalance ?? 0) < 0}
+                  previousMonthLabel={t('finance.previousMonth')}
+                  nextMonthLabel={t('finance.nextMonth')}
+                  totalizers={[
+                    {
+                      title: t('finance.revenue'),
+                      value: displayAmount(totals?.revenue),
+                      type: 'income',
+                    },
+                    {
+                      title: t('finance.professional'),
+                      value: displayAmount(totals?.professionalExpenses),
+                      type: 'expense',
+                    },
+                    {
+                      title: t('finance.personal'),
+                      value: displayAmount(totals?.personalExpenses),
+                      type: 'expense',
+                    },
+                  ]}
                   overview={overview.overview}
-                  isLoading={overview.isLoading}
                   hasError={overview.hasError}
-                  isCurrentMonth={isCurrentMonth}
                   onPreviousMonth={() => setPeriod(shiftMonth(period, -1))}
                   onNextMonth={() => setPeriod(shiftMonth(period, 1))}
                   onRetry={overview.retry}
+                  balanceNotice={
+                    overview.incomplete ? t('finance.balanceIncomplete') : null
+                  }
                 />
                 <View className="px-5">
                   <NewEntryButton

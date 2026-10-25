@@ -24,7 +24,8 @@
     "equipmentDepreciation": "Depreciação de equipamentos",
     "equipmentMonthlyCost": "{{count}} equipamentos · custo mensal",
     "perMonth": "/mês",
-    "overviewError": "Não foi possível carregar o resumo financeiro."
+    "overviewError": "Não foi possível carregar o resumo financeiro.",
+    "balanceIncomplete": "Pode estar incompleto até sincronizar."
   },
   "calculator": {
     "title": "Calculadora de hora",
