@@ -937,6 +937,55 @@
     "account": {
       "menu": "Account",
       "signOut": "Sign out"
+    },
+    "forgot": {
+      "link": "Forgot my password",
+      "title": "Reset password",
+      "emailLabel": "ENTER YOUR EMAIL*",
+      "emailPlaceholder": "example@mail.com",
+      "submit": "Confirm"
+    },
+    "emailSent": {
+      "title": "Email sent",
+      "heading": "Check your inbox",
+      "description": "We sent a code to reset your password to {{email}}",
+      "hint": "The code is valid for 1 hour. If you cannot find the e-mail, check your spam folder.",
+      "backToLogin": "Back to Login",
+      "resendCountdown": "Didn't get it? Resend in {{time}}",
+      "resend": "Resend",
+      "haveCode": "I already have the code"
+    },
+    "newPassword": {
+      "title": "Reset password",
+      "codeLabel": "RECEIVED CODE*",
+      "passwordLabel": "NEW PASSWORD*",
+      "confirmationLabel": "CONFIRM NEW PASSWORD*",
+      "placeholder": "ENTER NEW PASSWORD",
+      "submit": "Confirm",
+      "requirementsNotMet": "Your password doesn't meet the requirements yet:",
+      "mismatch": "Passwords don't match",
+      "match": "Passwords match",
+      "requirements": {
+        "minLength": "At least 8 characters",
+        "uppercase": "One uppercase letter (A-Z)",
+        "lowercase": "One lowercase letter (a-z)",
+        "number": "One number",
+        "special": "One special character (!@#$%)"
+      }
+    },
+    "codeExpired": {
+      "title": "Code expired",
+      "heading": "This code is no longer valid",
+      "description": "The recovery code has expired or has already been used. For security, it is only valid for 1 hour.",
+      "hint": "Request a new code to reset your password.",
+      "requestNew": "Request a new code",
+      "backToLogin": "Back to Login"
+    },
+    "resetSuccess": {
+      "title": "Password reset",
+      "heading": "Password changed successfully!",
+      "description": "Your new password is active. Use it to sign in to Administranest.",
+      "goToLogin": "Go to Login"
     }
   },
   "partners": {

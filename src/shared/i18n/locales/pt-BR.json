@@ -937,6 +937,55 @@
     "account": {
       "menu": "Conta",
       "signOut": "Sair da conta"
+    },
+    "forgot": {
+      "link": "Esqueci minha senha",
+      "title": "Redefinir senha",
+      "emailLabel": "DIGITE SEU EMAIL*",
+      "emailPlaceholder": "exemplo@mail.com",
+      "submit": "Confirmar"
+    },
+    "emailSent": {
+      "title": "E-mail enviado",
+      "heading": "Confira sua caixa de entrada",
+      "description": "Enviamos um código para redefinir sua senha para {{email}}",
+      "hint": "O código é válido por 1 hora. Se não encontrar o e-mail, verifique a pasta de spam.",
+      "backToLogin": "Voltar ao Login",
+      "resendCountdown": "Não recebeu? Reenviar em {{time}}",
+      "resend": "Reenviar",
+      "haveCode": "Já tenho o código"
+    },
+    "newPassword": {
+      "title": "Redefinir senha",
+      "codeLabel": "CÓDIGO RECEBIDO*",
+      "passwordLabel": "NOVA SENHA*",
+      "confirmationLabel": "CONFIRME NOVA SENHA*",
+      "placeholder": "DIGITE NOVA SENHA",
+      "submit": "Confirmar",
+      "requirementsNotMet": "Sua senha ainda não atende aos requisitos:",
+      "mismatch": "As senhas não coincidem",
+      "match": "As senhas coincidem",
+      "requirements": {
+        "minLength": "Mínimo de 8 caracteres",
+        "uppercase": "Uma letra maiúscula (A-Z)",
+        "lowercase": "Uma letra minúscula (a-z)",
+        "number": "Um número",
+        "special": "Um caractere especial (!@#$%)"
+      }
+    },
+    "codeExpired": {
+      "title": "Código expirado",
+      "heading": "Este código não é mais válido",
+      "description": "O código de recuperação expirou ou já foi utilizado. Por segurança, ele é válido por apenas 1 hora.",
+      "hint": "Solicite um novo código para redefinir sua senha.",
+      "requestNew": "Solicitar novo código",
+      "backToLogin": "Voltar ao Login"
+    },
+    "resetSuccess": {
+      "title": "Senha redefinida",
+      "heading": "Senha alterada com sucesso!",
+      "description": "Sua nova senha já está ativa. Use-a para entrar no Administranest.",
+      "goToLogin": "Ir para o Login"
     }
   },
   "partners": {
