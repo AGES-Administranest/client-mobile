@@ -6,6 +6,7 @@ import { useVehicles } from 'features/vehicles';
 import { isNetworkError } from 'shared/utils/network';
 
 import { calculateTripCost } from '../domain/calculateTripCost';
+import { isLocalTripId } from '../domain/offlineTrips';
 import type { Trip, TripMode } from '../domain/trip.types';
 import { buildInitialTripValues } from '../domain/tripFormValues';
 import {
@@ -166,12 +167,14 @@ export function useTripForm(options: UseTripFormOptions = {}) {
             : undefined,
       };
 
-      if (token) {
+      // A trip still waiting in the outbox is edited there: creating it online
+      // here would leave the queued create to post a second copy on sync.
+      const isPendingCreate = trip != null && isLocalTripId(trip.id);
+      if (token && !isPendingCreate) {
         try {
-          const saved =
-            trip && !trip.id.startsWith('local:')
-              ? await tripService.update(token, trip.id, dto)
-              : await tripService.create(token, dto);
+          const saved = trip
+            ? await tripService.update(token, trip.id, dto)
+            : await tripService.create(token, dto);
           onSuccess?.(saved);
           return saved;
         } catch (apiErr) {
@@ -210,7 +213,7 @@ export function useTripForm(options: UseTripFormOptions = {}) {
     if (!trip) return false;
     setSubmitting(true);
     try {
-      if (token && !trip.id.startsWith('local:')) {
+      if (token && !isLocalTripId(trip.id)) {
         try {
           await tripService.remove(token, trip.id);
           onDeleted?.(trip.id);
