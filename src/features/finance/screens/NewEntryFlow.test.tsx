@@ -159,7 +159,7 @@ afterEach(() => {
   mounted.splice(0).forEach(renderer => act(() => renderer.unmount()));
 });
 
-async function renderFlow(onSendDocument?: () => void) {
+async function renderFlow() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
     renderer = ReactTestRenderer.create(
@@ -167,7 +167,7 @@ async function renderFlow(onSendDocument?: () => void) {
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
             <StockSyncProvider>
-              <NewEntryFlow onSendDocument={onSendDocument} />
+              <NewEntryFlow />
             </StockSyncProvider>
           </AuthProvider>
         </I18nProvider>
@@ -268,7 +268,7 @@ test('shows only the new entry button until it is pressed', async () => {
 });
 
 test('opens the options sheet with the PDF, the manual and the stock write-off choices', async () => {
-  const renderer = await renderFlow(jest.fn());
+  const renderer = await renderFlow();
 
   await openOptions(renderer);
 
@@ -282,22 +282,24 @@ test('opens the options sheet with the PDF, the manual and the stock write-off c
   );
 });
 
-test('the PDF choice starts the upload only after the options sheet is gone', async () => {
-  const onSendDocument = jest.fn();
-  const renderer = await renderFlow(onSendDocument);
+test('answers the PDF choice with a notice only after the options sheet is gone', async () => {
+  const renderer = await renderFlow();
   await openOptions(renderer);
 
   await pressByText(renderer, 'Enviar documento (PDF)');
 
-  expect(textsOf(renderer)).not.toContain(OPTIONS_DESCRIPTION);
-  expect(onSendDocument).toHaveBeenCalledTimes(1);
-});
+  const texts = textsOf(renderer);
+  expect(texts).not.toContain(OPTIONS_DESCRIPTION);
+  expect(texts).toEqual(
+    expect.arrayContaining([
+      'Envio de PDF em breve',
+      'Por enquanto, registre a entrada ou a saída pelo lançamento manual.',
+    ]),
+  );
 
-test('offers no PDF choice while the upload is unavailable', async () => {
-  const renderer = await renderFlow();
-  await openOptions(renderer);
+  await pressByText(renderer, 'Entendi');
 
-  expect(textsOf(renderer)).not.toContain('Enviar documento (PDF)');
+  expect(textsOf(renderer)).toEqual(['Novo lançamento']);
 });
 
 test('the manual choice opens the form, and only then loads the categories', async () => {

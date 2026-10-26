@@ -2,6 +2,7 @@ import { FileText, PackageMinus, Pencil } from 'lucide-react-native';
 import { useRef, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 
+import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { cn } from 'app/lib/utils';
 import { OutputAdjustmentSheet } from 'features/stock';
@@ -13,8 +14,6 @@ import type { FinancialEntry } from '../domain/financialEntry';
 
 type NewEntryFlowProps = {
   onEntrySaved?: (entry: FinancialEntry) => void;
-  /** Starts the invoice upload; without it the option is not offered. */
-  onSendDocument?: () => void;
   showButton?: boolean;
   containerClassName?: string;
   children?: (flow: { openOptions: () => void }) => ReactNode;
@@ -22,13 +21,13 @@ type NewEntryFlowProps = {
 
 export function NewEntryFlow({
   onEntrySaved,
-  onSendDocument,
   showButton = true,
   containerClassName,
   children,
 }: NewEntryFlowProps) {
   const { t } = useTranslation();
   const [optionsVisible, setOptionsVisible] = useState(false);
+  const [documentSoonVisible, setDocumentSoonVisible] = useState(false);
   // Continua montado depois de fechar, para a animação de saída rodar.
   const [formOpenedOnce, setFormOpenedOnce] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
@@ -89,15 +88,11 @@ export function NewEntryFlow({
         title={t('financialEntries.options.title')}
         description={t('financialEntries.options.descriptionWithStockWriteOff')}
         options={[
-          ...(onSendDocument
-            ? [
-                {
-                  label: t('financialEntries.options.sendDocument'),
-                  icon: FileText,
-                  onPress: () => choose(onSendDocument),
-                },
-              ]
-            : []),
+          {
+            label: t('financialEntries.options.sendDocument'),
+            icon: FileText,
+            onPress: () => choose(() => setDocumentSoonVisible(true)),
+          },
           {
             label: t('financialEntries.options.manual'),
             icon: Pencil,
@@ -109,6 +104,16 @@ export function NewEntryFlow({
             onPress: () => choose(openStockWriteOff),
           },
         ]}
+      />
+
+      {/* O upload de PDF depende das US01/US10: até lá o toque recebe este aviso. */}
+      <ConfirmSheet
+        visible={documentSoonVisible}
+        title={t('financialEntries.documentSoon.title')}
+        message={t('financialEntries.documentSoon.message')}
+        confirmLabel={t('financialEntries.documentSoon.ok')}
+        onConfirm={() => setDocumentSoonVisible(false)}
+        onCancel={() => setDocumentSoonVisible(false)}
       />
 
       {formOpenedOnce ? (

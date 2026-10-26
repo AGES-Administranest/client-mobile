@@ -626,6 +626,11 @@
       "manual": "Manual entry",
       "stockWriteOff": "Stock write-off"
     },
+    "documentSoon": {
+      "title": "PDF upload coming soon",
+      "message": "For now, record the income or the expense with a manual entry.",
+      "ok": "Got it"
+    },
     "categories": {
       "professionalFees": "Professional fees",
       "supplies": "Supplies",
