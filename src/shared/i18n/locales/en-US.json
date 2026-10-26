@@ -623,15 +623,10 @@
     "newEntry": "New entry",
     "options": {
       "title": "New entry",
-      "descriptionWithStockWriteOff": "Upload the invoice or order as a PDF, fill it in by hand or write off a stock item",
+      "descriptionWithStockWriteOff": "Upload the service invoice as a PDF, fill it in by hand or write off a stock item",
       "sendDocument": "Upload document (PDF)",
       "manual": "Manual entry",
       "stockWriteOff": "Stock write-off"
-    },
-    "documentSoon": {
-      "title": "PDF upload coming soon",
-      "message": "For now, record the income or the expense with a manual entry.",
-      "ok": "Got it"
     },
     "categories": {
       "professionalFees": "Professional fees",
@@ -1493,10 +1488,11 @@
     }
   },
   "serviceInvoices": {
-    "trigger": "Send invoice",
     "extracting": "Reading the invoice…",
     "errors": {
       "notPdf": "We only accept PDF invoices. Choose a .pdf file.",
+      "tooLarge": "The PDF is over the 15 MB limit. Choose another file.",
+      "alreadySent": "This PDF was already sent before.",
       "dismiss": "Got it"
     },
     "review": {
@@ -1598,10 +1594,12 @@
         "fileMissing": "the PDF is no longer on this device.",
         "other": "the server refused the data.",
         "fileDuplicated": "this PDF was already sent before.",
-        "fileTooLarge": "the PDF is over the 15 MB limit."
+        "fileTooLarge": "the PDF is over the 15 MB limit.",
+        "possibleDuplicate": "there is a similar invoice, with the same amount and date or the same number and taker."
       },
       "discard": "Discard invoice",
-      "keep": "Keep in queue"
+      "keep": "Keep in queue",
+      "sendAnyway": "Send anyway"
     }
   },
   "trips": {

@@ -8,8 +8,8 @@ import {
 
 import { HourlyRateScreen } from 'features/pricing';
 import {
-  isServiceInvoiceUploadAvailable,
   ServiceInvoiceUploadFlow,
+  useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
 import { TripsScreen } from 'features/trips';
 import { VehiclesScreen } from 'features/vehicles';
@@ -58,6 +58,7 @@ export function FinanceScreen() {
   const [period, setPeriod] = useState(() => currentPeriod(new Date()));
   const statement = useFinancialStatement({ period, scope });
   const overview = useFinanceOverview(period);
+  const invoiceUpload = useServiceInvoiceUpload();
   const [openEntry, setOpenEntry] = useState<FinancialEntry | null>(null);
 
   const categoryLabel = (category: FinancialEntry['category']) => {
@@ -125,6 +126,7 @@ export function FinanceScreen() {
   return (
     <View className="flex-1">
       <NewEntryFlow
+        onSendDocument={invoiceUpload.start}
         showButton={false}
         containerClassName="flex-1 gap-0 px-0 pt-0"
         onEntrySaved={() => {
@@ -191,9 +193,13 @@ export function FinanceScreen() {
                     label={t('financialEntries.newEntry')}
                     onPress={openOptions}
                   />
-                  {isServiceInvoiceUploadAvailable() && (
-                    <ServiceInvoiceUploadFlow />
-                  )}
+                  <ServiceInvoiceUploadFlow
+                    upload={invoiceUpload}
+                    onInvoiceConfirmed={() => {
+                      statement.reload();
+                      overview.retry();
+                    }}
+                  />
                 </View>
                 <View className="gap-3 px-5">
                   <ScopeFilter
