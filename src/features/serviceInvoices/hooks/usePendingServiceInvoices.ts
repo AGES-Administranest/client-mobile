@@ -13,6 +13,7 @@ import {
   acknowledgeServiceInvoiceRejection,
   discardServiceInvoice,
   loadServiceInvoiceOutbox,
+  resendAllowingDuplicate,
   subscribeOfflineServiceInvoices,
 } from '../services/offlineServiceInvoiceStore';
 
@@ -27,6 +28,8 @@ export type PendingServiceInvoicesState = {
   reopenRejection: () => void;
   keepRejection: () => void;
   discardRejection: () => void;
+  /** Sends a note refused as similar to another one, accepting that it is. */
+  sendRejectionAnyway: () => void;
   dismissDiscardNotice: () => void;
 };
 
@@ -101,6 +104,12 @@ export function usePendingServiceInvoices(): PendingServiceInvoicesState {
     }
   }, [rejection, userId, reportFailure]);
 
+  const sendRejectionAnyway = useCallback(() => {
+    setReopened(false);
+    if (!rejection || !userId) return;
+    resendAllowingDuplicate(userId, rejection.id).catch(reportFailure);
+  }, [rejection, userId, reportFailure]);
+
   return {
     counts: queue.length > 0 ? countPending(queue) : NOTHING_PENDING,
     rejection,
@@ -109,6 +118,7 @@ export function usePendingServiceInvoices(): PendingServiceInvoicesState {
     reopenRejection: useCallback(() => setReopened(true), []),
     keepRejection,
     discardRejection,
+    sendRejectionAnyway,
     dismissDiscardNotice: useCallback(() => setDiscardLeftFile(false), []),
   };
 }

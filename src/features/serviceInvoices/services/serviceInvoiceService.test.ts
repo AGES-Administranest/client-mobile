@@ -1,223 +1,390 @@
-import type { PickedPdf } from 'shared/services/pdfPicker';
+import { ApiError, apiClient } from 'shared/services/apiClient';
+import { postToPresignedForm } from 'shared/services/presignedUpload';
 
 import {
   confirmServiceInvoice,
+  discardServiceInvoiceDraft,
   extractServiceInvoice,
-  requestServiceInvoiceUpload,
-  sendServiceInvoicePdf,
-  syncServiceInvoices,
+  fetchServiceInvoiceStatus,
+  resumeDraftHoldingFile,
 } from './serviceInvoiceService';
-import type { ServiceInvoiceSyncItem } from '../domain/serviceInvoice.types';
 
+jest.mock('shared/services/apiClient', () => ({
+  ...jest.requireActual('shared/services/apiClient'),
+  apiClient: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
+jest.mock('shared/services/presignedUpload', () => ({
+  postToPresignedForm: jest.fn(),
+}));
+jest.mock('shared/services/fileHash', () => ({
+  sha256Hex: jest.fn(async () => 'a'.repeat(64)),
+}));
+jest.mock('expo-crypto', () => ({ randomUUID: jest.fn(() => 'new-id') }));
+
+const get = jest.mocked(apiClient.get);
+const post = jest.mocked(apiClient.post);
+const patch = jest.mocked(apiClient.patch);
+const remove = jest.mocked(apiClient.delete);
+const postToBucket = jest.mocked(postToPresignedForm);
+
+const FILE = {
+  uri: 'file:///cache/nota.pdf',
+  bytes: new Uint8Array([1, 2, 3]),
+  name: 'nota.pdf',
+  mimeType: 'application/pdf',
+};
+const TARGET = { url: 'https://bucket', fields: { key: 'k' }, expiresAt: 1 };
 const INPUT = {
-  issueDate: '2026-03-15',
-  amount: 1850,
-  number: '2026/0042',
+  issueDate: '2026-10-13',
+  amount: 1500,
+  number: '1287',
   clientId: 'client-1',
 };
 
-function pdf(name: string): PickedPdf {
-  return {
-    uri: 'file:///cache/nota.pdf',
-    bytes: new Uint8Array([1]),
-    name,
-    mimeType: 'application/pdf',
-  };
-}
-
-async function extract(name: string) {
-  const reading = extractServiceInvoice('token', pdf(name));
-  await jest.runAllTimersAsync();
-  return reading;
-}
-
-async function confirm(amount: number, allowDuplicate?: boolean) {
-  const confirmation = confirmServiceInvoice(
-    'token',
-    { ...INPUT, amount },
-    allowDuplicate === undefined ? undefined : { allowDuplicate },
+function answerUpload(review: Record<string, unknown>) {
+  post.mockImplementation(async (path: string) =>
+    path.endsWith('/upload-url') ? TARGET : { review },
   );
-  await jest.runAllTimersAsync();
-  return confirmation;
 }
 
-beforeEach(() => jest.useFakeTimers());
-afterEach(() => jest.useRealTimers());
+beforeEach(() => {
+  jest.clearAllMocks();
+  postToBucket.mockResolvedValue({ ok: true, status: 204 } as Response);
+});
 
 describe('extractServiceInvoice', () => {
-  it('fails the reading for "falha"', async () => {
-    expect(await extract('nota-falha.pdf')).toEqual({ status: 'FAILED' });
+  it('asks for the upload with the file facts, sends the PDF and has it read', async () => {
+    answerUpload({ status: 'SUCCESS', issueDate: '2026-10-13' });
+
+    await extractServiceInvoice('id-token', 'inv-1', FILE);
+
+    expect(post).toHaveBeenNthCalledWith(
+      1,
+      '/service-invoices/inv-1/upload-url',
+      {
+        filename: 'nota.pdf',
+        fileMimeType: 'application/pdf',
+        fileHash: 'a'.repeat(64),
+        fileBytesSize: 3,
+      },
+      { token: 'id-token' },
+    );
+    expect(postToBucket).toHaveBeenCalledWith(TARGET, FILE);
+    expect(post).toHaveBeenNthCalledWith(
+      2,
+      '/service-invoices/inv-1/uploaded',
+      undefined,
+      { token: 'id-token' },
+    );
   });
 
-  it('returns only the date for "parcial"', async () => {
-    expect(await extract('nota-parcial.pdf')).toEqual({
-      status: 'PARTIAL',
-      issueDate: '2026-03-15',
+  it('turns the review into what the screen starts from', async () => {
+    answerUpload({
+      status: 'SUCCESS',
+      issueDate: '2026-10-13',
+      amount: 1500,
+      number: '1287',
+      taker: { name: 'Clínica Exemplo', taxId: '12345678000195' },
+      clientMatch: { id: 'client-1', name: 'Clínica Exemplo' },
+      duplicateOf: { id: 'other', reason: 'SAME_AMOUNT_AND_DATE' },
+    });
+
+    expect(await extractServiceInvoice('id-token', 'inv-1', FILE)).toEqual({
+      status: 'SUCCESS',
+      issueDate: '2026-10-13',
+      amount: 1500,
+      number: '1287',
+      taker: { name: 'Clínica Exemplo', taxId: '12345678000195' },
+      clientMatch: { id: 'client-1', name: 'Clínica Exemplo', taxId: '' },
     });
   });
 
-  it('reads everything, linking nobody, for any other PDF', async () => {
-    const reading = await extract('nota.pdf');
+  it('passes on the suggested takers', async () => {
+    answerUpload({
+      status: 'SUCCESS',
+      clientSuggestions: [
+        { id: 'c-1', name: 'Clínica Boa Vida', taxId: '45321789000110' },
+      ],
+    });
 
-    expect(reading).toMatchObject({ status: 'SUCCESS', amount: 1850 });
-    expect(reading.clientMatch).toBeUndefined();
-    expect(reading.clientSuggestions).toBeUndefined();
+    const extraction = await extractServiceInvoice('id-token', 'inv-1', FILE);
+
+    expect(extraction.clientSuggestions).toEqual([
+      { id: 'c-1', name: 'Clínica Boa Vida', taxId: '45321789000110' },
+    ]);
   });
 
-  it.each(['nota-vinculado.pdf', 'nota-match.pdf'])(
-    'links the taker for %s',
-    async name => {
-      const reading = await extract(name);
+  it.each([
+    [{ status: 'SUCCESS' }, 'SUCCESS'],
+    [
+      { status: 'SUCCESS', partial: { pagesRead: 1, totalPages: 3 } },
+      'PARTIAL',
+    ],
+    [{ status: 'FAILED', failureReason: 'NO_TEXT_LAYER' }, 'FAILED'],
+    [{ status: 'MANUAL' }, 'FAILED'],
+  ])('reads %p as %p', async (review, status) => {
+    answerUpload(review);
 
-      expect(reading.clientMatch).toMatchObject({ id: 'stand-in-client-1' });
-      expect(reading.taker?.taxId).toBe('12345678000195');
-    },
-  );
+    const extraction = await extractServiceInvoice('id-token', 'inv-1', FILE);
 
-  it.each(['nota-sugestao.pdf', 'nota-suggestion.pdf'])(
-    'suggests takers without linking for %s',
-    async name => {
-      const reading = await extract(name);
+    expect(extraction.status).toBe(status);
+  });
 
-      expect(reading.clientMatch).toBeUndefined();
-      expect(reading.clientSuggestions).toHaveLength(3);
-    },
-  );
+  it('does not tell the API the upload finished when the bucket refused it', async () => {
+    answerUpload({ status: 'SUCCESS' });
+    postToBucket.mockResolvedValue({ ok: false, status: 403 } as Response);
 
-  it.each(['nota-novo.pdf', 'nota-new.pdf'])(
-    'reads a taker that is not registered for %s',
-    async name => {
-      const reading = await extract(name);
+    await expect(
+      extractServiceInvoice('id-token', 'inv-1', FILE),
+    ).rejects.toThrow('403');
+    expect(post).toHaveBeenCalledTimes(1);
+  });
 
-      expect(reading.taker).toEqual({
-        name: 'Clínica Nova Exemplo',
-        taxId: '45723174000110',
-      });
-      expect(reading.clientMatch).toBeUndefined();
-      expect(reading.clientSuggestions).toBeUndefined();
-    },
-  );
-});
+  it('lets an API refusal through with its code', async () => {
+    post.mockRejectedValue(
+      new ApiError('dup', 'SERVICE_INVOICE_FILE_DUPLICATED', 409),
+    );
 
-describe('extractServiceInvoice, duplicate scenario', () => {
-  it.each(['nota-duplicada.pdf', 'nota-duplicate.pdf'])(
-    'comes with a linked taker and the sentinel amount for %s',
-    async name => {
-      const reading = await extract(name);
-
-      expect(reading.amount).toBe(7777.77);
-      expect(reading.clientMatch).toMatchObject({ id: 'stand-in-client-1' });
-      expect(reading.clientSuggestions).toBeUndefined();
-    },
-  );
+    await expect(
+      extractServiceInvoice('id-token', 'inv-1', FILE),
+    ).rejects.toMatchObject({ code: 'SERVICE_INVOICE_FILE_DUPLICATED' });
+    expect(postToBucket).not.toHaveBeenCalled();
+  });
 });
 
 describe('confirmServiceInvoice', () => {
-  it('creates the note for an ordinary reading', async () => {
-    const { amount } = await extract('nota.pdf');
-
-    expect(await confirm(amount!)).toEqual({ id: expect.any(String) });
+  beforeEach(() => {
+    patch.mockResolvedValue({});
+    post.mockResolvedValue({ id: 'inv-1', financialEntryId: 'entry-1' });
   });
 
-  it.each(['nota-duplicada.pdf', 'nota-duplicate.pdf'])(
-    'answers with the similar note for %s',
-    async name => {
-      const { amount } = await extract(name);
+  it('saves the reviewed data, then confirms the note', async () => {
+    const result = await confirmServiceInvoice('id-token', 'inv-1', INPUT);
 
-      expect(await confirm(amount!)).toEqual({
-        duplicateOf: expect.objectContaining({
-          id: 'stand-in-invoice-0',
-          issueDate: INPUT.issueDate,
-          amount,
-        }),
-      });
-    },
-  );
-
-  it('creates the note anyway when the duplicate is allowed', async () => {
-    const { amount } = await extract('nota-duplicada.pdf');
-
-    expect(await confirm(amount!, true)).toEqual({ id: expect.any(String) });
+    expect(patch).toHaveBeenCalledWith('/service-invoices/inv-1', INPUT, {
+      token: 'id-token',
+    });
+    expect(post).toHaveBeenCalledWith(
+      '/service-invoices/inv-1/confirm',
+      { allowDuplicate: false },
+      { token: 'id-token' },
+    );
+    expect(result).toEqual({ id: 'inv-1' });
   });
 
-  it('stops reporting a duplicate once the amount is corrected', async () => {
-    await extract('nota-duplicada.pdf');
+  it('clears a number the person erased', async () => {
+    const withoutNumber = {
+      issueDate: INPUT.issueDate,
+      amount: INPUT.amount,
+      clientId: INPUT.clientId,
+    };
 
-    expect(await confirm(1850)).toEqual({ id: expect.any(String) });
+    await confirmServiceInvoice('id-token', 'inv-1', withoutNumber);
+
+    expect(patch.mock.calls[0][1]).toEqual({ ...withoutNumber, number: null });
+  });
+
+  it('confirms a similar note when the person insists', async () => {
+    await confirmServiceInvoice('id-token', 'inv-1', INPUT, {
+      allowDuplicate: true,
+    });
+
+    expect(post.mock.calls[0][1]).toEqual({ allowDuplicate: true });
+  });
+
+  it('answers with the similar note instead of failing', async () => {
+    post.mockRejectedValue(
+      new ApiError('dup', 'SERVICE_INVOICE_POSSIBLE_DUPLICATE', 409, {
+        duplicateOf: {
+          id: 'inv-0',
+          number: '1287',
+          issueDate: '2026-10-13',
+          amount: 1500,
+          clientName: 'Clínica Exemplo',
+          reason: 'SAME_AMOUNT_AND_DATE',
+        },
+      }),
+    );
+
+    expect(await confirmServiceInvoice('id-token', 'inv-1', INPUT)).toEqual({
+      duplicateOf: {
+        id: 'inv-0',
+        number: '1287',
+        issueDate: '2026-10-13',
+        amount: 1500,
+        clientName: 'Clínica Exemplo',
+      },
+    });
+  });
+
+  it('does not confirm when saving the data fails', async () => {
+    patch.mockRejectedValue(new ApiError('bad', 'CLIENT_NOT_FOUND', 404));
+
+    await expect(
+      confirmServiceInvoice('id-token', 'inv-1', INPUT),
+    ).rejects.toMatchObject({ code: 'CLIENT_NOT_FOUND' });
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it('lets any other refusal through', async () => {
+    post.mockRejectedValue(
+      new ApiError('not ready', 'SERVICE_INVOICE_NOT_READY', 400),
+    );
+
+    await expect(
+      confirmServiceInvoice('id-token', 'inv-1', INPUT),
+    ).rejects.toMatchObject({ code: 'SERVICE_INVOICE_NOT_READY' });
   });
 });
 
-describe('offline sync stand-ins', () => {
-  const ITEM: ServiceInvoiceSyncItem = {
-    id: 'app-id-1',
-    issueDate: '2026-03-15',
-    amount: 1850,
-    number: '2026/0042',
-    clientId: 'client-1',
-    fileName: 'nota.pdf',
-    fileHash: 'a'.repeat(64),
-    fileBytesSize: 1024,
-  };
+describe('fetchServiceInvoiceStatus', () => {
+  it('answers the status of the note', async () => {
+    get.mockResolvedValue({ id: 'inv-1', status: 'CONFIRMED' });
 
-  async function sync(...items: ServiceInvoiceSyncItem[]) {
-    const results = syncServiceInvoices('token', items);
-    await jest.runAllTimersAsync();
-    return results;
-  }
-
-  it('answers an upload target for the app id, like upload-url of backend #71', async () => {
-    const pending = requestServiceInvoiceUpload('token', 'app-id-1', {
-      filename: 'nota.pdf',
-      fileMimeType: 'application/pdf',
-      fileHash: 'a'.repeat(64),
-      fileBytesSize: 1024,
-    });
-    await jest.runAllTimersAsync();
-    const target = await pending;
-
-    expect(target.fields.key).toContain('app-id-1');
-    expect(target.fields['Content-Type']).toBe('application/pdf');
-    expect(target.expiresAt).toBeGreaterThan(Date.now());
-  });
-
-  it('takes the PDF without answering anything', async () => {
-    const sending = sendServiceInvoicePdf(
-      { url: 'u', fields: {}, expiresAt: 1 },
-      new Uint8Array([1]),
+    expect(await fetchServiceInvoiceStatus('id-token', 'inv-1')).toBe(
+      'CONFIRMED',
     );
-    await jest.runAllTimersAsync();
-
-    await expect(sending).resolves.toBeUndefined();
+    expect(get).toHaveBeenCalledWith('/service-invoices/inv-1', {
+      token: 'id-token',
+    });
   });
 
-  it('applies a note and names the income entry it generated', async () => {
-    expect(await sync(ITEM)).toEqual([
-      {
-        id: 'app-id-1',
-        status: 'applied',
-        financialEntryId: 'stand-in-entry-app-id-1',
-      },
-    ]);
+  it('answers null when the backend has no such note', async () => {
+    get.mockRejectedValue(
+      new ApiError('nope', 'SERVICE_INVOICE_NOT_FOUND', 404),
+    );
+
+    expect(await fetchServiceInvoiceStatus('id-token', 'inv-1')).toBeNull();
   });
 
-  it('refuses the note numbered "erro", and only that one', async () => {
-    const results = await sync(ITEM, {
-      ...ITEM,
-      id: 'app-id-2',
-      number: 'erro',
+  it('lets any other failure through', async () => {
+    get.mockRejectedValue(new ApiError('down', null, 503));
+
+    await expect(
+      fetchServiceInvoiceStatus('id-token', 'inv-1'),
+    ).rejects.toMatchObject({ status: 503 });
+  });
+});
+
+describe('discardServiceInvoiceDraft', () => {
+  it('discards a draft', async () => {
+    get.mockResolvedValue({ status: 'DRAFT' });
+
+    await discardServiceInvoiceDraft('id-token', 'inv-1');
+
+    expect(remove).toHaveBeenCalledWith('/service-invoices/inv-1', {
+      token: 'id-token',
+    });
+  });
+
+  it.each(['CONFIRMED', 'CANCELLED'])(
+    'leaves a %s note alone, since the same route deletes a confirmed one',
+    async status => {
+      get.mockResolvedValue({ status });
+
+      await discardServiceInvoiceDraft('id-token', 'inv-1');
+
+      expect(remove).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does nothing when the draft was never created', async () => {
+    get.mockRejectedValue(
+      new ApiError('nope', 'SERVICE_INVOICE_NOT_FOUND', 404),
+    );
+
+    await discardServiceInvoiceDraft('id-token', 'inv-1');
+
+    expect(remove).not.toHaveBeenCalled();
+  });
+});
+
+describe('resumeDraftHoldingFile', () => {
+  const alreadySent = (details: Record<string, unknown> | null) =>
+    new ApiError('dup', 'SERVICE_INVOICE_FILE_DUPLICATED', 409, details);
+
+  it('reopens a draft that was already read as it stands, without sending the file again', async () => {
+    get.mockResolvedValue({
+      id: 'old-draft',
+      status: 'DRAFT',
+      uploadedAt: '2026-10-25T20:00:00.000Z',
+      review: { status: 'SUCCESS', issueDate: '2026-10-13', amount: 1500 },
     });
 
-    expect(results.map(result => result.status)).toEqual([
-      'applied',
-      'conflict',
-    ]);
-    expect(results[1].code).toBe('SERVICE_INVOICE_SYNC_REJECTED');
+    const resumed = await resumeDraftHoldingFile(
+      'id-token',
+      alreadySent({ serviceInvoiceId: 'old-draft' }),
+      FILE,
+    );
+
+    expect(get).toHaveBeenCalledWith('/service-invoices/old-draft', {
+      token: 'id-token',
+    });
+    expect(resumed).toEqual({
+      invoiceId: 'old-draft',
+      extraction: {
+        status: 'SUCCESS',
+        issueDate: '2026-10-13',
+        amount: 1500,
+      },
+    });
+    expect(post).not.toHaveBeenCalled();
   });
 
-  it('answers a different reading for the note numbered "leitura"', async () => {
-    const [result] = await sync({ ...ITEM, number: 'leitura' });
+  it('sends the file again to a draft whose upload never finished', async () => {
+    get.mockResolvedValue({
+      id: 'old-draft',
+      status: 'DRAFT',
+      review: { status: 'PENDING' },
+    });
+    answerUpload({ status: 'SUCCESS', amount: 1500 });
 
-    expect(result.status).toBe('applied');
-    expect(result.reading).toEqual({ amount: 1950 });
+    const resumed = await resumeDraftHoldingFile(
+      'id-token',
+      alreadySent({ serviceInvoiceId: 'old-draft' }),
+      FILE,
+    );
+
+    expect(post.mock.calls[0][0]).toBe(
+      '/service-invoices/old-draft/upload-url',
+    );
+    expect(resumed?.invoiceId).toBe('old-draft');
+    expect(resumed?.extraction.amount).toBe(1500);
+  });
+
+  it.each(['CONFIRMED', 'CANCELLED'])(
+    'leaves a file held by a %s note refused',
+    async status => {
+      get.mockResolvedValue({
+        id: 'old',
+        status,
+        review: { status: 'SUCCESS' },
+      });
+
+      expect(
+        await resumeDraftHoldingFile(
+          'id-token',
+          alreadySent({ serviceInvoiceId: 'old' }),
+          FILE,
+        ),
+      ).toBeNull();
+    },
+  );
+
+  it.each([
+    [
+      'another refusal',
+      new ApiError('big', 'SERVICE_INVOICE_FILE_TOO_LARGE', 413),
+    ],
+    ['a refusal that does not say which note', alreadySent(null)],
+    ['a network failure', new TypeError('Network request failed')],
+  ])('does not look for a draft on %s', async (_case, error) => {
+    expect(await resumeDraftHoldingFile('id-token', error, FILE)).toBeNull();
+    expect(get).not.toHaveBeenCalled();
   });
 });

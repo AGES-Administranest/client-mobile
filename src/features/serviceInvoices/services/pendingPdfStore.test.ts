@@ -57,9 +57,10 @@ describe('pendingPdfStore', () => {
     expect([...mockDisk.keys()]).toEqual([
       'file:///documents/service-invoices/user-1/inv-1.pdf',
     ]);
-    expect(await readPendingPdf('user-1', 'inv-1')).toEqual(
-      new Uint8Array([1, 2, 3]),
-    );
+    expect(await readPendingPdf('user-1', 'inv-1')).toEqual({
+      uri: 'file:///documents/service-invoices/user-1/inv-1.pdf',
+      bytes: new Uint8Array([1, 2, 3]),
+    });
   });
 
   it('does not show one user the file of another', async () => {
@@ -72,7 +73,7 @@ describe('pendingPdfStore', () => {
     savePendingPdf('user-1', 'inv-1', new Uint8Array([1]));
     savePendingPdf('user-1', 'inv-1', new Uint8Array([9, 9]));
 
-    expect(await readPendingPdf('user-1', 'inv-1')).toEqual(
+    expect((await readPendingPdf('user-1', 'inv-1'))?.bytes).toEqual(
       new Uint8Array([9, 9]),
     );
   });

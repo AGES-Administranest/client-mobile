@@ -1,7 +1,6 @@
 import type {
   ServiceInvoiceInput,
   ServiceInvoiceReading,
-  ServiceInvoiceSyncItem,
 } from './serviceInvoice.types';
 
 export type PendingServiceInvoiceFile = {
@@ -24,6 +23,8 @@ export type PendingServiceInvoice = {
   createdAt: string;
   /** Refused for good: it stays queued, with its PDF, and is not sent again. */
   rejection?: { code: string | null; acknowledged: boolean };
+  /** Sent again after the backend found a similar note, by the person's choice. */
+  allowDuplicate?: boolean;
 };
 
 /** Typed and read values that differ, kept for the person to confirm later. */
@@ -39,12 +40,15 @@ export const KNOWN_REJECTION_CODES = [
   'SERVICE_INVOICE_FILE_TOO_LARGE',
   'CLIENT_NOT_SYNCED',
   'PENDING_FILE_MISSING',
+  'SERVICE_INVOICE_POSSIBLE_DUPLICATE',
 ] as const;
 
 export type KnownRejectionCode = (typeof KNOWN_REJECTION_CODES)[number];
 
 export const CLIENT_NOT_SYNCED: KnownRejectionCode = 'CLIENT_NOT_SYNCED';
 export const PENDING_FILE_MISSING: KnownRejectionCode = 'PENDING_FILE_MISSING';
+export const POSSIBLE_DUPLICATE: KnownRejectionCode =
+  'SERVICE_INVOICE_POSSIBLE_DUPLICATE';
 
 export function isKnownRejectionCode(
   code: string | null,
@@ -71,20 +75,25 @@ export function toPendingServiceInvoice(
   };
 }
 
-export function toSyncItem(
+/** The note as the backend confirms it, with the taker's real id. */
+export function toServiceInvoiceInput(
   invoice: PendingServiceInvoice,
   clientId: string,
-): ServiceInvoiceSyncItem {
+): ServiceInvoiceInput {
   return {
-    id: invoice.id,
     issueDate: invoice.issueDate,
     amount: invoice.amount,
     ...(invoice.number !== undefined ? { number: invoice.number } : {}),
     clientId,
-    fileName: invoice.file.name,
-    fileHash: invoice.file.hash,
-    fileBytesSize: invoice.file.bytesSize,
   };
+}
+
+/**
+ * A similar note is a warning the person never saw while offline, so only
+ * that refusal can be overruled; any other would be refused again.
+ */
+export function canSendAnyway(invoice: PendingServiceInvoice): boolean {
+  return invoice.rejection?.code === POSSIBLE_DUPLICATE;
 }
 
 export function countPending(queue: PendingServiceInvoice[]): PendingCounts {

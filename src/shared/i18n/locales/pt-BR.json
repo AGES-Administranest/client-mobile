@@ -621,15 +621,10 @@
     "newEntry": "Novo lançamento",
     "options": {
       "title": "Novo lançamento",
-      "descriptionWithStockWriteOff": "Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque",
+      "descriptionWithStockWriteOff": "Envie a nota fiscal em PDF, preencha à mão ou dê baixa em um item do estoque",
       "sendDocument": "Enviar documento (PDF)",
       "manual": "Lançamento manual",
       "stockWriteOff": "Baixa no estoque"
-    },
-    "documentSoon": {
-      "title": "Envio de PDF em breve",
-      "message": "Por enquanto, registre a entrada ou a saída pelo lançamento manual.",
-      "ok": "Entendi"
     },
     "categories": {
       "professionalFees": "Honorários",
@@ -1491,10 +1486,11 @@
     }
   },
   "serviceInvoices": {
-    "trigger": "Enviar nota fiscal",
     "extracting": "Lendo a nota…",
     "errors": {
       "notPdf": "Só aceitamos notas em PDF. Escolha um arquivo .pdf.",
+      "tooLarge": "O PDF passa de 15 MB, o limite aceito. Escolha outro arquivo.",
+      "alreadySent": "Este PDF já foi enviado antes.",
       "dismiss": "Entendi"
     },
     "review": {
@@ -1596,10 +1592,12 @@
         "fileMissing": "o PDF não está mais neste aparelho.",
         "other": "o servidor recusou os dados.",
         "fileDuplicated": "este PDF já foi enviado antes.",
-        "fileTooLarge": "o PDF passa do limite de 15 MB."
+        "fileTooLarge": "o PDF passa do limite de 15 MB.",
+        "possibleDuplicate": "já existe uma nota parecida, com o mesmo valor e data ou o mesmo número e tomador."
       },
       "discard": "Descartar nota",
-      "keep": "Manter na fila"
+      "keep": "Manter na fila",
+      "sendAnyway": "Enviar mesmo assim"
     }
   },
   "trips": {

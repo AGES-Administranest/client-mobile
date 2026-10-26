@@ -1,5 +1,7 @@
 import * as Crypto from 'expo-crypto';
 
+import { sha256Hex } from 'shared/services/fileHash';
+
 import { InvoiceDocument, PickedFile } from '../domain/invoiceDocument';
 
 /**
@@ -23,16 +25,4 @@ export async function describeDocument(
     sizeBytes: file.bytes.length,
     hash: await sha256Hex(file.bytes),
   };
-}
-
-/** Lowercase hex, which is the shape the backend validates. */
-async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  const digest = await Crypto.digest(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    bytes,
-  );
-
-  return Array.from(new Uint8Array(digest))
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join('');
 }
