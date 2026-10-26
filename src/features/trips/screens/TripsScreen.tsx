@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Modal } from 'react-native';
 
+import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { useClientNames } from 'features/clients';
 import { useVehicles } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
@@ -97,7 +97,7 @@ export function TripsScreen({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <SlideInModal visible={visible} onRequestClose={onClose}>
       <TripsScreenPresentation
         texts={{
           title: t('trips.title'),
@@ -163,6 +163,6 @@ export function TripsScreen({
         onSuccess={handleChanged}
         onDeleted={handleChanged}
       />
-    </Modal>
+    </SlideInModal>
   );
 }

@@ -1,21 +1,17 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
-  Animated,
-  Easing,
-  Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
+import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { monthOf } from 'shared/utils/monthPeriod';
@@ -26,7 +22,6 @@ import { PricingSetupView } from './PricingSetupView';
 import { PricingOnboarding } from '../components/PricingOnboarding';
 import { useHourlyRate } from '../hooks/useHourlyRate';
 
-const SLIDE_MS = 280;
 // Browsers report no top inset, which left the back button on the edge.
 const MIN_TOP_PADDING = 16;
 
@@ -39,46 +34,15 @@ type HourlyRateScreenProps = {
 
 export function HourlyRateScreen({ visible, onClose }: HourlyRateScreenProps) {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  // The Modal's own "slide" always rises from the bottom; the calculator
-  // enters from the right like a pushed screen, so the Modal is kept mounted
-  // (and transparent) while the content slides.
-  const [mounted, setMounted] = useState(visible);
-  const offset = useRef(new Animated.Value(visible ? 0 : width)).current;
-
-  useEffect(() => {
-    const animation = Animated.timing(offset, {
-      toValue: visible ? 0 : width,
-      duration: SLIDE_MS,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: Platform.OS !== 'web',
-    });
-    if (visible) {
-      setMounted(true);
-      offset.setValue(width);
-    }
-    animation.start(({ finished }) => {
-      if (finished && !visible) setMounted(false);
-    });
-    return () => animation.stop();
-  }, [visible, width, offset]);
 
   return (
-    <Modal
-      visible={mounted}
-      animationType="none"
-      transparent
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      {/* style, not className: Animated.View does not take NativeWind's. */}
-      <Animated.View
+    <SlideInModal visible={visible} onRequestClose={onClose}>
+      <View
         style={[
           styles.fill,
           {
             paddingTop: Math.max(insets.top, MIN_TOP_PADDING),
             paddingBottom: insets.bottom,
-            transform: [{ translateX: offset }],
           },
         ]}
       >
@@ -90,8 +54,8 @@ export function HourlyRateScreen({ visible, onClose }: HourlyRateScreenProps) {
           style={StyleSheet.absoluteFill}
         />
         <HourlyRateContent onClose={onClose} />
-      </Animated.View>
-    </Modal>
+      </View>
+    </SlideInModal>
   );
 }
 

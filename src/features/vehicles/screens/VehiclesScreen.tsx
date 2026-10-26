@@ -3,7 +3,6 @@ import { ArrowLeft, Car, Plus, Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +14,7 @@ import { Button } from 'app/components/ui/button';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
+import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { Text } from 'app/components/ui/text';
 import { useAuth } from 'features/auth';
 import { useTranslation } from 'shared/i18n';
@@ -195,12 +195,7 @@ export function VehiclesScreen({
   }
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
+    <SlideInModal visible={visible} onRequestClose={onClose}>
       <View
         className="flex-1"
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
@@ -326,6 +321,6 @@ export function VehiclesScreen({
           onCancel={() => setConfirmInactivateVisible(false)}
         />
       </View>
-    </Modal>
+    </SlideInModal>
   );
 }

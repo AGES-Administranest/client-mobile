@@ -146,7 +146,6 @@ export function useFinanceOverview(
           period,
           {
             depreciation: cached.depreciation,
-            transport: cached.transport,
           },
         );
         if (active && currentRequest === request) {
@@ -181,7 +180,6 @@ export function useFinanceOverview(
         }
         if (costsResult.status === 'fulfilled') {
           saveBalanceAdjustments(period, {
-            transport: costsResult.value.transportCost,
             depreciation: costsResult.value.equipmentDepreciation,
           });
         } else if (equipmentResult.status === 'fulfilled') {
@@ -239,7 +237,6 @@ export function useFinanceOverview(
               next,
               calculateMonthlyBalance(localEntries(period), period, {
                 depreciation: cached.depreciation,
-                transport: cached.transport,
               }),
             );
           }
@@ -253,9 +250,7 @@ export function useFinanceOverview(
           balanceResult.status === 'rejected' &&
           isNetworkError(balanceResult.reason)
         ) {
-          setIncomplete(
-            cached.depreciation === null || cached.transport === null,
-          );
+          setIncomplete(cached.depreciation === null);
           setHasError(false);
         } else {
           setHasError(true);

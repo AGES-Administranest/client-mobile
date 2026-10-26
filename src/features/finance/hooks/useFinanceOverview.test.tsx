@@ -255,7 +255,7 @@ test('reconnecting replaces the local total and does not blank the header', asyn
 
   await mount();
 
-  expect(seen.at(-1)).toBe(85);
+  expect(seen.at(-1)).toBe(88);
   const afterLocal = seen.length;
 
   const listener = restoredMock.mock.calls.at(-1)?.[0];
