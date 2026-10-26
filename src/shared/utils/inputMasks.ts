@@ -2,6 +2,11 @@ export function digitsOnly(value: string): string {
   return value.replace(/\D/g, '');
 }
 
+/** Digits and the decimal separators, for fields that take a plain number. */
+export function decimalOnly(value: string): string {
+  return value.replace(/[^\d.,]/g, '');
+}
+
 export function formatDateInput(value: string): string {
   const digits = digitsOnly(value).slice(0, 8);
   const day = digits.slice(0, 2);

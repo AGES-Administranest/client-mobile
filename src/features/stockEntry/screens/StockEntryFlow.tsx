@@ -1,5 +1,5 @@
 import { Inbox } from 'lucide-react-native';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { ActionButton } from 'app/components/ui';
@@ -21,10 +21,20 @@ type StockEntryFlowProps = {
   // reports the intent and closes its own screens; without a handler the
   // option just dismisses, as it did before the form existed.
   onTypeItem?: () => void;
+  /** False when the caller opens the list from its own control. */
+  showButton?: boolean;
+  children?: (flow: {
+    openList: () => void;
+    pendingCount: number;
+  }) => ReactNode;
 };
 
 /** Materiais → Entradas: the pending list, a new upload and the review. */
-export function StockEntryFlow({ onTypeItem }: StockEntryFlowProps = {}) {
+export function StockEntryFlow({
+  onTypeItem,
+  showButton = true,
+  children,
+}: StockEntryFlowProps = {}) {
   const { t } = useTranslation();
   const [isListOpen, setIsListOpen] = useState(false);
   const entries = useEntries();
@@ -71,15 +81,18 @@ export function StockEntryFlow({ onTypeItem }: StockEntryFlowProps = {}) {
   return (
     <View>
       {/* Materials button that opens the entries */}
-      <ActionButton
-        label={
-          pendingCount > 0
-            ? t('stockEntry.triggerWithCount', { count: pendingCount })
-            : t('stockEntry.trigger')
-        }
-        icon={<Icon as={Inbox} size={16} />}
-        onPress={openList}
-      />
+      {showButton ? (
+        <ActionButton
+          label={
+            pendingCount > 0
+              ? t('stockEntry.triggerWithCount', { count: pendingCount })
+              : t('stockEntry.trigger')
+          }
+          icon={<Icon as={Inbox} size={16} />}
+          onPress={openList}
+        />
+      ) : null}
+      {children?.({ openList, pendingCount })}
 
       {/* Pending list; everything else opens over it */}
       <EntriesScreen

@@ -1,8 +1,6 @@
-import { Eye, Upload } from 'lucide-react-native';
-import { View } from 'react-native';
+import { Eye } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 
-import { ActionButton } from 'app/components/ui';
-import { Icon } from 'app/components/ui/icon';
 import { LoadingOverlay } from 'app/components/ui/loading-overlay';
 import { MessageOverlay } from 'app/components/ui/message-overlay';
 import { NoticeBanner } from 'app/components/ui/notice-banner';
@@ -35,12 +33,27 @@ function reasonKeyOf(code: string | null): TranslationKey {
     : OTHER_REASON_KEY;
 }
 
+export type ServiceInvoiceUploadTrigger = {
+  /** Starts the pick, the reading and the review. */
+  start: () => void;
+  /** A pick or a review is already under way. */
+  busy: boolean;
+  /** The queue banners, for the caller to place where they belong. */
+  notices: ReactNode;
+};
+
 /**
  * Pick a PDF, read it, review it: the NFSe counterpart of the stock entry flow.
  * Without a connection the reading is not available, so the same review is
  * offered for typing the note by hand, to be sent once the connection is back.
+ * It draws no button: the caller starts it from `children`, so the finance
+ * "new entry" options can be the one entry point.
  */
-export function ServiceInvoiceUploadFlow() {
+export function ServiceInvoiceUploadFlow({
+  children,
+}: {
+  children: (trigger: ServiceInvoiceUploadTrigger) => ReactNode;
+}) {
   const { t } = useTranslation();
   const upload = useServiceInvoiceUpload();
   const pending = usePendingServiceInvoices();
@@ -56,56 +69,55 @@ export function ServiceInvoiceUploadFlow() {
       })
     : null;
 
-  return (
-    <View className="gap-3">
-      <ActionButton
-        label={t('serviceInvoices.trigger')}
-        icon={<Icon as={Upload} size={16} />}
-        disabled={upload.step !== 'idle'}
-        onPress={upload.start}
-      />
+  const notices = (
+    <>
+        {waiting > 0 ? (
+          <NoticeBanner
+            tone="info"
+            message={t(
+              waiting === 1
+                ? 'serviceInvoices.pending.waitingOne'
+                : 'serviceInvoices.pending.waitingOther',
+              { count: waiting },
+            )}
+          />
+        ) : null}
+        {rejected > 0 ? (
+          <NoticeBanner
+            tone="alert"
+            message={t(
+              rejected === 1
+                ? 'serviceInvoices.pending.rejectedOne'
+                : 'serviceInvoices.pending.rejectedOther',
+              { count: rejected },
+            )}
+            actionLabel={t('serviceInvoices.pending.review')}
+            actionIcon={Eye}
+            actionPlacement="inline"
+            onAction={pending.reopenRejection}
+          />
+        ) : null}
+        {pending.discardLeftFile ? (
+          <NoticeBanner
+            tone="alert"
+            message={t('serviceInvoices.pending.discardLeftFile')}
+            actionLabel={t('serviceInvoices.sync.dismiss')}
+            actionPlacement="inline"
+            onAction={pending.dismissDiscardNotice}
+          />
+        ) : null}
+        {pending.loadFailed ? (
+          <NoticeBanner
+            tone="alert"
+            message={t('serviceInvoices.pending.loadFailed')}
+          />
+        ) : null}
+    </>
+  );
 
-      {waiting > 0 ? (
-        <NoticeBanner
-          tone="info"
-          message={t(
-            waiting === 1
-              ? 'serviceInvoices.pending.waitingOne'
-              : 'serviceInvoices.pending.waitingOther',
-            { count: waiting },
-          )}
-        />
-      ) : null}
-      {rejected > 0 ? (
-        <NoticeBanner
-          tone="alert"
-          message={t(
-            rejected === 1
-              ? 'serviceInvoices.pending.rejectedOne'
-              : 'serviceInvoices.pending.rejectedOther',
-            { count: rejected },
-          )}
-          actionLabel={t('serviceInvoices.pending.review')}
-          actionIcon={Eye}
-          actionPlacement="inline"
-          onAction={pending.reopenRejection}
-        />
-      ) : null}
-      {pending.discardLeftFile ? (
-        <NoticeBanner
-          tone="alert"
-          message={t('serviceInvoices.pending.discardLeftFile')}
-          actionLabel={t('serviceInvoices.sync.dismiss')}
-          actionPlacement="inline"
-          onAction={pending.dismissDiscardNotice}
-        />
-      ) : null}
-      {pending.loadFailed ? (
-        <NoticeBanner
-          tone="alert"
-          message={t('serviceInvoices.pending.loadFailed')}
-        />
-      ) : null}
+  return (
+    <>
+      {children({ start: upload.start, busy: upload.step !== 'idle', notices })}
 
       <LoadingOverlay
         visible={upload.step === 'extracting'}
@@ -157,6 +169,6 @@ export function ServiceInvoiceUploadFlow() {
           onClose={upload.closeReview}
         />
       ) : null}
-    </View>
+    </>
   );
 }

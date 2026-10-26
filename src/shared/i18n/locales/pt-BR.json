@@ -38,18 +38,11 @@
       "depreciation": "Depreciação de equipamentos",
       "transport": "Custo de transporte/veículo",
       "total": "Total de custos fixos",
-      "automatic": "automático · do app",
-      "transportField": "Transporte / Veículo (R$/mês)",
-      "transportHint": "Registre deslocamentos como despesa na aba Finanças",
       "loading": "Carregando custos fixos...",
       "errors": {
-        "required": "Informe o valor do transporte (use 0 se não houver).",
-        "notNumeric": "Digite apenas números.",
-        "negative": "O valor não pode ser negativo.",
-        "generic": "Não foi possível salvar. O valor anterior foi mantido.",
+        "generic": "Não foi possível carregar os custos fixos.",
         "session": "Sua sessão expirou. Entre novamente."
       },
-      "transportPlaceholder": "Ex.: 350",
       "openList": "Ver lista de custos fixos"
     }
   },
@@ -105,6 +98,11 @@
     "equipment": "Equipamentos"
   },
   "materials": {
+    "actions": {
+      "button": "Adicionar material",
+      "manual": "Lançamento manual",
+      "title": "Adicionar material"
+    },
     "categoryAll": "Todos",
     "lowStockWarning": "Item abaixo da quantidade mínima",
     "addButton": "Adicionar material",
@@ -627,11 +625,6 @@
       "sendDocument": "Enviar documento (PDF)",
       "manual": "Lançamento manual",
       "stockWriteOff": "Baixa no estoque"
-    },
-    "documentSoon": {
-      "title": "Envio de PDF em breve",
-      "message": "Por enquanto, registre a entrada ou a saída pelo lançamento manual.",
-      "ok": "Entendi"
     },
     "categories": {
       "professionalFees": "Honorários",
@@ -1493,7 +1486,6 @@
     }
   },
   "serviceInvoices": {
-    "trigger": "Enviar nota fiscal",
     "extracting": "Lendo a nota…",
     "errors": {
       "notPdf": "Só aceitamos notas em PDF. Escolha um arquivo .pdf.",

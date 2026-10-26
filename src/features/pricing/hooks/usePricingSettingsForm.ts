@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
+import { decimalOnly } from 'shared/utils/inputMasks';
 
 import type {
   PricingSettings,
@@ -56,7 +57,7 @@ export function usePricingSettingsForm({
   }, []);
 
   const setField = useCallback((field: PricingSettingsField, value: string) => {
-    setDraft(current => ({ ...current, [field]: value }));
+    setDraft(current => ({ ...current, [field]: decimalOnly(value) }));
     setErrors(current => {
       if (current[field] === undefined) {
         return current;

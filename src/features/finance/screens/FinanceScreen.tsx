@@ -10,6 +10,7 @@ import { HourlyRateScreen } from 'features/pricing';
 import {
   isServiceInvoiceUploadAvailable,
   ServiceInvoiceUploadFlow,
+  type ServiceInvoiceUploadTrigger,
 } from 'features/serviceInvoices';
 import { TripsScreen } from 'features/trips';
 import { VehiclesScreen } from 'features/vehicles';
@@ -122,10 +123,11 @@ export function FinanceScreen() {
     }
   };
 
-  return (
+  const renderScreen = (upload: ServiceInvoiceUploadTrigger | null) => (
     <View className="flex-1">
       <NewEntryFlow
         showButton={false}
+        onSendDocument={upload?.start}
         containerClassName="flex-1 gap-0 px-0 pt-0"
         onEntrySaved={() => {
           statement.reload();
@@ -191,9 +193,7 @@ export function FinanceScreen() {
                     label={t('financialEntries.newEntry')}
                     onPress={openOptions}
                   />
-                  {isServiceInvoiceUploadAvailable() && (
-                    <ServiceInvoiceUploadFlow />
-                  )}
+                  {upload?.notices}
                 </View>
                 <View className="gap-3 px-5">
                   <ScopeFilter
@@ -270,5 +270,11 @@ export function FinanceScreen() {
         }}
       />
     </View>
+  );
+
+  return isServiceInvoiceUploadAvailable() ? (
+    <ServiceInvoiceUploadFlow>{renderScreen}</ServiceInvoiceUploadFlow>
+  ) : (
+    renderScreen(null)
   );
 }

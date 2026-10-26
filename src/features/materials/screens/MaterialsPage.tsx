@@ -1,20 +1,25 @@
-import { FileText, PackageSearch, Plus, Trash2 } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import {
+  FileText,
+  Inbox,
+  PackageSearch,
+  Plus,
+  Trash2,
+} from 'lucide-react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
-import { ActionButton } from 'app/components/ui';
 import { Button } from 'app/components/ui/button';
 import { MaterialCard } from 'app/components/ui/card';
 import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { EmptyState } from 'app/components/ui/empty-state';
-import { Icon } from 'app/components/ui/icon';
 import type { StockItem } from 'app/components/ui/item-modal/domain/itemModal';
 import { ItemModal } from 'app/components/ui/item-modal/item-modal';
 import type {
   ItemDraft,
   ItemModalMode,
 } from 'app/components/ui/item-modal/item-modal';
+import { OptionsModal } from 'app/components/ui/options-modal';
 import { SegmentedControl } from 'app/components/ui/segmented-control';
 import { Text } from 'app/components/ui/text';
 import {
@@ -274,6 +279,9 @@ export function MaterialsScreen() {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [isInvoicesOpen, setIsInvoicesOpen] = useState(false);
+  const [actionsVisible, setActionsVisible] = useState(false);
+  // iOS: um Modal não abre enquanto outro fecha.
+  const openAfterActionsLeave = useRef<(() => void) | null>(null);
 
   const [modalMode, setModalMode] = useState<ItemModalMode | null>(null);
   const [modalItem, setModalItem] = useState<StockItem | null>(null);
@@ -304,6 +312,17 @@ export function MaterialsScreen() {
     { value: ALL_CATEGORIES, label: t('materials.categoryAll') },
     ...categories.map(item => ({ value: item, label: item })),
   ];
+
+  function chooseAction(openNext: () => void) {
+    openAfterActionsLeave.current = openNext;
+    setActionsVisible(false);
+  }
+
+  function openChosenAction() {
+    const open = openAfterActionsLeave.current;
+    openAfterActionsLeave.current = null;
+    open?.();
+  }
 
   function closeModal() {
     setModalMode(null);
@@ -406,28 +425,57 @@ export function MaterialsScreen() {
               />
             ))}
           </ScrollView>
-          <StockEntryFlow onTypeItem={openCreate} />
+          <StockEntryFlow onTypeItem={openCreate} showButton={false}>
+            {({ openList, pendingCount }) => (
+              <OptionsModal
+                visible={actionsVisible}
+                onClose={() => setActionsVisible(false)}
+                onClosed={openChosenAction}
+                title={t('materials.actions.title')}
+                options={[
+                  {
+                    label:
+                      pendingCount > 0
+                        ? t('stockEntry.triggerWithCount', {
+                            count: pendingCount,
+                          })
+                        : t('stockEntry.trigger'),
+                    icon: Inbox,
+                    onPress: () => chooseAction(openList),
+                  },
+                  ...(isInvoiceListAvailable()
+                    ? [
+                        {
+                          label: t('invoices.trigger'),
+                          icon: FileText,
+                          onPress: () =>
+                            chooseAction(() => setIsInvoicesOpen(true)),
+                        },
+                      ]
+                    : []),
+                  {
+                    label: t('materials.actions.manual'),
+                    icon: Plus,
+                    onPress: () => chooseAction(openCreate),
+                  },
+                ]}
+              />
+            )}
+          </StockEntryFlow>
           {isInvoiceListAvailable() && (
-            <>
-              <ActionButton
-                label={t('invoices.trigger')}
-                icon={<Icon as={FileText} size={16} />}
-                onPress={() => setIsInvoicesOpen(true)}
-              />
-              <InvoicesScreen
-                visible={isInvoicesOpen}
-                onClose={() => setIsInvoicesOpen(false)}
-              />
-            </>
+            <InvoicesScreen
+              visible={isInvoicesOpen}
+              onClose={() => setIsInvoicesOpen(false)}
+            />
           )}
           <Button
             shape="pill"
             icon={Plus}
             className="h-[49px] w-full mb-[16px]"
             disabled={isSaving}
-            onPress={openCreate}
+            onPress={() => setActionsVisible(true)}
           >
-            <Text>{t('materials.addButton')}</Text>
+            <Text>{t('materials.actions.button')}</Text>
           </Button>
         </>
       )}

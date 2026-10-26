@@ -15,15 +15,10 @@ import { usePricingSettingsForm } from '../hooks/usePricingSettingsForm';
 type PricingSetupViewProps = {
   month: MonthPeriod;
   onSaved: () => void;
-  onOpenFixedCosts: () => void;
 };
 
 // The "Configurar honorários" frame, opened from the initial state.
-export function PricingSetupView({
-  month,
-  onSaved,
-  onOpenFixedCosts,
-}: PricingSetupViewProps) {
+export function PricingSetupView({ month, onSaved }: PricingSetupViewProps) {
   const { t } = useTranslation();
   const form = usePricingSettingsForm();
 
@@ -67,11 +62,7 @@ export function PricingSetupView({
         onChangeField={form.setField}
       />
 
-      <FixedCostsSection
-        period={month}
-        showTransportLine={false}
-        onOpenList={onOpenFixedCosts}
-      />
+      <FixedCostsSection period={month} />
 
       <Button
         shape="pill"

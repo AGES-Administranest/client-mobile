@@ -124,13 +124,21 @@ function fieldByLabel(
     .pop()!;
 }
 
+// "Lançamento manual" fica na modal do botão "Adicionar material".
+async function openAddMaterial(renderer: ReactTestRenderer.ReactTestRenderer) {
+  await act(async () => {
+    pressWithText(renderer, 'Adicionar material')!.props.onPress();
+  });
+  await act(async () => {
+    pressWithText(renderer, 'Lançamento manual')!.props.onPress();
+  });
+}
+
 async function createWithCategory(categoryLabel: string) {
   const renderer = await renderScreen();
 
   // Abre o modal de cadastro
-  await act(async () => {
-    pressWithText(renderer, 'Adicionar material')!.props.onPress();
-  });
+  await openAddMaterial(renderer);
 
   // Escolhe a categoria dentro do modal
   await act(async () => {
@@ -187,9 +195,7 @@ test.each([
 test('switching category after typing keeps what the user already filled', async () => {
   const renderer = await renderScreen();
 
-  await act(async () => {
-    pressWithText(renderer, 'Adicionar material')!.props.onPress();
-  });
+  await openAddMaterial(renderer);
 
   // Ordem natural: digita o nome primeiro...
   await act(async () => {
@@ -247,9 +253,7 @@ test('typing a name searches the items already in stock', async () => {
 
   const renderer = await renderScreen();
 
-  await act(async () => {
-    pressWithText(renderer, 'Adicionar material')!.props.onPress();
-  });
+  await openAddMaterial(renderer);
   await act(async () => {
     inputs(renderer)[0].props.onChangeText('Dipi');
   });
@@ -298,9 +302,7 @@ test('shows the expiration the API returns next to the searched item', async () 
 
   const renderer = await renderScreen();
 
-  await act(async () => {
-    pressWithText(renderer, 'Adicionar material')!.props.onPress();
-  });
+  await openAddMaterial(renderer);
   await act(async () => {
     inputs(renderer)[0].props.onChangeText('Dipi');
   });
@@ -318,9 +320,7 @@ test('shows the expiration the API returns next to the searched item', async () 
 describe('supplier', () => {
   async function openNewItemForm() {
     const renderer = await renderScreen();
-    await act(async () => {
-      pressWithText(renderer, 'Adicionar material')!.props.onPress();
-    });
+    await openAddMaterial(renderer);
     await act(async () => {
       inputs(renderer)[0].props.onChangeText('Item novo');
     });

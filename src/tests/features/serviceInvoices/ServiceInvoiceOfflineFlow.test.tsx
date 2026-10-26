@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { ActionButton } from 'app/components/ui';
 import { FullScreenModal as FullScreenModalType } from 'app/components/ui/full-screen-modal';
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import type { Client } from 'features/clients/domain/client';
@@ -173,7 +174,18 @@ async function renderFlow() {
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-            <ServiceInvoiceUploadFlow />
+            <ServiceInvoiceUploadFlow>
+              {({ start, busy, notices }) => (
+                <>
+                  <ActionButton
+                    label="Enviar nota fiscal"
+                    disabled={busy}
+                    onPress={start}
+                  />
+                  {notices}
+                </>
+              )}
+            </ServiceInvoiceUploadFlow>
           </AuthProvider>
         </I18nProvider>
       </SafeAreaProvider>,

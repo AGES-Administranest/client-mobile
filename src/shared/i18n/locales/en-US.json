@@ -38,18 +38,11 @@
       "depreciation": "Equipment depreciation",
       "transport": "Transport/vehicle cost",
       "total": "Total fixed costs",
-      "automatic": "automatic · from the app",
-      "transportField": "Transport / Vehicle (R$/month)",
-      "transportHint": "Record trips as an expense in the Finance tab",
       "loading": "Loading fixed costs...",
       "errors": {
-        "required": "Enter the transport amount (use 0 if none).",
-        "notNumeric": "Type numbers only.",
-        "negative": "The amount cannot be negative.",
-        "generic": "Could not save. The previous value was kept.",
+        "generic": "Could not load the fixed costs.",
         "session": "Your session expired. Sign in again."
       },
-      "transportPlaceholder": "E.g.: 350",
       "openList": "See fixed costs list"
     }
   },
@@ -105,6 +98,11 @@
     "equipment": "Equipment"
   },
   "materials": {
+    "actions": {
+      "button": "Add material",
+      "manual": "Manual entry",
+      "title": "Add material"
+    },
     "categoryAll": "All",
     "lowStockWarning": "Item below minimum quantity",
     "addButton": "Add material",
@@ -627,11 +625,6 @@
       "sendDocument": "Upload document (PDF)",
       "manual": "Manual entry",
       "stockWriteOff": "Stock write-off"
-    },
-    "documentSoon": {
-      "title": "PDF upload coming soon",
-      "message": "For now, record the income or the expense with a manual entry.",
-      "ok": "Got it"
     },
     "categories": {
       "professionalFees": "Professional fees",
@@ -1493,7 +1486,6 @@
     }
   },
   "serviceInvoices": {
-    "trigger": "Send invoice",
     "extracting": "Reading the invoice…",
     "errors": {
       "notPdf": "We only accept PDF invoices. Choose a .pdf file.",
