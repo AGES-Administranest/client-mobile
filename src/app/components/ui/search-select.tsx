@@ -48,6 +48,8 @@ type SearchSelectProps = {
   messages: SearchSelectMessages;
   addOption?: SearchSelectAddOption;
   trailingIcon?: LucideIcon;
+  /** The Figma 36px combobox: smaller radius, padding and text. */
+  compact?: boolean;
   className?: string;
   onChangeText: (text: string) => void;
   onSelect: (option: SearchSelectOption) => void;
@@ -79,6 +81,7 @@ export function SearchSelect({
   messages,
   addOption,
   trailingIcon,
+  compact = false,
   className,
   onChangeText,
   onSelect,
@@ -144,7 +147,10 @@ export function SearchSelect({
       </Text>
       <View
         className={cn(
-          'flex-row items-center rounded-xl border bg-white px-4',
+          'flex-row items-center',
+          compact
+            ? 'rounded-lg border bg-white px-3'
+            : 'rounded-xl border bg-white px-4',
           error ? 'border-alert-primary' : 'border-border-primary',
         )}
       >
@@ -156,7 +162,10 @@ export function SearchSelect({
           accessibilityState={{ expanded: listIsOpen }}
           // min-w-0: na web o input tem largura mínima própria e empurraria o
           // ícone para fora do campo.
-          className="min-w-0 flex-1 py-2.5 text-[15px] text-label-primary"
+          className={cn(
+            'min-w-0 flex-1 text-label-primary',
+            compact ? 'py-2 text-sm' : 'py-2.5 text-[15px]',
+          )}
           placeholder={placeholder}
           placeholderTextColor={LabelPlaceholder}
           value={text}

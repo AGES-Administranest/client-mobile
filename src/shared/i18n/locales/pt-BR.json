@@ -1602,8 +1602,8 @@
     "back": "Voltar",
     "add": "Registrar deslocamento",
     "empty": {
-      "title": "Nenhum deslocamento no período",
-      "message": "Registre seus deslocamentos para acompanhar a quilometragem e o custo de transporte."
+      "title": "Nenhum deslocamento em {{month}}",
+      "message": "Registre as idas às clínicas para saber quanto custa atender cada uma."
     },
     "summary": {
       "previousMonth": "Mês anterior",
@@ -1632,35 +1632,35 @@
       "destinationPlaceholder": "Ex: Clínica VetNova",
       "vehicle": "VEÍCULO",
       "vehiclePlaceholder": "Selecione um veículo",
-      "noVehicles": "Nenhum veículo ativo cadastrado. Cadastre um veículo primeiro.",
+      "noVehicles": "Nenhum veículo cadastrado",
       "cost": "VALOR PAGO (R$)",
       "costPlaceholder": "Ex: 32,90",
       "distance": "DISTÂNCIA (KM)",
-      "distanceOptional": "DISTÂNCIA (KM) (OPCIONAL)",
       "distancePlaceholder": "Ex: 30",
       "date": "DATA",
       "datePlaceholder": "DD/MM/AAAA",
       "previewTitle": "Custo do deslocamento",
       "previewFormula": "{{distance}} km × {{costPerKm}}/km",
-      "previewPickVehicle": "Selecione o veículo e a distância",
+      "previewPickVehicle": "Selecione um veículo para calcular",
       "previewInformed": "Valor informado",
       "previewInformCost": "Informe o valor pago",
-      "client": "TOMADOR (OPCIONAL)",
-      "clientPlaceholder": "Selecione o tomador",
-      "clientLoading": "Buscando tomador...",
-      "clientEmpty": "Nenhum tomador encontrado",
-      "clientError": "Erro ao buscar tomador",
+      "client": "CLÍNICA (OPCIONAL)",
+      "clientPlaceholder": "Selecione a clínica",
+      "clientLoading": "Buscando clínica...",
+      "clientEmpty": "Nenhuma clínica encontrada",
+      "clientError": "Erro ao buscar clínica",
       "save": "Salvar",
       "saving": "Salvando...",
-      "delete": "Excluir deslocamento",
-      "vehicleOption": "{{name}} · {{costPerKm}}/km"
+      "delete": "Excluir",
+      "vehicleOption": "{{name}} · {{costPerKm}}/km",
+      "previewInformDistance": "Informe a distância para calcular"
     },
     "errors": {
       "occurredOnRequired": "Informe a data",
       "occurredOnInvalid": "Data inválida",
-      "originRequired": "Informe a origem",
+      "originRequired": "Informe a origem.",
       "originMaxLength": "A origem deve ter no máximo 200 caracteres",
-      "destinationRequired": "Informe o destino",
+      "destinationRequired": "Informe o destino.",
       "destinationMaxLength": "O destino deve ter no máximo 200 caracteres",
       "vehicleRequired": "Selecione um veículo",
       "distanceRequired": "Informe a distância",
@@ -1668,19 +1668,21 @@
       "costRequired": "Informe o valor pago",
       "costInvalid": "Informe um valor maior que zero, até R$ 10.000 e com até 2 casas decimais",
       "saveFailed": "Não foi possível salvar o deslocamento. Tente novamente.",
-      "deleteFailed": "Não foi possível excluir o deslocamento. Tente novamente."
+      "deleteFailed": "Não foi possível excluir o deslocamento. Tente novamente.",
+      "distanceNotPositive": "Informe uma distância maior que zero."
     },
     "deleteConfirm": {
-      "title": "Excluir deslocamento",
-      "message": "Deseja realmente excluir este deslocamento? A despesa também será removida das finanças.",
+      "title": "Excluir este deslocamento?",
       "confirm": "Excluir",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "message": "A despesa também será removida das finanças."
     },
     "sync": {
       "rejectedTitle": "Falha na sincronização",
       "rejectedMessage": "Não foi possível sincronizar um dos seus deslocamentos com o servidor. Verifique os dados e tente novamente.",
       "rejectedConfirm": "Entendi"
-    }
+    },
+    "loadFailed": "Não foi possível carregar os deslocamentos."
   },
   "invoices": {
     "trigger": "Notas fiscais",

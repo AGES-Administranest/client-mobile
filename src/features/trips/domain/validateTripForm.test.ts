@@ -87,7 +87,7 @@ describe('validateTripForm', () => {
       ...VALID_OWN_VEHICLE_FORM,
       distanceKm: '0',
     });
-    expect(zeroDistance.distanceKm).toBe('distanceInvalid');
+    expect(zeroDistance.distanceKm).toBe('distanceNotPositive');
 
     const negativeDistance = validateTripForm({
       ...VALID_OWN_VEHICLE_FORM,

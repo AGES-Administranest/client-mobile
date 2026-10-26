@@ -1,6 +1,7 @@
+import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 
-import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { ConfirmDialog } from 'app/components/ui/confirm-dialog';
 import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
 
@@ -84,6 +85,13 @@ export function TripFormSheet({
         })
       : null;
 
+  // Until the vehicle and the distance (or the amount paid) are filled in,
+  // there is no cost to show: the box keeps a dash instead of R$ 0,00.
+  const previewIsKnown =
+    form.mode === 'OWN_VEHICLE'
+      ? previewFormula !== null
+      : (parseDecimalInput(form.values.cost, 2) ?? 0) > 0;
+
   const errorText = (
     code: TripFormErrorCode | TripSubmitErrorCode | undefined,
   ) => (code ? t(`trips.errors.${code}`) : undefined);
@@ -104,16 +112,16 @@ export function TripFormSheet({
     cost: t('trips.form.cost'),
     costPlaceholder: t('trips.form.costPlaceholder'),
     distance: t('trips.form.distance'),
-    distanceOptional: t('trips.form.distanceOptional'),
     distancePlaceholder: t('trips.form.distancePlaceholder'),
     date: t('trips.form.date'),
     datePlaceholder: t('trips.form.datePlaceholder'),
     previewTitle: t('trips.form.previewTitle'),
     previewFormula,
     previewPickVehicle: t('trips.form.previewPickVehicle'),
+    previewInformDistance: t('trips.form.previewInformDistance'),
     previewInformed: t('trips.form.previewInformed'),
     previewInformCost: t('trips.form.previewInformCost'),
-    previewCost: money(form.previewCost),
+    previewCost: previewIsKnown ? money(form.previewCost) : null,
     client: t('trips.form.client'),
     clientPlaceholder: t('trips.form.clientPlaceholder'),
     clientMessages: {
@@ -165,10 +173,12 @@ export function TripFormSheet({
         onDelete={trip ? () => setDeleteConfirmVisible(true) : undefined}
       />
 
-      <ConfirmSheet
+      <ConfirmDialog
         visible={deleteConfirmVisible}
         title={t('trips.deleteConfirm.title')}
         message={t('trips.deleteConfirm.message')}
+        confirmIcon={Trash2}
+        cancelAppearance="button"
         confirmLabel={t('trips.deleteConfirm.confirm')}
         cancelLabel={t('trips.deleteConfirm.cancel')}
         onConfirm={() => {

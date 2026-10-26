@@ -43,6 +43,7 @@ type EmptyStateProps = VariantProps<typeof emptyStateVariants> & {
   iconClassName?: string;
   title?: string;
   message?: string;
+  titleClassName?: string;
   messageClassName?: string;
   action?: EmptyStateAction;
   className?: string;
@@ -53,6 +54,7 @@ function EmptyState({
   iconClassName,
   title,
   message,
+  titleClassName,
   messageClassName,
   action,
   align,
@@ -68,7 +70,12 @@ function EmptyState({
         />
       ) : null}
       {title ? (
-        <Text className="text-center text-[15px] font-semibold leading-[22px] text-label-primary">
+        <Text
+          className={cn(
+            'text-center text-[15px] font-semibold leading-[22px] text-label-primary',
+            titleClassName,
+          )}
+        >
           {title}
         </Text>
       ) : null}

@@ -55,6 +55,7 @@ export function TripsScreen({
       from: toCalendarDate(first),
       to: toCalendarDate(new Date(year, monthIndex + 1, 0)),
       isCurrentMonth,
+      monthName,
       label: `${monthName.charAt(0).toUpperCase()}${monthName.slice(
         1,
       )} ${year}`,
@@ -104,8 +105,11 @@ export function TripsScreen({
           subtitle: t('trips.subtitle'),
           back: t('trips.back'),
           add: t('trips.add'),
-          emptyTitle: t('trips.empty.title'),
+          loading: t('common.loading'),
+          emptyTitle: t('trips.empty.title', { month: period.monthName }),
           emptyMessage: t('trips.empty.message'),
+          loadFailed: t('trips.loadFailed'),
+          retry: t('common.retry'),
           summary: {
             monthLabel: period.label,
             currentMonth: t('trips.summary.currentMonth'),
@@ -133,6 +137,7 @@ export function TripsScreen({
         }
         groups={groups}
         isLoading={trips.isLoading}
+        hasError={trips.error !== null}
         isLoadingMore={trips.isLoadingMore}
         hasMore={trips.hasMore}
         onLoadMore={trips.loadMore}
