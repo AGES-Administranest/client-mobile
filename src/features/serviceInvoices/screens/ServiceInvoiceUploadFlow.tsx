@@ -71,47 +71,47 @@ export function ServiceInvoiceUploadFlow({
 
   const notices = (
     <>
-        {waiting > 0 ? (
-          <NoticeBanner
-            tone="info"
-            message={t(
-              waiting === 1
-                ? 'serviceInvoices.pending.waitingOne'
-                : 'serviceInvoices.pending.waitingOther',
-              { count: waiting },
-            )}
-          />
-        ) : null}
-        {rejected > 0 ? (
-          <NoticeBanner
-            tone="alert"
-            message={t(
-              rejected === 1
-                ? 'serviceInvoices.pending.rejectedOne'
-                : 'serviceInvoices.pending.rejectedOther',
-              { count: rejected },
-            )}
-            actionLabel={t('serviceInvoices.pending.review')}
-            actionIcon={Eye}
-            actionPlacement="inline"
-            onAction={pending.reopenRejection}
-          />
-        ) : null}
-        {pending.discardLeftFile ? (
-          <NoticeBanner
-            tone="alert"
-            message={t('serviceInvoices.pending.discardLeftFile')}
-            actionLabel={t('serviceInvoices.sync.dismiss')}
-            actionPlacement="inline"
-            onAction={pending.dismissDiscardNotice}
-          />
-        ) : null}
-        {pending.loadFailed ? (
-          <NoticeBanner
-            tone="alert"
-            message={t('serviceInvoices.pending.loadFailed')}
-          />
-        ) : null}
+      {waiting > 0 ? (
+        <NoticeBanner
+          tone="info"
+          message={t(
+            waiting === 1
+              ? 'serviceInvoices.pending.waitingOne'
+              : 'serviceInvoices.pending.waitingOther',
+            { count: waiting },
+          )}
+        />
+      ) : null}
+      {rejected > 0 ? (
+        <NoticeBanner
+          tone="alert"
+          message={t(
+            rejected === 1
+              ? 'serviceInvoices.pending.rejectedOne'
+              : 'serviceInvoices.pending.rejectedOther',
+            { count: rejected },
+          )}
+          actionLabel={t('serviceInvoices.pending.review')}
+          actionIcon={Eye}
+          actionPlacement="inline"
+          onAction={pending.reopenRejection}
+        />
+      ) : null}
+      {pending.discardLeftFile ? (
+        <NoticeBanner
+          tone="alert"
+          message={t('serviceInvoices.pending.discardLeftFile')}
+          actionLabel={t('serviceInvoices.sync.dismiss')}
+          actionPlacement="inline"
+          onAction={pending.dismissDiscardNotice}
+        />
+      ) : null}
+      {pending.loadFailed ? (
+        <NoticeBanner
+          tone="alert"
+          message={t('serviceInvoices.pending.loadFailed')}
+        />
+      ) : null}
     </>
   );
 
