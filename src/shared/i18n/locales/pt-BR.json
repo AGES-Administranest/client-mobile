@@ -1486,6 +1486,7 @@
     }
   },
   "serviceInvoices": {
+    "trigger": "Enviar nota fiscal",
     "extracting": "Lendo a nota…",
     "errors": {
       "notPdf": "Só aceitamos notas em PDF. Escolha um arquivo .pdf.",

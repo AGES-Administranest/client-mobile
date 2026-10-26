@@ -1486,6 +1486,7 @@
     }
   },
   "serviceInvoices": {
+    "trigger": "Send invoice",
     "extracting": "Reading the invoice…",
     "errors": {
       "notPdf": "We only accept PDF invoices. Choose a .pdf file.",
