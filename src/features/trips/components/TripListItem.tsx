@@ -1,6 +1,6 @@
 import {
   Car,
-  CarFront,
+  CarTaxiFront,
   ChevronRight,
   Clock,
   Trash2,
@@ -34,67 +34,67 @@ export function TripListItem({
   onDelete,
 }: TripListItemProps) {
   const content = (
-    <View className="flex-row items-center justify-between p-3.5">
-      <View className="mr-3 size-11 items-center justify-center rounded-2xl bg-details-primary">
+    <View className="flex-row items-center gap-3 px-4 py-[13px]">
+      <View className="size-[34px] items-center justify-center rounded-[10px] bg-details-primary">
         <Icon
-          as={trip.mode === 'OWN_VEHICLE' ? Car : CarFront}
-          size={20}
+          as={trip.mode === 'OWN_VEHICLE' ? Car : CarTaxiFront}
+          size={16}
           className="text-label-quartenery"
         />
       </View>
 
-      <View className="flex-1 pr-2">
+      <View className="min-w-0 flex-1">
         <Text
           numberOfLines={1}
-          className="text-[14px] font-bold text-label-primary"
+          className="text-[13px] font-medium leading-[19.5px] text-label-primary"
         >
           {trip.origin} → {trip.destination}
         </Text>
 
-        <Text numberOfLines={1} className="mt-0.5 text-xs text-label-tertiary">
-          {texts.subtitle}
-        </Text>
-
-        {texts.tag ? (
-          <View className="mt-1 self-start rounded-md bg-details-primary px-2 py-0.5">
-            <Text
-              numberOfLines={1}
-              className="text-[11px] font-semibold text-label-primary"
-            >
-              {texts.tag}
-            </Text>
-          </View>
-        ) : null}
+        <View className="flex-row flex-wrap items-center gap-x-1.5 gap-y-[3px] pt-0.5">
+          <Text className="text-[11px] leading-[16.5px] text-label-primary">
+            {texts.subtitle}
+          </Text>
+          {texts.tag ? (
+            <View className="rounded bg-details-primary px-1.5 py-px">
+              <Text
+                numberOfLines={1}
+                className="text-[10px] font-semibold leading-[15px] text-label-primary"
+              >
+                {texts.tag}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
 
-      <View className="items-end justify-center">
-        <View className="flex-row items-center gap-1.5">
-          <Text className="text-sm font-bold text-label-primary">
+      <View className="flex-row items-center gap-1">
+        <View className="items-end">
+          <Text className="text-sm font-semibold leading-[21px] text-label-primary">
             {texts.cost}
           </Text>
-
-          {onDelete ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={texts.delete}
-              hitSlop={8}
-              onPress={() => onDelete(trip)}
-              className="p-1 active:opacity-60"
-            >
-              <Icon as={Trash2} size={16} className="text-alert-primary" />
-            </Pressable>
-          ) : onPress ? (
-            <Icon as={ChevronRight} size={16} className="text-label-tertiary" />
+          {trip.pendingSync ? (
+            <View className="flex-row items-center gap-[3px]">
+              <Icon as={Clock} size={10} className="text-label-tertiary" />
+              <Text className="text-[10px] text-label-tertiary">
+                {texts.pending}
+              </Text>
+            </View>
           ) : null}
         </View>
 
-        {trip.pendingSync ? (
-          <View className="mt-1 flex-row items-center gap-1">
-            <Icon as={Clock} size={11} className="text-label-tertiary" />
-            <Text className="text-[10px] text-label-tertiary">
-              {texts.pending}
-            </Text>
-          </View>
+        {onDelete ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={texts.delete}
+            hitSlop={8}
+            onPress={() => onDelete(trip)}
+            className="p-1 active:opacity-60"
+          >
+            <Icon as={Trash2} size={16} className="text-alert-primary" />
+          </Pressable>
+        ) : onPress ? (
+          <Icon as={ChevronRight} size={16} className="text-label-tertiary" />
         ) : null}
       </View>
     </View>

@@ -69,7 +69,7 @@ describe('accrualMonthBounds', () => {
 });
 
 describe('calculateMonthlyBalance', () => {
-  const complete = { depreciation: 0, transport: 0 };
+  const complete = { depreciation: 0 };
 
   it('matches the backend totals and groups for the month', () => {
     expect(
@@ -85,6 +85,7 @@ describe('calculateMonthlyBalance', () => {
         { category: 'SUPPLIES', subtotal: 100.1 },
         { category: 'TRAVEL', subtotal: 40 },
         { category: 'FIXED_COSTS', subtotal: 30 },
+        { category: 'DEPRECIATION', subtotal: 0 },
         { category: 'TAXES_AND_FEES', subtotal: 20 },
         { category: 'OTHER', subtotal: 9.15 },
       ],
@@ -186,31 +187,28 @@ describe('calculateMonthlyBalance', () => {
       incomplete: false,
     });
     expect(balance.expensesByCategory.map(item => item.subtotal)).toEqual([
-      0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0,
     ]);
   });
 
-  it('adds local depreciation and transport to the professional total', () => {
+  it('adds the local depreciation to the professional total and its own group', () => {
     const balance = calculateMonthlyBalance(MARCH_ENTRIES, MARCH, {
       depreciation: 10,
-      transport: 2.5,
     });
 
-    expect(balance.professionalExpenses).toBe(186.6);
-    expect(balance.netBalance).toBe(788.25);
-    expect(balance.expensesByCategory[2]).toEqual({
-      category: 'FIXED_COSTS',
-      subtotal: 42.5,
+    expect(balance.professionalExpenses).toBe(184.1);
+    expect(balance.netBalance).toBe(790.75);
+    expect(balance.expensesByCategory[3]).toEqual({
+      category: 'DEPRECIATION',
+      subtotal: 10,
     });
     expect(balance.incomplete).toBe(false);
   });
 
-  it('warns when depreciation or transport is not on the device', () => {
+  it('warns when the depreciation is not on the device', () => {
     expect(
-      calculateMonthlyBalance(MARCH_ENTRIES, MARCH, {
-        depreciation: 10,
-        transport: null,
-      }).incomplete,
+      calculateMonthlyBalance(MARCH_ENTRIES, MARCH, { depreciation: null })
+        .incomplete,
     ).toBe(true);
     expect(calculateMonthlyBalance(MARCH_ENTRIES, MARCH).incomplete).toBe(true);
   });

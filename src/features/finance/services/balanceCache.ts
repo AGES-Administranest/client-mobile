@@ -5,7 +5,6 @@ export type CachedMonth = {
   entries: FinancialEntry[];
   pending: FinancialEntry[];
   depreciation: number | null;
-  transport: number | null;
 };
 
 const months = new Map<string, CachedMonth>();
@@ -20,7 +19,6 @@ function empty(): CachedMonth {
     entries: [],
     pending: [],
     depreciation: null,
-    transport: null,
   };
 }
 
@@ -77,13 +75,12 @@ export function rememberPendingEntry(
 
 export function saveBalanceAdjustments(
   period: StatementPeriod,
-  adjustments: { depreciation?: number | null; transport?: number | null },
+  adjustments: { depreciation?: number | null },
 ): void {
   const current = read(period);
   months.set(key(period), {
     ...current,
     depreciation: adjustments.depreciation ?? current.depreciation,
-    transport: adjustments.transport ?? current.transport,
   });
 }
 

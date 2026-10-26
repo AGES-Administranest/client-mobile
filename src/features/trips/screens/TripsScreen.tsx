@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Modal } from 'react-native';
 
+import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { useClientNames } from 'features/clients';
 import { useVehicles } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
@@ -55,6 +55,7 @@ export function TripsScreen({
       from: toCalendarDate(first),
       to: toCalendarDate(new Date(year, monthIndex + 1, 0)),
       isCurrentMonth,
+      monthName,
       label: `${monthName.charAt(0).toUpperCase()}${monthName.slice(
         1,
       )} ${year}`,
@@ -97,15 +98,18 @@ export function TripsScreen({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <SlideInModal visible={visible} onRequestClose={onClose}>
       <TripsScreenPresentation
         texts={{
           title: t('trips.title'),
           subtitle: t('trips.subtitle'),
           back: t('trips.back'),
           add: t('trips.add'),
-          emptyTitle: t('trips.empty.title'),
+          loading: t('common.loading'),
+          emptyTitle: t('trips.empty.title', { month: period.monthName }),
           emptyMessage: t('trips.empty.message'),
+          loadFailed: t('trips.loadFailed'),
+          retry: t('common.retry'),
           summary: {
             monthLabel: period.label,
             currentMonth: t('trips.summary.currentMonth'),
@@ -133,6 +137,7 @@ export function TripsScreen({
         }
         groups={groups}
         isLoading={trips.isLoading}
+        hasError={trips.error !== null}
         isLoadingMore={trips.isLoadingMore}
         hasMore={trips.hasMore}
         onLoadMore={trips.loadMore}
@@ -163,6 +168,6 @@ export function TripsScreen({
         onSuccess={handleChanged}
         onDeleted={handleChanged}
       />
-    </Modal>
+    </SlideInModal>
   );
 }

@@ -179,6 +179,19 @@ export function FinanceScreen() {
                       type: 'expense',
                     },
                   ]}
+                  totalExpenses={{
+                    title: t('finance.totalExpenses'),
+                    value: displayAmount(
+                      totals
+                        ? Math.round(
+                            (totals.professionalExpenses +
+                              totals.personalExpenses) *
+                              100,
+                          ) / 100
+                        : undefined,
+                    ),
+                    type: 'expense',
+                  }}
                   overview={overview.overview}
                   hasError={overview.hasError}
                   onPreviousMonth={() => setPeriod(shiftMonth(period, -1))}

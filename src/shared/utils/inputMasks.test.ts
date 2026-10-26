@@ -1,5 +1,6 @@
 import {
   currencyToNumber,
+  decimalOnly,
   digitsOnly,
   formatCurrencyInput,
   formatDateInput,
@@ -79,4 +80,10 @@ describe('parseDateInput', () => {
       expect(parseDateInput(input)).toBeNull();
     },
   );
+});
+
+describe('decimalOnly', () => {
+  it('drops letters and symbols but keeps digits and separators', () => {
+    expect(decimalOnly('R$ 1a.234,5x')).toBe('1.234,5');
+  });
 });

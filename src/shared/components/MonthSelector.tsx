@@ -11,6 +11,8 @@ type MonthSelectorProps = {
   nextLabel: string;
   onPrevious: () => void;
   onNext: () => void;
+  /** The next month cannot be reached (e.g. the future): dims the button. */
+  nextDisabled?: boolean;
 };
 
 // The Figma "Seletor de mês" row. Finance draws it at the top of the net
@@ -23,6 +25,7 @@ export function MonthSelector({
   nextLabel,
   onPrevious,
   onNext,
+  nextDisabled = false,
 }: MonthSelectorProps) {
   return (
     <View className="flex-row items-center justify-between">
@@ -53,9 +56,15 @@ export function MonthSelector({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={nextLabel}
+        accessibilityState={{ disabled: nextDisabled }}
+        disabled={nextDisabled}
         onPress={onNext}
         hitSlop={6}
-        className="size-8 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+        className={
+          nextDisabled
+            ? 'size-8 items-center justify-center rounded-full bg-button-primary opacity-35'
+            : 'size-8 items-center justify-center rounded-full bg-button-primary active:opacity-80'
+        }
       >
         <Icon as={ChevronRight} size={16} className="text-label-secondary" />
       </Pressable>
