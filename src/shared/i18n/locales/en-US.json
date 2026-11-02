@@ -1734,5 +1734,32 @@
       "issuedAt": "Issue date",
       "status": "Status"
     }
+  },
+  "reports": {
+    "title": "Reports",
+    "generate": {
+      "title": "Generate new report"
+    },
+    "period": {
+      "label": "Period",
+      "range": "{{from}} to {{to}}",
+      "incomplete": "Select the period",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "kinds": {
+      "general": {
+        "title": "General Report",
+        "description": "Revenue, expenses and appointments for the period"
+      },
+      "invoicePackage": {
+        "title": "Invoice Package for Income Tax",
+        "description": "The period's invoices gathered for income tax"
+      }
+    },
+    "history": {
+      "title": "Report history",
+      "viewAll": "View all"
+    }
   }
 }
