@@ -4,6 +4,7 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 import { I18nProvider } from 'shared/i18n';
 
 import { RecentInvoicesSection } from './RecentInvoicesSection';
+import { RecentInvoiceCard } from '../components/RecentInvoiceCard';
 import type { Invoice, InvoicePage } from '../domain/invoice.types';
 import { fetchInvoices } from '../services/invoiceService';
 
@@ -107,13 +108,7 @@ describe('RecentInvoicesSection', () => {
     );
     const { renderer } = await renderSection();
 
-    expect(
-      renderer.root.findAll(
-        node =>
-          node.props.accessibilityRole === 'button' &&
-          node.props.accessibilityLabel === undefined,
-      ),
-    ).toHaveLength(5);
+    expect(renderer.root.findAllByType(RecentInvoiceCard)).toHaveLength(5);
   });
 
   it('shows the empty message when there is no invoice', async () => {
