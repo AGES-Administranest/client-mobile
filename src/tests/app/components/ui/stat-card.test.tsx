@@ -23,3 +23,27 @@ test('shows the label above the value', async () => {
 
   expect(textsOf(renderer)).toEqual(['Peso', '12 kg']);
 });
+
+test('shows the detail line next to the value', async () => {
+  const renderer = await render(
+    <StatCard
+      label="Deslocamento"
+      value="R$ 96"
+      detail="6 trechos no período"
+    />,
+  );
+
+  expect(textsOf(renderer)).toEqual([
+    'Deslocamento',
+    'R$ 96',
+    '6 trechos no período',
+  ]);
+});
+
+test('keeps only the label while the value is loading', async () => {
+  const renderer = await render(
+    <StatCard label="Deslocamento" value="R$ 96" detail="6 trechos" loading />,
+  );
+
+  expect(textsOf(renderer)).toEqual(['Deslocamento']);
+});
