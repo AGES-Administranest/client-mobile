@@ -5,14 +5,19 @@ import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
 
 import { FixedCostsCard } from '../components/FixedCostsCard';
+import { fixedCostsTotal } from '../domain/fixedCostsSummary';
 import { useFixedCostsSummary } from '../hooks/useFixedCostsSummary';
 
-export function FixedCostsSection() {
+type FixedCostsSectionProps = {
+  period?: { month: number; year: number };
+};
+
+export function FixedCostsSection({ period }: FixedCostsSectionProps) {
   const { t, locale } = useTranslation();
-  const state = useFixedCostsSummary();
+  const state = useFixedCostsSummary({ period });
   const { summary } = state;
 
-  if (state.isLoading) {
+  if (state.isLoading && !summary) {
     return (
       <View
         accessibilityLabel={t('calculator.fixedCosts.loading')}
@@ -39,26 +44,18 @@ export function FixedCostsSection() {
   }
 
   const money = (value: number) => formatCurrency(value, locale);
-  const automatic = t('calculator.fixedCosts.automatic');
 
   return (
     <FixedCostsCard
       title={t('calculator.fixedCosts.title')}
       lines={[
         {
-          label: t('calculator.fixedCosts.professional'),
-          value: money(summary.professionalExpenses),
-          caption: automatic,
-        },
-        {
           label: t('calculator.fixedCosts.personal'),
           value: money(summary.personalExpenses),
-          caption: automatic,
         },
         {
           label: t('calculator.fixedCosts.depreciation'),
           value: money(summary.equipmentDepreciation),
-          caption: automatic,
         },
         {
           label: t('calculator.fixedCosts.transport'),
@@ -66,14 +63,7 @@ export function FixedCostsSection() {
         },
       ]}
       totalLabel={t('calculator.fixedCosts.total')}
-      totalValue={money(summary.total)}
-      transportLabel={t('calculator.fixedCosts.transportField')}
-      transportValue={state.transportInput}
-      transportHint={t('calculator.fixedCosts.transportHint')}
-      transportError={state.transportError ? t(state.transportError) : null}
-      onTransportChange={state.onTransportChange}
-      onTransportBlur={state.onTransportBlur}
-      isSaving={state.isSaving}
+      totalValue={money(fixedCostsTotal(summary))}
     />
   );
 }

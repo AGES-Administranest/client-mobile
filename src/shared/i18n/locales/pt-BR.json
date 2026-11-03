@@ -15,6 +15,7 @@
     "revenue": "Receitas",
     "professional": "Prof.",
     "personal": "Pessoal",
+    "totalExpenses": "Total de saídas",
     "productivityAndFixedCosts": "Produtividade e custos fixos",
     "hoursWorked": "Horas trabalhadas",
     "hoursValue": "{{hours}}h",
@@ -22,9 +23,10 @@
     "averageHourly": "Valor médio/hora",
     "grossPerHour": "bruto/hora",
     "equipmentDepreciation": "Depreciação de equipamentos",
-    "equipmentMonthlyCost": "{{count}} equipamentos · custo mensal",
     "perMonth": "/mês",
-    "overviewError": "Não foi possível carregar o resumo financeiro."
+    "overviewError": "Não foi possível carregar o resumo financeiro.",
+    "openTrips": "Abrir deslocamentos",
+    "balanceIncomplete": "Pode estar incompleto até sincronizar."
   },
   "calculator": {
     "title": "Calculadora de hora",
@@ -32,22 +34,16 @@
     "back": "Voltar",
     "fixedCosts": {
       "title": "Custos fixos mensais",
-      "professional": "Despesas profissionais (mês)",
       "personal": "Despesas pessoais (mês)",
       "depreciation": "Depreciação de equipamentos",
       "transport": "Custo de transporte/veículo",
       "total": "Total de custos fixos",
-      "automatic": "automático · do app",
-      "transportField": "Transporte / Veículo (R$/mês)",
-      "transportHint": "Registre deslocamentos como despesa na aba Finanças",
       "loading": "Carregando custos fixos...",
       "errors": {
-        "required": "Informe o valor do transporte (use 0 se não houver).",
-        "notNumeric": "Digite apenas números.",
-        "negative": "O valor não pode ser negativo.",
-        "generic": "Não foi possível salvar. O valor anterior foi mantido.",
+        "generic": "Não foi possível carregar os custos fixos.",
         "session": "Sua sessão expirou. Entre novamente."
-      }
+      },
+      "openList": "Ver lista de custos fixos"
     }
   },
   "inventory": {
@@ -102,6 +98,11 @@
     "equipment": "Equipamentos"
   },
   "materials": {
+    "actions": {
+      "button": "Adicionar material",
+      "manual": "Lançamento manual",
+      "title": "Adicionar material"
+    },
     "categoryAll": "Todos",
     "lowStockWarning": "Item abaixo da quantidade mínima",
     "addButton": "Adicionar material",
@@ -620,15 +621,10 @@
     "newEntry": "Novo lançamento",
     "options": {
       "title": "Novo lançamento",
-      "descriptionWithStockWriteOff": "Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque",
+      "descriptionWithStockWriteOff": "Envie a nota fiscal em PDF, preencha à mão ou dê baixa em um item do estoque",
       "sendDocument": "Enviar documento (PDF)",
       "manual": "Lançamento manual",
       "stockWriteOff": "Baixa no estoque"
-    },
-    "documentSoon": {
-      "title": "Envio de PDF em breve",
-      "message": "Por enquanto, registre a entrada ou a saída pelo lançamento manual.",
-      "ok": "Entendi"
     },
     "categories": {
       "professionalFees": "Honorários",
@@ -808,28 +804,6 @@
   "reports": {
     "title": "Relatórios"
   },
-  "serviceInvoices": {
-    "title": "Notas fiscais",
-    "seeAll": "Ver todos",
-    "loading": "Carregando notas fiscais",
-    "empty": "Nenhuma nota fiscal registrada ainda.",
-    "error": "Não foi possível carregar as notas fiscais.",
-    "noTaker": "Sem tomador",
-    "noIssueDate": "Sem data de emissão",
-    "originalFile": "Arquivo original",
-    "close": "Fechar",
-    "list": {
-      "title": "Notas fiscais"
-    },
-    "detail": {
-      "title": "Detalhes da nota",
-      "taker": "Tomador",
-      "issueDate": "Data de emissão",
-      "originalFile": "Arquivo original",
-      "originalFileAvailable": "Disponível",
-      "originalFileUnavailable": "Indisponível"
-    }
-  },
   "optionsModal": {
     "scanNote": "Escanear nota",
     "typeSupply": "Digitar insumo"
@@ -960,6 +934,55 @@
     "account": {
       "menu": "Conta",
       "signOut": "Sair da conta"
+    },
+    "forgot": {
+      "link": "Esqueci minha senha",
+      "title": "Redefinir senha",
+      "emailLabel": "DIGITE SEU EMAIL*",
+      "emailPlaceholder": "exemplo@mail.com",
+      "submit": "Confirmar"
+    },
+    "emailSent": {
+      "title": "E-mail enviado",
+      "heading": "Confira sua caixa de entrada",
+      "description": "Enviamos um código para redefinir sua senha para {{email}}",
+      "hint": "O código é válido por 1 hora. Se não encontrar o e-mail, verifique a pasta de spam.",
+      "backToLogin": "Voltar ao Login",
+      "resendCountdown": "Não recebeu? Reenviar em {{time}}",
+      "resend": "Reenviar",
+      "haveCode": "Já tenho o código"
+    },
+    "newPassword": {
+      "title": "Redefinir senha",
+      "codeLabel": "CÓDIGO RECEBIDO*",
+      "passwordLabel": "NOVA SENHA*",
+      "confirmationLabel": "CONFIRME NOVA SENHA*",
+      "placeholder": "DIGITE NOVA SENHA",
+      "submit": "Confirmar",
+      "requirementsNotMet": "Sua senha ainda não atende aos requisitos:",
+      "mismatch": "As senhas não coincidem",
+      "match": "As senhas coincidem",
+      "requirements": {
+        "minLength": "Mínimo de 8 caracteres",
+        "uppercase": "Uma letra maiúscula (A-Z)",
+        "lowercase": "Uma letra minúscula (a-z)",
+        "number": "Um número",
+        "special": "Um caractere especial (!@#$%)"
+      }
+    },
+    "codeExpired": {
+      "title": "Código expirado",
+      "heading": "Este código não é mais válido",
+      "description": "O código de recuperação expirou ou já foi utilizado. Por segurança, ele é válido por apenas 1 hora.",
+      "hint": "Solicite um novo código para redefinir sua senha.",
+      "requestNew": "Solicitar novo código",
+      "backToLogin": "Voltar ao Login"
+    },
+    "resetSuccess": {
+      "title": "Senha redefinida",
+      "heading": "Senha alterada com sucesso!",
+      "description": "Sua nova senha já está ativa. Use-a para entrar no Administranest.",
+      "goToLogin": "Ir para o Login"
     }
   },
   "partners": {
@@ -1125,7 +1148,38 @@
         "vehiclePlaceholder": "Selecione um carro",
         "distanceLabel": "Distância (km)",
         "distancePlaceholder": "Ex: 34",
-        "confirm": "Confirmar"
+        "confirm": "Confirmar",
+        "ownVehicle": "Veículo próprio",
+        "ride": "Aplicativo / Táxi",
+        "noVehicles": "Você ainda não possui veículos cadastrados.",
+        "addVehicle": "+ Cadastrar veículo",
+        "costLabel": "Valor pago (R$)",
+        "costPlaceholder": "Ex: 35,00",
+        "distanceOptionalLabel": "Distância (km) (opcional)",
+        "originLabel": "Origem",
+        "originPlaceholder": "Ex: Casa",
+        "destinationLabel": "Destino",
+        "destinationPlaceholder": "Ex: Clínica",
+        "estimatedCost": "Custo estimado:",
+        "saving": "Salvando...",
+        "defaultOrigin": "Casa",
+        "vehicleOption": "{{name}} ({{costPerKm}}/km)",
+        "deleteTrip": "Excluir deslocamento",
+        "deleteConfirm": {
+          "title": "Excluir deslocamento",
+          "message": "Deseja remover este deslocamento do atendimento? A despesa também será removida das finanças.",
+          "confirm": "Excluir",
+          "cancel": "Cancelar"
+        },
+        "errors": {
+          "originRequired": "Informe a origem",
+          "destinationRequired": "Informe o destino",
+          "vehicleRequired": "Selecione um carro",
+          "distanceInvalid": "Informe uma distância maior que zero, até 5.000 km e com até 2 casas decimais",
+          "costInvalid": "Informe um valor maior que zero, até R$ 10.000 e com até 2 casas decimais",
+          "saveFailed": "Não foi possível salvar o deslocamento. Tente novamente.",
+          "deleteFailed": "Não foi possível excluir o deslocamento. Tente novamente."
+        }
       },
       "cancellationReason": "Motivo do cancelamento"
     },
@@ -1260,9 +1314,24 @@
   },
   "pricing": {
     "onboarding": {
-      "message": "Preencha os campos para que os valores sejam calculados",
-      "loading": "Carregando suas metas",
-      "loadFailure": "Não foi possível carregar suas metas."
+      "title": "Configure seus honorários",
+      "message": "Para calcular o valor da sua hora, precisamos saber quanto você quer ganhar, quanto tempo tem disponível e qual margem de segurança deseja.",
+      "goals": {
+        "monthlyIncomeGoal": {
+          "title": "Meta de renda mensal (R$)",
+          "caption": "Pró-labore + lucro desejado"
+        },
+        "weeklyHours": {
+          "title": "Horas disponíveis por semana",
+          "caption": "Considere também os períodos ociosos"
+        },
+        "safetyMarginPct": {
+          "title": "Margem de segurança (%)",
+          "caption": "Reserva para imprevistos, de 0 a 100%"
+        }
+      },
+      "action": "Configurar",
+      "footnote": "Custos fixos, depreciação e despesas do mês já cadastrados entram no cálculo automaticamente."
     },
     "goalForm": {
       "title": "Metas",
@@ -1271,9 +1340,6 @@
         "weeklyHours": "Horas disponíveis por semana",
         "safetyMarginPct": "Margem de segurança (%)"
       },
-      "weeklyHoursHint": "Conte as horas em que você fica disponível para trabalhar, incluindo deslocamentos e períodos ociosos, não só as horas que você cobra.",
-      "save": "Salvar metas",
-      "saving": "Salvando…",
       "errors": {
         "required": "Preencha este campo",
         "invalid": "Digite um número válido",
@@ -1285,6 +1351,69 @@
       },
       "failures": {
         "save": "Não foi possível salvar as metas. Tente novamente."
+      }
+    },
+    "setup": {
+      "title": "Configurar honorários",
+      "subtitle": "Preencha suas metas e confira os custos do mês. Depois disso, calculamos o valor da sua hora.",
+      "hints": {
+        "monthlyIncomeGoal": "Inclui o pró-labore e o lucro desejado",
+        "weeklyHours": "Conte as horas disponíveis, inclusive as ociosas. Deve ser maior que zero.",
+        "safetyMarginPct": "Entre 0 e 100%"
+      },
+      "placeholders": {
+        "monthlyIncomeGoal": "Ex.: 8.000",
+        "weeklyHours": "Ex.: 30",
+        "safetyMarginPct": "Ex.: 20"
+      },
+      "save": "Salvar e calcular",
+      "saving": "Salvando…",
+      "footnote": "Você pode alterar esses dados depois, na própria calculadora."
+    },
+    "hourlyRate": {
+      "loading": "Calculando o valor da sua hora",
+      "refreshing": "Recalculando o valor da sua hora",
+      "loadFailure": "Não foi possível calcular o valor da sua hora.",
+      "month": {
+        "previousButton": "Mês anterior",
+        "nextButton": "Próximo mês",
+        "current": "Mês atual",
+        "previous": "Mês anterior",
+        "next": "Próximo mês"
+      },
+      "title": "Valor da sua hora",
+      "marginChip": "{{margin}}% de margem",
+      "valueLabel": "Valor da sua hora: {{value}}",
+      "description": "Custos do mês, pró-labore e margem divididos pelas suas horas produtivas",
+      "minimum": "Mínimo (sem margem)",
+      "productiveHours": "Horas produtivas",
+      "hoursValue": "{{hours}} h",
+      "updatedAt": "Atualizado em {{date}} às {{time}}",
+      "showBreakdown": "Ver detalhamento do cálculo",
+      "hideBreakdown": "Ocultar detalhamento",
+      "breakdown": {
+        "title": "Composição do total mensal",
+        "shareOfTotal": "{{share}}% do total",
+        "parts": {
+          "fixedCosts": {
+            "label": "Custos fixos",
+            "caption": "Custos fixos do mês + depreciação"
+          },
+          "variableCosts": {
+            "label": "Custos variáveis",
+            "caption": "Despesas profissionais do mês"
+          },
+          "proLabore": {
+            "label": "Pró-labore",
+            "caption": "Sua meta de renda mensal"
+          },
+          "safetyMargin": {
+            "label": "Margem de segurança",
+            "caption": "{{margin}}% sobre custos + pró-labore"
+          }
+        },
+        "explanationTitle": "Como o valor da hora é calculado?",
+        "explanation": "Somamos os custos fixos, os custos variáveis do mês e o pró-labore e aplicamos a margem de segurança sobre esse total. O resultado é dividido pelas horas produtivas do mês: horas disponíveis por semana × 52 semanas ÷ 12 meses. O mínimo é a mesma conta sem a margem."
       }
     }
   },
@@ -1357,6 +1486,258 @@
       "stockRemoval": "Os itens da nota saem do estoque.",
       "documentRemoval": "O documento e o arquivo são apagados.",
       "historyRemoval": "O atendimento sai da agenda e do histórico."
+    }
+  },
+  "serviceInvoices": {
+    "extracting": "Lendo a nota…",
+    "errors": {
+      "notPdf": "Só aceitamos notas em PDF. Escolha um arquivo .pdf.",
+      "tooLarge": "O PDF passa de 15 MB, o limite aceito. Escolha outro arquivo.",
+      "alreadySent": "Este PDF já foi enviado antes.",
+      "dismiss": "Entendi"
+    },
+    "review": {
+      "title": "Revisar nota fiscal",
+      "back": "Voltar",
+      "checkData": "Confira os dados lidos da nota antes de confirmar.",
+      "readFailed": "Não conseguimos ler a nota. Preencha os dados manualmente.",
+      "fields": {
+        "issueDate": {
+          "label": "Data de emissão",
+          "placeholder": "DD/MM/AAAA"
+        },
+        "amount": {
+          "label": "Valor total",
+          "placeholder": "0,00"
+        },
+        "number": {
+          "label": "Número da nota"
+        },
+        "client": {
+          "label": "Tomador",
+          "placeholder": "Busque o tomador"
+        }
+      },
+      "clientSearch": {
+        "loading": "Buscando tomadores…",
+        "error": "Não foi possível buscar os tomadores.",
+        "empty": "Nenhum tomador encontrado"
+      },
+      "errors": {
+        "issueDate": {
+          "required": "Informe a data de emissão.",
+          "invalid": "Data inválida. Use o formato DD/MM/AAAA."
+        },
+        "amount": {
+          "required": "Informe o valor total.",
+          "invalid": "Valor inválido. Use o formato 1.234,56.",
+          "mustBePositive": "O valor precisa ser maior que zero."
+        },
+        "clientId": {
+          "required": "Escolha o tomador da nota.",
+          "pending": "Esse tomador ainda aguarda sincronização. Confirme a nota quando houver conexão."
+        }
+      },
+      "confirm": "Confirmar",
+      "confirming": "Confirmando…",
+      "submitFailed": "Não foi possível confirmar a nota. Tente novamente.",
+      "leaveTitle": "Sair da nota?",
+      "leaveMessage": "Os dados preenchidos não foram salvos e vão se perder.",
+      "leaveConfirm": "Sair sem salvar",
+      "leaveCancel": "Continuar preenchendo",
+      "suggestions": "Sugestões de tomador",
+      "registerClient": "Cadastrar novo tomador"
+    },
+    "duplicate": {
+      "title": "Nota parecida encontrada",
+      "detailsTitle": "Nota já registrada",
+      "alert": "Já existe uma nota com o mesmo valor e a mesma data de emissão. Confira antes de salvar de novo.",
+      "fields": {
+        "number": "Número da nota",
+        "issueDate": "Data de emissão",
+        "amount": "Valor total",
+        "client": "Tomador"
+      },
+      "viewExisting": "Ver nota existente",
+      "saveAnyway": "Salvar mesmo assim",
+      "cancel": "Cancelar",
+      "back": "Voltar ao aviso",
+      "close": "Fechar aviso"
+    },
+    "offline": {
+      "title": "Sem conexão",
+      "close": "Fechar",
+      "message": "Sem conexão, o app não consegue ler a nota automaticamente. Você pode cadastrar os dados à mão: a nota fica salva neste aparelho e é enviada quando a conexão voltar.",
+      "manual": "Cadastrar manualmente"
+    },
+    "manual": {
+      "banner": "Cadastro manual: a nota e o PDF {{file}} ficam salvos neste aparelho e são enviados quando houver conexão.",
+      "save": "Salvar nota",
+      "saving": "Salvando…",
+      "saveFailed": "Não foi possível salvar a nota neste aparelho. Tente novamente.",
+      "fileTooLarge": "O PDF passa de 15 MB, o limite aceito. Volte e escolha outro arquivo."
+    },
+    "pending": {
+      "waitingOne": "1 nota aguardando envio",
+      "waitingOther": "{{count}} notas aguardando envio",
+      "rejectedOne": "1 nota não pôde ser enviada",
+      "rejectedOther": "{{count}} notas não puderam ser enviadas",
+      "loadFailed": "Não foi possível ler as notas guardadas neste aparelho.",
+      "review": "Ver nota",
+      "discardLeftFile": "A nota foi descartada, mas o PDF não pôde ser apagado deste aparelho."
+    },
+    "sync": {
+      "title": "Nota não enviada",
+      "message": "A nota de {{date}}, no valor de {{amount}}, não foi enviada: {{reason}}",
+      "dismiss": "Entendi",
+      "reasons": {
+        "clientNotSynced": "o tomador não pôde ser cadastrado.",
+        "fileMissing": "o PDF não está mais neste aparelho.",
+        "other": "o servidor recusou os dados.",
+        "fileDuplicated": "este PDF já foi enviado antes.",
+        "fileTooLarge": "o PDF passa do limite de 15 MB.",
+        "possibleDuplicate": "já existe uma nota parecida, com o mesmo valor e data ou o mesmo número e tomador."
+      },
+      "discard": "Descartar nota",
+      "keep": "Manter na fila",
+      "sendAnyway": "Enviar mesmo assim"
+    }
+  },
+  "trips": {
+    "title": "Deslocamentos",
+    "subtitle": "Quanto você rodou e gastou para atender",
+    "back": "Voltar",
+    "add": "Registrar deslocamento",
+    "empty": {
+      "title": "Nenhum deslocamento em {{month}}",
+      "message": "Registre as idas às clínicas para saber quanto custa atender cada uma."
+    },
+    "summary": {
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "currentMonth": "MÊS ATUAL",
+      "costInMonth": "CUSTO NO MÊS",
+      "kmDriven": "KM RODADOS",
+      "tripsCount": "DESLOCAMENTOS"
+    },
+    "item": {
+      "ownVehicle": "Veículo próprio",
+      "ride": "Aplicativo",
+      "pending": "pendente",
+      "delete": "Excluir deslocamento"
+    },
+    "form": {
+      "newTitle": "Novo deslocamento",
+      "editTitle": "Editar deslocamento",
+      "close": "Fechar",
+      "modeLabel": "COMO FOI",
+      "ownVehicle": "Veículo próprio",
+      "ride": "Aplicativo/táxi",
+      "origin": "ORIGEM",
+      "originPlaceholder": "Ex: Casa",
+      "destination": "DESTINO",
+      "destinationPlaceholder": "Ex: Clínica VetNova",
+      "vehicle": "VEÍCULO",
+      "vehiclePlaceholder": "Selecione um veículo",
+      "noVehicles": "Nenhum veículo cadastrado",
+      "cost": "VALOR PAGO (R$)",
+      "costPlaceholder": "Ex: 32,90",
+      "distance": "DISTÂNCIA (KM)",
+      "distancePlaceholder": "Ex: 30",
+      "date": "DATA",
+      "datePlaceholder": "DD/MM/AAAA",
+      "previewTitle": "Custo do deslocamento",
+      "previewFormula": "{{distance}} km × {{costPerKm}}/km",
+      "previewPickVehicle": "Selecione um veículo para calcular",
+      "previewInformed": "Valor informado",
+      "previewInformCost": "Informe o valor pago",
+      "client": "CLÍNICA (OPCIONAL)",
+      "clientPlaceholder": "Selecione a clínica",
+      "clientLoading": "Buscando clínica...",
+      "clientEmpty": "Nenhuma clínica encontrada",
+      "clientError": "Erro ao buscar clínica",
+      "save": "Salvar",
+      "saving": "Salvando...",
+      "delete": "Excluir",
+      "vehicleOption": "{{name}} · {{costPerKm}}/km",
+      "previewInformDistance": "Informe a distância para calcular"
+    },
+    "errors": {
+      "occurredOnRequired": "Informe a data",
+      "occurredOnInvalid": "Data inválida",
+      "originRequired": "Informe a origem.",
+      "originMaxLength": "A origem deve ter no máximo 200 caracteres",
+      "destinationRequired": "Informe o destino.",
+      "destinationMaxLength": "O destino deve ter no máximo 200 caracteres",
+      "vehicleRequired": "Selecione um veículo",
+      "distanceRequired": "Informe a distância",
+      "distanceInvalid": "Informe uma distância maior que zero, até 5.000 km e com até 2 casas decimais",
+      "costRequired": "Informe o valor pago",
+      "costInvalid": "Informe um valor maior que zero, até R$ 10.000 e com até 2 casas decimais",
+      "saveFailed": "Não foi possível salvar o deslocamento. Tente novamente.",
+      "deleteFailed": "Não foi possível excluir o deslocamento. Tente novamente.",
+      "distanceNotPositive": "Informe uma distância maior que zero."
+    },
+    "deleteConfirm": {
+      "title": "Excluir este deslocamento?",
+      "confirm": "Excluir",
+      "cancel": "Cancelar",
+      "message": "A despesa também será removida das finanças."
+    },
+    "sync": {
+      "rejectedTitle": "Falha na sincronização",
+      "rejectedMessage": "Não foi possível sincronizar um dos seus deslocamentos com o servidor. Verifique os dados e tente novamente.",
+      "rejectedConfirm": "Entendi"
+    },
+    "loadFailed": "Não foi possível carregar os deslocamentos."
+  },
+  "invoices": {
+    "trigger": "Notas fiscais",
+    "seeAll": "Ver todos",
+    "originalFile": "Arquivo original",
+    "title": "Notas fiscais",
+    "back": "Voltar",
+    "filters": {
+      "searchPlaceholder": "Nome, CNPJ ou número da nota",
+      "period": "Período",
+      "periodRange": "{{from}} até {{to}}",
+      "periodSingle": "{{day}}",
+      "periodFrom": "A partir de {{from}}",
+      "clear": "Limpar",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "invalidRange": "A data inicial não pode ser maior que a final."
+    },
+    "loading": "Carregando notas fiscais...",
+    "loadingMore": "Carregando mais notas",
+    "loadMoreError": "Não foi possível carregar mais notas.",
+    "error": "Não foi possível carregar as notas fiscais.",
+    "empty": "Nenhuma nota fiscal registrada.",
+    "emptyFiltered": "Nenhuma nota fiscal encontrada para o filtro.",
+    "card": {
+      "title": "Nota Fiscal {{number}}",
+      "issuer": "Emitente: {{name}}",
+      "taker": "Tomador: {{name}}"
+    },
+    "status": {
+      "SYNCED": "Sincronizada",
+      "NOT_SYNCED": "Não sincronizada",
+      "ERROR": "Erro no processamento"
+    },
+    "kind": {
+      "PURCHASE": "Compra",
+      "SERVICE": "Serviço"
+    },
+    "detail": {
+      "title": "Nota Fiscal {{number}}",
+      "close": "Fechar",
+      "kind": "Tipo",
+      "issuer": "Emitente",
+      "taker": "Tomador",
+      "takerCnpj": "CNPJ do tomador",
+      "value": "Valor",
+      "issuedAt": "Data de emissão",
+      "status": "Situação"
     }
   }
 }

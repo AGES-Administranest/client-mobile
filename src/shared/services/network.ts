@@ -32,3 +32,21 @@ export function onConnectionRestored(listener: ConnectionListener): () => void {
 
   return () => subscription?.remove?.();
 }
+
+/**
+ * An unknown state counts as online: the request that follows fails on its own
+ * if there is no connection, and offline mode is only worth entering when the
+ * device says so. The web build has no state to read.
+ */
+export async function isOnline(): Promise<boolean> {
+  if (!isSupported) {
+    return true;
+  }
+
+  try {
+    const state = await Network.getNetworkStateAsync();
+    return state.isInternetReachable ?? state.isConnected ?? true;
+  } catch {
+    return true;
+  }
+}

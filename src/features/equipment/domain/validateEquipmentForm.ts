@@ -1,3 +1,4 @@
+import { isPtBrAmount } from 'shared/utils/amount';
 import { currencyToNumber, parseDateInput } from 'shared/utils/inputMasks';
 
 export type EquipmentFormValues = {
@@ -55,17 +56,13 @@ function validateName(raw: string): {
   return { name };
 }
 
-// O back aceita no máximo duas casas decimais; a máscara de entrada já garante,
-// mas o domínio não confia nela.
-const PT_BR_AMOUNT = /^-?(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/;
-
 function validatePurchaseValue(raw: string): {
   value?: number;
   error?: 'required' | 'invalidNumber' | 'mustBePositive';
 } {
   const text = raw.trim();
   if (text === '') return { error: 'required' };
-  if (!PT_BR_AMOUNT.test(text)) return { error: 'invalidNumber' };
+  if (!isPtBrAmount(text)) return { error: 'invalidNumber' };
   const value = currencyToNumber(text);
   if (value <= 0) return { error: 'mustBePositive' };
   return { value };

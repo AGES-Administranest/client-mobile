@@ -58,6 +58,15 @@ module.exports = {
         'details-secondary': 'rgba(250, 222, 132, 0.5)',
         'label-quartenery': 'hsl(var(--palette-button-primary))',
         'label-placeholder': 'rgba(17, 17, 17, 0.5)',
+        // Warm neutrals and the composition bar of the hourly calculator
+        // (US20), read from the Figma frames.
+        'details-warm': '#F6F1EC',
+        'border-warm': '#DDD5CC',
+        'label-muted': '#736961',
+        'label-body': '#38332E',
+        'chart-fixed-costs': '#A07E62',
+        'chart-variable-costs': '#D2BBA0',
+        'chart-safety-margin': '#8C9A5B',
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -77,7 +77,7 @@ export function hasErrors(errors: object): boolean {
   return Object.keys(errors).length > 0;
 }
 
-function validateEmail(email: string): AuthFieldError | null {
+export function validateEmail(email: string): AuthFieldError | null {
   const trimmed = email.trim();
 
   if (!trimmed) {

@@ -15,6 +15,7 @@
     "revenue": "Revenue",
     "professional": "Prof.",
     "personal": "Personal",
+    "totalExpenses": "Total expenses",
     "productivityAndFixedCosts": "Productivity and fixed costs",
     "hoursWorked": "Hours worked",
     "hoursValue": "{{hours}}h",
@@ -22,9 +23,10 @@
     "averageHourly": "Average hourly",
     "grossPerHour": "gross/hour",
     "equipmentDepreciation": "Equipment depreciation",
-    "equipmentMonthlyCost": "{{count}} items · monthly cost",
     "perMonth": "/month",
-    "overviewError": "Could not load the finance summary."
+    "overviewError": "Could not load the finance summary.",
+    "openTrips": "Open trips",
+    "balanceIncomplete": "May be incomplete until it syncs."
   },
   "calculator": {
     "title": "Hourly rate calculator",
@@ -32,22 +34,16 @@
     "back": "Back",
     "fixedCosts": {
       "title": "Monthly fixed costs",
-      "professional": "Professional expenses (month)",
       "personal": "Personal expenses (month)",
       "depreciation": "Equipment depreciation",
       "transport": "Transport/vehicle cost",
       "total": "Total fixed costs",
-      "automatic": "automatic · from the app",
-      "transportField": "Transport / Vehicle (R$/month)",
-      "transportHint": "Record trips as an expense in the Finance tab",
       "loading": "Loading fixed costs...",
       "errors": {
-        "required": "Enter the transport amount (use 0 if none).",
-        "notNumeric": "Type numbers only.",
-        "negative": "The amount cannot be negative.",
-        "generic": "Could not save. The previous value was kept.",
+        "generic": "Could not load the fixed costs.",
         "session": "Your session expired. Sign in again."
-      }
+      },
+      "openList": "See fixed costs list"
     }
   },
   "inventory": {
@@ -102,6 +98,11 @@
     "equipment": "Equipment"
   },
   "materials": {
+    "actions": {
+      "button": "Add material",
+      "manual": "Manual entry",
+      "title": "Add material"
+    },
     "categoryAll": "All",
     "lowStockWarning": "Item below minimum quantity",
     "addButton": "Add material",
@@ -620,15 +621,10 @@
     "newEntry": "New entry",
     "options": {
       "title": "New entry",
-      "descriptionWithStockWriteOff": "Upload the invoice or order as a PDF, fill it in by hand or write off a stock item",
+      "descriptionWithStockWriteOff": "Upload the service invoice as a PDF, fill it in by hand or write off a stock item",
       "sendDocument": "Upload document (PDF)",
       "manual": "Manual entry",
       "stockWriteOff": "Stock write-off"
-    },
-    "documentSoon": {
-      "title": "PDF upload coming soon",
-      "message": "For now, record the income or the expense with a manual entry.",
-      "ok": "Got it"
     },
     "categories": {
       "professionalFees": "Professional fees",
@@ -808,28 +804,6 @@
   "reports": {
     "title": "Reports"
   },
-  "serviceInvoices": {
-    "title": "Invoices",
-    "seeAll": "See all",
-    "loading": "Loading invoices",
-    "empty": "No invoices registered yet.",
-    "error": "Could not load the invoices.",
-    "noTaker": "No taker",
-    "noIssueDate": "No issue date",
-    "originalFile": "Original file",
-    "close": "Close",
-    "list": {
-      "title": "Invoices"
-    },
-    "detail": {
-      "title": "Invoice details",
-      "taker": "Taker",
-      "issueDate": "Issue date",
-      "originalFile": "Original file",
-      "originalFileAvailable": "Available",
-      "originalFileUnavailable": "Unavailable"
-    }
-  },
   "optionsModal": {
     "scanNote": "Scan note",
     "typeSupply": "Type supply"
@@ -960,6 +934,55 @@
     "account": {
       "menu": "Account",
       "signOut": "Sign out"
+    },
+    "forgot": {
+      "link": "Forgot my password",
+      "title": "Reset password",
+      "emailLabel": "ENTER YOUR EMAIL*",
+      "emailPlaceholder": "example@mail.com",
+      "submit": "Confirm"
+    },
+    "emailSent": {
+      "title": "Email sent",
+      "heading": "Check your inbox",
+      "description": "We sent a code to reset your password to {{email}}",
+      "hint": "The code is valid for 1 hour. If you cannot find the e-mail, check your spam folder.",
+      "backToLogin": "Back to Login",
+      "resendCountdown": "Didn't get it? Resend in {{time}}",
+      "resend": "Resend",
+      "haveCode": "I already have the code"
+    },
+    "newPassword": {
+      "title": "Reset password",
+      "codeLabel": "RECEIVED CODE*",
+      "passwordLabel": "NEW PASSWORD*",
+      "confirmationLabel": "CONFIRM NEW PASSWORD*",
+      "placeholder": "ENTER NEW PASSWORD",
+      "submit": "Confirm",
+      "requirementsNotMet": "Your password doesn't meet the requirements yet:",
+      "mismatch": "Passwords don't match",
+      "match": "Passwords match",
+      "requirements": {
+        "minLength": "At least 8 characters",
+        "uppercase": "One uppercase letter (A-Z)",
+        "lowercase": "One lowercase letter (a-z)",
+        "number": "One number",
+        "special": "One special character (!@#$%)"
+      }
+    },
+    "codeExpired": {
+      "title": "Code expired",
+      "heading": "This code is no longer valid",
+      "description": "The recovery code has expired or has already been used. For security, it is only valid for 1 hour.",
+      "hint": "Request a new code to reset your password.",
+      "requestNew": "Request a new code",
+      "backToLogin": "Back to Login"
+    },
+    "resetSuccess": {
+      "title": "Password reset",
+      "heading": "Password changed successfully!",
+      "description": "Your new password is active. Use it to sign in to Administranest.",
+      "goToLogin": "Go to Login"
     }
   },
   "partners": {
@@ -1125,7 +1148,38 @@
         "vehiclePlaceholder": "Select a vehicle",
         "distanceLabel": "Distance (km)",
         "distancePlaceholder": "E.g. 34",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "ownVehicle": "Own vehicle",
+        "ride": "Ride-hailing / Taxi",
+        "noVehicles": "You have no vehicles registered yet.",
+        "addVehicle": "+ Register vehicle",
+        "costLabel": "Amount paid (R$)",
+        "costPlaceholder": "e.g. 35.00",
+        "distanceOptionalLabel": "Distance (km) (optional)",
+        "originLabel": "Origin",
+        "originPlaceholder": "e.g. Home",
+        "destinationLabel": "Destination",
+        "destinationPlaceholder": "e.g. Clinic",
+        "estimatedCost": "Estimated cost:",
+        "saving": "Saving...",
+        "defaultOrigin": "Home",
+        "vehicleOption": "{{name}} ({{costPerKm}}/km)",
+        "deleteTrip": "Delete trip",
+        "deleteConfirm": {
+          "title": "Delete trip",
+          "message": "Remove this trip from the appointment? Its expense will also be removed from Finance.",
+          "confirm": "Delete",
+          "cancel": "Cancel"
+        },
+        "errors": {
+          "originRequired": "Enter the origin",
+          "destinationRequired": "Enter the destination",
+          "vehicleRequired": "Select a car",
+          "distanceInvalid": "Enter a distance greater than zero, up to 5,000 km, with at most 2 decimal places",
+          "costInvalid": "Enter an amount greater than zero, up to R$ 10,000, with at most 2 decimal places",
+          "saveFailed": "Unable to save the trip. Please try again.",
+          "deleteFailed": "Unable to delete the trip. Please try again."
+        }
       },
       "cancellationReason": "Cancellation reason"
     },
@@ -1260,9 +1314,24 @@
   },
   "pricing": {
     "onboarding": {
-      "message": "Fill in the fields so the values can be calculated",
-      "loading": "Loading your goals",
-      "loadFailure": "Couldn't load your goals."
+      "title": "Set up your fees",
+      "message": "To calculate your hourly rate, we need to know how much you want to earn, how much time you have available and which safety margin you want.",
+      "goals": {
+        "monthlyIncomeGoal": {
+          "title": "Monthly income goal (R$)",
+          "caption": "Owner's draw + desired profit"
+        },
+        "weeklyHours": {
+          "title": "Available hours per week",
+          "caption": "Include idle periods too"
+        },
+        "safetyMarginPct": {
+          "title": "Safety margin (%)",
+          "caption": "Reserve for the unexpected, from 0 to 100%"
+        }
+      },
+      "action": "Set up",
+      "footnote": "Fixed costs, depreciation and the month's expenses already registered go into the calculation automatically."
     },
     "goalForm": {
       "title": "Goals",
@@ -1271,9 +1340,6 @@
         "weeklyHours": "Available hours per week",
         "safetyMarginPct": "Safety margin (%)"
       },
-      "weeklyHoursHint": "Count the hours you are available to work, including travel and idle time, not only the hours you bill.",
-      "save": "Save goals",
-      "saving": "Saving…",
       "errors": {
         "required": "Fill in this field",
         "invalid": "Enter a valid number",
@@ -1285,6 +1351,69 @@
       },
       "failures": {
         "save": "Could not save your goals. Please try again."
+      }
+    },
+    "setup": {
+      "title": "Set up fees",
+      "subtitle": "Fill in your goals and check the month's costs. Then we calculate your hourly rate.",
+      "hints": {
+        "monthlyIncomeGoal": "Includes the owner's draw and the desired profit",
+        "weeklyHours": "Count your available hours, idle ones included. Must be greater than zero.",
+        "safetyMarginPct": "Between 0 and 100%"
+      },
+      "placeholders": {
+        "monthlyIncomeGoal": "E.g.: 8,000",
+        "weeklyHours": "E.g.: 30",
+        "safetyMarginPct": "E.g.: 20"
+      },
+      "save": "Save and calculate",
+      "saving": "Saving…",
+      "footnote": "You can change this later, in the calculator itself."
+    },
+    "hourlyRate": {
+      "loading": "Calculating your hourly rate",
+      "refreshing": "Recalculating your hourly rate",
+      "loadFailure": "Could not calculate your hourly rate.",
+      "month": {
+        "previousButton": "Previous month",
+        "nextButton": "Next month",
+        "current": "Current month",
+        "previous": "Previous month",
+        "next": "Next month"
+      },
+      "title": "Your hourly rate",
+      "marginChip": "{{margin}}% margin",
+      "valueLabel": "Your hourly rate: {{value}}",
+      "description": "The month's costs, owner's draw and margin divided by your productive hours",
+      "minimum": "Minimum (no margin)",
+      "productiveHours": "Productive hours",
+      "hoursValue": "{{hours}} h",
+      "updatedAt": "Updated on {{date}} at {{time}}",
+      "showBreakdown": "See calculation breakdown",
+      "hideBreakdown": "Hide breakdown",
+      "breakdown": {
+        "title": "Monthly total breakdown",
+        "shareOfTotal": "{{share}}% of total",
+        "parts": {
+          "fixedCosts": {
+            "label": "Fixed costs",
+            "caption": "The month's fixed costs + depreciation"
+          },
+          "variableCosts": {
+            "label": "Variable costs",
+            "caption": "The month's professional expenses"
+          },
+          "proLabore": {
+            "label": "Owner's draw",
+            "caption": "Your monthly income goal"
+          },
+          "safetyMargin": {
+            "label": "Safety margin",
+            "caption": "{{margin}}% on costs + owner's draw"
+          }
+        },
+        "explanationTitle": "How is the hourly rate calculated?",
+        "explanation": "We add the fixed costs, the month's variable costs and the owner's draw, and apply the safety margin to that total. The result is divided by the month's productive hours: available hours per week × 52 weeks ÷ 12 months. The minimum is the same math without the margin."
       }
     }
   },
@@ -1357,6 +1486,258 @@
       "stockRemoval": "The order's items leave the stock.",
       "documentRemoval": "The document and its file are deleted.",
       "historyRemoval": "The appointment leaves the schedule and the history."
+    }
+  },
+  "serviceInvoices": {
+    "extracting": "Reading the invoice…",
+    "errors": {
+      "notPdf": "We only accept PDF invoices. Choose a .pdf file.",
+      "tooLarge": "The PDF is over the 15 MB limit. Choose another file.",
+      "alreadySent": "This PDF was already sent before.",
+      "dismiss": "Got it"
+    },
+    "review": {
+      "title": "Review invoice",
+      "back": "Back",
+      "checkData": "Check the data read from the invoice before confirming.",
+      "readFailed": "We could not read the invoice. Fill in the data manually.",
+      "fields": {
+        "issueDate": {
+          "label": "Issue date",
+          "placeholder": "DD/MM/YYYY"
+        },
+        "amount": {
+          "label": "Total amount",
+          "placeholder": "0,00"
+        },
+        "number": {
+          "label": "Invoice number"
+        },
+        "client": {
+          "label": "Client",
+          "placeholder": "Search the client"
+        }
+      },
+      "clientSearch": {
+        "loading": "Searching clients…",
+        "error": "Could not search the clients.",
+        "empty": "No client found"
+      },
+      "errors": {
+        "issueDate": {
+          "required": "Enter the issue date.",
+          "invalid": "Invalid date. Use the format DD/MM/YYYY."
+        },
+        "amount": {
+          "required": "Enter the total amount.",
+          "invalid": "Invalid amount. Use the format 1.234,56.",
+          "mustBePositive": "The amount must be greater than zero."
+        },
+        "clientId": {
+          "required": "Choose the invoice client.",
+          "pending": "This taker is still waiting to sync. Confirm the invoice once you are online."
+        }
+      },
+      "confirm": "Confirm",
+      "confirming": "Confirming…",
+      "submitFailed": "Could not confirm the invoice. Try again.",
+      "leaveTitle": "Leave the invoice?",
+      "leaveMessage": "The data you entered has not been saved and will be lost.",
+      "leaveConfirm": "Leave without saving",
+      "leaveCancel": "Keep editing",
+      "suggestions": "Suggested takers",
+      "registerClient": "Register new taker"
+    },
+    "duplicate": {
+      "title": "Similar invoice found",
+      "detailsTitle": "Invoice already registered",
+      "alert": "An invoice with the same amount and issue date already exists. Check it before saving again.",
+      "fields": {
+        "number": "Invoice number",
+        "issueDate": "Issue date",
+        "amount": "Total amount",
+        "client": "Taker"
+      },
+      "viewExisting": "View existing invoice",
+      "saveAnyway": "Save anyway",
+      "cancel": "Cancel",
+      "back": "Back to the warning",
+      "close": "Close warning"
+    },
+    "offline": {
+      "title": "No connection",
+      "close": "Close",
+      "message": "Without a connection, the app can't read the invoice automatically. You can type the data in by hand: the invoice is saved on this device and sent when the connection is back.",
+      "manual": "Register manually"
+    },
+    "manual": {
+      "banner": "Manual entry: the invoice and the PDF {{file}} are saved on this device and sent when there is a connection.",
+      "save": "Save invoice",
+      "saving": "Saving…",
+      "saveFailed": "Couldn't save the invoice on this device. Try again.",
+      "fileTooLarge": "The PDF is over 15 MB, the accepted limit. Go back and choose another file."
+    },
+    "pending": {
+      "waitingOne": "1 invoice waiting to be sent",
+      "waitingOther": "{{count}} invoices waiting to be sent",
+      "rejectedOne": "1 invoice couldn't be sent",
+      "rejectedOther": "{{count}} invoices couldn't be sent",
+      "loadFailed": "Couldn't read the invoices saved on this device.",
+      "review": "View invoice",
+      "discardLeftFile": "The invoice was discarded, but its PDF couldn't be deleted from this device."
+    },
+    "sync": {
+      "title": "Invoice not sent",
+      "message": "The invoice dated {{date}}, for {{amount}}, wasn't sent: {{reason}}",
+      "dismiss": "Got it",
+      "reasons": {
+        "clientNotSynced": "the taker couldn't be registered.",
+        "fileMissing": "the PDF is no longer on this device.",
+        "other": "the server refused the data.",
+        "fileDuplicated": "this PDF was already sent before.",
+        "fileTooLarge": "the PDF is over the 15 MB limit.",
+        "possibleDuplicate": "there is a similar invoice, with the same amount and date or the same number and taker."
+      },
+      "discard": "Discard invoice",
+      "keep": "Keep in queue",
+      "sendAnyway": "Send anyway"
+    }
+  },
+  "trips": {
+    "title": "Trips",
+    "subtitle": "How far you drove and what you spent to get to work",
+    "back": "Back",
+    "add": "Register trip",
+    "empty": {
+      "title": "No trips in {{month}}",
+      "message": "Log your trips to the clinics to see what each appointment costs."
+    },
+    "summary": {
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "currentMonth": "CURRENT MONTH",
+      "costInMonth": "COST THIS MONTH",
+      "kmDriven": "KM DRIVEN",
+      "tripsCount": "TRIPS"
+    },
+    "item": {
+      "ownVehicle": "Own vehicle",
+      "ride": "Ride",
+      "pending": "pending",
+      "delete": "Delete trip"
+    },
+    "form": {
+      "newTitle": "New trip",
+      "editTitle": "Edit trip",
+      "close": "Close",
+      "modeLabel": "HOW",
+      "ownVehicle": "Own vehicle",
+      "ride": "Ride-hailing/taxi",
+      "origin": "ORIGIN",
+      "originPlaceholder": "e.g. Home",
+      "destination": "DESTINATION",
+      "destinationPlaceholder": "e.g. VetNova Clinic",
+      "vehicle": "VEHICLE",
+      "vehiclePlaceholder": "Select a vehicle",
+      "noVehicles": "No vehicle registered",
+      "cost": "AMOUNT PAID (R$)",
+      "costPlaceholder": "e.g. 32.90",
+      "distance": "DISTANCE (KM)",
+      "distancePlaceholder": "e.g. 30",
+      "date": "DATE",
+      "datePlaceholder": "DD/MM/YYYY",
+      "previewTitle": "Trip cost",
+      "previewFormula": "{{distance}} km × {{costPerKm}}/km",
+      "previewPickVehicle": "Select a vehicle to calculate",
+      "previewInformed": "Amount entered",
+      "previewInformCost": "Enter the amount paid",
+      "client": "CLINIC (OPTIONAL)",
+      "clientPlaceholder": "Select the clinic",
+      "clientLoading": "Searching clinics...",
+      "clientEmpty": "No clinic found",
+      "clientError": "Unable to search clinics",
+      "save": "Save",
+      "saving": "Saving...",
+      "delete": "Delete",
+      "vehicleOption": "{{name}} · {{costPerKm}}/km",
+      "previewInformDistance": "Enter the distance to calculate"
+    },
+    "errors": {
+      "occurredOnRequired": "Enter the date",
+      "occurredOnInvalid": "Invalid date",
+      "originRequired": "Enter the origin.",
+      "originMaxLength": "Origin must be at most 200 characters",
+      "destinationRequired": "Enter the destination.",
+      "destinationMaxLength": "Destination must be at most 200 characters",
+      "vehicleRequired": "Select a vehicle",
+      "distanceRequired": "Enter the distance",
+      "distanceInvalid": "Enter a distance greater than zero, up to 5,000 km, with at most 2 decimal places",
+      "costRequired": "Enter the amount paid",
+      "costInvalid": "Enter an amount greater than zero, up to R$ 10,000, with at most 2 decimal places",
+      "saveFailed": "Unable to save the trip. Please try again.",
+      "deleteFailed": "Unable to delete the trip. Please try again.",
+      "distanceNotPositive": "Enter a distance greater than zero."
+    },
+    "deleteConfirm": {
+      "title": "Delete this trip?",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "message": "Its expense will also be removed from Finance."
+    },
+    "sync": {
+      "rejectedTitle": "Sync failed",
+      "rejectedMessage": "One of your trips could not be synced with the server. Check its data and try again.",
+      "rejectedConfirm": "Got it"
+    },
+    "loadFailed": "Could not load the trips."
+  },
+  "invoices": {
+    "trigger": "Invoices",
+    "seeAll": "See all",
+    "originalFile": "Original file",
+    "title": "Invoices",
+    "back": "Back",
+    "filters": {
+      "searchPlaceholder": "Name, CNPJ or invoice number",
+      "period": "Period",
+      "periodRange": "{{from}} to {{to}}",
+      "periodSingle": "{{day}}",
+      "periodFrom": "From {{from}}",
+      "clear": "Clear",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "invalidRange": "The start date cannot be after the end date."
+    },
+    "loading": "Loading invoices...",
+    "loadingMore": "Loading more invoices",
+    "loadMoreError": "Could not load more invoices.",
+    "error": "Could not load the invoices.",
+    "empty": "No invoices registered.",
+    "emptyFiltered": "No invoices found for the filter.",
+    "card": {
+      "title": "Invoice {{number}}",
+      "issuer": "Issuer: {{name}}",
+      "taker": "Customer: {{name}}"
+    },
+    "status": {
+      "SYNCED": "Synced",
+      "NOT_SYNCED": "Not synced",
+      "ERROR": "Processing error"
+    },
+    "kind": {
+      "PURCHASE": "Purchase",
+      "SERVICE": "Service"
+    },
+    "detail": {
+      "title": "Invoice {{number}}",
+      "close": "Close",
+      "kind": "Type",
+      "issuer": "Issuer",
+      "taker": "Customer",
+      "takerCnpj": "Customer CNPJ",
+      "value": "Amount",
+      "issuedAt": "Issue date",
+      "status": "Status"
     }
   }
 }

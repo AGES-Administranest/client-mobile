@@ -1,9 +1,8 @@
 import { View } from 'react-native';
 
+import { FormField } from 'app/components/ui/form-field';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
-
-import { FormField } from './FormField';
 
 type ReviewHeaderCardProps = {
   labels: {

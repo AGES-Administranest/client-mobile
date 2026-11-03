@@ -10,6 +10,11 @@ import {
   type UpdateFinancialEntryPayload,
 } from '../domain/financialEntry';
 import {
+  EXPENSE_GROUPS,
+  type ExpenseGroup,
+  type MonthlyBalance,
+} from '../domain/monthlyBalance';
+import {
   isLastStatementPage,
   toStatementQuery,
   type StatementFilters,
@@ -49,6 +54,53 @@ export async function fetchFinancialEntries(
     { token: idToken },
   );
   return response.map(toFinancialEntry);
+}
+
+type FinancialBalanceResponse = {
+  totalIncome: string;
+  totalExpenses: string;
+  professionalExpenses: string;
+  personalExpenses: string;
+  netBalance: string;
+  expensesByCategory: {
+    items: { category: ExpenseGroup; subtotal: string }[];
+    total: string;
+  };
+};
+
+function balanceFromResponse(
+  response: FinancialBalanceResponse,
+): MonthlyBalance {
+  const items = new Map(
+    response.expensesByCategory.items.map(item => [
+      item.category,
+      Number(item.subtotal),
+    ]),
+  );
+  return {
+    revenue: Number(response.totalIncome),
+    professionalExpenses: Number(response.professionalExpenses),
+    personalExpenses: Number(response.personalExpenses),
+    totalExpenses: Number(response.totalExpenses),
+    netBalance: Number(response.netBalance),
+    expensesByCategory: EXPENSE_GROUPS.map(category => ({
+      category,
+      subtotal: items.get(category) ?? 0,
+    })),
+    incomplete: false,
+  };
+}
+
+/** O balanço do mês no servidor. Substitui o cálculo local quando a rede volta. */
+export async function fetchFinancialBalance(
+  idToken: string,
+  period: StatementPeriod,
+): Promise<MonthlyBalance> {
+  const response = await apiClient.get<FinancialBalanceResponse>(
+    `/financial-balance?month=${period.month}&year=${period.year}`,
+    { token: idToken },
+  );
+  return balanceFromResponse(response);
 }
 
 /** Todas as páginas do mês para o resumo: não depende do escopo selecionado no extrato. */

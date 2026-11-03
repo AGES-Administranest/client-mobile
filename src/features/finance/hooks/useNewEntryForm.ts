@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
+import { isNetworkError } from 'shared/utils/network';
 
 import {
   isCategoryInvalidError,
@@ -38,6 +39,7 @@ import type {
   FinancialCategory,
   FinancialEntry,
 } from '../domain/financialEntry';
+import { rememberPendingEntry } from '../services/balanceCache';
 import {
   createFinancialEntry,
   updateFinancialEntry,
@@ -230,6 +232,40 @@ export function useNewEntryForm(): NewEntryFormState {
         setFailure(toEditFailureKey(error));
         return null;
       }
+      if (isNetworkError(error)) {
+        const category = allCategories.find(
+          item => item.id === draft.categoryId,
+        );
+        if (category && draft.categoryId) {
+          const payload = toCreatePayload(
+            draft,
+            entryId.current ?? randomUUID(),
+          );
+          const accrual = new Date(payload.accrualDate);
+          rememberPendingEntry(
+            {
+              month: accrual.getUTCMonth() + 1,
+              year: accrual.getUTCFullYear(),
+            },
+            {
+              id: payload.id,
+              nature: payload.nature,
+              description: payload.description,
+              category: {
+                id: category.id,
+                name: category.name,
+                scope: category.defaultScope,
+              },
+              scope: payload.scope,
+              amount: payload.amount,
+              accrualDate: payload.accrualDate,
+              source: 'MANUAL',
+              origin: { type: 'MANUAL', id: null },
+              pendingSync: true,
+            },
+          );
+        }
+      }
       // O id ficou preso a um lançamento apagado ou de outra conta: tentar de
       // novo com ele daria o mesmo erro para sempre.
       if (isEntryNotFoundError(error)) entryId.current = randomUUID();
@@ -241,7 +277,7 @@ export function useNewEntryForm(): NewEntryFormState {
         setIsSaving(false);
       }
     }
-  }, [draft, editedEntry, idToken, forgetRejectedCategory]);
+  }, [draft, editedEntry, idToken, forgetRejectedCategory, allCategories]);
 
   return {
     draft,

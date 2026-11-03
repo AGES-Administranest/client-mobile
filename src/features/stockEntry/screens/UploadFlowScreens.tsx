@@ -1,13 +1,13 @@
 import { Modal } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
+import { LoadingOverlay } from 'app/components/ui/loading-overlay';
+import { MessageOverlay } from 'app/components/ui/message-overlay';
 import { useTranslation, type TranslationKey } from 'shared/i18n';
 
 import { ConfirmFileScreen } from './ConfirmFileScreen';
 import { ScanScreen } from './ScanScreen';
 import { StockEntryModal } from './StockEntryModal';
-import { LoadingOverlay } from '../components/LoadingOverlay';
-import { MessageOverlay } from '../components/MessageOverlay';
 import type { ReadingFailure } from '../domain/extraction';
 import type { UploadFlow } from '../hooks/useUploadFlow';
 

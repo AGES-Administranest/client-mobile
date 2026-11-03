@@ -23,6 +23,7 @@ type NewClinicSheetProps = {
   onChangeField: (field: ClinicField, value: string) => void;
   onSubmit: () => void;
   onClose: () => void;
+  onClosed?: () => void;
 };
 
 function NewClinicSheet({
@@ -39,6 +40,7 @@ function NewClinicSheet({
   onChangeField,
   onSubmit,
   onClose,
+  onClosed,
 }: NewClinicSheetProps) {
   return (
     <BottomSheet
@@ -46,6 +48,7 @@ function NewClinicSheet({
       title={title}
       closeLabel={closeLabel}
       onClose={onClose}
+      onClosed={onClosed}
       footer={
         <>
           {failureMessage ? (

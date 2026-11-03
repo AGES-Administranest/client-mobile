@@ -1,5 +1,7 @@
 import { LogIn, UserPlus } from 'lucide-react-native';
+import { Pressable } from 'react-native';
 
+import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
 import { AuthButton } from '../components/AuthButton';
@@ -15,12 +17,14 @@ import { useSocialSignIn } from '../hooks/useSocialSignIn';
 type LoginScreenProps = {
   onBack: () => void;
   onCreateAccount: () => void;
+  onForgotPassword: () => void;
   onUnconfirmed: (email: string, password: string) => void;
 };
 
 export function LoginScreen({
   onBack,
   onCreateAccount,
+  onForgotPassword,
   onUnconfirmed,
 }: LoginScreenProps) {
   const { t } = useTranslation();
@@ -66,6 +70,18 @@ export function LoginScreen({
         onSubmitEditing={submit}
         editable={!isSubmitting}
       />
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={t('auth.forgot.link')}
+        onPress={onForgotPassword}
+        disabled={isSubmitting}
+        hitSlop={8}
+        className="-mt-2 mb-4 self-end"
+      >
+        <Text className="text-[17px] font-bold text-label-quartenery">
+          {t('auth.forgot.link')}
+        </Text>
+      </Pressable>
 
       <FormMessage message={errorKey ? t(errorKey) : null} />
 

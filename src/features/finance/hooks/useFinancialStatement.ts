@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
+import { isNetworkError } from 'shared/utils/network';
 
 import { requireToken, toStatementFailureKey } from './entryFailure';
 import type { FinancialEntry } from '../domain/financialEntry';
@@ -10,6 +11,11 @@ import {
   isLastStatementPage,
   type StatementFilters,
 } from '../domain/statement';
+import {
+  entriesFromCache,
+  onBalanceCacheChange,
+  readBalanceCache,
+} from '../services/balanceCache';
 import { fetchFinancialEntries } from '../services/financialEntryService';
 
 export type StatementStatus = 'loading' | 'ready' | 'failed';
@@ -77,14 +83,30 @@ export function useFinancialStatement(
       })
       .catch(error => {
         if (current !== generation.current) return;
+        const local = entriesFromCache(
+          readBalanceCache({ month, year }),
+        ).filter(entry => scope === 'all' || entry.scope === scope);
+        if (isNetworkError(error) && local.length > 0) {
+          loadedPages.current = 1;
+          setEntries(local);
+          setHasMore(false);
+          setStatus('ready');
+          setFailure(null);
+          return;
+        }
         setEntries([]);
         setHasMore(false);
         setStatus('failed');
         setFailure(toStatementFailureKey(error));
       });
 
+    const stopCache = onBalanceCacheChange(() => {
+      if (current === generation.current) setVersion(value => value + 1);
+    });
+
     return () => {
       generation.current += 1;
+      stopCache();
     };
   }, [idToken, month, year, scope, version]);
 

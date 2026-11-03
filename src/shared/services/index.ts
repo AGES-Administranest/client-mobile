@@ -1,4 +1,4 @@
-export { onConnectionRestored } from './network';
+export { isOnline, onConnectionRestored } from './network';
 export {
   cancelNotification,
   initNotifications,

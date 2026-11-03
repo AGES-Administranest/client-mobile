@@ -35,6 +35,7 @@ export type FinancialEntry = {
   accrualDate: string;
   source: EntrySource;
   origin: { type: EntrySource; id: string | null };
+  pendingSync?: boolean;
 };
 
 /** O backend serializa o `amount` (Decimal) como texto, sem zeros no fim: "250". */

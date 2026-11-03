@@ -16,6 +16,7 @@ import {
 } from './clinicFailure';
 import type { Client } from '../domain/client';
 import {
+  CLINIC_FIELDS,
   EMPTY_CLINIC_DRAFT,
   isClinicDraftValid,
   maskClinicField,
@@ -33,7 +34,7 @@ export type NewClinicFormState = {
   failure: TranslationKey | null;
   isSaving: boolean;
   setField: (field: ClinicField, value: string) => void;
-  reset: () => void;
+  reset: (initial?: Partial<ClinicDraft>) => void;
   submit: () => Promise<Client | null>;
 };
 
@@ -61,8 +62,15 @@ export function useNewClinicForm(): NewClinicFormState {
     });
   }, []);
 
-  const reset = useCallback(() => {
-    setDraft(EMPTY_CLINIC_DRAFT);
+  const reset = useCallback((initial: Partial<ClinicDraft> = {}) => {
+    setDraft(
+      Object.fromEntries(
+        CLINIC_FIELDS.map(field => [
+          field,
+          maskClinicField(field, initial[field] ?? ''),
+        ]),
+      ) as ClinicDraft,
+    );
     setErrors({});
     setFailure(null);
     setIsSaving(false);

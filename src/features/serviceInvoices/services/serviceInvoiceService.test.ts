@@ -1,70 +1,390 @@
-import { fetchServiceInvoices } from './serviceInvoiceService';
+import { ApiError, apiClient } from 'shared/services/apiClient';
+import { postToPresignedForm } from 'shared/services/presignedUpload';
 
-const ID_TOKEN = 'id-token';
-const fetchMock = jest.fn();
+import {
+  confirmServiceInvoice,
+  discardServiceInvoiceDraft,
+  extractServiceInvoice,
+  fetchServiceInvoiceStatus,
+  resumeDraftHoldingFile,
+} from './serviceInvoiceService';
 
-function respondWith(body: unknown) {
-  fetchMock.mockResolvedValue({
-    ok: true,
-    status: 200,
-    json: async () => body,
-  });
-}
+jest.mock('shared/services/apiClient', () => ({
+  ...jest.requireActual('shared/services/apiClient'),
+  apiClient: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
+jest.mock('shared/services/presignedUpload', () => ({
+  postToPresignedForm: jest.fn(),
+}));
+jest.mock('shared/services/fileHash', () => ({
+  sha256Hex: jest.fn(async () => 'a'.repeat(64)),
+}));
+jest.mock('expo-crypto', () => ({ randomUUID: jest.fn(() => 'new-id') }));
 
-function lastRequest() {
-  const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-  return {
-    pathname: new URL(url).pathname,
-    query: new URL(url).searchParams,
-    headers: init.headers as Record<string, string>,
-  };
+const get = jest.mocked(apiClient.get);
+const post = jest.mocked(apiClient.post);
+const patch = jest.mocked(apiClient.patch);
+const remove = jest.mocked(apiClient.delete);
+const postToBucket = jest.mocked(postToPresignedForm);
+
+const FILE = {
+  uri: 'file:///cache/nota.pdf',
+  bytes: new Uint8Array([1, 2, 3]),
+  name: 'nota.pdf',
+  mimeType: 'application/pdf',
+};
+const TARGET = { url: 'https://bucket', fields: { key: 'k' }, expiresAt: 1 };
+const INPUT = {
+  issueDate: '2026-10-13',
+  amount: 1500,
+  number: '1287',
+  clientId: 'client-1',
+};
+
+function answerUpload(review: Record<string, unknown>) {
+  post.mockImplementation(async (path: string) =>
+    path.endsWith('/upload-url') ? TARGET : { review },
+  );
 }
 
 beforeEach(() => {
-  fetchMock.mockReset();
-  globalThis.fetch = fetchMock as unknown as typeof fetch;
+  jest.clearAllMocks();
+  postToBucket.mockResolvedValue({ ok: true, status: 204 } as Response);
 });
 
-describe('fetchServiceInvoices', () => {
-  test('asks only for the confirmed notes, with the limit and the token', async () => {
-    respondWith([]);
+describe('extractServiceInvoice', () => {
+  it('asks for the upload with the file facts, sends the PDF and has it read', async () => {
+    answerUpload({ status: 'SUCCESS', issueDate: '2026-10-13' });
 
-    await fetchServiceInvoices(ID_TOKEN, 5);
+    await extractServiceInvoice('id-token', 'inv-1', FILE);
 
-    const { pathname, query, headers } = lastRequest();
-    expect(pathname).toBe('/service-invoices');
-    expect(query.get('status')).toBe('CONFIRMED');
-    expect(query.get('limit')).toBe('5');
-    expect(headers.Authorization).toBe(`Bearer ${ID_TOKEN}`);
+    expect(post).toHaveBeenNthCalledWith(
+      1,
+      '/service-invoices/inv-1/upload-url',
+      {
+        filename: 'nota.pdf',
+        fileMimeType: 'application/pdf',
+        fileHash: 'a'.repeat(64),
+        fileBytesSize: 3,
+      },
+      { token: 'id-token' },
+    );
+    expect(postToBucket).toHaveBeenCalledWith(TARGET, FILE);
+    expect(post).toHaveBeenNthCalledWith(
+      2,
+      '/service-invoices/inv-1/uploaded',
+      undefined,
+      { token: 'id-token' },
+    );
   });
 
-  test('never sends the userId', async () => {
-    respondWith([]);
+  it('turns the review into what the screen starts from', async () => {
+    answerUpload({
+      status: 'SUCCESS',
+      issueDate: '2026-10-13',
+      amount: 1500,
+      number: '1287',
+      taker: { name: 'Clínica Exemplo', taxId: '12345678000195' },
+      clientMatch: { id: 'client-1', name: 'Clínica Exemplo' },
+      duplicateOf: { id: 'other', reason: 'SAME_AMOUNT_AND_DATE' },
+    });
 
-    await fetchServiceInvoices(ID_TOKEN, 5);
-
-    expect(lastRequest().query.has('userId')).toBe(false);
+    expect(await extractServiceInvoice('id-token', 'inv-1', FILE)).toEqual({
+      status: 'SUCCESS',
+      issueDate: '2026-10-13',
+      amount: 1500,
+      number: '1287',
+      taker: { name: 'Clínica Exemplo', taxId: '12345678000195' },
+      clientMatch: { id: 'client-1', name: 'Clínica Exemplo', taxId: '' },
+    });
   });
 
-  test('maps the notes the backend answers', async () => {
-    respondWith([
-      {
-        id: 'invoice-1',
-        status: 'CONFIRMED',
-        issueDate: '2026-10-13',
-        takerName: 'HospVet Sul',
-        uploadedAt: '2026-10-13T12:01:00.000Z',
-        createdAt: '2026-10-13T12:00:00.000Z',
-      },
-    ]);
+  it('passes on the suggested takers', async () => {
+    answerUpload({
+      status: 'SUCCESS',
+      clientSuggestions: [
+        { id: 'c-1', name: 'Clínica Boa Vida', taxId: '45321789000110' },
+      ],
+    });
 
-    await expect(fetchServiceInvoices(ID_TOKEN, 5)).resolves.toEqual([
-      {
-        id: 'invoice-1',
-        issueDate: '2026-10-13',
-        takerName: 'HospVet Sul',
-        hasOriginalFile: true,
-      },
+    const extraction = await extractServiceInvoice('id-token', 'inv-1', FILE);
+
+    expect(extraction.clientSuggestions).toEqual([
+      { id: 'c-1', name: 'Clínica Boa Vida', taxId: '45321789000110' },
     ]);
+  });
+
+  it.each([
+    [{ status: 'SUCCESS' }, 'SUCCESS'],
+    [
+      { status: 'SUCCESS', partial: { pagesRead: 1, totalPages: 3 } },
+      'PARTIAL',
+    ],
+    [{ status: 'FAILED', failureReason: 'NO_TEXT_LAYER' }, 'FAILED'],
+    [{ status: 'MANUAL' }, 'FAILED'],
+  ])('reads %p as %p', async (review, status) => {
+    answerUpload(review);
+
+    const extraction = await extractServiceInvoice('id-token', 'inv-1', FILE);
+
+    expect(extraction.status).toBe(status);
+  });
+
+  it('does not tell the API the upload finished when the bucket refused it', async () => {
+    answerUpload({ status: 'SUCCESS' });
+    postToBucket.mockResolvedValue({ ok: false, status: 403 } as Response);
+
+    await expect(
+      extractServiceInvoice('id-token', 'inv-1', FILE),
+    ).rejects.toThrow('403');
+    expect(post).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets an API refusal through with its code', async () => {
+    post.mockRejectedValue(
+      new ApiError('dup', 'SERVICE_INVOICE_FILE_DUPLICATED', 409),
+    );
+
+    await expect(
+      extractServiceInvoice('id-token', 'inv-1', FILE),
+    ).rejects.toMatchObject({ code: 'SERVICE_INVOICE_FILE_DUPLICATED' });
+    expect(postToBucket).not.toHaveBeenCalled();
+  });
+});
+
+describe('confirmServiceInvoice', () => {
+  beforeEach(() => {
+    patch.mockResolvedValue({});
+    post.mockResolvedValue({ id: 'inv-1', financialEntryId: 'entry-1' });
+  });
+
+  it('saves the reviewed data, then confirms the note', async () => {
+    const result = await confirmServiceInvoice('id-token', 'inv-1', INPUT);
+
+    expect(patch).toHaveBeenCalledWith('/service-invoices/inv-1', INPUT, {
+      token: 'id-token',
+    });
+    expect(post).toHaveBeenCalledWith(
+      '/service-invoices/inv-1/confirm',
+      { allowDuplicate: false },
+      { token: 'id-token' },
+    );
+    expect(result).toEqual({ id: 'inv-1' });
+  });
+
+  it('clears a number the person erased', async () => {
+    const withoutNumber = {
+      issueDate: INPUT.issueDate,
+      amount: INPUT.amount,
+      clientId: INPUT.clientId,
+    };
+
+    await confirmServiceInvoice('id-token', 'inv-1', withoutNumber);
+
+    expect(patch.mock.calls[0][1]).toEqual({ ...withoutNumber, number: null });
+  });
+
+  it('confirms a similar note when the person insists', async () => {
+    await confirmServiceInvoice('id-token', 'inv-1', INPUT, {
+      allowDuplicate: true,
+    });
+
+    expect(post.mock.calls[0][1]).toEqual({ allowDuplicate: true });
+  });
+
+  it('answers with the similar note instead of failing', async () => {
+    post.mockRejectedValue(
+      new ApiError('dup', 'SERVICE_INVOICE_POSSIBLE_DUPLICATE', 409, {
+        duplicateOf: {
+          id: 'inv-0',
+          number: '1287',
+          issueDate: '2026-10-13',
+          amount: 1500,
+          clientName: 'Clínica Exemplo',
+          reason: 'SAME_AMOUNT_AND_DATE',
+        },
+      }),
+    );
+
+    expect(await confirmServiceInvoice('id-token', 'inv-1', INPUT)).toEqual({
+      duplicateOf: {
+        id: 'inv-0',
+        number: '1287',
+        issueDate: '2026-10-13',
+        amount: 1500,
+        clientName: 'Clínica Exemplo',
+      },
+    });
+  });
+
+  it('does not confirm when saving the data fails', async () => {
+    patch.mockRejectedValue(new ApiError('bad', 'CLIENT_NOT_FOUND', 404));
+
+    await expect(
+      confirmServiceInvoice('id-token', 'inv-1', INPUT),
+    ).rejects.toMatchObject({ code: 'CLIENT_NOT_FOUND' });
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it('lets any other refusal through', async () => {
+    post.mockRejectedValue(
+      new ApiError('not ready', 'SERVICE_INVOICE_NOT_READY', 400),
+    );
+
+    await expect(
+      confirmServiceInvoice('id-token', 'inv-1', INPUT),
+    ).rejects.toMatchObject({ code: 'SERVICE_INVOICE_NOT_READY' });
+  });
+});
+
+describe('fetchServiceInvoiceStatus', () => {
+  it('answers the status of the note', async () => {
+    get.mockResolvedValue({ id: 'inv-1', status: 'CONFIRMED' });
+
+    expect(await fetchServiceInvoiceStatus('id-token', 'inv-1')).toBe(
+      'CONFIRMED',
+    );
+    expect(get).toHaveBeenCalledWith('/service-invoices/inv-1', {
+      token: 'id-token',
+    });
+  });
+
+  it('answers null when the backend has no such note', async () => {
+    get.mockRejectedValue(
+      new ApiError('nope', 'SERVICE_INVOICE_NOT_FOUND', 404),
+    );
+
+    expect(await fetchServiceInvoiceStatus('id-token', 'inv-1')).toBeNull();
+  });
+
+  it('lets any other failure through', async () => {
+    get.mockRejectedValue(new ApiError('down', null, 503));
+
+    await expect(
+      fetchServiceInvoiceStatus('id-token', 'inv-1'),
+    ).rejects.toMatchObject({ status: 503 });
+  });
+});
+
+describe('discardServiceInvoiceDraft', () => {
+  it('discards a draft', async () => {
+    get.mockResolvedValue({ status: 'DRAFT' });
+
+    await discardServiceInvoiceDraft('id-token', 'inv-1');
+
+    expect(remove).toHaveBeenCalledWith('/service-invoices/inv-1', {
+      token: 'id-token',
+    });
+  });
+
+  it.each(['CONFIRMED', 'CANCELLED'])(
+    'leaves a %s note alone, since the same route deletes a confirmed one',
+    async status => {
+      get.mockResolvedValue({ status });
+
+      await discardServiceInvoiceDraft('id-token', 'inv-1');
+
+      expect(remove).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does nothing when the draft was never created', async () => {
+    get.mockRejectedValue(
+      new ApiError('nope', 'SERVICE_INVOICE_NOT_FOUND', 404),
+    );
+
+    await discardServiceInvoiceDraft('id-token', 'inv-1');
+
+    expect(remove).not.toHaveBeenCalled();
+  });
+});
+
+describe('resumeDraftHoldingFile', () => {
+  const alreadySent = (details: Record<string, unknown> | null) =>
+    new ApiError('dup', 'SERVICE_INVOICE_FILE_DUPLICATED', 409, details);
+
+  it('reopens a draft that was already read as it stands, without sending the file again', async () => {
+    get.mockResolvedValue({
+      id: 'old-draft',
+      status: 'DRAFT',
+      uploadedAt: '2026-10-25T20:00:00.000Z',
+      review: { status: 'SUCCESS', issueDate: '2026-10-13', amount: 1500 },
+    });
+
+    const resumed = await resumeDraftHoldingFile(
+      'id-token',
+      alreadySent({ serviceInvoiceId: 'old-draft' }),
+      FILE,
+    );
+
+    expect(get).toHaveBeenCalledWith('/service-invoices/old-draft', {
+      token: 'id-token',
+    });
+    expect(resumed).toEqual({
+      invoiceId: 'old-draft',
+      extraction: {
+        status: 'SUCCESS',
+        issueDate: '2026-10-13',
+        amount: 1500,
+      },
+    });
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it('sends the file again to a draft whose upload never finished', async () => {
+    get.mockResolvedValue({
+      id: 'old-draft',
+      status: 'DRAFT',
+      review: { status: 'PENDING' },
+    });
+    answerUpload({ status: 'SUCCESS', amount: 1500 });
+
+    const resumed = await resumeDraftHoldingFile(
+      'id-token',
+      alreadySent({ serviceInvoiceId: 'old-draft' }),
+      FILE,
+    );
+
+    expect(post.mock.calls[0][0]).toBe(
+      '/service-invoices/old-draft/upload-url',
+    );
+    expect(resumed?.invoiceId).toBe('old-draft');
+    expect(resumed?.extraction.amount).toBe(1500);
+  });
+
+  it.each(['CONFIRMED', 'CANCELLED'])(
+    'leaves a file held by a %s note refused',
+    async status => {
+      get.mockResolvedValue({
+        id: 'old',
+        status,
+        review: { status: 'SUCCESS' },
+      });
+
+      expect(
+        await resumeDraftHoldingFile(
+          'id-token',
+          alreadySent({ serviceInvoiceId: 'old' }),
+          FILE,
+        ),
+      ).toBeNull();
+    },
+  );
+
+  it.each([
+    [
+      'another refusal',
+      new ApiError('big', 'SERVICE_INVOICE_FILE_TOO_LARGE', 413),
+    ],
+    ['a refusal that does not say which note', alreadySent(null)],
+    ['a network failure', new TypeError('Network request failed')],
+  ])('does not look for a draft on %s', async (_case, error) => {
+    expect(await resumeDraftHoldingFile('id-token', error, FILE)).toBeNull();
+    expect(get).not.toHaveBeenCalled();
   });
 });

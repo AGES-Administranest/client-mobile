@@ -140,9 +140,15 @@ describe('formatSignedAmount', () => {
 });
 
 describe('formatStatementDate', () => {
-  it('shows the day and the short month', () => {
-    expect(formatStatementDate('2026-08-17T12:00:00.000Z', 'pt-BR')).toBe(
-      '17 ago',
-    );
-  });
+  it.each([
+    ['2026-08-17T12:00:00.000Z', '17 ago'],
+    ['2026-10-24T00:00:00.000Z', '24 out'],
+    ['2026-10-31T23:59:59.000Z', '31 out'],
+    ['2026-01-01T00:00:00.000Z', '01 jan'],
+  ])(
+    'shows %s as the calendar day it was booked on',
+    (accrualDate, expected) => {
+      expect(formatStatementDate(accrualDate, 'pt-BR')).toBe(expected);
+    },
+  );
 });
