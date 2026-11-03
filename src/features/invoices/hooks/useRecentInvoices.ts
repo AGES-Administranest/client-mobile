@@ -2,20 +2,20 @@ import { useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 
-import type { Invoice } from '../domain/invoice.types';
-import { fetchInvoices } from '../services/invoiceService';
+import type { ReportInvoice } from '../domain/reportInvoice';
+import { fetchReportInvoices } from '../services/reportInvoiceService';
 
 const RECENT_INVOICES_LIMIT = 5;
 
 export type RecentInvoicesState = {
-  invoices: Invoice[];
+  invoices: ReportInvoice[];
   status: 'loading' | 'ready' | 'failed';
 };
 
 export function useRecentInvoices(): RecentInvoicesState {
   const { session } = useAuth();
   const idToken = session?.idToken ?? null;
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoices, setInvoices] = useState<ReportInvoice[]>([]);
   const [status, setStatus] =
     useState<RecentInvoicesState['status']>('loading');
 
@@ -26,10 +26,10 @@ export function useRecentInvoices(): RecentInvoicesState {
 
     let isMounted = true;
 
-    fetchInvoices(idToken)
-      .then(page => {
+    fetchReportInvoices(idToken, RECENT_INVOICES_LIMIT)
+      .then(found => {
         if (!isMounted) return;
-        setInvoices(page.items.slice(0, RECENT_INVOICES_LIMIT));
+        setInvoices(found);
         setStatus('ready');
       })
       .catch(() => {

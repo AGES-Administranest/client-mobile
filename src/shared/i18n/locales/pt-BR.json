@@ -1729,6 +1729,10 @@
       "SERVICE": "Serviço"
     },
     "detail": {
+      "reportTitle": "Detalhes da nota",
+      "originalFile": "Arquivo original",
+      "originalFileAvailable": "Disponível",
+      "originalFileUnavailable": "Indisponível",
       "title": "Nota Fiscal {{number}}",
       "close": "Fechar",
       "kind": "Tipo",

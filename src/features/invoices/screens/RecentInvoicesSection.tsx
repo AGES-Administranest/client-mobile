@@ -6,21 +6,21 @@ import { EmptyState } from 'app/components/ui/empty-state';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
-import { formatIssueDate, invoiceDetailRows } from './invoicePresenter';
 import { InvoicesScreen } from './InvoicesScreen';
 import { InvoiceDetailSheet } from '../components/InvoiceDetailSheet';
 import { RecentInvoiceCard } from '../components/RecentInvoiceCard';
-import type { Invoice } from '../domain/invoice.types';
+import { formatReportDate, type ReportInvoice } from '../domain/reportInvoice';
 import { useRecentInvoices } from '../hooks/useRecentInvoices';
+import { isInvoiceListAvailable } from '../services/availability';
 
 export function RecentInvoicesSection() {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const { invoices, status } = useRecentInvoices();
-  const [selected, setSelected] = useState<Invoice | null>(null);
+  const [selected, setSelected] = useState<ReportInvoice | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isListOpen, setIsListOpen] = useState(false);
 
-  const openDetail = (invoice: Invoice) => {
+  const openDetail = (invoice: ReportInvoice) => {
     setSelected(invoice);
     setIsDetailOpen(true);
   };
@@ -31,11 +31,16 @@ export function RecentInvoicesSection() {
         <Text className="text-xl font-bold uppercase text-label-primary">
           {t('invoices.title')}
         </Text>
-        <Pressable onPress={() => setIsListOpen(true)} accessibilityRole="link">
-          <Text className="text-base text-label-tertiary">
-            {t('invoices.seeAll')}
-          </Text>
-        </Pressable>
+        {isInvoiceListAvailable() ? (
+          <Pressable
+            onPress={() => setIsListOpen(true)}
+            accessibilityRole="link"
+          >
+            <Text className="text-base text-label-tertiary">
+              {t('invoices.seeAll')}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {status === 'loading' ? (
@@ -66,7 +71,7 @@ export function RecentInvoicesSection() {
             <RecentInvoiceCard
               key={invoice.id}
               taker={invoice.takerName}
-              date={formatIssueDate(invoice.issuedAt, locale)}
+              date={formatReportDate(invoice.issueDate)}
               originalFileLabel={
                 invoice.hasOriginalFile ? t('invoices.originalFile') : undefined
               }
@@ -79,17 +84,31 @@ export function RecentInvoicesSection() {
       {selected ? (
         <InvoiceDetailSheet
           visible={isDetailOpen}
-          title={t('invoices.detail.title', { number: selected.number })}
+          title={t('invoices.detail.reportTitle')}
           closeLabel={t('invoices.detail.close')}
-          rows={invoiceDetailRows(selected, t, locale)}
+          rows={[
+            { label: t('invoices.detail.taker'), value: selected.takerName },
+            {
+              label: t('invoices.detail.issuedAt'),
+              value: formatReportDate(selected.issueDate),
+            },
+            {
+              label: t('invoices.detail.originalFile'),
+              value: selected.hasOriginalFile
+                ? t('invoices.detail.originalFileAvailable')
+                : t('invoices.detail.originalFileUnavailable'),
+            },
+          ]}
           onClose={() => setIsDetailOpen(false)}
         />
       ) : null}
 
-      <InvoicesScreen
-        visible={isListOpen}
-        onClose={() => setIsListOpen(false)}
-      />
+      {isInvoiceListAvailable() ? (
+        <InvoicesScreen
+          visible={isListOpen}
+          onClose={() => setIsListOpen(false)}
+        />
+      ) : null}
     </View>
   );
 }

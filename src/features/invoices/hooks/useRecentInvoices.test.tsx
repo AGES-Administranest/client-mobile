@@ -1,8 +1,8 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { useRecentInvoices } from './useRecentInvoices';
-import type { Invoice, InvoicePage } from '../domain/invoice.types';
-import { fetchInvoices } from '../services/invoiceService';
+import type { ReportInvoice } from '../domain/reportInvoice';
+import { fetchReportInvoices } from '../services/reportInvoiceService';
 
 const mockSession = jest.fn();
 
@@ -10,31 +10,20 @@ jest.mock('features/auth', () => ({
   useAuth: () => ({ session: mockSession() }),
 }));
 
-jest.mock('../services/invoiceService', () => ({
-  fetchInvoices: jest.fn(),
+jest.mock('../services/reportInvoiceService', () => ({
+  fetchReportInvoices: jest.fn(),
 }));
 
-const fetchMock = fetchInvoices as jest.MockedFunction<typeof fetchInvoices>;
+const fetchMock = fetchReportInvoices as jest.MockedFunction<
+  typeof fetchReportInvoices
+>;
 
-function invoice(number: string): Invoice {
+function invoice(id: string): ReportInvoice {
   return {
-    id: `invoice-${number}`,
-    number,
-    kind: 'SERVICE',
-    issuerName: 'Emitente',
+    id,
+    issueDate: '2026-08-10',
     takerName: 'Tomador',
-    takerCnpj: '12.345.678/0001-90',
-    amount: 100,
-    issuedAt: '2026-08-10T12:00:00.000Z',
-    syncStatus: 'SYNCED',
     hasOriginalFile: true,
-  };
-}
-
-function pageOf(count: number): InvoicePage {
-  return {
-    items: Array.from({ length: count }, (_, index) => invoice(`${index}`)),
-    hasMore: false,
   };
 }
 
@@ -63,24 +52,23 @@ beforeEach(() => {
 });
 
 describe('useRecentInvoices', () => {
-  it('asks for the first page with the session token', async () => {
-    fetchMock.mockResolvedValue(pageOf(1));
+  it('asks for the few most recent invoices with the session token', async () => {
+    fetchMock.mockResolvedValue([invoice('a')]);
 
     renderRecent();
     await act(async () => undefined);
 
-    expect(fetchMock).toHaveBeenCalledWith('id-token');
+    expect(fetchMock).toHaveBeenCalledWith('id-token', 5);
   });
 
-  it('keeps only the few most recent invoices', async () => {
-    fetchMock.mockResolvedValue(pageOf(12));
+  it('has the invoices the service returns', async () => {
+    fetchMock.mockResolvedValue([invoice('a'), invoice('b')]);
 
     const { result } = renderRecent();
     await act(async () => undefined);
 
     expect(result.current.status).toBe('ready');
-    expect(result.current.invoices).toHaveLength(5);
-    expect(result.current.invoices[0].number).toBe('0');
+    expect(result.current.invoices.map(item => item.id)).toEqual(['a', 'b']);
   });
 
   it('fails when the request fails', async () => {
@@ -103,12 +91,12 @@ describe('useRecentInvoices', () => {
   });
 
   it('ignores an answer that arrives after it was unmounted', async () => {
-    let resolve!: (value: InvoicePage) => void;
+    let resolve!: (value: ReportInvoice[]) => void;
     fetchMock.mockReturnValue(new Promise(done => (resolve = done)));
 
     const { result, renderer } = renderRecent();
     act(() => renderer.unmount());
-    await act(async () => resolve(pageOf(1)));
+    await act(async () => resolve([invoice('a')]));
 
     expect(result.current.status).toBe('loading');
   });

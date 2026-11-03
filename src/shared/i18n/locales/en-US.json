@@ -1729,6 +1729,10 @@
       "SERVICE": "Service"
     },
     "detail": {
+      "reportTitle": "Invoice details",
+      "originalFile": "Original file",
+      "originalFileAvailable": "Available",
+      "originalFileUnavailable": "Unavailable",
       "title": "Invoice {{number}}",
       "close": "Close",
       "kind": "Type",

@@ -9,24 +9,15 @@ jest.mock('features/auth', () => ({
   useAuth: () => ({ session: { idToken: 'tok' } }),
 }));
 
-jest.mock('features/invoices/services/invoiceService', () => ({
-  fetchInvoices: jest.fn(async () => ({
-    items: [
-      {
-        id: 'invoice-1',
-        number: '000458',
-        kind: 'SERVICE',
-        issuerName: 'Vet Farma',
-        takerName: 'HospVet Sul',
-        takerCnpj: '12.345.678/0001-90',
-        amount: 100,
-        issuedAt: '2026-04-22T12:00:00.000Z',
-        syncStatus: 'SYNCED',
-        hasOriginalFile: true,
-      },
-    ],
-    hasMore: false,
-  })),
+jest.mock('features/invoices/services/reportInvoiceService', () => ({
+  fetchReportInvoices: jest.fn(async () => [
+    {
+      id: 'invoice-1',
+      issueDate: '2026-04-22',
+      takerName: 'HospVet Sul',
+      hasOriginalFile: true,
+    },
+  ]),
 }));
 
 const METRICS = {

@@ -33,7 +33,6 @@ function invoice(number: string, takerName = 'Clínica Boa Vida'): Invoice {
     amount: 100,
     issuedAt: '2026-08-10T12:00:00.000Z',
     syncStatus: 'SYNCED',
-    hasOriginalFile: true,
   };
 }
 

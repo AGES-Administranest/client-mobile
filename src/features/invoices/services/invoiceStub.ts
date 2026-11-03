@@ -47,7 +47,6 @@ export const STUB_INVOICES: Invoice[] = Array.from(
       amount: 500 + ((index * 337) % 2500),
       issuedAt: new Date(LAST_ISSUED_AT - index * 3 * DAY_MS).toISOString(),
       syncStatus: STATUSES[index % STATUSES.length],
-      hasOriginalFile: index % 3 !== 2,
     };
   },
 );
