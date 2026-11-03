@@ -73,10 +73,9 @@ describe('toCreateAppointmentPayload', () => {
     expect(payload.notes).toBe('obs');
   });
 
-  it('envia o clientId do tomador selecionado, sem enviar location', () => {
+  it('envia o clientId do tomador selecionado', () => {
     const payload = toCreateAppointmentPayload({ ...valid, clientId: 'c-42' });
     expect(payload.clientId).toBe('c-42');
-    expect(payload).not.toHaveProperty('location');
   });
 
   it('envia a espécie selecionada e omite quando não há seleção', () => {
@@ -84,5 +83,18 @@ describe('toCreateAppointmentPayload', () => {
     expect(
       toCreateAppointmentPayload({ ...valid, species: null }),
     ).not.toHaveProperty('species');
+  });
+
+  it('envia o local do atendimento sem espaços nas pontas', () => {
+    const payload = toCreateAppointmentPayload({
+      ...valid,
+      location: '  Rua X, 10, Canoas, RS  ',
+    });
+    expect(payload.location).toBe('Rua X, 10, Canoas, RS');
+  });
+
+  it('não envia location quando o campo está vazio', () => {
+    const payload = toCreateAppointmentPayload({ ...valid, location: '   ' });
+    expect(payload).not.toHaveProperty('location');
   });
 });

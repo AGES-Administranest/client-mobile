@@ -995,7 +995,9 @@
       "title": "Novo atendimento",
       "confirm": "Confirmar",
       "close": "Fechar",
-      "location": "Local",
+      "client": "Tomador",
+      "location": "Local do atendimento",
+      "locationHint": "Sugerido pelo endereço do tomador. Você pode alterar.",
       "submitError": "Não foi possível salvar. Tente novamente."
     },
     "supplyPrompt": {
@@ -1019,7 +1021,8 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Nome da clínica",
+      "client": "Nome do tomador",
+      "location": "Endereço do atendimento",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
@@ -1049,14 +1052,14 @@
       "INVALID_TIME": "Hora inválida",
       "IN_THE_PAST": "Escolha uma data e horário futuros",
       "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
-      "SELECT_CLIENT": "Escolha uma clínica da lista",
+      "SELECT_CLIENT": "Escolha um tomador da lista",
       "NAME_TOO_LONG": "Máximo de 160 caracteres",
       "TOO_LONG": "Máximo de 2000 caracteres"
     },
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas."
+      "empty": "Nenhum tomador encontrado. Cadastre em Parceiros → Clínicas."
     },
     "completion": {
       "action": "Finalizar procedimento",

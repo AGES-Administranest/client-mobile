@@ -11,22 +11,22 @@ import type { ClientSearchStatus } from '../domain/clientSearch';
 
 export type ClientAutocompleteMessages = SearchSelectMessages;
 
-type ClientAutocompleteProps = {
+type ClientAutocompleteProps<T extends ClientOption> = {
   label: string;
   placeholder?: string;
   value: string;
   error?: string;
   status: ClientSearchStatus;
-  options: ClientOption[];
+  options: T[];
   messages: ClientAutocompleteMessages;
   trailingIcon?: LucideIcon;
   compact?: boolean;
   className?: string;
   onChangeText: (value: string) => void;
-  onSelect: (option: ClientOption) => void;
+  onSelect: (option: T) => void;
 };
 
-export function ClientAutocomplete({
+export function ClientAutocomplete<T extends ClientOption>({
   label,
   placeholder,
   value,
@@ -39,7 +39,7 @@ export function ClientAutocomplete({
   className,
   onChangeText,
   onSelect,
-}: ClientAutocompleteProps) {
+}: ClientAutocompleteProps<T>) {
   function selectPickedClient({ id }: SearchSelectOption): void {
     const client = options.find(option => option.id === id);
     if (client) onSelect(client);

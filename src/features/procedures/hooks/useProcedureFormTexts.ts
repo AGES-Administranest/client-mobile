@@ -25,7 +25,8 @@ export function useProcedureFormTexts(
   const labels: Record<keyof ProcedureFormValues, string> = {
     patientName: t('procedures.fields.patientName'),
     procedureName: t('procedures.fields.procedureName'),
-    clientId: t('procedures.form.location'),
+    clientId: t('procedures.form.client'),
+    location: t('procedures.form.location'),
     patientAgeYears: t('procedures.fields.patientAgeYears'),
     weightKg: t('procedures.fields.weightKg'),
     startTime: t('procedures.fields.startTime'),

@@ -995,7 +995,9 @@
       "title": "New appointment",
       "confirm": "Confirm",
       "close": "Close",
-      "location": "Location",
+      "client": "Client",
+      "location": "Appointment location",
+      "locationHint": "Suggested from the client's address. You can change it.",
       "submitError": "Couldn't save. Please try again."
     },
     "supplyPrompt": {
@@ -1019,7 +1021,8 @@
     "placeholders": {
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "location": "Clinic name",
+      "client": "Client name",
+      "location": "Appointment address",
       "notes": "Notes about the procedure",
       "number": "0",
       "time": "HH:MM",
