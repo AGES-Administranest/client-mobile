@@ -814,9 +814,21 @@
     "loading": "Loading invoices",
     "empty": "No invoices registered yet.",
     "error": "Could not load the invoices.",
-    "noClient": "No client",
+    "noTaker": "No taker",
     "noIssueDate": "No issue date",
-    "originalFile": "Original file"
+    "originalFile": "Original file",
+    "close": "Close",
+    "list": {
+      "title": "Invoices"
+    },
+    "detail": {
+      "title": "Invoice details",
+      "taker": "Taker",
+      "issueDate": "Issue date",
+      "originalFile": "Original file",
+      "originalFileAvailable": "Available",
+      "originalFileUnavailable": "Unavailable"
+    }
   },
   "optionsModal": {
     "scanNote": "Scan note",

@@ -6,7 +6,7 @@ import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
 type ServiceInvoiceCardProps = {
-  clientName: string;
+  takerName: string;
   issueDate: string;
   /** Present only when the original file is available. */
   originalFileLabel?: string;
@@ -15,7 +15,7 @@ type ServiceInvoiceCardProps = {
 };
 
 export function ServiceInvoiceCard({
-  clientName,
+  takerName,
   issueDate,
   originalFileLabel,
   onPress,
@@ -30,7 +30,7 @@ export function ServiceInvoiceCard({
         )}
       >
         <Text className="text-lg font-semibold" numberOfLines={1}>
-          {clientName}
+          {takerName}
         </Text>
         <Text className="text-[15px] text-label-primary">{issueDate}</Text>
         {originalFileLabel ? (

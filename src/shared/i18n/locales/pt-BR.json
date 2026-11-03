@@ -814,9 +814,21 @@
     "loading": "Carregando notas fiscais",
     "empty": "Nenhuma nota fiscal registrada ainda.",
     "error": "Não foi possível carregar as notas fiscais.",
-    "noClient": "Sem tomador",
+    "noTaker": "Sem tomador",
     "noIssueDate": "Sem data de emissão",
-    "originalFile": "Arquivo original"
+    "originalFile": "Arquivo original",
+    "close": "Fechar",
+    "list": {
+      "title": "Notas fiscais"
+    },
+    "detail": {
+      "title": "Detalhes da nota",
+      "taker": "Tomador",
+      "issueDate": "Data de emissão",
+      "originalFile": "Arquivo original",
+      "originalFileAvailable": "Disponível",
+      "originalFileUnavailable": "Indisponível"
+    }
   },
   "optionsModal": {
     "scanNote": "Escanear nota",

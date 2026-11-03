@@ -2,18 +2,18 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, type AuthSession } from 'features/auth';
 
-import { useRecentServiceInvoices } from './useRecentServiceInvoices';
-import { fetchRecentServiceInvoices } from '../services/serviceInvoiceService';
+import { useServiceInvoices } from './useServiceInvoices';
+import { fetchServiceInvoices } from '../services/serviceInvoiceService';
 
 jest.mock('../services/serviceInvoiceService', () => ({
-  fetchRecentServiceInvoices: jest.fn(),
+  fetchServiceInvoices: jest.fn(),
 }));
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
 
-const fetchMock = fetchRecentServiceInvoices as jest.MockedFunction<
-  typeof fetchRecentServiceInvoices
+const fetchMock = fetchServiceInvoices as jest.MockedFunction<
+  typeof fetchServiceInvoices
 >;
 
 const SESSION: AuthSession = {
@@ -25,11 +25,11 @@ const SESSION: AuthSession = {
 
 async function mountHook(session: AuthSession | null) {
   const result = {
-    current: null as unknown as ReturnType<typeof useRecentServiceInvoices>,
+    current: null as unknown as ReturnType<typeof useServiceInvoices>,
   };
 
   function Harness() {
-    result.current = useRecentServiceInvoices();
+    result.current = useServiceInvoices(5);
     return null;
   }
 
@@ -49,7 +49,7 @@ beforeEach(() => {
   fetchMock.mockReset();
 });
 
-test('does not ask for invoices without a session', async () => {
+test('does not ask for notes without a session', async () => {
   const { result } = await mountHook(null);
 
   expect(fetchMock).not.toHaveBeenCalled();

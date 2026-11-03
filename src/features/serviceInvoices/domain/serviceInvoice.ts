@@ -1,19 +1,40 @@
-/**
- * An invoice the professional issued outside the app, as the lists show it.
- * Mirrors what `GET /service-invoices` documents: the borrower is the client's
- * name, and the original file is available when the invoice has a stored file.
- */
+/** What `GET /service-invoices` documents for each note. */
+export type BackendServiceInvoice = {
+  id: string;
+  status: 'DRAFT' | 'CONFIRMED' | 'CANCELLED';
+  fileName?: string;
+  number?: string;
+  /** `YYYY-MM-DD`. */
+  issueDate?: string;
+  /** The taker as printed on the note. */
+  takerName?: string;
+  clientId?: string;
+  /** Absent while the upload never arrived. */
+  uploadedAt?: string;
+  createdAt: string;
+};
+
 export type ServiceInvoice = {
   id: string;
-  /** `YYYY-MM-DD`, null while the issue date was not read from the document. */
+  /** `YYYY-MM-DD`, null while the note has no issue date. */
   issueDate: string | null;
-  /** The borrower: the name of the invoice's client, null when it has none. */
-  clientName: string | null;
+  takerName: string | null;
   hasOriginalFile: boolean;
 };
 
-/** How many invoices the Reports tab shows before "Ver todos". */
+/** How many notes the Reports tab shows before "Ver todos". */
 export const RECENT_INVOICES_LIMIT = 5;
+
+export function toServiceInvoice(
+  invoice: BackendServiceInvoice,
+): ServiceInvoice {
+  return {
+    id: invoice.id,
+    issueDate: invoice.issueDate ?? null,
+    takerName: invoice.takerName ?? null,
+    hasOriginalFile: invoice.uploadedAt !== undefined,
+  };
+}
 
 /** `YYYY-MM-DD` as the date fields show it, `dd/mm/aaaa`. */
 export function formatIssueDate(isoDate: string): string {

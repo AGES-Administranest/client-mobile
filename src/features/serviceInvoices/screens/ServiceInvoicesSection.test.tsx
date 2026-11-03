@@ -1,3 +1,4 @@
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
@@ -5,18 +6,24 @@ import { I18nProvider } from 'shared/i18n';
 
 import { ServiceInvoicesSection } from './ServiceInvoicesSection';
 import type { ServiceInvoice } from '../domain/serviceInvoice';
-import { fetchRecentServiceInvoices } from '../services/serviceInvoiceService';
+import { fetchServiceInvoices } from '../services/serviceInvoiceService';
 
 jest.mock('../services/serviceInvoiceService', () => ({
-  fetchRecentServiceInvoices: jest.fn(),
+  MAX_PAGE_SIZE: 100,
+  fetchServiceInvoices: jest.fn(),
 }));
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
 
-const fetchMock = fetchRecentServiceInvoices as jest.MockedFunction<
-  typeof fetchRecentServiceInvoices
+const fetchMock = fetchServiceInvoices as jest.MockedFunction<
+  typeof fetchServiceInvoices
 >;
+
+const METRICS = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const SESSION = {
   idToken: 'id-token',
@@ -36,33 +43,29 @@ const ACCOUNT: Account = {
 const WITH_FILE: ServiceInvoice = {
   id: 'invoice-1',
   issueDate: '2026-04-22',
-  clientName: 'HospVet Sul',
+  takerName: 'HospVet Sul',
   hasOriginalFile: true,
 };
 
 const WITHOUT_FILE: ServiceInvoice = {
   id: 'invoice-2',
   issueDate: null,
-  clientName: null,
+  takerName: null,
   hasOriginalFile: false,
 };
 
-async function renderSection(
-  props: Partial<Parameters<typeof ServiceInvoicesSection>[0]> = {},
-) {
+async function renderSection() {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
     renderer = ReactTestRenderer.create(
-      <I18nProvider>
-        <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
-          <ServiceInvoicesSection
-            onOpenInvoice={jest.fn()}
-            onSeeAll={jest.fn()}
-            {...props}
-          />
-        </AuthProvider>
-      </I18nProvider>,
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <ServiceInvoicesSection />
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
     );
   });
 
@@ -77,11 +80,23 @@ function texts(renderer: ReactTestRenderer.ReactTestRenderer) {
   );
 }
 
+async function press(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  role: 'button' | 'link',
+) {
+  const target = renderer.root.findAll(
+    node =>
+      node.props.accessibilityRole === role &&
+      node.props.accessibilityLabel === undefined,
+  )[0];
+  await act(async () => target.props.onPress());
+}
+
 beforeEach(() => {
   fetchMock.mockReset();
 });
 
-test('asks for the few most recent invoices with the session token', async () => {
+test('asks for the few most recent notes with the session token', async () => {
   fetchMock.mockResolvedValue([WITH_FILE]);
 
   await renderSection();
@@ -89,7 +104,7 @@ test('asks for the few most recent invoices with the session token', async () =>
   expect(fetchMock).toHaveBeenCalledWith(SESSION.idToken, 5);
 });
 
-test('shows the title, the see-all link and a card per invoice', async () => {
+test('shows the title, the see-all link and a card per note', async () => {
   fetchMock.mockResolvedValue([WITH_FILE]);
 
   const shown = texts(await renderSection());
@@ -101,7 +116,7 @@ test('shows the title, the see-all link and a card per invoice', async () => {
   expect(shown).toContain('Arquivo original');
 });
 
-test('marks the original file only on the invoices that have it', async () => {
+test('marks the original file only on the notes that have it', async () => {
   fetchMock.mockResolvedValue([WITH_FILE, WITHOUT_FILE]);
 
   const renderer = await renderSection();
@@ -109,7 +124,7 @@ test('marks the original file only on the invoices that have it', async () => {
   expect(texts(renderer).match(/Arquivo original/g)).toHaveLength(1);
 });
 
-test('names a missing borrower and a missing issue date', async () => {
+test('names a missing taker and a missing issue date', async () => {
   fetchMock.mockResolvedValue([WITHOUT_FILE]);
 
   const shown = texts(await renderSection());
@@ -118,7 +133,7 @@ test('names a missing borrower and a missing issue date', async () => {
   expect(shown).toContain('Sem data de emissão');
 });
 
-test('shows the empty message when there is no invoice', async () => {
+test('shows the empty message when there is no note', async () => {
   fetchMock.mockResolvedValue([]);
 
   const shown = texts(await renderSection());
@@ -134,7 +149,7 @@ test('shows an error message when loading fails', async () => {
   expect(shown).toContain('Não foi possível carregar as notas fiscais.');
 });
 
-test('shows a loading indicator while the invoices are coming', async () => {
+test('shows a loading indicator while the notes are coming', async () => {
   fetchMock.mockReturnValue(new Promise(() => undefined));
 
   const renderer = await renderSection();
@@ -144,33 +159,43 @@ test('shows a loading indicator while the invoices are coming', async () => {
       node => node.props.accessibilityLabel === 'Carregando notas fiscais',
     ).length,
   ).toBeGreaterThan(0);
-  expect(texts(renderer)).not.toContain(
-    'Nenhuma nota fiscal registrada ainda.',
-  );
 });
 
-test('tapping a card opens that invoice', async () => {
+test('opens no sheet before a tap', async () => {
   fetchMock.mockResolvedValue([WITH_FILE]);
-  const onOpenInvoice = jest.fn();
 
-  const renderer = await renderSection({ onOpenInvoice });
-  const card = renderer.root.findAll(
-    node => node.props.accessibilityRole === 'button',
-  )[0];
-  await act(async () => card.props.onPress());
+  const shown = texts(await renderSection());
 
-  expect(onOpenInvoice).toHaveBeenCalledWith('invoice-1');
+  expect(shown).not.toContain('Detalhes da nota');
+  expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
-test('tapping "Ver todos" opens the full list', async () => {
+test('tapping a card opens the detail of that note', async () => {
   fetchMock.mockResolvedValue([WITH_FILE]);
-  const onSeeAll = jest.fn();
+  const renderer = await renderSection();
 
-  const renderer = await renderSection({ onSeeAll });
-  const link = renderer.root.findAll(
-    node => node.props.accessibilityRole === 'link',
-  )[0];
-  await act(async () => link.props.onPress());
+  await press(renderer, 'button');
 
-  expect(onSeeAll).toHaveBeenCalledTimes(1);
+  const shown = texts(renderer);
+  expect(shown).toContain('Detalhes da nota');
+  expect(shown).toContain('Tomador');
+  expect(shown).toContain('Disponível');
+});
+
+test('the detail says when the original file is unavailable', async () => {
+  fetchMock.mockResolvedValue([WITHOUT_FILE]);
+  const renderer = await renderSection();
+
+  await press(renderer, 'button');
+
+  expect(texts(renderer)).toContain('Indisponível');
+});
+
+test('tapping "Ver todos" opens the full list, asking for the biggest page', async () => {
+  fetchMock.mockResolvedValue([WITH_FILE]);
+  const renderer = await renderSection();
+
+  await press(renderer, 'link');
+
+  expect(fetchMock).toHaveBeenCalledWith(SESSION.idToken, 100);
 });

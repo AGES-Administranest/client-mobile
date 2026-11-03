@@ -2,28 +2,25 @@ import { useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 
-import {
-  RECENT_INVOICES_LIMIT,
-  type ServiceInvoice,
-} from '../domain/serviceInvoice';
-import { fetchRecentServiceInvoices } from '../services/serviceInvoiceService';
+import type { ServiceInvoice } from '../domain/serviceInvoice';
+import { fetchServiceInvoices } from '../services/serviceInvoiceService';
 
-type RecentServiceInvoicesState = {
+type ServiceInvoicesState = {
   invoices: ServiceInvoice[];
   status: 'loading' | 'ready' | 'failed';
 };
 
-export function useRecentServiceInvoices(): RecentServiceInvoicesState {
+export function useServiceInvoices(limit: number): ServiceInvoicesState {
   const { session } = useAuth();
   const idToken = session?.idToken ?? null;
   const [invoices, setInvoices] = useState<ServiceInvoice[]>([]);
   const [status, setStatus] =
-    useState<RecentServiceInvoicesState['status']>('loading');
+    useState<ServiceInvoicesState['status']>('loading');
 
   useEffect(() => {
     if (!idToken) return;
     let isMounted = true;
-    fetchRecentServiceInvoices(idToken, RECENT_INVOICES_LIMIT)
+    fetchServiceInvoices(idToken, limit)
       .then(found => {
         if (!isMounted) return;
         setInvoices(found);
@@ -35,7 +32,7 @@ export function useRecentServiceInvoices(): RecentServiceInvoicesState {
     return () => {
       isMounted = false;
     };
-  }, [idToken]);
+  }, [idToken, limit]);
 
   return { invoices, status };
 }
