@@ -613,9 +613,46 @@
       "edit": "Editar clínica",
       "editTitle": "Editar",
       "confirm": "Confirmar",
-      "delete": "Excluir"
+      "delete": "Excluir",
+      "tabs": {
+        "history": "Histórico",
+        "data": "Dados"
+      }
     },
-    "loadFailure": "Não foi possível carregar as clínicas."
+    "loadFailure": "Não foi possível carregar as clínicas.",
+    "history": {
+      "period": "Período",
+      "periodRange": "{{from}} – {{to}}",
+      "choosePeriod": "Escolher período",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "currentMonth": "Mês atual",
+      "apply": "Aplicar",
+      "billed": "Faturado",
+      "appointments": "Atendimentos",
+      "trips": "Deslocamento",
+      "tripCountZero": "Nenhum trecho no período",
+      "tripCountOne": "1 trecho no período",
+      "tripCountOther": "{{count}} trechos no período",
+      "listTitle": "Atendimentos no período",
+      "noProcedure": "Procedimento não informado",
+      "noAmount": "Sem valor",
+      "appointmentDetail": "{{patient}} · {{date}}",
+      "showMoreOne": "Ver mais 1 atendimento",
+      "showMoreOther": "Ver mais {{count}} atendimentos",
+      "showMoreFailed": "Não foi possível carregar mais atendimentos. Tentar novamente",
+      "loading": "Carregando o histórico",
+      "loadingMore": "Carregando mais atendimentos…",
+      "empty": {
+        "title": "Nenhum atendimento neste período",
+        "message": "Os atendimentos vinculados a esta clínica aparecem aqui. Tente outro período."
+      },
+      "failures": {
+        "network": "Não foi possível carregar o histórico. Verifique sua conexão e tente novamente.",
+        "session": "Sua sessão expirou. Saia da conta e entre novamente.",
+        "unknown": "Não foi possível carregar o histórico. Tente novamente."
+      }
+    }
   },
   "financialEntries": {
     "newEntry": "Novo lançamento",
