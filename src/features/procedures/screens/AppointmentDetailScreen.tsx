@@ -28,6 +28,7 @@ import { Button } from 'app/components/ui/button';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { DeleteOriginDialog } from 'app/components/ui/delete-origin-dialog';
 import { Icon } from 'app/components/ui/icon';
+import { StatCard } from 'app/components/ui/stat-card';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import {
@@ -49,7 +50,6 @@ import {
   AppointmentActions,
   type AppointmentActionsTexts,
 } from '../components/AppointmentActions';
-import { DetailStatCard } from '../components/DetailStatCard';
 import { EditAmountSheet } from '../components/EditAmountSheet';
 import { ProcedureFormSheet } from '../components/ProcedureFormSheet';
 import { SupplyCostSummary } from '../components/SupplyCostSummary';
@@ -392,7 +392,7 @@ export function AppointmentDetailScreen({
               ) : null}
 
               <View className="flex-row gap-2">
-                <DetailStatCard
+                <StatCard
                   label={t('procedures.fields.patientAgeYears')}
                   value={
                     appointment.patientAgeYears !== null
@@ -402,7 +402,7 @@ export function AppointmentDetailScreen({
                       : t('procedures.detail.notInformed')
                   }
                 />
-                <DetailStatCard
+                <StatCard
                   label={t('procedures.detail.weightLabel')}
                   value={
                     appointment.weightKg !== null
@@ -415,7 +415,7 @@ export function AppointmentDetailScreen({
               </View>
 
               <View className="flex-row gap-2">
-                <DetailStatCard
+                <StatCard
                   label={t('procedures.fields.amount')}
                   value={
                     appointment.amount === null
@@ -426,7 +426,7 @@ export function AppointmentDetailScreen({
                         )
                   }
                 />
-                <DetailStatCard
+                <StatCard
                   label={t('procedures.detail.time')}
                   value={
                     appointment.endsAt

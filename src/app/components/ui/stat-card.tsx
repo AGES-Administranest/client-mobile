@@ -3,17 +3,13 @@ import { View } from 'react-native';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
-type DetailStatCardProps = {
+type StatCardProps = {
   label: string;
   value: string;
   className?: string;
 };
 
-export function DetailStatCard({
-  label,
-  value,
-  className,
-}: DetailStatCardProps) {
+function StatCard({ label, value, className }: StatCardProps) {
   return (
     <View
       className={cn(
@@ -28,3 +24,6 @@ export function DetailStatCard({
     </View>
   );
 }
+
+export { StatCard };
+export type { StatCardProps };
