@@ -30,6 +30,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     submitting,
     submitFailed,
     client,
+    showLocationHint,
     supplyPrompt,
     conflict,
     dismissConflict,
@@ -85,6 +86,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         submitErrorText={t('procedures.form.submitError')}
         texts={texts}
         client={client}
+        showLocationHint={showLocationHint}
         onChangeText={setTextField}
         onChangeClientTerm={client.onTermChange}
         onSelectClient={client.onSelect}

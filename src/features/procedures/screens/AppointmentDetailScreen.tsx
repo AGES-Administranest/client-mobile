@@ -672,6 +672,7 @@ export function AppointmentDetailScreen({
         texts={formTexts}
         client={form.client}
         onChangeText={form.setTextField}
+        showLocationHint={form.showLocationHint}
         onChangeClientTerm={form.client.onTermChange}
         onSelectClient={form.client.onSelect}
         onChangeSpecies={value => form.setField('species', value)}
