@@ -993,8 +993,56 @@
     "segments": {
       "clinics": "Clínicas",
       "suppliers": "Fornecedores"
+    }
+  },
+  "suppliers": {
+    "empty": "Nenhum fornecedor cadastrado.",
+    "loadFailure": "Não foi possível carregar os fornecedores.",
+    "countOne": "{{count}} fornecedor",
+    "countOther": "{{count}} fornecedores",
+    "add": "Adicionar fornecedor",
+    "newTitle": "Novo fornecedor",
+    "confirm": "Confirmar",
+    "close": "Fechar",
+    "fields": {
+      "name": {
+        "label": "Nome do fornecedor",
+        "placeholder": "Digite o nome do fornecedor"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Digite o email do fornecedor"
+      },
+      "address": {
+        "label": "Endereço",
+        "placeholder": "Digite a rua, número e bairro"
+      },
+      "phone": {
+        "label": "Contato",
+        "placeholder": "(00) 00000-0000"
+      }
     },
-    "suppliersEmpty": "Fornecedores ainda não estão disponíveis aqui."
+    "errors": {
+      "name": {
+        "required": "Informe o nome do fornecedor.",
+        "tooShort": "O nome precisa ter pelo menos 2 caracteres."
+      },
+      "email": {
+        "invalid": "Informe um e-mail válido."
+      },
+      "phone": {
+        "invalid": "Informe o telefone com DDD."
+      }
+    },
+    "detail": {
+      "title": "Fornecedor",
+      "editTitle": "Editar",
+      "edit": "Editar Fornecedor",
+      "delete": "Excluir",
+      "status": "Status",
+      "active": "Ativo",
+      "inactive": "Desativo"
+    }
   },
   "procedures": {
     "newProcedure": "Novo atendimento",

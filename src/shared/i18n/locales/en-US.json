@@ -993,8 +993,56 @@
     "segments": {
       "clinics": "Clinics",
       "suppliers": "Suppliers"
+    }
+  },
+  "suppliers": {
+    "empty": "No suppliers registered.",
+    "loadFailure": "Could not load the suppliers.",
+    "countOne": "{{count}} supplier",
+    "countOther": "{{count}} suppliers",
+    "add": "Add supplier",
+    "newTitle": "New supplier",
+    "confirm": "Confirm",
+    "close": "Close",
+    "fields": {
+      "name": {
+        "label": "Supplier name",
+        "placeholder": "Enter the supplier name"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Enter the supplier email"
+      },
+      "address": {
+        "label": "Address",
+        "placeholder": "Enter street, number and neighborhood"
+      },
+      "phone": {
+        "label": "Phone",
+        "placeholder": "(00) 00000-0000"
+      }
     },
-    "suppliersEmpty": "Suppliers are not available here yet."
+    "errors": {
+      "name": {
+        "required": "Enter the supplier name.",
+        "tooShort": "The name needs at least 2 characters."
+      },
+      "email": {
+        "invalid": "Enter a valid email."
+      },
+      "phone": {
+        "invalid": "Enter the phone number with area code."
+      }
+    },
+    "detail": {
+      "title": "Supplier",
+      "editTitle": "Edit",
+      "edit": "Edit supplier",
+      "delete": "Delete",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
   },
   "procedures": {
     "newProcedure": "New appointment",
