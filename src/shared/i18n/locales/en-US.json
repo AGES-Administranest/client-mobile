@@ -1086,7 +1086,8 @@
       "remove": "Remove {{name}}",
       "totalCost": "Supplies total",
       "grossMargin": "Gross margin",
-      "travelCost": "Total travel"
+      "travelCost": "Total travel",
+      "costsTotal": "Total costs"
     },
     "status": {
       "SCHEDULED": "Scheduled",

@@ -1086,7 +1086,8 @@
       "remove": "Remover {{name}}",
       "totalCost": "Total insumos",
       "grossMargin": "Margem bruta",
-      "travelCost": "Total deslocamento"
+      "travelCost": "Total deslocamento",
+      "costsTotal": "Total de custos"
     },
     "status": {
       "SCHEDULED": "Agendado",

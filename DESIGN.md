@@ -140,7 +140,7 @@ When implementing, follow this repo's existing pattern: base primitives live in 
 8. `SectionHeader` "Deslocamento" + toggle action (`+ Registrar` ↔ `Cancelar`):
    - Collapsed/empty: `EmptyState` box.
    - Expanded: form (vehicle select input, distance input) + full-width "Confirmar" button.
-9. Summary card (muted background): "Total insumos" (negative, alert color), "Total deslocamento" (negative, only when the appointment has trips) + "Margem bruta" (bold, primary), which is the billed amount minus supplies and travel.
+9. Summary card (muted background): "Total insumos" (negative, alert color), "Total deslocamento" (negative, only when the appointment has trips), "Total de custos" (supplies + travel, only when both cost something) + "Margem bruta" (bold, primary), which is the billed amount minus supplies and travel.
 10. Floating action button (bottom-right, circular, calculator icon) — opens the quick-actions bottom sheet.
 
 ## 7. States / variants captured

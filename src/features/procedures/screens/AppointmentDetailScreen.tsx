@@ -641,6 +641,18 @@ export function AppointmentDetailScreen({
                         }
                       : undefined
                   }
+                  costsTotal={
+                    totalCost > 0 && travelCost > 0
+                      ? {
+                          label: t('procedures.supplies.costsTotal'),
+                          value: formatSupplyTotalCost(
+                            totalCost + travelCost,
+                            locale,
+                          ),
+                          isDeduction: true,
+                        }
+                      : undefined
+                  }
                   grossMargin={
                     margin === null
                       ? undefined
