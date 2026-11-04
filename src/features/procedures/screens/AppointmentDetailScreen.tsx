@@ -106,7 +106,8 @@ export function AppointmentDetailScreen({
       ? toCalendarDate(appointment.startsAt)
       : null,
     defaultOrigin: t('procedures.detail.travel.defaultOrigin'),
-    defaultDestination: appointment?.location ?? '',
+    // O formulário só grava clientId: o nome da clínica vem em ownerName.
+    defaultDestination: appointment?.location ?? appointment?.ownerName ?? '',
   });
   const tripVehicleNames = useMemo(
     () =>
