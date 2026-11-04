@@ -801,6 +801,39 @@
     "reports": "Reports",
     "clinics": "Clinics"
   },
+  "reports": {
+    "title": "Reports",
+    "generate": {
+      "title": "Generate new report"
+    },
+    "period": {
+      "label": "Period",
+      "range": "{{from}} to {{to}}",
+      "incomplete": "Select the period",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "choices": {
+        "currentMonth": "This month",
+        "previousMonth": "Last month",
+        "currentYear": "This year",
+        "custom": "Custom"
+      }
+    },
+    "kinds": {
+      "general": {
+        "title": "General Report",
+        "description": "Revenue, expenses and appointments for the period"
+      },
+      "invoicePackage": {
+        "title": "Invoice Package for Income Tax",
+        "description": "The period's invoices gathered for income tax"
+      }
+    },
+    "history": {
+      "title": "Report history",
+      "viewAll": "View all"
+    }
+  },
   "optionsModal": {
     "scanNote": "Scan note",
     "typeSupply": "Type supply"
@@ -1690,6 +1723,8 @@
   },
   "invoices": {
     "trigger": "Invoices",
+    "seeAll": "See all",
+    "originalFile": "Original file",
     "title": "Invoices",
     "back": "Back",
     "filters": {
@@ -1724,6 +1759,10 @@
       "SERVICE": "Service"
     },
     "detail": {
+      "reportTitle": "Invoice details",
+      "originalFile": "Original file",
+      "originalFileAvailable": "Available",
+      "originalFileUnavailable": "Unavailable",
       "title": "Invoice {{number}}",
       "close": "Close",
       "kind": "Type",

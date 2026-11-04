@@ -801,6 +801,39 @@
     "reports": "Relatórios",
     "clinics": "Clínicas"
   },
+  "reports": {
+    "title": "Relatórios",
+    "generate": {
+      "title": "Gerar novo relatório"
+    },
+    "period": {
+      "label": "Período",
+      "range": "{{from}} até {{to}}",
+      "incomplete": "Selecione o período",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "choices": {
+        "currentMonth": "Mês atual",
+        "previousMonth": "Mês anterior",
+        "currentYear": "Ano atual",
+        "custom": "Personalizado"
+      }
+    },
+    "kinds": {
+      "general": {
+        "title": "Relatório Geral",
+        "description": "Receitas, despesas e atendimentos do período"
+      },
+      "invoicePackage": {
+        "title": "Pacote de Notas Fiscais para IR",
+        "description": "Notas fiscais do período reunidas para o Imposto de Renda"
+      }
+    },
+    "history": {
+      "title": "Histórico de relatórios",
+      "viewAll": "Ver todos"
+    }
+  },
   "optionsModal": {
     "scanNote": "Escanear nota",
     "typeSupply": "Digitar insumo"
@@ -1690,6 +1723,8 @@
   },
   "invoices": {
     "trigger": "Notas fiscais",
+    "seeAll": "Ver todos",
+    "originalFile": "Arquivo original",
     "title": "Notas fiscais",
     "back": "Voltar",
     "filters": {
@@ -1724,6 +1759,10 @@
       "SERVICE": "Serviço"
     },
     "detail": {
+      "reportTitle": "Detalhes da nota",
+      "originalFile": "Arquivo original",
+      "originalFileAvailable": "Disponível",
+      "originalFileUnavailable": "Indisponível",
       "title": "Nota Fiscal {{number}}",
       "close": "Fechar",
       "kind": "Tipo",
