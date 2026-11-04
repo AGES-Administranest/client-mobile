@@ -119,9 +119,24 @@ export function useTripForm(options: UseTripFormOptions = {}) {
     });
   }, []);
 
+  // A clinic picked here is where the person is going: it fills the
+  // destination, unless they typed something of their own over it.
+  const autoDestination = useRef('');
+
   const onSelectClient = useCallback(
     (option: { id: string; name: string }) => {
-      setValues(prev => ({ ...prev, clientId: option.id }));
+      setValues(prev => {
+        const keepsOwnDestination =
+          prev.destination.trim() !== '' &&
+          prev.destination !== autoDestination.current;
+        autoDestination.current = option.name;
+
+        return {
+          ...prev,
+          clientId: option.id,
+          destination: keepsOwnDestination ? prev.destination : option.name,
+        };
+      });
       setClientSearchTerm(option.name);
       setIsClientSearchPaused(true);
     },
