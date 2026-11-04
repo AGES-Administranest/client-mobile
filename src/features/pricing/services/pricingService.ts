@@ -2,6 +2,7 @@ import { ApiError, apiClient } from 'shared/services/apiClient';
 import type { MonthPeriod } from 'shared/utils/monthPeriod';
 
 import { fetchPricingSettings } from './pricingSettingsService';
+import { estimateProcedureMock } from './procedureEstimateMock';
 import {
   toHourlyRate,
   type HourlyRate,
@@ -9,8 +10,31 @@ import {
 } from '../domain/hourlyRate';
 import type {
   PricingSettings,
+  ProcedureEstimateDto,
+  ProcedureEstimateResponse,
   SavePricingSettingsDto,
 } from '../domain/pricing.types';
+
+/**
+ * Ponto único de controle do mock de simulação de procedimento (US21).
+ * Trocar para `false` para conectar diretamente ao endpoint real do backend (POST /pricing/procedure-estimate).
+ */
+export const USE_PROCEDURE_ESTIMATE_MOCK = true;
+
+/**
+ * Detecta se um erro retornado pela API ou serviço indica falta de configuração de honorários
+ * (409 Conflict ou PRICING_SETTINGS_NOT_FOUND, como a US20 trata).
+ */
+export function isPricingUnconfiguredError(error: unknown): boolean {
+  if (error instanceof ApiError) {
+    return (
+      error.status === 409 ||
+      error.code === 'PRICING_SETTINGS_NOT_FOUND' ||
+      (error.status === 404 && error.code === 'PRICING_SETTINGS_NOT_FOUND')
+    );
+  }
+  return false;
+}
 
 // Like `fetchPricingSettings`, the 404 PRICING_SETTINGS_NOT_FOUND is the
 // calculator's initial state, not a failure.
@@ -26,12 +50,26 @@ async function fetchHourlyRate(
   } catch (error) {
     if (
       error instanceof ApiError &&
-      error.code === 'PRICING_SETTINGS_NOT_FOUND'
+      (error.code === 'PRICING_SETTINGS_NOT_FOUND' || error.status === 409)
     ) {
       return null;
     }
     throw error;
   }
+}
+
+/**
+ * Chama o endpoint real do backend POST /pricing/procedure-estimate (US21).
+ */
+async function fetchProcedureEstimate(
+  idToken: string,
+  dto: ProcedureEstimateDto,
+): Promise<ProcedureEstimateResponse> {
+  return apiClient.post<ProcedureEstimateResponse>(
+    '/pricing/procedure-estimate',
+    dto,
+    { token: idToken },
+  );
 }
 
 export const pricingService = {
@@ -62,5 +100,19 @@ export const pricingService = {
     }
 
     return toHourlyRate(response, settings);
+  },
+
+  /**
+   * Simula a precificação mínima de um procedimento (US21).
+   * Se USE_PROCEDURE_ESTIMATE_MOCK for true, usa o mock local. Caso contrário, faz a requisição real à API.
+   */
+  estimateProcedure(
+    idToken: string,
+    dto: ProcedureEstimateDto,
+  ): Promise<ProcedureEstimateResponse> {
+    if (USE_PROCEDURE_ESTIMATE_MOCK) {
+      return estimateProcedureMock(idToken, dto);
+    }
+    return fetchProcedureEstimate(idToken, dto);
   },
 };

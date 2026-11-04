@@ -1,6 +1,10 @@
+import { Calculator } from 'lucide-react-native';
 import { useState } from 'react';
 
+import { Button } from 'app/components/ui/button';
 import { Card } from 'app/components/ui/card';
+import { Icon } from 'app/components/ui/icon';
+import { Text } from 'app/components/ui/text';
 import { FixedCostsSection } from 'features/calculator';
 import { MonthSelector } from 'shared/components/MonthSelector';
 import { useTranslation } from 'shared/i18n';
@@ -31,6 +35,7 @@ type HourlyRateResultViewProps = {
   hourlyRate: HourlyRate;
   isRefreshing: boolean;
   onChanged: () => void;
+  onOpenProcedureEstimate?: () => void;
 };
 
 export function HourlyRateResultView({
@@ -39,6 +44,7 @@ export function HourlyRateResultView({
   hourlyRate,
   isRefreshing,
   onChanged,
+  onOpenProcedureEstimate,
 }: HourlyRateResultViewProps) {
   const { t, locale } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -141,6 +147,21 @@ export function HourlyRateResultView({
           explanation={t('pricing.hourlyRate.breakdown.explanation')}
         />
       </HourlyRateHighlight>
+
+      {/* Ponto de entrada US21: Simulação de valor mínimo por procedimento */}
+      {onOpenProcedureEstimate ? (
+        <Button
+          shape="pill"
+          variant="outline"
+          onPress={onOpenProcedureEstimate}
+          className="h-12 w-full flex-row items-center justify-center gap-2 border border-button-primary bg-white px-4"
+        >
+          <Icon as={Calculator} size={18} className="text-button-primary" />
+          <Text className="text-sm font-semibold text-button-primary">
+            {t('pricing.procedureEstimate.entryButton')}
+          </Text>
+        </Button>
+      ) : null}
 
       <PricingSettingsForm
         draft={form.draft}

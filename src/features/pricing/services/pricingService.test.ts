@@ -1,6 +1,6 @@
 import { ApiError } from 'shared/services/apiClient';
 
-import { pricingService } from './pricingService';
+import { isPricingUnconfiguredError, pricingService } from './pricingService';
 
 const ID_TOKEN = 'id-token';
 const GOALS = {
@@ -147,5 +147,42 @@ describe('getHourlyRate', () => {
     await expect(
       pricingService.getHourlyRate(ID_TOKEN, OCTOBER),
     ).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe('estimateProcedure', () => {
+  test('calls estimateProcedure and returns the estimate response', async () => {
+    const response = await pricingService.estimateProcedure(ID_TOKEN, {
+      durationMinutes: 60,
+    });
+
+    expect(response).toBeDefined();
+    expect(response.durationMinutes).toBe(60);
+    expect(response.hoursCost).toBe('120.00');
+    expect(response.minimumPrice).toBe('120.00');
+  });
+});
+
+describe('isPricingUnconfiguredError', () => {
+  test('identifies 409 ApiError as unconfigured', () => {
+    const err = new ApiError('Conflict', null, 409);
+    expect(isPricingUnconfiguredError(err)).toBe(true);
+  });
+
+  test('identifies PRICING_SETTINGS_NOT_FOUND code as unconfigured', () => {
+    const err = new ApiError('Not found', 'PRICING_SETTINGS_NOT_FOUND', 404);
+    expect(isPricingUnconfiguredError(err)).toBe(true);
+  });
+
+  test('returns false for generic errors or other status codes', () => {
+    expect(isPricingUnconfiguredError(new Error('Network failure'))).toBe(
+      false,
+    );
+    expect(
+      isPricingUnconfiguredError(new ApiError('Bad request', null, 400)),
+    ).toBe(false);
+    expect(
+      isPricingUnconfiguredError(new ApiError('Internal error', null, 500)),
+    ).toBe(false);
   });
 });

@@ -1412,6 +1412,51 @@
         "explanationTitle": "Como o valor da hora é calculado?",
         "explanation": "Somamos os custos fixos, os custos variáveis do mês e o pró-labore e aplicamos a margem de segurança sobre esse total. O resultado é dividido pelas horas produtivas do mês: horas disponíveis por semana × 52 semanas ÷ 12 meses. O mínimo é a mesma conta sem a margem."
       }
+    },
+    "procedureEstimate": {
+      "title": "Simulação de procedimento",
+      "subtitle": "Descubra o valor mínimo a cobrar por um procedimento específico",
+      "back": "Voltar",
+      "duration": {
+        "title": "Duração estimada",
+        "hours": "Horas",
+        "minutes": "Minutos",
+        "hoursPlaceholder": "0",
+        "minutesPlaceholder": "00"
+      },
+      "client": {
+        "title": "Tomador ou clínica (opcional)",
+        "placeholder": "Buscar tomador ou clínica...",
+        "clear": "Remover tomador",
+        "loading": "Buscando tomadores…",
+        "error": "Não foi possível buscar tomadores.",
+        "empty": "Nenhum tomador ou clínica encontrado."
+      },
+      "supplies": {
+        "title": "Insumos previstos (opcional)",
+        "add": "Adicionar",
+        "empty": "Nenhum insumo adicionado ainda",
+        "remove": "Remover insumo"
+      },
+      "unconfigured": {
+        "title": "Honorários não configurados",
+        "message": "Para calcular o valor mínimo do procedimento, precisamos que você configure primeiro seu pró-labore, jornada semanal e margem de segurança na Calculadora de honorários.",
+        "action": "Configurar honorários"
+      },
+      "result": {
+        "title": "Sugestão de valor mínimo",
+        "idle": "Preencha a duração estimada do procedimento para ver a sugestão de valor mínimo.",
+        "loading": "Calculando sugestão de valor…",
+        "error": "Não foi possível calcular o valor sugerido.",
+        "retry": "Tentar novamente",
+        "breakdownTitle": "Composição do valor sugerido",
+        "hours": "Horas de trabalho",
+        "trip": "Deslocamento",
+        "supplies": "Insumos",
+        "tripNotIncluded": "Deslocamento não incluído pois não há histórico de deslocamentos registrados para este tomador.",
+        "breakEven": "Preço de custo"
+      },
+      "entryButton": "Simular valor por procedimento"
     }
   },
   "vehicles": {
