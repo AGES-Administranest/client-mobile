@@ -1,179 +1,250 @@
-import type { PickedPdf } from 'shared/services/pdfPicker';
+import * as Crypto from 'expo-crypto';
 
+import { ApiError, apiClient } from 'shared/services/apiClient';
+import { sha256Hex } from 'shared/services/fileHash';
+import {
+  postToPresignedForm,
+  type PresignedPost,
+  type UploadableFile,
+} from 'shared/services/presignedUpload';
+
+import { POSSIBLE_DUPLICATE } from '../domain/offlineServiceInvoices';
 import type {
   ConfirmServiceInvoiceOptions,
   ExtractedClient,
   ServiceInvoiceConfirmation,
+  ServiceInvoiceDuplicate,
   ServiceInvoiceExtraction,
   ServiceInvoiceInput,
-  ServiceInvoiceSyncItem,
-  ServiceInvoiceSyncResult,
-  ServiceInvoiceUploadRequest,
-  ServiceInvoiceUploadTarget,
+  ServiceInvoiceStatus,
 } from '../domain/serviceInvoice.types';
 
-// STAND-IN: the NFSe upload, extraction and confirmation endpoints are still
-// pending in the backend (US01). The signatures are the ones the real calls
-// will have (token first, the file or the input second), so the swap is one
-// line per function.
-//
-// To exercise every path by hand, the file name decides the outcome:
-//   "...falha..." / "...fail..."       -> the reading fails
-//   "...parcial..." / "...partial..."  -> only the issue date comes back
-//   "...vinculado..." / "...match..."  -> a full reading, taker linked
-//   "...sugestao..." / "...suggestion..." -> a full reading, 2-3 suggested takers
-//   "...novo..." / "...new..."         -> a full reading, taker not registered
-//   "...duplicada..." / "...duplicate..." -> a linked taker, and the
-//                                         confirmation reports a duplicate
-//   anything else                      -> a full reading
-// The takers below are made up: they do not exist in the backend, so linking
-// one only works against the stand-in.
-const STAND_IN_DELAY_MS = 900;
+const FILE_DUPLICATED = 'SERVICE_INVOICE_FILE_DUPLICATED';
 
-const FULL_READING: ServiceInvoiceExtraction = {
-  status: 'SUCCESS',
-  issueDate: '2026-03-15',
-  amount: 1850,
-  number: '2026/0042',
-  taker: { name: 'Clínica Veterinária Exemplo', taxId: '12345678000195' },
+type ClientOptionResponse = { id: string; name: string; taxId?: string };
+
+/** The backend's NfseReviewDto, as far as the app reads it. */
+type ReviewResponse = {
+  status: string;
+  issueDate?: string;
+  amount?: number;
+  number?: string;
+  taker?: { name?: string; taxId?: string };
+  clientMatch?: ClientOptionResponse;
+  clientSuggestions?: ClientOptionResponse[];
+  partial?: { pagesRead: number; totalPages: number };
 };
 
-const LINKED_CLIENT: ExtractedClient = {
-  id: 'stand-in-client-1',
-  name: 'Clínica Veterinária Exemplo',
-  taxId: '12345678000195',
+/** The backend's ServiceInvoiceDetailDto. */
+type DetailResponse = {
+  status: ServiceInvoiceStatus;
+  uploadedAt?: string;
+  review: ReviewResponse;
 };
 
-const SUGGESTED_CLIENTS: ExtractedClient[] = [
-  LINKED_CLIENT,
-  {
-    id: 'stand-in-client-2',
-    name: 'Clínica Veterinária Exemplo Norte',
-    taxId: '12345678000276',
-  },
-  {
-    id: 'stand-in-client-3',
-    name: 'Pet Center Exemplo',
-    taxId: '98765432000110',
-  },
-];
+type DuplicateResponse = {
+  id: string;
+  number?: string;
+  issueDate?: string;
+  amount?: number;
+  clientName?: string;
+};
 
-// The confirmation does not see the file, so the duplicate scenario reads an
-// amount no real note has: confirming that value reports a duplicate, and
-// editing it makes the note ordinary again, as with a real value-and-date check.
-const DUPLICATE_AMOUNT = 7777.77;
-
-function settle<T>(value: T): Promise<T> {
-  return new Promise(resolve => {
-    setTimeout(() => resolve(value), STAND_IN_DELAY_MS);
-  });
-}
-
-export function extractServiceInvoice(
-  _idToken: string,
-  file: PickedPdf,
-): Promise<ServiceInvoiceExtraction> {
-  if (/falha|fail/i.test(file.name)) {
-    return settle({ status: 'FAILED' });
-  }
-  if (/parcial|partial/i.test(file.name)) {
-    return settle({ status: 'PARTIAL', issueDate: '2026-03-15' });
-  }
-  if (/duplicada|duplicate/i.test(file.name)) {
-    return settle({
-      ...FULL_READING,
-      amount: DUPLICATE_AMOUNT,
-      clientMatch: LINKED_CLIENT,
-    });
-  }
-  if (/vinculado|match/i.test(file.name)) {
-    return settle({ ...FULL_READING, clientMatch: LINKED_CLIENT });
-  }
-  if (/sugestao|suggestion/i.test(file.name)) {
-    return settle({ ...FULL_READING, clientSuggestions: SUGGESTED_CLIENTS });
-  }
-  if (/novo|new/i.test(file.name)) {
-    return settle({
-      ...FULL_READING,
-      taker: { name: 'Clínica Nova Exemplo', taxId: '45723174000110' },
-    });
-  }
-  return settle(FULL_READING);
-}
-
-export function confirmServiceInvoice(
-  _idToken: string,
-  input: ServiceInvoiceInput,
-  { allowDuplicate = false }: ConfirmServiceInvoiceOptions = {},
-): Promise<ServiceInvoiceConfirmation> {
-  if (input.amount === DUPLICATE_AMOUNT && !allowDuplicate) {
-    return settle({
-      duplicateOf: {
-        id: 'stand-in-invoice-0',
-        number: '2026/0031',
-        issueDate: input.issueDate,
-        amount: input.amount,
-        clientName: 'Clínica Veterinária Exemplo',
-      },
-    });
-  }
-  return settle({ id: `stand-in-${Date.now()}` });
-}
-
-// STAND-IN for the offline sync. Backend #71 has the upload (`upload-url`, then
-// the POST to the bucket) but no /service-invoices/sync yet, and its
-// `/uploaded` reads the PDF, so a note typed by hand never calls it.
-const REFUSED_NUMBER = 'erro';
-const DIFFERENT_READING_NUMBER = 'leitura';
-
-export function requestServiceInvoiceUpload(
-  _idToken: string,
-  invoiceId: string,
-  request: ServiceInvoiceUploadRequest,
-): Promise<ServiceInvoiceUploadTarget> {
-  return settle({
-    url: 'https://stand-in.invalid/bucket',
-    fields: {
-      key: `stand-in/${invoiceId}/original`,
-      'Content-Type': request.fileMimeType,
-    },
-    expiresAt: Date.now() + 10 * 60 * 1000,
-  });
-}
-
-export function sendServiceInvoicePdf(
-  _target: ServiceInvoiceUploadTarget,
-  _bytes: Uint8Array,
-): Promise<void> {
-  return settle(undefined);
+/** Generated by the app (ADR-09): the note has its identity before the upload. */
+export function newServiceInvoiceId(): string {
+  return Crypto.randomUUID();
 }
 
 /**
- * The scenarios come from the note's number: "erro" is refused, "leitura"
- * comes back with a reading that differs from what was typed, and anything
- * else is applied, with the id of the income entry the backend would record.
+ * Sends the PDF and has the backend read it. The draft is born in `upload-url`
+ * with the app's id, and the same id replaces its file, so repeating the whole
+ * thing is safe.
  */
-export function syncServiceInvoices(
-  _idToken: string,
-  items: ServiceInvoiceSyncItem[],
-): Promise<ServiceInvoiceSyncResult[]> {
-  return settle(
-    items.map((item): ServiceInvoiceSyncResult => {
-      if (item.number === REFUSED_NUMBER) {
-        return {
-          id: item.id,
-          status: 'conflict',
-          code: 'SERVICE_INVOICE_SYNC_REJECTED',
-        };
-      }
-      return {
-        id: item.id,
-        status: 'applied',
-        financialEntryId: `stand-in-entry-${item.id}`,
-        ...(item.number === DIFFERENT_READING_NUMBER
-          ? { reading: { amount: item.amount + 100 } }
-          : {}),
-      };
-    }),
+export async function extractServiceInvoice(
+  idToken: string,
+  invoiceId: string,
+  file: UploadableFile,
+): Promise<ServiceInvoiceExtraction> {
+  const target = await apiClient.post<PresignedPost>(
+    `/service-invoices/${invoiceId}/upload-url`,
+    {
+      filename: file.name,
+      fileMimeType: file.mimeType,
+      fileHash: await sha256Hex(file.bytes),
+      fileBytesSize: file.bytes.length,
+    },
+    { token: idToken },
   );
+  await sendToBucket(target, file);
+
+  const { review } = await apiClient.post<{ review: ReviewResponse }>(
+    `/service-invoices/${invoiceId}/uploaded`,
+    undefined,
+    { token: idToken },
+  );
+  return toExtraction(review);
+}
+
+async function sendToBucket(
+  target: PresignedPost,
+  file: UploadableFile,
+): Promise<void> {
+  const response = await postToPresignedForm(target, file);
+  if (!response.ok) {
+    throw new Error(`The bucket refused the PDF (${response.status})`);
+  }
+}
+
+/**
+ * Saves the data the person reviewed, then confirms the note. A similar note
+ * comes back as `duplicateOf` instead of an error, until `allowDuplicate`.
+ */
+export async function confirmServiceInvoice(
+  idToken: string,
+  invoiceId: string,
+  input: ServiceInvoiceInput,
+  { allowDuplicate = false }: ConfirmServiceInvoiceOptions = {},
+): Promise<ServiceInvoiceConfirmation> {
+  await apiClient.patch<unknown>(
+    `/service-invoices/${invoiceId}`,
+    {
+      issueDate: input.issueDate,
+      amount: input.amount,
+      number: input.number ?? null,
+      clientId: input.clientId,
+    },
+    { token: idToken },
+  );
+
+  try {
+    await apiClient.post<unknown>(
+      `/service-invoices/${invoiceId}/confirm`,
+      { allowDuplicate },
+      { token: idToken },
+    );
+    return { id: invoiceId };
+  } catch (error) {
+    const duplicateOf = duplicateOfError(error);
+    if (duplicateOf) return { duplicateOf };
+    throw error;
+  }
+}
+
+/** `null` when the backend has no such note. */
+export async function fetchServiceInvoiceStatus(
+  idToken: string,
+  invoiceId: string,
+): Promise<ServiceInvoiceStatus | null> {
+  const note = await fetchServiceInvoice(idToken, invoiceId);
+  return note?.status ?? null;
+}
+
+async function fetchServiceInvoice(
+  idToken: string,
+  invoiceId: string,
+): Promise<DetailResponse | null> {
+  try {
+    return await apiClient.get<DetailResponse>(
+      `/service-invoices/${invoiceId}`,
+      { token: idToken },
+    );
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+/** A note the upload goes on with: a new one, or a draft left behind. */
+export type UploadedServiceInvoice = {
+  invoiceId: string;
+  extraction: ServiceInvoiceExtraction;
+};
+
+/**
+ * Picks up the draft that holds a file refused as already sent: a review the
+ * app never got to discard, as when it was closed halfway. A draft already
+ * read reopens as it stands, since the backend does not take its file again;
+ * one whose upload never finished gets the file now. Null for a confirmed note.
+ */
+export async function resumeDraftHoldingFile(
+  idToken: string,
+  refusal: unknown,
+  file: UploadableFile,
+): Promise<UploadedServiceInvoice | null> {
+  const holderId = fileHolderOf(refusal);
+  if (!holderId) return null;
+
+  const holder = await fetchServiceInvoice(idToken, holderId);
+  if (holder?.status !== 'DRAFT') return null;
+
+  const extraction = holder.uploadedAt
+    ? toExtraction(holder.review)
+    : await extractServiceInvoice(idToken, holderId, file);
+  return { invoiceId: holderId, extraction };
+}
+
+function fileHolderOf(error: unknown): string | null {
+  if (!(error instanceof ApiError) || error.code !== FILE_DUPLICATED) {
+    return null;
+  }
+  const holderId = error.details?.serviceInvoiceId;
+  return typeof holderId === 'string' ? holderId : null;
+}
+
+/** Frees the PDF of a note the person left, so it can be sent again. */
+export async function discardServiceInvoiceDraft(
+  idToken: string,
+  invoiceId: string,
+): Promise<void> {
+  // The same route deletes a confirmed note along with its income entry.
+  if ((await fetchServiceInvoiceStatus(idToken, invoiceId)) !== 'DRAFT') {
+    return;
+  }
+  await apiClient.delete<void>(`/service-invoices/${invoiceId}`, {
+    token: idToken,
+  });
+}
+
+function toExtraction(review: ReviewResponse): ServiceInvoiceExtraction {
+  return {
+    status: extractionStatusOf(review),
+    issueDate: review.issueDate,
+    amount: review.amount,
+    number: review.number,
+    taker: review.taker,
+    clientMatch: review.clientMatch && toExtractedClient(review.clientMatch),
+    clientSuggestions: review.clientSuggestions?.map(toExtractedClient),
+  };
+}
+
+// Any status but SUCCESS means nothing was read; the review is typed in.
+function extractionStatusOf(
+  review: ReviewResponse,
+): ServiceInvoiceExtraction['status'] {
+  if (review.status !== 'SUCCESS') return 'FAILED';
+  return review.partial ? 'PARTIAL' : 'SUCCESS';
+}
+
+function toExtractedClient(client: ClientOptionResponse): ExtractedClient {
+  return { id: client.id, name: client.name, taxId: client.taxId ?? '' };
+}
+
+function duplicateOfError(error: unknown): ServiceInvoiceDuplicate | null {
+  if (!(error instanceof ApiError) || error.code !== POSSIBLE_DUPLICATE) {
+    return null;
+  }
+  const duplicate = error.details?.duplicateOf as DuplicateResponse | undefined;
+  return duplicate ? toDuplicate(duplicate) : null;
+}
+
+// A confirmed note always has its date, amount and taker: the fallbacks only
+// satisfy the type.
+function toDuplicate(duplicate: DuplicateResponse): ServiceInvoiceDuplicate {
+  return {
+    id: duplicate.id,
+    number: duplicate.number,
+    issueDate: duplicate.issueDate ?? '',
+    amount: duplicate.amount ?? 0,
+    clientName: duplicate.clientName ?? '',
+  };
 }

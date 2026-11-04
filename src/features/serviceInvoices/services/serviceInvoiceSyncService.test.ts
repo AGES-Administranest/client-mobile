@@ -10,14 +10,15 @@ import {
 } from './offlineServiceInvoiceStore';
 import { readPendingPdf, removePendingPdf } from './pendingPdfStore';
 import {
-  requestServiceInvoiceUpload,
-  sendServiceInvoicePdf,
-  syncServiceInvoices,
+  confirmServiceInvoice,
+  extractServiceInvoice,
+  fetchServiceInvoiceStatus,
 } from './serviceInvoiceService';
 import { syncPendingServiceInvoices } from './serviceInvoiceSyncService';
 import {
   CLIENT_NOT_SYNCED,
   PENDING_FILE_MISSING,
+  POSSIBLE_DUPLICATE,
   type PendingServiceInvoice,
 } from '../domain/offlineServiceInvoices';
 
@@ -28,19 +29,21 @@ jest.mock('./pendingPdfStore', () => ({
   savePendingPdf: jest.fn(),
 }));
 jest.mock('./serviceInvoiceService', () => ({
-  requestServiceInvoiceUpload: jest.fn(),
-  sendServiceInvoicePdf: jest.fn(),
-  syncServiceInvoices: jest.fn(),
+  confirmServiceInvoice: jest.fn(),
+  extractServiceInvoice: jest.fn(),
+  fetchServiceInvoiceStatus: jest.fn(),
 }));
 
 const resolveClient = jest.mocked(resolveLocalClientId);
 const readPdf = jest.mocked(readPendingPdf);
-const requestUpload = jest.mocked(requestServiceInvoiceUpload);
-const sendPdf = jest.mocked(sendServiceInvoicePdf);
-const syncItems = jest.mocked(syncServiceInvoices);
+const fetchStatus = jest.mocked(fetchServiceInvoiceStatus);
+const extract = jest.mocked(extractServiceInvoice);
+const confirm = jest.mocked(confirmServiceInvoice);
 
-const BYTES = new Uint8Array([1, 2, 3]);
-const TARGET = { url: 'https://bucket', fields: { key: 'k' }, expiresAt: 1 };
+const PDF = {
+  uri: 'file:///documents/a.pdf',
+  bytes: new Uint8Array([1, 2, 3]),
+};
 
 function note(
   id: string,
@@ -69,9 +72,11 @@ async function queue(...notes: PendingServiceInvoice[]) {
 
 const sync = () => syncPendingServiceInvoices('id-token', 'user-1');
 
+const confirmedIds = () => confirm.mock.calls.map(([, id]) => id);
+
 beforeEach(async () => {
   await AsyncStorage.clear();
-  [resolveClient, readPdf, requestUpload, sendPdf, syncItems].forEach(mock =>
+  [resolveClient, readPdf, fetchStatus, extract, confirm].forEach(mock =>
     mock.mockReset(),
   );
   jest.mocked(removePendingPdf).mockReset();
@@ -79,64 +84,53 @@ beforeEach(async () => {
     status: 'resolved',
     clientId,
   }));
-  readPdf.mockResolvedValue(BYTES);
-  requestUpload.mockResolvedValue(TARGET);
-  sendPdf.mockResolvedValue();
-  syncItems.mockImplementation(async (_token, items) =>
-    items.map(item => ({
-      id: item.id,
-      status: 'applied' as const,
-      financialEntryId: `entry-${item.id}`,
-    })),
-  );
+  readPdf.mockResolvedValue(PDF);
+  fetchStatus.mockResolvedValue(null);
+  extract.mockResolvedValue({ status: 'SUCCESS' });
+  confirm.mockImplementation(async (_token, id) => ({ id }));
 });
 
 describe('syncPendingServiceInvoices', () => {
-  it('uploads the PDF with the app id, then syncs the typed data', async () => {
+  it('sends the PDF under the app id, then confirms the typed data', async () => {
     await queue(note('a'));
 
     const outcome = await sync();
 
-    expect(requestUpload).toHaveBeenCalledWith('id-token', 'a', {
-      filename: 'a.pdf',
-      fileMimeType: 'application/pdf',
-      fileHash: 'a'.repeat(64),
-      fileBytesSize: 3,
+    expect(extract).toHaveBeenCalledWith('id-token', 'a', {
+      uri: PDF.uri,
+      bytes: PDF.bytes,
+      name: 'a.pdf',
+      mimeType: 'application/pdf',
     });
-    expect(sendPdf).toHaveBeenCalledWith(TARGET, BYTES);
-    expect(syncItems).toHaveBeenCalledWith('id-token', [
+    expect(confirm).toHaveBeenCalledWith(
+      'id-token',
+      'a',
       {
-        id: 'a',
         issueDate: '2026-03-15',
         amount: 1850,
         number: '2026/0042',
         clientId: 'client-1',
-        fileName: 'a.pdf',
-        fileHash: 'a'.repeat(64),
-        fileBytesSize: 3,
       },
-    ]);
+      { allowDuplicate: false },
+    );
     expect(outcome).toEqual({ synced: 1, rejected: 0, pending: 0 });
   });
 
   it('sends the PDF before the data, since the draft is born with the upload', async () => {
     await queue(note('a'));
     const order: string[] = [];
-    requestUpload.mockImplementation(async () => {
-      order.push('upload-url');
-      return TARGET;
+    extract.mockImplementation(async () => {
+      order.push('upload');
+      return { status: 'SUCCESS' };
     });
-    sendPdf.mockImplementation(async () => {
-      order.push('pdf');
-    });
-    syncItems.mockImplementation(async (_token, items) => {
-      order.push('sync');
-      return items.map(item => ({ id: item.id, status: 'applied' as const }));
+    confirm.mockImplementation(async (_token, id) => {
+      order.push('confirm');
+      return { id };
     });
 
     await sync();
 
-    expect(order).toEqual(['upload-url', 'pdf', 'sync']);
+    expect(order).toEqual(['upload', 'confirm']);
   });
 
   it('drops a synced note from the queue and its PDF from the disk', async () => {
@@ -154,21 +148,29 @@ describe('syncPendingServiceInvoices', () => {
 
     await sync();
 
-    expect(syncItems.mock.calls.map(([, items]) => items[0].id)).toEqual([
-      'a',
-      'b',
-      'c',
-    ]);
+    expect(confirmedIds()).toEqual(['a', 'b', 'c']);
   });
 
-  it('counts a note the backend already had as synced, so a resend is safe', async () => {
+  it('counts a note an earlier run already confirmed as synced, without sending it again', async () => {
     await queue(note('a'));
-    syncItems.mockResolvedValue([{ id: 'a', status: 'ignored' }]);
+    fetchStatus.mockResolvedValue('CONFIRMED');
 
     const outcome = await sync();
 
     expect(outcome.synced).toBe(1);
+    expect(extract).not.toHaveBeenCalled();
+    expect(confirm).not.toHaveBeenCalled();
     expect(await loadServiceInvoiceOutbox('user-1')).toEqual([]);
+  });
+
+  it('finishes a note an earlier run left as a draft', async () => {
+    await queue(note('a'));
+    fetchStatus.mockResolvedValue('DRAFT');
+
+    const outcome = await sync();
+
+    expect(confirmedIds()).toEqual(['a']);
+    expect(outcome.synced).toBe(1);
   });
 
   describe('the taker', () => {
@@ -181,7 +183,7 @@ describe('syncPendingServiceInvoices', () => {
 
       await sync();
 
-      expect(syncItems.mock.calls[0][1][0].clientId).toBe('real-1');
+      expect(confirm.mock.calls[0][2].clientId).toBe('real-1');
     });
 
     it('waits for a taker that has not synced yet, without refusing the note', async () => {
@@ -207,7 +209,7 @@ describe('syncPendingServiceInvoices', () => {
       const outcome = await sync();
 
       expect(outcome).toEqual({ synced: 0, rejected: 1, pending: 0 });
-      expect(requestUpload).not.toHaveBeenCalled();
+      expect(extract).not.toHaveBeenCalled();
       const [kept] = await loadServiceInvoiceOutbox('user-1');
       expect(kept.rejection).toEqual({
         code: CLIENT_NOT_SYNCED,
@@ -219,12 +221,12 @@ describe('syncPendingServiceInvoices', () => {
   describe('failures', () => {
     it('keeps the queue and stops on a network failure, to try again later', async () => {
       await queue(note('a'), note('b'));
-      requestUpload.mockRejectedValue(new TypeError('Network request failed'));
+      extract.mockRejectedValue(new TypeError('Network request failed'));
 
       const outcome = await sync();
 
       expect(outcome).toEqual({ synced: 0, rejected: 0, pending: 2 });
-      expect(requestUpload).toHaveBeenCalledTimes(1);
+      expect(extract).toHaveBeenCalledTimes(1);
       expect(await loadServiceInvoiceOutbox('user-1')).toHaveLength(2);
     });
 
@@ -232,7 +234,7 @@ describe('syncPendingServiceInvoices', () => {
       'treats a %s as something to retry, not a refusal',
       async status => {
         await queue(note('a'));
-        syncItems.mockRejectedValue(new ApiError('boom', 'X', status));
+        confirm.mockRejectedValue(new ApiError('boom', 'X', status));
 
         const outcome = await sync();
 
@@ -244,11 +246,11 @@ describe('syncPendingServiceInvoices', () => {
       'refuses the note for good on a %s, keeping it and its PDF',
       async status => {
         await queue(note('a'), note('b'));
-        syncItems.mockImplementation(async (_token, [item]) => {
-          if (item.id === 'a') {
+        extract.mockImplementation(async (_token, id) => {
+          if (id === 'a') {
             throw new ApiError('no', 'SERVICE_INVOICE_FILE_DUPLICATED', status);
           }
-          return [{ id: item.id, status: 'applied' as const }];
+          return { status: 'SUCCESS' };
         });
 
         const outcome = await sync();
@@ -261,25 +263,13 @@ describe('syncPendingServiceInvoices', () => {
       },
     );
 
-    it('refuses a note the backend answers with a conflict, with its code', async () => {
-      await queue(note('a'));
-      syncItems.mockResolvedValue([
-        { id: 'a', status: 'conflict', code: 'SERVICE_INVOICE_NOT_EDITABLE' },
-      ]);
-
-      await sync();
-
-      const [kept] = await loadServiceInvoiceOutbox('user-1');
-      expect(kept.rejection?.code).toBe('SERVICE_INVOICE_NOT_EDITABLE');
-    });
-
     it('refuses a note whose PDF is no longer on the device', async () => {
       await queue(note('a'));
       readPdf.mockResolvedValue(null);
 
       await sync();
 
-      expect(requestUpload).not.toHaveBeenCalled();
+      expect(extract).not.toHaveBeenCalled();
       const [kept] = await loadServiceInvoiceOutbox('user-1');
       expect(kept.rejection?.code).toBe(PENDING_FILE_MISSING);
     });
@@ -289,20 +279,48 @@ describe('syncPendingServiceInvoices', () => {
 
       const outcome = await sync();
 
-      expect(requestUpload).not.toHaveBeenCalled();
+      expect(extract).not.toHaveBeenCalled();
       expect(outcome).toEqual({ synced: 0, rejected: 0, pending: 0 });
+    });
+  });
+
+  describe('a similar note', () => {
+    const SIMILAR = {
+      id: 'inv-0',
+      issueDate: '2026-03-15',
+      amount: 1850,
+      clientName: 'Clínica Exemplo',
+    };
+
+    it('refuses the note, for the person to decide', async () => {
+      await queue(note('a'));
+      confirm.mockResolvedValue({ duplicateOf: SIMILAR });
+
+      const outcome = await sync();
+
+      expect(outcome).toEqual({ synced: 0, rejected: 1, pending: 0 });
+      const [kept] = await loadServiceInvoiceOutbox('user-1');
+      expect(kept.rejection?.code).toBe(POSSIBLE_DUPLICATE);
+    });
+
+    it('confirms it when the person chose to send it anyway', async () => {
+      await queue(note('a', { allowDuplicate: true }));
+
+      const outcome = await sync();
+
+      expect(confirm.mock.calls[0][3]).toEqual({ allowDuplicate: true });
+      expect(outcome.synced).toBe(1);
     });
   });
 
   describe('what the typed data wins over', () => {
     it('keeps a differing reading aside and never touches the queue with it', async () => {
       await queue(note('a'));
-      syncItems.mockResolvedValue([
-        { id: 'a', status: 'applied', reading: { amount: 1950 } },
-      ]);
+      extract.mockResolvedValue({ status: 'SUCCESS', amount: 1950 });
 
       await sync();
 
+      expect(confirm.mock.calls[0][2].amount).toBe(1850);
       expect(await loadReadingDifferences('user-1')).toEqual([
         { invoiceId: 'a', typed: { amount: 1850 }, read: { amount: 1950 } },
       ]);
@@ -310,9 +328,7 @@ describe('syncPendingServiceInvoices', () => {
 
     it('keeps nothing when the reading agrees', async () => {
       await queue(note('a'));
-      syncItems.mockResolvedValue([
-        { id: 'a', status: 'applied', reading: { amount: 1850 } },
-      ]);
+      extract.mockResolvedValue({ status: 'SUCCESS', amount: 1850 });
 
       await sync();
 
@@ -326,6 +342,6 @@ describe('syncPendingServiceInvoices', () => {
     const [first, second] = await Promise.all([sync(), sync()]);
 
     expect(first).toBe(second);
-    expect(syncItems).toHaveBeenCalledTimes(1);
+    expect(confirm).toHaveBeenCalledTimes(1);
   });
 });

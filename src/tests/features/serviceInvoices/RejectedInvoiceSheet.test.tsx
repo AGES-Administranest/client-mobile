@@ -9,7 +9,7 @@ const METRICS = {
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
 };
 
-function render() {
+function render({ sendAnyway }: { sendAnyway?: () => void } = {}) {
   const onDiscard = jest.fn();
   const onKeep = jest.fn();
   let renderer!: ReactTestRenderer.ReactTestRenderer;
@@ -23,6 +23,9 @@ function render() {
           message="A nota não foi enviada."
           discardLabel="Descartar nota"
           keepLabel="Manter na fila"
+          sendAnyway={
+            sendAnyway && { label: 'Enviar mesmo assim', onPress: sendAnyway }
+          }
           onDiscard={onDiscard}
           onKeep={onKeep}
         />
@@ -102,5 +105,17 @@ describe('RejectedInvoiceSheet', () => {
 
     expect(onKeep).toHaveBeenCalledTimes(2);
     expect(onDiscard).not.toHaveBeenCalled();
+  });
+
+  it('offers to send it anyway only when given that action', () => {
+    expect(button(render().renderer, 'Enviar mesmo assim')).toBeUndefined();
+
+    const sendAnyway = jest.fn();
+    const { renderer } = render({ sendAnyway });
+    act(() => {
+      button(renderer, 'Enviar mesmo assim').props.onPress();
+    });
+
+    expect(sendAnyway).toHaveBeenCalledTimes(1);
   });
 });

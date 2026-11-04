@@ -1,3 +1,6 @@
 export { ServiceInvoiceSyncObserver } from './screens/ServiceInvoiceSyncObserver';
 export { ServiceInvoiceUploadFlow } from './screens/ServiceInvoiceUploadFlow';
-export { isServiceInvoiceUploadAvailable } from './services/availability';
+export {
+  useServiceInvoiceUpload,
+  type ServiceInvoiceUploadState,
+} from './hooks/useServiceInvoiceUpload';

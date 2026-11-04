@@ -1,4 +1,8 @@
 import { ApiError, NetworkError, postJson } from 'shared/api';
+import {
+  postToPresignedForm,
+  type PresignedPost,
+} from 'shared/services/presignedUpload';
 
 import type { Extraction } from '../domain/extraction';
 import { InvoiceDocument, MAX_DOCUMENT_BYTES } from '../domain/invoiceDocument';
@@ -43,12 +47,7 @@ export class UploadError extends Error {
   }
 }
 
-/** What `POST /upload-url` returns: the S3 form, already signed. */
-type UploadTarget = {
-  url: string;
-  fields: Record<string, string>;
-  expiresAt: number;
-};
+type UploadTarget = PresignedPost & { expiresAt: number };
 
 type UploadConfirmation = {
   contentLength: number;
@@ -147,56 +146,20 @@ function confirmUpload(
   );
 }
 
-/** No token here: S3 is authorized by the signed policy, not by Cognito. */
 async function postToBucket(
   target: UploadTarget,
   document: InvoiceDocument,
 ): Promise<void> {
-  const form = new FormData();
-  // Order matters: S3 reads the policy fields as they arrive and stops at the
-  // file, ignoring whatever comes after it. The file goes last.
-  for (const [name, value] of Object.entries(target.fields)) {
-    form.append(name, value);
-  }
-  form.append('file', filePart(document));
-
   let response: Response;
   try {
-    // No Content-Type header on purpose: fetch has to write the multipart
-    // boundary itself, and setting the header by hand loses it.
-    response = await fetch(target.url, { method: 'POST', body: form });
+    response = await postToPresignedForm(target, document);
   } catch (cause) {
     throw new UploadError('offline', cause);
   }
 
-  // S3 answers 204 No Content when the policy is satisfied.
   if (!response.ok) {
     throw new UploadError('uploadRejected', undefined, response.status);
   }
-}
-
-/**
- * On native the part is a descriptor of the file on disk, which React Native
- * streams without ever holding it in JS memory. On web there is no file to
- * point at, so the bytes we already read go up instead.
- */
-function filePart(document: InvoiceDocument): Blob {
-  if (document.uri) {
-    return {
-      uri: document.uri,
-      name: document.name,
-      type: document.mimeType,
-    } as unknown as Blob;
-  }
-
-  // Only reachable on web, where react-native-web passes the browser's Blob
-  // through — that one takes bytes, React Native's own type does not.
-  const WebBlob = Blob as unknown as new (
-    parts: ArrayBufferView[],
-    options?: { type: string },
-  ) => Blob;
-
-  return new WebBlob([document.bytes], { type: document.mimeType });
 }
 
 async function callApi<T>(call: () => Promise<T>): Promise<T> {

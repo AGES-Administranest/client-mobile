@@ -1,4 +1,5 @@
 import {
+  fileRefusalOf,
   isAcceptedServiceInvoiceFile,
   isWithinServiceInvoiceSizeLimit,
   MAX_SERVICE_INVOICE_FILE_BYTES,
@@ -66,4 +67,20 @@ describe('isWithinServiceInvoiceSizeLimit', () => {
   it.each([FIFTEEN_MB + 1, FIFTEEN_MB * 2])('refuses %p bytes', bytes => {
     expect(isWithinServiceInvoiceSizeLimit(bytes)).toBe(false);
   });
+});
+
+describe('fileRefusalOf', () => {
+  it.each([
+    ['SERVICE_INVOICE_FILE_TOO_LARGE', 'tooLarge'],
+    ['SERVICE_INVOICE_FILE_DUPLICATED', 'alreadySent'],
+  ])('maps %p to %p', (code, refusal) => {
+    expect(fileRefusalOf(code)).toBe(refusal);
+  });
+
+  it.each([['SERVICE_INVOICE_NOT_FOUND'], ['toString'], [''], [null]])(
+    'is not about the file for %p',
+    code => {
+      expect(fileRefusalOf(code)).toBeNull();
+    },
+  );
 });

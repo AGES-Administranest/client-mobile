@@ -5,29 +5,16 @@ import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
 
 import { FixedCostsCard } from '../components/FixedCostsCard';
-import {
-  fixedCostsTotal,
-  type FixedCostsSummary,
-} from '../domain/fixedCostsSummary';
+import { fixedCostsTotal } from '../domain/fixedCostsSummary';
 import { useFixedCostsSummary } from '../hooks/useFixedCostsSummary';
 
 type FixedCostsSectionProps = {
   period?: { month: number; year: number };
-  // The setup screen of the hourly calculator lists the transport only as
-  // its field, since nothing was saved for it yet.
-  showTransportLine?: boolean;
-  onSaved?: (summary: FixedCostsSummary) => void;
-  onOpenList: () => void;
 };
 
-export function FixedCostsSection({
-  period,
-  showTransportLine = true,
-  onSaved,
-  onOpenList,
-}: FixedCostsSectionProps) {
+export function FixedCostsSection({ period }: FixedCostsSectionProps) {
   const { t, locale } = useTranslation();
-  const state = useFixedCostsSummary({ period, onSaved });
+  const state = useFixedCostsSummary({ period });
   const { summary } = state;
 
   if (state.isLoading && !summary) {
@@ -57,43 +44,26 @@ export function FixedCostsSection({
   }
 
   const money = (value: number) => formatCurrency(value, locale);
-  const automatic = t('calculator.fixedCosts.automatic');
-  const lines = [
-    {
-      label: t('calculator.fixedCosts.personal'),
-      value: money(summary.personalExpenses),
-      caption: automatic,
-    },
-    {
-      label: t('calculator.fixedCosts.depreciation'),
-      value: money(summary.equipmentDepreciation),
-      caption: automatic,
-    },
-  ];
-  if (showTransportLine) {
-    lines.push({
-      label: t('calculator.fixedCosts.transport'),
-      value: money(summary.transportCost),
-      caption: '',
-    });
-  }
 
   return (
     <FixedCostsCard
       title={t('calculator.fixedCosts.title')}
-      lines={lines}
+      lines={[
+        {
+          label: t('calculator.fixedCosts.personal'),
+          value: money(summary.personalExpenses),
+        },
+        {
+          label: t('calculator.fixedCosts.depreciation'),
+          value: money(summary.equipmentDepreciation),
+        },
+        {
+          label: t('calculator.fixedCosts.transport'),
+          value: money(summary.transportCost),
+        },
+      ]}
       totalLabel={t('calculator.fixedCosts.total')}
       totalValue={money(fixedCostsTotal(summary))}
-      transportLabel={t('calculator.fixedCosts.transportField')}
-      transportValue={state.transportInput}
-      transportPlaceholder={t('calculator.fixedCosts.transportPlaceholder')}
-      transportHint={t('calculator.fixedCosts.transportHint')}
-      transportError={state.transportError ? t(state.transportError) : null}
-      onTransportChange={state.onTransportChange}
-      onTransportBlur={state.onTransportBlur}
-      isSaving={state.isSaving}
-      listLabel={t('calculator.fixedCosts.openList')}
-      onListPress={onOpenList}
     />
   );
 }

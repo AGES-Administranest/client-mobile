@@ -73,24 +73,31 @@ const CLINIC_ERROR_KEYS: ClinicErrorKeys = {
 
 type ServiceInvoiceReviewScreenProps = {
   visible: boolean;
+  invoiceId: string;
   initial: InitialReview;
   /** The PDF of a note typed by hand, which is saved on the device instead of confirmed. */
   manualFile?: PickedPdf | null;
+  /** The person left without saving the note. */
   onClose: () => void;
+  /** The note was confirmed, or saved on the device. */
+  onConfirmed: () => void;
 };
 
 export function ServiceInvoiceReviewScreen({
   visible,
+  invoiceId,
   initial,
   manualFile = null,
   onClose,
+  onConfirmed,
 }: ServiceInvoiceReviewScreenProps) {
   const { t } = useTranslation();
   const review = useServiceInvoiceReview({
+    invoiceId,
     initialValues: initial.values,
     initialClient: initial.client,
     manualFile,
-    onConfirmed: onClose,
+    onConfirmed,
   });
   const registration = useClientRegistration({
     prefill: initial.newClientPrefill,

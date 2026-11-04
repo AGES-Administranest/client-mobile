@@ -31,19 +31,3 @@ export async function fetchFixedCostsSummary(
     total: Number(result.total),
   };
 }
-
-// The PATCH answers only with the transport, so the summary is read again
-// for the month on screen to bring the backend total along.
-export async function updateTransportCost(
-  idToken: string,
-  monthlyAmount: number,
-  period?: FixedCostsPeriod,
-): Promise<FixedCostsSummary> {
-  requireToken(idToken);
-  await apiClient.patch(
-    '/pricing-settings/transport',
-    { transportCostMonthly: monthlyAmount },
-    { token: idToken },
-  );
-  return fetchFixedCostsSummary(idToken, period);
-}

@@ -23,17 +23,15 @@ jest.mock('../services/pricingService', () => ({
 // feature, so the mock replaces that module, not the public index.
 jest.mock('features/calculator/services/fixedCostsSummaryService', () => ({
   fetchFixedCostsSummary: jest.fn(),
-  updateTransportCost: jest.fn(),
 }));
 
 const fixedCostsService = jest.requireMock(
   'features/calculator/services/fixedCostsSummaryService',
-) as Record<'fetchFixedCostsSummary' | 'updateTransportCost', jest.Mock>;
+) as Record<'fetchFixedCostsSummary', jest.Mock>;
 
 const getHourlyRate = pricingService.getHourlyRate as jest.Mock;
 const saveSettings = pricingService.saveSettings as jest.Mock;
 const fetchSummary = fixedCostsService.fetchFixedCostsSummary;
-const updateTransport = fixedCostsService.updateTransportCost;
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -163,7 +161,6 @@ beforeEach(() => {
     .mockReset()
     .mockImplementation((_token, dto) => Promise.resolve(dto));
   fetchSummary.mockReset().mockResolvedValue(SUMMARY);
-  updateTransport.mockReset();
 });
 
 describe('configured', () => {
@@ -292,16 +289,6 @@ describe('configured', () => {
     expect(texts()).toContain(nbsp('R$ 98,07'));
   });
 
-  test('recalculates when the transport cost is saved', async () => {
-    updateTransport.mockResolvedValue({ ...SUMMARY, transportCost: 400 });
-    const { typeAndBlur } = await renderScreen();
-
-    await typeAndBlur('Transporte / Veículo (R$/mês)', '40000');
-
-    expect(updateTransport).toHaveBeenCalledWith('id-token', 400, OCTOBER);
-    expect(getHourlyRate).toHaveBeenCalledTimes(2);
-  });
-
   test('lists the fixed costs as the Figma draws them', async () => {
     const { texts, input } = await renderScreen();
 
@@ -317,20 +304,12 @@ describe('configured', () => {
         nbsp('R$ 350,00'),
         'Total de custos fixos',
         nbsp('R$ 1.399,08'),
-        'Ver lista de custos fixos',
       ]),
     );
     expect(texts()).not.toContain('Despesas profissionais (mês)');
-    expect(input('Transporte / Veículo (R$/mês)').props.value).toBe('350,00');
+    expect(texts()).not.toContain('Ver lista de custos fixos');
+    expect(texts()).not.toContain('automático · do app');
     expect(input('Horas disponíveis por semana').props.value).toBe('30');
-  });
-
-  test('the fixed costs shortcut goes back to Finanças', async () => {
-    const { press, onClose } = await renderScreen();
-
-    await press('Ver lista de custos fixos');
-
-    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   test('offers a retry when the rate cannot be calculated', async () => {
@@ -382,11 +361,11 @@ describe('not configured', () => {
         'Entre 0 e 100%',
         'Despesas pessoais (mês)',
         nbsp('R$ 1.049,08'),
+        'Custo de transporte/veículo',
         'Salvar e calcular',
         'Você pode alterar esses dados depois, na própria calculadora.',
       ]),
     );
-    expect(texts()).not.toContain('Custo de transporte/veículo');
 
     await press('Voltar');
 
@@ -397,10 +376,6 @@ describe('not configured', () => {
   test('saves the goals and shows the calculated rate', async () => {
     const { texts, press, input } = await renderScreen();
     await press('Configurar');
-    expect(input('Transporte / Veículo (R$/mês)').props.placeholder).toBe(
-      'Ex.: 350',
-    );
-    expect(input('Transporte / Veículo (R$/mês)').props.value).toBe('');
 
     await act(async () =>
       input('Meta de renda líquida mensal (R$)').props.onChangeText('8.000'),
@@ -428,20 +403,6 @@ describe('not configured', () => {
     expect(saveSettings).not.toHaveBeenCalled();
     expect(texts()).toContain('Configurar honorários');
     expect(texts()).toContain('Preencha este campo');
-  });
-
-  test('leaving an empty transport untouched is not an error', async () => {
-    const { texts, press, input } = await renderScreen();
-    await press('Configurar');
-
-    await act(async () =>
-      input('Transporte / Veículo (R$/mês)').props.onBlur(),
-    );
-
-    expect(updateTransport).not.toHaveBeenCalled();
-    expect(texts()).not.toContain(
-      'Informe o valor do transporte (use 0 se não houver).',
-    );
   });
 });
 

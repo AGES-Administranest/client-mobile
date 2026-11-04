@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Crypto from 'expo-crypto';
+
+import { sha256Hex } from 'shared/services/fileHash';
 
 import { removePendingPdf, savePendingPdf } from './pendingPdfStore';
 import {
@@ -56,29 +57,20 @@ export async function saveServiceInvoiceOutbox(
   await writeJson(outboxKey(userId), queue);
 }
 
-/** Lowercase hex, which is the shape the backend validates. */
-async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  const digest = await Crypto.digest(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    bytes,
-  );
-  return Array.from(new Uint8Array(digest))
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join('');
-}
-
 type ManualPdf = { bytes: Uint8Array; name: string; mimeType: string };
 
 /**
  * Keeps a note typed without a connection: its PDF on disk and its data in the
  * queue. The PDF goes first, so a queued note never points at a missing file.
+ * The id is the one the note was given when its PDF was picked, which a draft
+ * left by a failed upload may already carry.
  */
 export async function queueManualServiceInvoice(
   userId: string,
+  id: string,
   input: ServiceInvoiceInput,
   pdf: ManualPdf,
 ): Promise<PendingServiceInvoice> {
-  const id = Crypto.randomUUID();
   const file = {
     name: pdf.name,
     mimeType: pdf.mimeType,
@@ -134,6 +126,23 @@ export async function acknowledgeServiceInvoiceRejection(
             ...invoice,
             rejection: { ...invoice.rejection, acknowledged: true },
           }
+        : invoice,
+    ),
+  );
+  notifyOfflineServiceInvoicesChanged();
+}
+
+/** Back in line, this time accepting a similar note: the person saw the warning. */
+export async function resendAllowingDuplicate(
+  userId: string,
+  invoiceId: string,
+): Promise<void> {
+  const queue = await loadServiceInvoiceOutbox(userId);
+  await saveServiceInvoiceOutbox(
+    userId,
+    queue.map(invoice =>
+      invoice.id === invoiceId
+        ? { ...invoice, rejection: undefined, allowDuplicate: true }
         : invoice,
     ),
   );

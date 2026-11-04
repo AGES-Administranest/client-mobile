@@ -31,7 +31,6 @@ type HourlyRateResultViewProps = {
   hourlyRate: HourlyRate;
   isRefreshing: boolean;
   onChanged: () => void;
-  onOpenFixedCosts: () => void;
 };
 
 export function HourlyRateResultView({
@@ -40,7 +39,6 @@ export function HourlyRateResultView({
   hourlyRate,
   isRefreshing,
   onChanged,
-  onOpenFixedCosts,
 }: HourlyRateResultViewProps) {
   const { t, locale } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -161,11 +159,7 @@ export function HourlyRateResultView({
         onBlurField={() => form.submit()}
       />
 
-      <FixedCostsSection
-        period={month}
-        onSaved={onChanged}
-        onOpenList={onOpenFixedCosts}
-      />
+      <FixedCostsSection period={month} />
     </>
   );
 }
