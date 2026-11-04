@@ -8,7 +8,11 @@ import { useTranslation } from 'shared/i18n';
 import { ReportKindCard } from '../components/ReportKindCard';
 import { ReportPeriodSelector } from '../components/ReportPeriodSelector';
 import { ReportsHistoryLink } from '../components/ReportsHistoryLink';
-import { formatReportDate, type ReportKind } from '../domain/reportPeriod';
+import {
+  formatReportDate,
+  REPORT_PERIOD_CHOICES,
+  type ReportKind,
+} from '../domain/reportPeriod';
 import { useReportsScreen } from '../hooks/useReportsScreen';
 
 const KIND_ICONS = { general: FileText, invoicePackage: Receipt } as const;
@@ -27,8 +31,13 @@ export function ReportsScreen({
   onOpenHistory,
 }: ReportsScreenProps) {
   const { t, locale } = useTranslation();
-  const { range, setRange, isCalendarOpen, toggleCalendar, canGenerate } =
+  const { choice, selectChoice, range, setRange, canGenerate } =
     useReportsScreen();
+
+  const choiceOptions = REPORT_PERIOD_CHOICES.map(value => ({
+    value,
+    label: t(`reports.period.choices.${value}`),
+  }));
 
   const periodLabel =
     range.from !== null && range.to !== null
@@ -67,11 +76,13 @@ export function ReportsScreen({
           </Text>
           <ReportPeriodSelector
             label={t('reports.period.label')}
+            options={choiceOptions}
+            value={choice}
+            onValueChange={selectChoice}
             periodLabel={periodLabel}
+            isCustom={choice === 'custom'}
             range={range}
             onRangeChange={setRange}
-            isCalendarOpen={isCalendarOpen}
-            onToggleCalendar={toggleCalendar}
             locale={locale}
             previousMonthLabel={t('reports.period.previousMonth')}
             nextMonthLabel={t('reports.period.nextMonth')}

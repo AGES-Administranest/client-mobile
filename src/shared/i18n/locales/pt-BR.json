@@ -802,7 +802,37 @@
     "clinics": "Clínicas"
   },
   "reports": {
-    "title": "Relatórios"
+    "title": "Relatórios",
+    "generate": {
+      "title": "Gerar novo relatório"
+    },
+    "period": {
+      "label": "Período",
+      "range": "{{from}} até {{to}}",
+      "incomplete": "Selecione o período",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "choices": {
+        "currentMonth": "Mês atual",
+        "previousMonth": "Mês anterior",
+        "currentYear": "Ano atual",
+        "custom": "Personalizado"
+      }
+    },
+    "kinds": {
+      "general": {
+        "title": "Relatório Geral",
+        "description": "Receitas, despesas e atendimentos do período"
+      },
+      "invoicePackage": {
+        "title": "Pacote de Notas Fiscais para IR",
+        "description": "Notas fiscais do período reunidas para o Imposto de Renda"
+      }
+    },
+    "history": {
+      "title": "Histórico de relatórios",
+      "viewAll": "Ver todos"
+    }
   },
   "optionsModal": {
     "scanNote": "Escanear nota",
@@ -1742,33 +1772,6 @@
       "value": "Valor",
       "issuedAt": "Data de emissão",
       "status": "Situação"
-    }
-  },
-  "reports": {
-    "title": "Relatórios",
-    "generate": {
-      "title": "Gerar novo relatório"
-    },
-    "period": {
-      "label": "Período",
-      "range": "{{from}} até {{to}}",
-      "incomplete": "Selecione o período",
-      "previousMonth": "Mês anterior",
-      "nextMonth": "Próximo mês"
-    },
-    "kinds": {
-      "general": {
-        "title": "Relatório Geral",
-        "description": "Receitas, despesas e atendimentos do período"
-      },
-      "invoicePackage": {
-        "title": "Pacote de Notas Fiscais para IR",
-        "description": "Notas fiscais do período reunidas para o Imposto de Renda"
-      }
-    },
-    "history": {
-      "title": "Histórico de relatórios",
-      "viewAll": "Ver todos"
     }
   }
 }

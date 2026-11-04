@@ -3,33 +3,39 @@ import { useCallback, useState } from 'react';
 import type { CalendarRange } from 'shared/utils/calendar';
 
 import {
-  defaultReportPeriod,
   isReportPeriodReady,
+  reportPeriodFor,
+  type ReportPeriodChoice,
 } from '../domain/reportPeriod';
 
 export type ReportsScreenState = {
+  choice: ReportPeriodChoice;
+  selectChoice: (choice: ReportPeriodChoice) => void;
   range: CalendarRange;
   setRange: (range: CalendarRange) => void;
-  isCalendarOpen: boolean;
-  toggleCalendar: () => void;
   canGenerate: boolean;
 };
 
 export function useReportsScreen(): ReportsScreenState {
+  const [choice, setChoice] = useState<ReportPeriodChoice>('currentMonth');
   const [range, setRange] = useState<CalendarRange>(() =>
-    defaultReportPeriod(new Date()),
+    reportPeriodFor('currentMonth', new Date()),
   );
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const toggleCalendar = useCallback(() => {
-    setIsCalendarOpen(open => !open);
+  // "Personalizado" starts from the period that was showing, so the calendar
+  // opens on it instead of empty.
+  const selectChoice = useCallback((next: ReportPeriodChoice) => {
+    setChoice(next);
+    if (next !== 'custom') {
+      setRange(reportPeriodFor(next, new Date()));
+    }
   }, []);
 
   return {
+    choice,
+    selectChoice,
     range,
     setRange,
-    isCalendarOpen,
-    toggleCalendar,
     canGenerate: isReportPeriodReady(range),
   };
 }

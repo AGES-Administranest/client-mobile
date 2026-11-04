@@ -82,6 +82,17 @@ function pressable(
   )[0];
 }
 
+function tab(renderer: ReactTestRenderer.ReactTestRenderer, name: string) {
+  return renderer.root.findAll(
+    node =>
+      node.props.accessibilityRole === 'tab' &&
+      typeof node.props.onPress === 'function' &&
+      node
+        .findAllByType('Text' as never)
+        .some(text => text.props.children === name),
+  )[0];
+}
+
 async function press(instance: ReactTestRenderer.ReactTestInstance) {
   await act(() => {
     instance.props.onPress();
@@ -134,12 +145,53 @@ describe('ReportsScreen', () => {
     });
   });
 
-  it('keeps the cards disabled until the period has both ends', async () => {
+  it.each([
+    ['Mês atual', '01/11/2026 até 02/11/2026', '2026-11-01', '2026-11-02'],
+    ['Mês anterior', '01/10/2026 até 31/10/2026', '2026-10-01', '2026-10-31'],
+    ['Ano atual', '01/01/2026 até 02/11/2026', '2026-01-01', '2026-11-02'],
+  ])(
+    'the %s shortcut sets the period and sends it as YYYY-MM-DD',
+    async (name, label, from, to) => {
+      const onGenerateReport = jest.fn();
+      const renderer = await render({ onGenerateReport });
+
+      await press(tab(renderer, name));
+
+      expect(textsOf(renderer)).toContain(label);
+      expect(
+        renderer.root.findAll(node => node.props.testID === '2026-11-10'),
+      ).toHaveLength(0);
+
+      await press(pressable(renderer, title => title === 'Relatório Geral'));
+
+      expect(onGenerateReport).toHaveBeenCalledWith('general', { from, to });
+    },
+  );
+
+  it('shows the calendar only for the custom period', async () => {
+    const renderer = await render();
+
+    expect(
+      renderer.root.findAll(node => node.props.testID === '2026-11-10'),
+    ).toHaveLength(0);
+
+    await press(tab(renderer, 'Personalizado'));
+
+    expect(dayCell(renderer, '2026-11-10')).toBeDefined();
+
+    await press(tab(renderer, 'Mês atual'));
+
+    expect(
+      renderer.root.findAll(node => node.props.testID === '2026-11-10'),
+    ).toHaveLength(0);
+  });
+
+  it('keeps the cards disabled until the custom period has both ends', async () => {
     const renderer = await render();
     const generalCard = () =>
       pressable(renderer, label => label === 'Relatório Geral');
 
-    await press(pressable(renderer, label => label.startsWith('Período')));
+    await press(tab(renderer, 'Personalizado'));
     await press(dayCell(renderer, '2026-11-10'));
 
     expect(textsOf(renderer)).toContain('Selecione o período');
