@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { ApiError } from 'shared/services/apiClient';
@@ -71,7 +72,8 @@ function Probe({ debounceMs = 50 }: { debounceMs?: number }) {
 }
 
 describe('useProcedureEstimate', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
     jest.clearAllMocks();
     jest.useFakeTimers();
   });
@@ -264,5 +266,156 @@ describe('useProcedureEstimate', () => {
     });
 
     expect(current.selectedSupplies).toHaveLength(0);
+  });
+
+  it('sums quantity when adding a supply that already exists in the list', async () => {
+    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
+      mockHourlyRate,
+    );
+    (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
+      mockEstimateResponse,
+    );
+
+    await act(async () => {
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
+      await Promise.resolve();
+    });
+
+    act(() => {
+      current.addSupply({
+        itemId: 'syringe-1',
+        name: 'Seringa 20ml',
+        unit: 'un',
+        quantity: 2,
+        unitCost: 15.0,
+      });
+    });
+
+    expect(current.selectedSupplies[0].quantity).toBe(2);
+
+    act(() => {
+      current.addSupply({
+        itemId: 'syringe-1',
+        name: 'Seringa 20ml',
+        unit: 'un',
+        quantity: 3,
+        unitCost: 15.0,
+      });
+    });
+
+    expect(current.selectedSupplies).toHaveLength(1);
+    expect(current.selectedSupplies[0].quantity).toBe(5);
+  });
+
+  it('updates quantity of an existing supply', async () => {
+    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
+      mockHourlyRate,
+    );
+    (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
+      mockEstimateResponse,
+    );
+
+    await act(async () => {
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
+      await Promise.resolve();
+    });
+
+    act(() => {
+      current.addSupply({
+        itemId: 'syringe-1',
+        name: 'Seringa 20ml',
+        unit: 'un',
+        quantity: 2,
+        unitCost: 15.0,
+      });
+    });
+
+    act(() => {
+      current.updateSupplyQuantity('syringe-1', 4);
+    });
+
+    expect(current.selectedSupplies[0].quantity).toBe(4);
+  });
+
+  it('clears all fields when clearForm is called', async () => {
+    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
+      mockHourlyRate,
+    );
+    (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
+      mockEstimateResponse,
+    );
+
+    await act(async () => {
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
+      await Promise.resolve();
+    });
+
+    act(() => {
+      current.setHours('2');
+      current.setMinutes('30');
+      current.selectClient({ id: 'c1', name: 'Clínica' });
+      current.addSupply({
+        itemId: 's1',
+        name: 'Insumo',
+        unit: 'un',
+        quantity: 1,
+        unitCost: 10,
+      });
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+    });
+
+    expect(current.status).toBe('success');
+
+    act(() => {
+      current.clearForm();
+    });
+
+    expect(current.hours).toBe('');
+    expect(current.minutes).toBe('');
+    expect(current.selectedClient).toBeNull();
+    expect(current.selectedSupplies).toEqual([]);
+    expect(current.estimate).toBeNull();
+    expect(current.status).toBe('idle');
+  });
+
+  it('saves simulation locally when saveSimulation is called and sets canSave', async () => {
+    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
+      mockHourlyRate,
+    );
+    (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
+      mockEstimateResponse,
+    );
+
+    await act(async () => {
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
+      await Promise.resolve();
+    });
+
+    expect(current.canSave).toBe(false);
+
+    act(() => {
+      current.setHours('1');
+      current.setMinutes('30');
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+    });
+
+    expect(current.status).toBe('success');
+    expect(current.canSave).toBe(true);
+
+    let saveResult = false;
+    await act(async () => {
+      saveResult = await current.saveSimulation();
+    });
+
+    expect(saveResult).toBe(true);
+    expect(AsyncStorage.setItem).toHaveBeenCalled();
   });
 });

@@ -127,6 +127,41 @@ export function formatDurationDisplay(durationMinutes: number): string {
 }
 
 /**
+ * Formata a conta de mão de obra na composição da simulação.
+ * Exemplo: 150min e "R$ 60,00" -> "2h30 × R$ 60,00/h"
+ */
+export function formatLaborCalculation(
+  durationMinutes: number,
+  formattedHourlyRate: string,
+): string {
+  const duration = formatDurationDisplay(durationMinutes);
+  return `${duration} × ${formattedHourlyRate}/h`;
+}
+
+/**
+ * Calcula o custo total de uma linha de insumo (quantidade × custo unitário).
+ */
+export function calculateSupplyLineTotal(
+  quantity: number,
+  unitCost: number,
+): number {
+  return Math.round(quantity * unitCost * 100) / 100;
+}
+
+/**
+ * Calcula o subtotal da lista de insumos somando as linhas.
+ */
+export function calculateSuppliesSubtotal(
+  supplies: { quantity: number; unitCost: number }[],
+): number {
+  const sum = supplies.reduce(
+    (acc, s) => acc + calculateSupplyLineTotal(s.quantity, s.unitCost),
+    0,
+  );
+  return Math.round(sum * 100) / 100;
+}
+
+/**
  * Converte o DTO da API (com valores decimais em string) para o modelo de domínio com números.
  */
 export function mapProcedureEstimate(

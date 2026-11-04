@@ -153,22 +153,28 @@ describe('ProcedureEstimateScreen', () => {
     expect(rendered.toJSON()).toBeDefined();
   });
 
-  it('renders unconfigured state when getHourlyRate returns null', async () => {
+  it('renders unconfigured state when getHourlyRate returns null while keeping the form', async () => {
     (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(null);
 
     const rendered = await renderScreen({ visible: true });
 
     const tree = JSON.stringify(rendered.toJSON());
-    expect(tree).toContain('Honorários não configurados');
+    expect(tree).toContain('Configure seu valor por hora');
     expect(tree).toContain('Configurar honorários');
+    // Card inputs remain visible in unconfigured state
+    expect(tree).toContain('Duração do procedimento');
+    expect(tree).toContain('Local do atendimento');
+    expect(tree).toContain('Insumos previstos');
   });
 
   it('renders form inputs when pricing is configured', async () => {
     const rendered = await renderScreen({ visible: true });
 
     const tree = JSON.stringify(rendered.toJSON());
-    expect(tree).toContain('Duração estimada');
-    expect(tree).toContain('Tomador ou clínica');
+    expect(tree).toContain('Duração do procedimento');
+    expect(tree).toContain('Local do atendimento');
     expect(tree).toContain('Insumos previstos');
+    expect(tree).toContain('Salvar simulação');
+    expect(tree).toContain('Limpar campos');
   });
 });

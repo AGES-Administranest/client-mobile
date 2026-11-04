@@ -1,6 +1,9 @@
 import type { ProcedureEstimateResponse } from './pricing.types';
 import {
+  calculateSuppliesSubtotal,
+  calculateSupplyLineTotal,
   formatDurationDisplay,
+  formatLaborCalculation,
   fromDurationMinutes,
   mapProcedureEstimate,
   toDurationMinutes,
@@ -90,6 +93,36 @@ describe('procedureEstimate domain', () => {
       expect(formatDurationDisplay(90)).toBe('1h30');
       expect(formatDurationDisplay(125)).toBe('2h05');
       expect(formatDurationDisplay(150)).toBe('2h30');
+    });
+  });
+
+  describe('formatLaborCalculation', () => {
+    it('formats labor calculation line with duration and hourly rate', () => {
+      expect(formatLaborCalculation(150, 'R$ 60,00')).toBe(
+        '2h30 × R$ 60,00/h',
+      );
+      expect(formatLaborCalculation(60, 'R$ 120,00')).toBe(
+        '1h × R$ 120,00/h',
+      );
+      expect(formatLaborCalculation(45, 'R$ 80,00')).toBe(
+        '45min × R$ 80,00/h',
+      );
+    });
+  });
+
+  describe('calculateSupplyLineTotal and calculateSuppliesSubtotal', () => {
+    it('multiplies quantity by unit cost correctly rounded', () => {
+      expect(calculateSupplyLineTotal(2, 15)).toBe(30);
+      expect(calculateSupplyLineTotal(3, 2)).toBe(6);
+      expect(calculateSupplyLineTotal(1.5, 10.25)).toBe(15.38);
+    });
+
+    it('sums subtotal of supplies array', () => {
+      const supplies = [
+        { quantity: 2, unitCost: 15 },
+        { quantity: 3, unitCost: 2 },
+      ];
+      expect(calculateSuppliesSubtotal(supplies)).toBe(36);
     });
   });
 

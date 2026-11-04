@@ -1,16 +1,11 @@
-// LAYOUT PROVISÓRIO: aguardando protótipo do Figma
 import {
   AlertCircle,
+  Calculator,
   Clock,
-  Info,
   RefreshCw,
-  Sparkles,
-  TrendingUp,
-  Truck,
 } from 'lucide-react-native';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 
-import { Button } from 'app/components/ui/button';
 import { Card } from 'app/components/ui/card';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -21,16 +16,19 @@ import type { ProcedureEstimate } from '../domain/pricing.types';
 
 export type EstimateResultTexts = {
   title: string;
+  laborLabel?: string;
+  tripLabel: string;
+  suppliesLabel: string;
+  totalLabel?: string;
+  infoText?: string;
+  hoursLabel?: string;
+  breakdownTitle?: string;
+  tripNotIncludedWarning?: string;
+  breakEvenLabel?: string;
   idleMessage: string;
   loadingMessage: string;
   errorMessage: string;
   retryLabel: string;
-  breakdownTitle: string;
-  hoursLabel: string;
-  tripLabel: string;
-  suppliesLabel: string;
-  tripNotIncludedWarning: string;
-  breakEvenLabel: string;
 };
 
 export type EstimateResultCardProps = {
@@ -43,6 +41,7 @@ export type EstimateResultCardProps = {
   formattedSuppliesCost: string;
   formattedHourlyRate: string;
   formattedDuration: string;
+  laborCalculation?: string;
   hasClient: boolean;
   onRetry: () => void;
   texts: EstimateResultTexts;
@@ -53,13 +52,10 @@ export function EstimateResultCard({
   status,
   estimate,
   formattedMinimumPrice,
-  formattedBreakEvenPrice,
   formattedHoursCost,
   formattedTripCost,
   formattedSuppliesCost,
-  formattedHourlyRate,
-  formattedDuration,
-  hasClient,
+  laborCalculation,
   onRetry,
   texts,
   className,
@@ -68,14 +64,14 @@ export function EstimateResultCard({
     return (
       <Card
         className={cn(
-          'items-center gap-3 rounded-[14px] p-6 shadow-[0px_5px_10px_-3px_rgba(0,0,0,0.1)]',
+          'items-center gap-3 rounded-2xl border border-border-warm/40 bg-white p-6 shadow-sm',
           className,
         )}
       >
-        <View className="size-12 items-center justify-center rounded-full bg-details-warm">
-          <Icon as={Clock} size={24} className="text-label-quartenery" />
+        <View className="size-12 items-center justify-center rounded-2xl bg-details-warm">
+          <Icon as={Clock} size={22} className="text-label-quartenery" />
         </View>
-        <Text className="text-center text-sm font-medium text-label-body">
+        <Text className="text-center text-xs font-medium text-label-muted">
           {texts.idleMessage}
         </Text>
       </Card>
@@ -86,12 +82,12 @@ export function EstimateResultCard({
     return (
       <Card
         className={cn(
-          'items-center gap-3 rounded-[14px] p-8 shadow-[0px_5px_10px_-3px_rgba(0,0,0,0.1)]',
+          'items-center gap-3 rounded-2xl border border-border-warm/40 bg-white p-8 shadow-sm',
           className,
         )}
       >
         <ActivityIndicator color={LabelQuartenery} />
-        <Text className="text-center text-sm text-label-body">
+        <Text className="text-center text-xs text-label-muted">
           {texts.loadingMessage}
         </Text>
       </Card>
@@ -102,25 +98,24 @@ export function EstimateResultCard({
     return (
       <Card
         className={cn(
-          'items-center gap-3 rounded-[14px] p-6 shadow-[0px_5px_10px_-3px_rgba(0,0,0,0.1)]',
+          'items-center gap-3 rounded-2xl border border-border-warm/40 bg-white p-6 shadow-sm',
           className,
         )}
       >
-        <Icon as={AlertCircle} size={28} className="text-alert-primary" />
-        <Text className="text-center text-sm text-alert-primary">
+        <Icon as={AlertCircle} size={26} className="text-alert-primary" />
+        <Text className="text-center text-xs text-alert-primary">
           {texts.errorMessage}
         </Text>
-        <Button
-          shape="pill"
-          variant="outline"
+        <Pressable
+          accessibilityRole="button"
           onPress={onRetry}
-          className="mt-2 h-10 px-4"
+          className="mt-1 h-9 flex-row items-center justify-center gap-1.5 rounded-full border border-border-warm px-4 active:opacity-80"
         >
-          <Icon as={RefreshCw} size={14} className="mr-2 text-label-primary" />
-          <Text className="text-xs font-semibold text-label-primary">
+          <Icon as={RefreshCw} size={13} className="text-label-body" />
+          <Text className="text-xs font-semibold text-label-body">
             {texts.retryLabel}
           </Text>
-        </Button>
+        </Pressable>
       </Card>
     );
   }
@@ -129,109 +124,90 @@ export function EstimateResultCard({
     return null;
   }
 
-  const tripEstimateAvailable = estimate.tripEstimateAvailable;
+  const laborTitle = texts.laborLabel || 'Mão de obra';
+  const tripTitle = texts.tripLabel || 'Deslocamento';
+  const suppliesTitle = texts.suppliesLabel || 'Insumos';
+  const totalTitle = texts.totalLabel || 'Total mínimo sugerido';
+  const infoText =
+    texts.infoText ||
+    'O valor é calculado com base no seu custo por hora, deslocamento e insumos previstos';
 
   return (
     <Card
       className={cn(
-        'gap-4 rounded-[14px] p-5 shadow-[0px_5px_10px_-3px_rgba(0,0,0,0.1)]',
+        'gap-2 rounded-2xl border border-border-warm/40 bg-white p-5 shadow-sm',
         className,
       )}
     >
-      {/* Cabeçalho do Resultado */}
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center gap-2">
-          <Icon as={Sparkles} size={18} className="text-label-quartenery" />
-          <Text
-            accessibilityRole="header"
-            className="text-xs font-semibold uppercase tracking-wider text-label-primary"
-          >
-            {texts.title}
-          </Text>
-        </View>
-      </View>
-
-      {/* Destaque do Valor Mínimo Sugerido */}
-      <View className="items-center gap-1 rounded-[12px] bg-details-warm py-4">
-        <Text className="text-3xl font-extrabold tracking-tight text-label-primary">
-          {formattedMinimumPrice}
-        </Text>
-        <Text className="text-xs text-label-muted">
-          {texts.breakEvenLabel}: {formattedBreakEvenPrice}
+      {/* Cabeçalho do Card */}
+      <View className="flex-row items-center gap-2">
+        <Icon as={Calculator} size={18} className="text-label-quartenery" />
+        <Text
+          accessibilityRole="header"
+          className="text-sm font-bold text-label-body"
+        >
+          {texts.title}
         </Text>
       </View>
 
-      {/* Detalhamento das 3 Parcelas */}
+      {/* Destaque do Valor Mínimo */}
+      <Text className="my-1 text-3xl font-extrabold tracking-tight text-label-body">
+        {formattedMinimumPrice}
+      </Text>
+
+      {/* Composição das Linhas */}
       <View className="gap-2.5 pt-1">
-        <Text className="text-xs font-semibold uppercase tracking-wider text-label-muted">
-          {texts.breakdownTitle}
-        </Text>
-
-        {/* 1. Parcela de Horas */}
-        <View className="flex-row items-center justify-between border-b border-details-primary pb-2.5">
-          <View className="gap-0.5">
-            <View className="flex-row items-center gap-1.5">
-              <Icon as={Clock} size={14} className="text-label-quartenery" />
-              <Text className="text-[13px] font-medium text-label-primary">
-                {texts.hoursLabel}
-              </Text>
-            </View>
-            <Text className="text-[11px] text-label-muted">
-              {formattedDuration} × {formattedHourlyRate}/h
+        {/* 1. Mão de Obra */}
+        <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
+          <View>
+            <Text className="text-xs font-medium text-label-body">
+              {laborTitle}
             </Text>
+            {laborCalculation ? (
+              <Text className="mt-0.5 text-xs text-label-muted">
+                {laborCalculation}
+              </Text>
+            ) : null}
           </View>
-          <Text className="text-sm font-bold text-label-primary">
+          <Text className="text-xs font-semibold text-label-body">
             {formattedHoursCost}
           </Text>
         </View>
 
-        {/* 2. Parcela de Deslocamento */}
-        <View className="flex-row items-center justify-between border-b border-details-primary pb-2.5">
-          <View className="gap-0.5">
-            <View className="flex-row items-center gap-1.5">
-              <Icon as={Truck} size={14} className="text-label-quartenery" />
-              <Text className="text-[13px] font-medium text-label-primary">
-                {texts.tripLabel}
-              </Text>
-            </View>
-          </View>
-          <Text className="text-sm font-bold text-label-primary">
+        {/* 2. Deslocamento */}
+        <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
+          <Text className="text-xs font-medium text-label-body">
+            {tripTitle}
+          </Text>
+          <Text className="text-xs font-semibold text-label-body">
             {formattedTripCost}
           </Text>
         </View>
 
-        {/* Alerta de Deslocamento Não Disponível para Tomador */}
-        {hasClient && !tripEstimateAvailable ? (
-          <View className="flex-row items-start gap-2 rounded-[8px] bg-details-warm p-2.5">
-            <Icon
-              as={Info}
-              size={15}
-              className="mt-0.5 text-label-quartenery"
-            />
-            <Text className="flex-1 text-[11px] leading-4 text-label-body">
-              {texts.tripNotIncludedWarning}
-            </Text>
-          </View>
-        ) : null}
-
-        {/* 3. Parcela de Insumos */}
-        <View className="flex-row items-center justify-between pb-1">
-          <View className="gap-0.5">
-            <View className="flex-row items-center gap-1.5">
-              <Icon
-                as={TrendingUp}
-                size={14}
-                className="text-label-quartenery"
-              />
-              <Text className="text-[13px] font-medium text-label-primary">
-                {texts.suppliesLabel}
-              </Text>
-            </View>
-          </View>
-          <Text className="text-sm font-bold text-label-primary">
+        {/* 3. Insumos */}
+        <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
+          <Text className="text-xs font-medium text-label-body">
+            {suppliesTitle}
+          </Text>
+          <Text className="text-xs font-semibold text-label-body">
             {formattedSuppliesCost}
           </Text>
         </View>
+
+        {/* 4. Total Mínimo Sugerido */}
+        <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
+          <Text className="text-xs font-bold text-label-body">{totalTitle}</Text>
+          <Text className="text-xs font-bold text-label-body">
+            {formattedMinimumPrice}
+          </Text>
+        </View>
+      </View>
+
+      {/* Caixa de Informação */}
+      <View className="mt-2 rounded-xl bg-details-warm p-3">
+        <Text className="text-xs leading-4 text-label-muted">
+          {infoText}
+        </Text>
       </View>
     </Card>
   );

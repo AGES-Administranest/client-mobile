@@ -22,6 +22,10 @@ export {
   pricingService,
   isPricingUnconfiguredError,
 } from './services/pricingService';
+export {
+  savedProcedureEstimateService,
+  type SavedProcedureEstimate,
+} from './services/savedProcedureEstimateService';
 export type { HourlyRate, HourlyRatePart } from './domain/hourlyRate';
 export type {
   PricingSettings,
@@ -45,13 +49,18 @@ export { EstimateResultCard } from './components/EstimateResultCard';
 export type { EstimateResultCardProps } from './components/EstimateResultCard';
 export { PricingSetupRequired } from './components/PricingSetupRequired';
 export type { PricingSetupRequiredProps } from './components/PricingSetupRequired';
+export { EditSupplyQuantityModal } from './components/EditSupplyQuantityModal';
+export type { EditSupplyQuantityModalProps } from './components/EditSupplyQuantityModal';
 export { useProcedureEstimate } from './hooks/useProcedureEstimate';
 export type {
   ProcedureEstimateStatus,
   UseProcedureEstimate,
 } from './hooks/useProcedureEstimate';
 export {
+  calculateSuppliesSubtotal,
+  calculateSupplyLineTotal,
   formatDurationDisplay,
+  formatLaborCalculation,
   fromDurationMinutes,
   mapProcedureEstimate,
   toDurationMinutes,

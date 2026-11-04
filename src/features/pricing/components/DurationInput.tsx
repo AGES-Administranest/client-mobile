@@ -1,4 +1,3 @@
-// LAYOUT PROVISÓRIO: aguardando protótipo do Figma
 import { Clock } from 'lucide-react-native';
 import { TextInput, View } from 'react-native';
 
@@ -15,6 +14,7 @@ export type DurationInputProps = {
   onChangeHours: (hours: string) => void;
   onChangeMinutes: (minutes: string) => void;
   title: string;
+  supportText?: string;
   hoursLabel: string;
   minutesLabel: string;
   hoursPlaceholder?: string;
@@ -29,6 +29,7 @@ export function DurationInput({
   onChangeHours,
   onChangeMinutes,
   title,
+  supportText = 'Informe quanto tempo você estima dedicar ao atendimento',
   hoursLabel,
   minutesLabel,
   hoursPlaceholder = '0',
@@ -38,7 +39,7 @@ export function DurationInput({
   return (
     <Card
       className={cn(
-        'gap-3 rounded-[14px] p-4 shadow-[0px_5px_10px_-3px_rgba(0,0,0,0.1)]',
+        'gap-2 rounded-2xl border border-border-warm/40 bg-white p-4 shadow-sm',
         className,
       )}
     >
@@ -46,21 +47,25 @@ export function DurationInput({
         <Icon as={Clock} size={18} className="text-label-quartenery" />
         <Text
           accessibilityRole="header"
-          className="text-sm font-semibold uppercase tracking-wider text-label-primary"
+          className="text-sm font-bold text-label-body"
         >
           {title}
         </Text>
       </View>
 
-      <View className="flex-row items-center gap-3">
+      {supportText ? (
+        <Text className="text-xs text-label-muted">{supportText}</Text>
+      ) : null}
+
+      <View className="flex-row items-center gap-3 pt-1">
         {/* Campo Horas */}
-        <View className="flex-1 gap-1">
-          <Text className="text-[12px] font-medium text-label-body">
+        <View className="flex-1">
+          <Text className="mb-1 text-xs font-bold tracking-wider text-label-body">
             {hoursLabel}
           </Text>
           <View
             className={cn(
-              'h-12 flex-row items-center rounded-[10px] border border-details-primary bg-details-warm px-3',
+              'h-12 flex-row items-center rounded-xl border border-border-warm bg-white px-3.5',
               error && 'border-alert-primary',
             )}
           >
@@ -74,21 +79,17 @@ export function DurationInput({
               accessibilityLabel={hoursLabel}
               className="flex-1 text-base font-semibold text-label-primary"
             />
-            <Text className="text-xs text-label-muted">h</Text>
           </View>
         </View>
 
-        {/* Separador */}
-        <Text className="mt-5 text-lg font-bold text-label-muted">:</Text>
-
         {/* Campo Minutos */}
-        <View className="flex-1 gap-1">
-          <Text className="text-[12px] font-medium text-label-body">
+        <View className="flex-1">
+          <Text className="mb-1 text-xs font-bold tracking-wider text-label-body">
             {minutesLabel}
           </Text>
           <View
             className={cn(
-              'h-12 flex-row items-center rounded-[10px] border border-details-primary bg-details-warm px-3',
+              'h-12 flex-row items-center rounded-xl border border-border-warm bg-white px-3.5',
               error && 'border-alert-primary',
             )}
           >
@@ -102,13 +103,12 @@ export function DurationInput({
               accessibilityLabel={minutesLabel}
               className="flex-1 text-base font-semibold text-label-primary"
             />
-            <Text className="text-xs text-label-muted">min</Text>
           </View>
         </View>
       </View>
 
       {error ? (
-        <Text className="text-xs font-medium text-alert-primary">{error}</Text>
+        <Text className="pt-0.5 text-xs text-alert-primary">{error}</Text>
       ) : null}
     </Card>
   );

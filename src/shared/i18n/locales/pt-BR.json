@@ -1414,47 +1414,69 @@
       }
     },
     "procedureEstimate": {
-      "title": "Simulação de procedimento",
-      "subtitle": "Descubra o valor mínimo a cobrar por um procedimento específico",
+      "title": "Simular valor",
+      "subtitle": "Descubra quanto cobrar pelo procedimento",
       "back": "Voltar",
+      "optionalBadge": "Opcional",
       "duration": {
-        "title": "Duração estimada",
-        "hours": "Horas",
-        "minutes": "Minutos",
+        "title": "Duração do procedimento",
+        "supportText": "Informe quanto tempo você estima dedicar ao atendimento",
+        "hours": "HORAS",
+        "minutes": "MINUTOS",
         "hoursPlaceholder": "0",
         "minutesPlaceholder": "00"
       },
       "client": {
-        "title": "Tomador ou clínica (opcional)",
-        "placeholder": "Buscar tomador ou clínica...",
+        "title": "Local do atendimento",
+        "supportText": "Selecione o tomador ou clínica para calcular o deslocamento",
+        "placeholder": "Selecione o tomador ou clínica...",
+        "helperText": "Pode deixar em branco, sem custo de deslocamento.",
         "clear": "Remover tomador",
+        "tripEstimateLabel": "Custo de deslocamento estimado:",
+        "tripNotIncluded": "Deslocamento não incluído: este tomador ainda não tem viagens registradas.",
         "loading": "Buscando tomadores…",
         "error": "Não foi possível buscar tomadores.",
         "empty": "Nenhum tomador ou clínica encontrado."
       },
       "supplies": {
-        "title": "Insumos previstos (opcional)",
-        "add": "Adicionar",
-        "empty": "Nenhum insumo adicionado ainda",
-        "remove": "Remover insumo"
+        "title": "Insumos previstos",
+        "supportText": "Adicione os materiais que serão utilizados no procedimento",
+        "add": "+ Adicionar insumo",
+        "helperText": "Sem materiais previstos? A lista pode ficar vazia.",
+        "subtotalLabel": "Subtotal dos insumos",
+        "empty": "Nenhum insumo adicionado",
+        "edit": "Editar quantidade",
+        "remove": "Remover insumo",
+        "units": "unidades"
       },
       "unconfigured": {
-        "title": "Honorários não configurados",
-        "message": "Para calcular o valor mínimo do procedimento, precisamos que você configure primeiro seu pró-labore, jornada semanal e margem de segurança na Calculadora de honorários.",
+        "title": "Configure seu valor por hora",
+        "message": "Para calcular o valor mínimo dos seus procedimentos, primeiro precisamos conhecer seus custos e definir seu valor de hora de trabalho.",
+        "footnote": "Essa configuração será utilizada em todas as suas simulações de procedimentos.",
         "action": "Configurar honorários"
       },
       "result": {
-        "title": "Sugestão de valor mínimo",
+        "title": "Valor mínimo sugerido",
+        "laborLabel": "Mão de obra",
+        "tripLabel": "Deslocamento",
+        "suppliesLabel": "Insumos",
+        "totalLabel": "Total mínimo sugerido",
+        "infoText": "O valor é calculado com base no seu custo por hora, deslocamento e insumos previstos",
         "idle": "Preencha a duração estimada do procedimento para ver a sugestão de valor mínimo.",
         "loading": "Calculando sugestão de valor…",
         "error": "Não foi possível calcular o valor sugerido.",
         "retry": "Tentar novamente",
-        "breakdownTitle": "Composição do valor sugerido",
-        "hours": "Horas de trabalho",
-        "trip": "Deslocamento",
-        "supplies": "Insumos",
-        "tripNotIncluded": "Deslocamento não incluído pois não há histórico de deslocamentos registrados para este tomador.",
         "breakEven": "Preço de custo"
+      },
+      "actions": {
+        "save": "Salvar simulação",
+        "savedSuccess": "Simulação salva com sucesso!",
+        "clear": "Limpar campos"
+      },
+      "editQuantity": {
+        "title": "Editar quantidade",
+        "confirm": "Confirmar",
+        "cancel": "Cancelar"
       },
       "entryButton": "Simular valor por procedimento"
     }

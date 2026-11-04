@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft } from 'lucide-react-native';
-import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react-native';
+import { useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,11 +19,17 @@ import { monthOf } from 'shared/utils/monthPeriod';
 import { BackgroundPrimary } from 'theme/colors';
 
 import { PricingSetupView } from './PricingSetupView';
+import { EditSupplyQuantityModal } from '../components/EditSupplyQuantityModal';
 import {
   ProcedureEstimateContent,
   type ProcedureEstimateTexts,
 } from '../components/ProcedureEstimateContent';
-import { formatDurationDisplay } from '../domain/procedureEstimate';
+import type { ProcedureSelectedSupply } from '../domain/pricing.types';
+import {
+  calculateSuppliesSubtotal,
+  formatDurationDisplay,
+  formatLaborCalculation,
+} from '../domain/procedureEstimate';
 import { useProcedureEstimate } from '../hooks/useProcedureEstimate';
 
 const MIN_TOP_PADDING = 16;
@@ -75,6 +81,10 @@ function ProcedureEstimateBody({
   const [currentMonth] = useState(() => monthOf(new Date()));
   const [isConfiguringPricing, setIsConfiguringPricing] = useState(false);
   const [isSupplySheetVisible, setIsSupplySheetVisible] = useState(false);
+  const [editingSupply, setEditingSupply] =
+    useState<ProcedureSelectedSupply | null>(null);
+  const [isSavedToastVisible, setIsSavedToastVisible] = useState(false);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const estimate = useProcedureEstimate();
 
@@ -102,14 +112,59 @@ function ProcedureEstimateBody({
       name: selection.name,
       unit: selection.unit,
       quantity: selection.quantity,
-      unitCost: matchedOption?.price ?? 25.0,
+      unitCost: matchedOption?.price ?? 15.0,
     });
 
     setIsSupplySheetVisible(false);
+    supplySelector.reset();
   }
 
+  function handleEditSupply(supply: ProcedureSelectedSupply): void {
+    setEditingSupply(supply);
+  }
+
+  function handleConfirmEditSupply(newQuantity: number): void {
+    if (editingSupply) {
+      estimate.updateSupplyQuantity(editingSupply.itemId, newQuantity);
+      setEditingSupply(null);
+    }
+  }
+
+  const handleSaveSimulation = useCallback(async () => {
+    const success = await estimate.saveSimulation();
+    if (success) {
+      setIsSavedToastVisible(true);
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = setTimeout(() => {
+        setIsSavedToastVisible(false);
+      }, 3000);
+    }
+  }, [estimate]);
+
+  const handleClearFields = useCallback(() => {
+    estimate.clearForm();
+  }, [estimate]);
+
+  const suppliesSubtotalValue = estimate.estimate
+    ? estimate.estimate.suppliesCost
+    : calculateSuppliesSubtotal(estimate.selectedSupplies);
+
+  const formattedHourlyRate = estimate.estimate
+    ? formatCurrency(estimate.estimate.hourlyRateUsed, locale)
+    : '';
+
+  const laborCalculation =
+    estimate.estimate && estimate.estimate.durationMinutes > 0
+      ? formatLaborCalculation(
+          estimate.estimate.durationMinutes,
+          formattedHourlyRate,
+        )
+      : undefined;
+
   const texts: ProcedureEstimateTexts = {
+    optionalBadge: t('pricing.procedureEstimate.optionalBadge'),
     durationTitle: t('pricing.procedureEstimate.duration.title'),
+    durationSupportText: t('pricing.procedureEstimate.duration.supportText'),
     hoursLabel: t('pricing.procedureEstimate.duration.hours'),
     minutesLabel: t('pricing.procedureEstimate.duration.minutes'),
     hoursPlaceholder: t('pricing.procedureEstimate.duration.hoursPlaceholder'),
@@ -117,7 +172,15 @@ function ProcedureEstimateBody({
       'pricing.procedureEstimate.duration.minutesPlaceholder',
     ),
     clientTitle: t('pricing.procedureEstimate.client.title'),
+    clientSupportText: t('pricing.procedureEstimate.client.supportText'),
     clientPlaceholder: t('pricing.procedureEstimate.client.placeholder'),
+    clientHelperText: t('pricing.procedureEstimate.client.helperText'),
+    clientTripEstimateLabel: t(
+      'pricing.procedureEstimate.client.tripEstimateLabel',
+    ),
+    clientTripNotIncluded: t(
+      'pricing.procedureEstimate.client.tripNotIncluded',
+    ),
     clearClientLabel: t('pricing.procedureEstimate.client.clear'),
     clientAutocompleteMessages: {
       empty: t('pricing.procedureEstimate.client.empty'),
@@ -125,46 +188,57 @@ function ProcedureEstimateBody({
       loading: t('pricing.procedureEstimate.client.loading'),
     },
     suppliesTitle: t('pricing.procedureEstimate.supplies.title'),
+    suppliesSupportText: t('pricing.procedureEstimate.supplies.supportText'),
     addSupplyLabel: t('pricing.procedureEstimate.supplies.add'),
+    suppliesHelperText: t('pricing.procedureEstimate.supplies.helperText'),
+    suppliesSubtotalLabel: t('pricing.procedureEstimate.supplies.subtotalLabel'),
     noSuppliesMessage: t('pricing.procedureEstimate.supplies.empty'),
+    editSupplyLabel: t('pricing.procedureEstimate.supplies.edit'),
     removeSupplyLabel: t('pricing.procedureEstimate.supplies.remove'),
+    suppliesUnits: t('pricing.procedureEstimate.supplies.units'),
     unconfiguredTitle: t('pricing.procedureEstimate.unconfigured.title'),
     unconfiguredMessage: t('pricing.procedureEstimate.unconfigured.message'),
+    unconfiguredFootnote: t('pricing.procedureEstimate.unconfigured.footnote'),
     configurePricingLabel: t('pricing.procedureEstimate.unconfigured.action'),
+    saveSimulationLabel: t('pricing.procedureEstimate.actions.save'),
+    saveSimulationSuccess: t('pricing.procedureEstimate.actions.savedSuccess'),
+    clearFieldsLabel: t('pricing.procedureEstimate.actions.clear'),
     resultTexts: {
       title: t('pricing.procedureEstimate.result.title'),
+      laborLabel: t('pricing.procedureEstimate.result.laborLabel'),
+      tripLabel: t('pricing.procedureEstimate.result.tripLabel'),
+      suppliesLabel: t('pricing.procedureEstimate.result.suppliesLabel'),
+      totalLabel: t('pricing.procedureEstimate.result.totalLabel'),
+      infoText: t('pricing.procedureEstimate.result.infoText'),
       idleMessage: t('pricing.procedureEstimate.result.idle'),
       loadingMessage: t('pricing.procedureEstimate.result.loading'),
       errorMessage: t('pricing.procedureEstimate.result.error'),
       retryLabel: t('pricing.procedureEstimate.result.retry'),
-      breakdownTitle: t('pricing.procedureEstimate.result.breakdownTitle'),
-      hoursLabel: t('pricing.procedureEstimate.result.hours'),
-      tripLabel: t('pricing.procedureEstimate.result.trip'),
-      suppliesLabel: t('pricing.procedureEstimate.result.supplies'),
-      tripNotIncludedWarning: t(
-        'pricing.procedureEstimate.result.tripNotIncluded',
-      ),
       breakEvenLabel: t('pricing.procedureEstimate.result.breakEven'),
     },
   };
 
   return (
     <>
-      <View className="gap-3 px-[15px] pb-2 pt-0">
-        <Pressable
-          onPress={goBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('pricing.procedureEstimate.back')}
-          hitSlop={8}
-          className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-        >
-          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-        </Pressable>
+      <View className="gap-0.5 px-[18px] pb-2 pt-0">
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={goBack}
+            accessibilityRole="button"
+            accessibilityLabel={t('pricing.procedureEstimate.back')}
+            hitSlop={8}
+            className="-ml-1 p-1 active:opacity-70"
+          >
+            <Icon
+              as={ChevronLeft}
+              size={26}
+              className="text-label-quartenery"
+            />
+          </Pressable>
 
-        <View className="px-[7px]">
           <Text
             accessibilityRole="header"
-            className="text-xl font-bold leading-[30px] tracking-[-0.2px] text-label-primary"
+            className="text-2xl font-bold tracking-tight text-label-quartenery"
           >
             {t(
               isConfiguringPricing
@@ -172,20 +246,21 @@ function ProcedureEstimateBody({
                 : 'pricing.procedureEstimate.title',
             )}
           </Text>
-          <Text className="text-[13px] leading-[19.5px] text-label-primary">
-            {t(
-              isConfiguringPricing
-                ? 'pricing.setup.subtitle'
-                : 'pricing.procedureEstimate.subtitle',
-            )}
-          </Text>
         </View>
+
+        <Text className="pl-7 text-xs text-label-muted">
+          {t(
+            isConfiguringPricing
+              ? 'pricing.setup.subtitle'
+              : 'pricing.procedureEstimate.subtitle',
+          )}
+        </Text>
       </View>
 
       <ScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerClassName="gap-[18px] px-[22px] pb-10 pt-2.5"
+        contentContainerClassName="gap-3 px-[18px] pb-10 pt-2.5"
       >
         {isConfiguringPricing ? (
           <PricingSetupView
@@ -211,10 +286,16 @@ function ProcedureEstimateBody({
             onClearClient={estimate.clearClient}
             supplies={estimate.selectedSupplies}
             onOpenSupplySelector={() => setIsSupplySheetVisible(true)}
+            onEditSupply={handleEditSupply}
             onRemoveSupply={estimate.removeSupply}
             formatSupplyCost={cost => formatCurrency(cost, locale)}
+            formattedSuppliesSubtotal={formatCurrency(
+              suppliesSubtotalValue,
+              locale,
+            )}
             status={estimate.status}
             estimate={estimate.estimate}
+            canSave={estimate.canSave}
             formattedMinimumPrice={
               estimate.estimate
                 ? formatCurrency(estimate.estimate.minimumPrice, locale)
@@ -240,18 +321,18 @@ function ProcedureEstimateBody({
                 ? formatCurrency(estimate.estimate.suppliesCost, locale)
                 : ''
             }
-            formattedHourlyRate={
-              estimate.estimate
-                ? formatCurrency(estimate.estimate.hourlyRateUsed, locale)
-                : ''
-            }
+            formattedHourlyRate={formattedHourlyRate}
             formattedDuration={
               estimate.estimate
                 ? formatDurationDisplay(estimate.estimate.durationMinutes)
                 : ''
             }
+            laborCalculation={laborCalculation}
             onRetry={estimate.retry}
             onConfigurePricing={() => setIsConfiguringPricing(true)}
+            onSaveSimulation={handleSaveSimulation}
+            onClearFields={handleClearFields}
+            isSavedToastVisible={isSavedToastVisible}
             texts={texts}
           />
         )}
@@ -286,6 +367,17 @@ function ProcedureEstimateBody({
         termTooShortMessage={t('stock.supplySelector.termTooShort')}
         insufficientStockMessage={t('stock.supplySelector.insufficientStock')}
         formatPrice={option => formatSupplyPrice(option.price)}
+      />
+
+      {/* Modal para edição de quantidade de um insumo */}
+      <EditSupplyQuantityModal
+        visible={editingSupply !== null}
+        supply={editingSupply}
+        onConfirm={handleConfirmEditSupply}
+        onClose={() => setEditingSupply(null)}
+        title={t('pricing.procedureEstimate.editQuantity.title')}
+        confirmLabel={t('pricing.procedureEstimate.editQuantity.confirm')}
+        cancelLabel={t('pricing.procedureEstimate.editQuantity.cancel')}
       />
     </>
   );

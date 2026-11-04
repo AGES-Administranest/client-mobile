@@ -18,6 +18,7 @@ import {
   isPricingUnconfiguredError,
   pricingService,
 } from '../services/pricingService';
+import { savedProcedureEstimateService } from '../services/savedProcedureEstimateService';
 
 export const ESTIMATE_DEBOUNCE_MS = 500;
 
@@ -41,6 +42,7 @@ export type UseProcedureEstimate = {
   // Estado da simulação
   status: ProcedureEstimateStatus;
   estimate: ProcedureEstimate | null;
+  canSave: boolean;
 
   // Ações do formulário
   setHours: (hours: string) => void;
@@ -50,6 +52,8 @@ export type UseProcedureEstimate = {
   addSupply: (supply: ProcedureSelectedSupply) => void;
   updateSupplyQuantity: (itemId: string, quantity: number) => void;
   removeSupply: (itemId: string) => void;
+  clearForm: () => void;
+  saveSimulation: () => Promise<boolean>;
 
   // Controle de fluxo
   retry: () => void;
@@ -91,6 +95,23 @@ export function useProcedureEstimate(
 
   // Validação da duração
   const durationValidation = validateDuration(hours, minutes);
+
+  // Restauração da última simulação salva no dispositivo
+  useEffect(() => {
+    let isCurrent = true;
+    savedProcedureEstimateService.load().then(saved => {
+      if (!isCurrent || !saved) return;
+      setHours(prev => (prev === '' ? saved.hours : prev));
+      setMinutes(prev => (prev === '' ? saved.minutes : prev));
+      setSelectedClient(prev => (prev === null ? saved.client : prev));
+      setSelectedSupplies(prev =>
+        prev.length === 0 ? saved.supplies : prev,
+      );
+    });
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   // Subtask 2: Checagem inicial ao acessar a simulação
   // Faz a chamada real ao GET /pricing/hourly-rate (US20) para verificar se o usuário
@@ -268,6 +289,45 @@ export function useProcedureEstimate(
     setSelectedClient(null);
   }, []);
 
+  const clearForm = useCallback(() => {
+    setHours('');
+    setMinutes('');
+    setSelectedClient(null);
+    setSelectedSupplies([]);
+    setEstimate(null);
+    if (status !== 'needsPricingSetup') {
+      setStatus('idle');
+    }
+  }, [status]);
+
+  const saveSimulation = useCallback(async (): Promise<boolean> => {
+    if (!durationValidation.isValid || !estimate || status !== 'success') {
+      return false;
+    }
+    await savedProcedureEstimateService.save({
+      hours,
+      minutes,
+      client: selectedClient,
+      supplies: selectedSupplies,
+      estimate,
+      savedAt: new Date().toISOString(),
+    });
+    return true;
+  }, [
+    durationValidation.isValid,
+    estimate,
+    status,
+    hours,
+    minutes,
+    selectedClient,
+    selectedSupplies,
+  ]);
+
+  const canSave =
+    durationValidation.isValid &&
+    estimate !== null &&
+    status === 'success';
+
   return {
     hours,
     minutes,
@@ -276,6 +336,7 @@ export function useProcedureEstimate(
     durationValidation,
     status,
     estimate,
+    canSave,
     setHours,
     setMinutes,
     selectClient: setSelectedClient,
@@ -283,6 +344,8 @@ export function useProcedureEstimate(
     addSupply,
     updateSupplyQuantity,
     removeSupply,
+    clearForm,
+    saveSimulation,
     retry,
     reload,
   };
