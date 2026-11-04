@@ -4,3 +4,8 @@ export type { ClinicFieldTexts } from './components/ClinicFields';
 export { CLINIC_FIELDS } from './domain/clinicForm';
 export type { ClinicDraftErrors, ClinicField } from './domain/clinicForm';
 export { useNewClinicForm } from './hooks/useNewClinicForm';
+export {
+  useClientRegistration,
+  type ClientRegistrationState,
+} from './hooks/useClientRegistration';
+export { useNewClinicSheetTexts } from './hooks/useNewClinicSheetTexts';

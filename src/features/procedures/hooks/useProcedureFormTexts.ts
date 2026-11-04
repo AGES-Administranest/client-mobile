@@ -41,6 +41,7 @@ export function useProcedureFormTexts(
     title: title ?? t('procedures.form.title'),
     confirm: t('procedures.form.confirm'),
     close: t('procedures.form.close'),
+    registerClient: t('procedures.form.registerClient'),
     labels,
     placeholders: {
       patientName: t('procedures.placeholders.patientName'),

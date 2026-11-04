@@ -5,7 +5,7 @@ import { createClient } from 'features/clinics/services/clientService';
 import {
   useClientRegistration,
   type ClientRegistrationState,
-} from 'features/serviceInvoices/hooks/useClientRegistration';
+} from 'features/clinics';
 
 jest.mock('features/clinics/services/clientService', () => ({
   createClient: jest.fn(),

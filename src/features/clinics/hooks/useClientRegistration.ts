@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
-import { useNewClinicForm } from 'features/clinics';
-
-import type { NewClientPrefill } from '../domain/initialClient';
+import { useNewClinicForm } from './useNewClinicForm';
 
 type Stage = 'review' | 'register';
 
 type CreatedClient = { id: string; name: string };
 
+const EMPTY_PREFILL = { name: '', taxId: '' };
+
 type UseClientRegistrationOptions = {
-  prefill: NewClientPrefill;
+  prefill?: { name: string; taxId: string };
   onCreated: (client: CreatedClient) => void;
 };
 
 /**
- * Swaps the review and the taker registration without ever stacking two
+ * Swaps a screen and the clinic registration without ever stacking two
  * modals. `shown` is what is on screen: it goes through 'none' in between, and
  * the next one only opens once the previous one reports it has left. iOS drops
  * a Modal presented while another is still leaving, without an error.
@@ -32,7 +32,7 @@ export type ClientRegistrationState = {
 };
 
 export function useClientRegistration({
-  prefill,
+  prefill = EMPTY_PREFILL,
   onCreated,
 }: UseClientRegistrationOptions): ClientRegistrationState {
   const form = useNewClinicForm();

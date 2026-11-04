@@ -38,6 +38,7 @@ export type ProcedureFormTexts = {
   title: string;
   confirm: string;
   close: string;
+  registerClient: string;
   labels: Record<keyof ProcedureFormValues, string>;
   placeholders: Partial<Record<keyof ProcedureFormValues, string>>;
   speciesOptions: { value: Species; label: string }[];
@@ -69,6 +70,9 @@ type ProcedureFormSheetProps = {
   onChangeAsa: (value: AsaClassification) => void;
   onSubmit: () => void;
   onClose: () => void;
+  /** iOS: abra o próximo sheet aqui, não no onClose. */
+  onClosed?: () => void;
+  onRegisterClient?: () => void;
 };
 
 export function ProcedureFormSheet({
@@ -86,13 +90,15 @@ export function ProcedureFormSheet({
   onChangeAsa,
   onSubmit,
   onClose,
+  onClosed,
+  onRegisterClient,
 }: ProcedureFormSheetProps) {
   const [speciesOpen, setSpeciesOpen] = useState(false);
   const selectedSpecies = texts.speciesOptions.find(
     option => option.value === values.species,
   );
 
-  const sheet = useSheetAnimation(visible, onClose);
+  const sheet = useSheetAnimation(visible, onClose, onClosed);
 
   return (
     <Modal
@@ -163,6 +169,18 @@ export function ProcedureFormSheet({
                 onChangeText={onChangeClientTerm}
                 onSelect={onSelectClient}
               />
+              {onRegisterClient ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={onRegisterClient}
+                  hitSlop={8}
+                  className="mb-3 self-start"
+                >
+                  <Text className="text-[13px] font-semibold text-label-quartenery">
+                    {texts.registerClient}
+                  </Text>
+                </Pressable>
+              ) : null}
 
               <View className="flex-row gap-3">
                 <View className="flex-1">

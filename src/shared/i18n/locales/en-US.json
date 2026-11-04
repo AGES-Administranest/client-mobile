@@ -996,7 +996,8 @@
       "confirm": "Confirm",
       "close": "Close",
       "location": "Location",
-      "submitError": "Couldn't save. Please try again."
+      "submitError": "Couldn't save. Please try again.",
+      "registerClient": "Register new clinic"
     },
     "supplyPrompt": {
       "title": "Do you want to record the supplies used in this procedure?",

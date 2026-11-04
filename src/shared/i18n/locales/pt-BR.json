@@ -996,7 +996,8 @@
       "confirm": "Confirmar",
       "close": "Fechar",
       "location": "Local",
-      "submitError": "Não foi possível salvar. Tente novamente."
+      "submitError": "Não foi possível salvar. Tente novamente.",
+      "registerClient": "Cadastrar nova clínica"
     },
     "supplyPrompt": {
       "title": "Deseja registrar os insumos utilizados neste procedimento?",
