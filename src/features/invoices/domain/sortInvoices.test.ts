@@ -7,6 +7,7 @@ function invoice(number: string, issuedAt: string): Invoice {
     number,
     kind: 'SERVICE',
     issuerName: 'Emitente',
+    issuerCity: 'São Paulo, SP',
     takerName: 'Tomador',
     takerCnpj: '12.345.678/0001-90',
     amount: 100,

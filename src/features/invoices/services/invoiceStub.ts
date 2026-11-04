@@ -42,6 +42,7 @@ export const STUB_INVOICES: Invoice[] = Array.from(
       number: String(LAST_NUMBER - index).padStart(6, '0'),
       kind: KINDS[index % KINDS.length],
       issuerName: ISSUERS[index % ISSUERS.length],
+      issuerCity: 'São Paulo, SP',
       takerName: taker.name,
       takerCnpj: taker.cnpj,
       amount: 500 + ((index * 337) % 2500),

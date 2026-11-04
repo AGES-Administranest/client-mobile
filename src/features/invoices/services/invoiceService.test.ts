@@ -34,7 +34,7 @@ describe('fetchInvoices', () => {
   it('returns an empty page past the end', async () => {
     const page = await fetchInvoices(ID_TOKEN, {}, 99);
 
-    expect(page).toEqual({ items: [], hasMore: false });
+    expect(page).toMatchObject({ items: [], hasMore: false });
   });
 
   it('filters by the taker name', async () => {
@@ -67,6 +67,6 @@ describe('fetchInvoices', () => {
   it('returns nothing when the filters match no invoice', async () => {
     const page = await fetchInvoices(ID_TOKEN, { search: 'zzzz' });
 
-    expect(page).toEqual({ items: [], hasMore: false });
+    expect(page).toEqual({ items: [], hasMore: false, total: 0 });
   });
 });

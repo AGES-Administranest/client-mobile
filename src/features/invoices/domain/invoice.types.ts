@@ -7,6 +7,7 @@ export type Invoice = {
   number: string;
   kind: InvoiceKind;
   issuerName: string;
+  issuerCity: string;
   takerName: string;
   takerCnpj: string;
   amount: number;
@@ -17,4 +18,5 @@ export type Invoice = {
 export type InvoicePage = {
   items: Invoice[];
   hasMore: boolean;
+  total: number;
 };

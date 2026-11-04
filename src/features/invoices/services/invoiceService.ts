@@ -33,6 +33,7 @@ export function fetchInvoices(
   return Promise.resolve({
     items: matching.slice(start, end),
     hasMore: matching.length > end,
+    total: matching.length,
   });
 }
 

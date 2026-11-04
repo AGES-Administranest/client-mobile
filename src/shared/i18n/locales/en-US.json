@@ -1689,31 +1689,13 @@
     "loadFailed": "Could not load the trips."
   },
   "invoices": {
-    "trigger": "Invoices",
     "title": "Invoices",
     "back": "Back",
-    "filters": {
-      "searchPlaceholder": "Name, CNPJ or invoice number",
-      "period": "Period",
-      "periodRange": "{{from}} to {{to}}",
-      "periodSingle": "{{day}}",
-      "periodFrom": "From {{from}}",
-      "clear": "Clear",
-      "previousMonth": "Previous month",
-      "nextMonth": "Next month",
-      "invalidRange": "The start date cannot be after the end date."
-    },
     "loading": "Loading invoices...",
     "loadingMore": "Loading more invoices",
     "loadMoreError": "Could not load more invoices.",
     "error": "Could not load the invoices.",
     "empty": "No invoices registered.",
-    "emptyFiltered": "No invoices found for the filter.",
-    "card": {
-      "title": "Invoice {{number}}",
-      "issuer": "Issuer: {{name}}",
-      "taker": "Customer: {{name}}"
-    },
     "status": {
       "SYNCED": "Synced",
       "NOT_SYNCED": "Not synced",
@@ -1732,7 +1714,36 @@
       "takerCnpj": "Customer CNPJ",
       "value": "Amount",
       "issuedAt": "Issue date",
-      "status": "Status"
+      "status": "Status",
+      "download": "Download invoice",
+      "downloading": "Downloading the invoice...",
+      "downloaded": "Invoice downloaded.",
+      "downloadFailed": "Couldn't download the invoice. Try again."
+    },
+    "countSingular": "{{count}} invoice",
+    "countPlural": "{{count}} invoices",
+    "addInvoice": "Add invoice"
+  },
+  "reports": {
+    "seeAll": "See all",
+    "addInvoice": "Add invoice",
+    "generate": {
+      "title": "Generate new report",
+      "categoryPlaceholder": "Select category",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "selectDate": "Select the date",
+      "button": "Generate report",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "categories": {
+      "financial": "Financial",
+      "appointments": "Appointments",
+      "inventory": "Inventory"
+    },
+    "history": {
+      "title": "Report history"
     }
   }
 }
