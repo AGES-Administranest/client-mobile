@@ -20,7 +20,6 @@ export type { PricingSettingsFormState } from './hooks/usePricingSettingsForm';
 export { fetchPricingSettings } from './services/pricingSettingsService';
 export {
   pricingService,
-  USE_PROCEDURE_ESTIMATE_MOCK,
   isPricingUnconfiguredError,
 } from './services/pricingService';
 export type { HourlyRate, HourlyRatePart } from './domain/hourlyRate';

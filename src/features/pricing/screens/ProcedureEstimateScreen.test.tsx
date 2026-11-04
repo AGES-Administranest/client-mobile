@@ -42,7 +42,6 @@ jest.mock('../services/pricingService', () => ({
     estimateProcedure: jest.fn(),
     saveSettings: jest.fn(),
   },
-  USE_PROCEDURE_ESTIMATE_MOCK: true,
 }));
 
 const METRICS = {

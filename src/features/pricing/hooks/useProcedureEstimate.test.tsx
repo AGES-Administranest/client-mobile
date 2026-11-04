@@ -167,6 +167,31 @@ describe('useProcedureEstimate', () => {
     expect(current.status).toBe('needsPricingSetup');
   });
 
+  it('transitions to error if estimateProcedure rejects with 400 validation error', async () => {
+    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
+      mockHourlyRate,
+    );
+    (pricingService.estimateProcedure as jest.Mock).mockRejectedValueOnce(
+      new ApiError('Bad request', 'VALIDATION_ERROR', 400),
+    );
+
+    await act(async () => {
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
+      await Promise.resolve();
+    });
+
+    act(() => {
+      current.setHours('1');
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+    });
+
+    expect(current.status).toBe('error');
+  });
+
   it('transitions to error if estimateProcedure rejects with generic error and allows retry', async () => {
     (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
       mockHourlyRate,

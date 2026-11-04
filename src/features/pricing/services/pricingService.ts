@@ -2,7 +2,6 @@ import { ApiError, apiClient } from 'shared/services/apiClient';
 import type { MonthPeriod } from 'shared/utils/monthPeriod';
 
 import { fetchPricingSettings } from './pricingSettingsService';
-import { estimateProcedureMock } from './procedureEstimateMock';
 import {
   toHourlyRate,
   type HourlyRate,
@@ -14,12 +13,6 @@ import type {
   ProcedureEstimateResponse,
   SavePricingSettingsDto,
 } from '../domain/pricing.types';
-
-/**
- * Ponto único de controle do mock de simulação de procedimento (US21).
- * Trocar para `false` para conectar diretamente ao endpoint real do backend (POST /pricing/procedure-estimate).
- */
-export const USE_PROCEDURE_ESTIMATE_MOCK = true;
 
 /**
  * Detecta se um erro retornado pela API ou serviço indica falta de configuração de honorários
@@ -104,15 +97,12 @@ export const pricingService = {
 
   /**
    * Simula a precificação mínima de um procedimento (US21).
-   * Se USE_PROCEDURE_ESTIMATE_MOCK for true, usa o mock local. Caso contrário, faz a requisição real à API.
+   * Chama o endpoint real do backend POST /pricing/procedure-estimate.
    */
   estimateProcedure(
     idToken: string,
     dto: ProcedureEstimateDto,
   ): Promise<ProcedureEstimateResponse> {
-    if (USE_PROCEDURE_ESTIMATE_MOCK) {
-      return estimateProcedureMock(idToken, dto);
-    }
     return fetchProcedureEstimate(idToken, dto);
   },
 };

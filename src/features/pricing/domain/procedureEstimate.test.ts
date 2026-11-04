@@ -129,5 +129,28 @@ describe('procedureEstimate domain', () => {
         year: 2026,
       });
     });
+
+    it('handles undefined suppliesWithoutCost safely', () => {
+      const dto = {
+        minimumPrice: '100.00',
+        breakEvenPrice: '90.00',
+        hoursCost: '100.00',
+        tripCost: '0.00',
+        suppliesCost: '0.00',
+        hourlyRateUsed: '50.00',
+        minimumHourlyRateUsed: '45.00',
+        tripEstimateAvailable: false,
+        tripEstimateDays: 0,
+        durationMinutes: 120,
+        month: 11,
+        year: 2026,
+      } as unknown as ProcedureEstimateResponse;
+
+      const mapped = mapProcedureEstimate(dto);
+
+      expect(mapped.suppliesWithoutCost).toEqual([]);
+      expect(mapped.minimumPrice).toBe(100);
+      expect(mapped.tripEstimateAvailable).toBe(false);
+    });
   });
 });
