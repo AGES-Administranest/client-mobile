@@ -1085,7 +1085,8 @@
       "lineDetail": "{{quantity}} un. × {{unitCost}}",
       "remove": "Remover {{name}}",
       "totalCost": "Total insumos",
-      "grossMargin": "Margem bruta"
+      "grossMargin": "Margem bruta",
+      "travelCost": "Total deslocamento"
     },
     "status": {
       "SCHEDULED": "Agendado",

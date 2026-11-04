@@ -66,6 +66,7 @@ import {
   calculateSupplyTotalCost,
   getSupplyLineCost,
 } from '../domain/supplyItem';
+import { calculateTravelTotalCost } from '../domain/travelCost';
 import {
   useAppointmentActions,
   type ActionableAppointment,
@@ -191,8 +192,9 @@ export function AppointmentDetailScreen({
     hasFinancialEntry: appointment?.status === 'COMPLETED',
     hasSupplies: detail.supplies.length > 0,
   }).map(effect => t(`deleteOrigin.effects.${effect}`));
+  const travelCost = calculateTravelTotalCost(appointmentTrips.trips);
   const margin = appointment
-    ? grossMargin(appointment.amount, totalCost)
+    ? grossMargin(appointment.amount, totalCost + travelCost)
     : null;
   const hoursWorked =
     appointment && appointment.endsAt
@@ -630,6 +632,15 @@ export function AppointmentDetailScreen({
                   totalLabel={t('procedures.supplies.totalCost')}
                   totalValue={formatSupplyTotalCost(totalCost, locale)}
                   isDeduction={totalCost > 0}
+                  travel={
+                    travelCost > 0
+                      ? {
+                          label: t('procedures.supplies.travelCost'),
+                          value: formatSupplyTotalCost(travelCost, locale),
+                          isDeduction: true,
+                        }
+                      : undefined
+                  }
                   grossMargin={
                     margin === null
                       ? undefined

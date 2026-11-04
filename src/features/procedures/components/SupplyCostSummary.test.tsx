@@ -63,6 +63,32 @@ test('shows the gross margin row when provided', async () => {
   expect(texts).toContain('R$ 586,10');
 });
 
+test('shows the travel total only when it is provided', async () => {
+  const without = await render(
+    <SupplyCostSummary
+      totalLabel="Total insumos"
+      totalValue="R$ 0,00"
+      isDeduction={false}
+    />,
+  );
+  const withTravel = await render(
+    <SupplyCostSummary
+      totalLabel="Total insumos"
+      totalValue="R$ 0,00"
+      isDeduction={false}
+      travel={{
+        label: 'Total deslocamento',
+        value: '– R$ 20,00',
+        isDeduction: true,
+      }}
+    />,
+  );
+
+  expect(textsOf(without)).not.toContain('Total deslocamento');
+  expect(textsOf(withTravel)).toContain('Total deslocamento');
+  expect(textsOf(withTravel)).toContain('– R$ 20,00');
+});
+
 function totalValueNode(renderer: ReactTestRenderer.ReactTestRenderer) {
   return renderer.root
     .findAllByType('Text' as never)

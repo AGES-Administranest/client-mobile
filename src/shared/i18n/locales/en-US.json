@@ -1085,7 +1085,8 @@
       "lineDetail": "{{quantity}} u. × {{unitCost}}",
       "remove": "Remove {{name}}",
       "totalCost": "Supplies total",
-      "grossMargin": "Gross margin"
+      "grossMargin": "Gross margin",
+      "travelCost": "Total travel"
     },
     "status": {
       "SCHEDULED": "Scheduled",
