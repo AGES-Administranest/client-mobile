@@ -98,6 +98,20 @@ describe('appointment trips: create', () => {
     expect(result.current.origin).toBe('Consultório');
   });
 
+  it('lets the person erase the clinic destination and then asks for one', async () => {
+    const result = await mountHook();
+
+    await act(async () => result.current.toggleExpanded());
+    await act(async () => result.current.setDestination(''));
+
+    expect(result.current.destination).toBe('');
+
+    await act(async () => result.current.confirm());
+
+    expect(result.current.error).toBe('destinationRequired');
+    expect(createMock).not.toHaveBeenCalled();
+  });
+
   it('sends the trip tied to the appointment and its clinic, then reloads the list', async () => {
     createMock.mockResolvedValue({});
     const result = await mountHook();

@@ -166,7 +166,7 @@ export function ServiceInvoiceReviewScreen({
               onChangeNumber={review.changeNumber}
               onChangeClientTerm={review.changeClientTerm}
               onSelectClient={review.selectClient}
-              onRegisterClient={registration.open}
+              onRegisterClient={() => registration.open()}
             />
 
             {review.fileTooLarge ? (

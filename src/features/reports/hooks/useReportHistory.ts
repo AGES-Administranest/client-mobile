@@ -3,10 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from 'features/auth';
 
 import type { ReportHistoryItem } from '../domain/report.types';
-import {
-  fetchReportHistory,
-  isReportHistoryAvailable,
-} from '../services/reportHistoryService';
+import { fetchReportHistory } from '../services/reportHistoryService';
 
 export function useReportHistory(): ReportHistoryItem[] {
   const { session } = useAuth();
@@ -14,7 +11,7 @@ export function useReportHistory(): ReportHistoryItem[] {
   const [items, setItems] = useState<ReportHistoryItem[]>([]);
 
   useEffect(() => {
-    if (!idToken || !isReportHistoryAvailable()) {
+    if (!idToken) {
       return;
     }
 

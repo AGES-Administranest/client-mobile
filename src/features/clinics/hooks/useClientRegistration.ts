@@ -7,10 +7,12 @@ type Stage = 'review' | 'register';
 
 type CreatedClient = { id: string; name: string };
 
-const EMPTY_PREFILL = { name: '', taxId: '' };
+type ClientPrefill = { name: string; taxId: string };
+
+const EMPTY_PREFILL: ClientPrefill = { name: '', taxId: '' };
 
 type UseClientRegistrationOptions = {
-  prefill?: { name: string; taxId: string };
+  prefill?: ClientPrefill;
   onCreated: (client: CreatedClient) => void;
 };
 
@@ -24,7 +26,8 @@ export type ClientRegistrationState = {
   form: ReturnType<typeof useNewClinicForm>;
   isReviewShown: boolean;
   isRegisterShown: boolean;
-  open: () => void;
+  /** Without `prefill`, the one the hook was created with. */
+  open: (prefill?: ClientPrefill) => void;
   cancel: () => void;
   submit: () => Promise<void>;
   onReviewLeft: () => void;
@@ -60,10 +63,14 @@ export function useClientRegistration({
     setShown('none');
   }, []);
 
-  const open = useCallback(() => {
-    form.reset({ name: prefill.name, cnpj: prefill.taxId });
-    goTo('register');
-  }, [form, goTo, prefill]);
+  const open = useCallback(
+    (override?: ClientPrefill) => {
+      const { name, taxId } = override ?? prefill;
+      form.reset({ name, cnpj: taxId });
+      goTo('register');
+    },
+    [form, goTo, prefill],
+  );
 
   const cancel = useCallback(() => goTo('review'), [goTo]);
 

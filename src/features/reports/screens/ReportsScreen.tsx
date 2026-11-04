@@ -154,9 +154,13 @@ export function ReportsScreen() {
           </Button>
         </View>
 
-        {history.length > 0 ? (
-          <View className="gap-3">
-            <Text className={SECTION_TITLE}>{t('reports.history.title')}</Text>
+        <View className="gap-3">
+          <Text className={SECTION_TITLE}>{t('reports.history.title')}</Text>
+          {history.length === 0 ? (
+            <Text className="text-sm text-label-tertiary">
+              {t('reports.history.empty')}
+            </Text>
+          ) : (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -171,8 +175,8 @@ export function ReportsScreen() {
                 />
               ))}
             </ScrollView>
-          </View>
-        ) : null}
+          )}
+        </View>
 
         <InvoicesSection onSeeAll={() => setIsInvoiceListOpen(true)} />
 

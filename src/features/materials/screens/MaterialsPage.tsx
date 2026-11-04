@@ -1,4 +1,10 @@
-import { Inbox, PackageSearch, Plus, Trash2 } from 'lucide-react-native';
+import {
+  Camera,
+  FilePlus,
+  PackageSearch,
+  Plus,
+  Trash2,
+} from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
@@ -418,7 +424,7 @@ export function MaterialsScreen() {
             ))}
           </ScrollView>
           <StockEntryFlow onTypeItem={openCreate} showButton={false}>
-            {({ openList, pendingCount }) => (
+            {({ scanNote, attachPdf }) => (
               <OptionsModal
                 visible={actionsVisible}
                 onClose={() => setActionsVisible(false)}
@@ -426,14 +432,14 @@ export function MaterialsScreen() {
                 title={t('materials.actions.title')}
                 options={[
                   {
-                    label:
-                      pendingCount > 0
-                        ? t('stockEntry.triggerWithCount', {
-                            count: pendingCount,
-                          })
-                        : t('stockEntry.trigger'),
-                    icon: Inbox,
-                    onPress: () => chooseAction(openList),
+                    label: t('stockEntry.menu.photo'),
+                    icon: Camera,
+                    onPress: () => chooseAction(scanNote),
+                  },
+                  {
+                    label: t('stockEntry.menu.attachPdf'),
+                    icon: FilePlus,
+                    onPress: () => chooseAction(attachPdf),
                   },
                   {
                     label: t('materials.actions.manual'),

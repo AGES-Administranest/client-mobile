@@ -35,6 +35,9 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     submitting,
     submitFailed,
     client,
+    step,
+    nextStep,
+    previousStep,
     supplyPrompt,
     conflict,
     dismissConflict,
@@ -97,6 +100,9 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         submitErrorText={t('procedures.form.submitError')}
         texts={texts}
         client={client}
+        step={step}
+        onNext={nextStep}
+        onBack={previousStep}
         onChangeText={setTextField}
         onChangeClientTerm={client.onTermChange}
         onSelectClient={client.onSelect}
@@ -106,7 +112,9 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         // O ItemModal passa o evento do toque; fechar sem criar não leva dado.
         onClose={() => onClose()}
         onClosed={registration.onReviewLeft}
-        onRegisterClient={registration.open}
+        onRegisterClient={() =>
+          registration.open({ name: client.term, taxId: '' })
+        }
       />
       <NewClinicSheet
         visible={visible && registration.isRegisterShown}
@@ -114,7 +122,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         fieldErrors={clinicSheet.fieldErrors}
         failureMessage={clinicSheet.failureMessage}
         isSaving={registration.form.isSaving}
-        title={t('procedures.form.registerClient')}
+        title={t('clinics.newClinic.title')}
         fieldTexts={clinicSheet.fieldTexts}
         confirmLabel={clinicSheet.confirmLabel}
         savingLabel={clinicSheet.savingLabel}

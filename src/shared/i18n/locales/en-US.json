@@ -287,7 +287,7 @@
       "confirm": "Add to stock",
       "confirmUnavailable": "Adding to stock comes in the next step. The review stays saved as a draft.",
       "leaveTitle": "Leave the review?",
-      "leaveMessage": "Some changes were not saved and will be lost.",
+      "leaveMessage": "What you filled in is not kept and will be lost.",
       "leaveConfirm": "Leave without saving",
       "leaveCancel": "Keep reviewing",
       "line": {
@@ -662,8 +662,7 @@
       "scope": {
         "label": "Scope",
         "professional": "Professional",
-        "personal": "Personal",
-        "hint": "Suggested by the category. You can change it."
+        "personal": "Personal"
       },
       "save": "Save",
       "saving": "Saving…",
@@ -997,7 +996,11 @@
       "close": "Close",
       "location": "Location",
       "submitError": "Couldn't save. Please try again.",
-      "registerClient": "Register new clinic"
+      "registerClient": "Add clinic",
+      "next": "Next",
+      "back": "Back",
+      "step1": "Step 1 of 2",
+      "step2": "Step 2 of 2"
     },
     "supplyPrompt": {
       "title": "Do you want to record the supplies used in this procedure?",
@@ -1057,7 +1060,7 @@
     "clientSearch": {
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
-      "empty": "No clinics found. Add one under Partners → Clinics."
+      "empty": "No clinic found."
     },
     "completion": {
       "action": "Complete procedure",
@@ -1746,7 +1749,8 @@
       "inventory": "Inventory"
     },
     "history": {
-      "title": "Report history"
+      "title": "Report history",
+      "empty": "No report generated yet."
     }
   }
 }

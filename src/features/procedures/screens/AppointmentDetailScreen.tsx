@@ -695,6 +695,9 @@ export function AppointmentDetailScreen({
         submitErrorText={t('procedures.form.submitError')}
         texts={formTexts}
         client={form.client}
+        step={form.step}
+        onNext={form.nextStep}
+        onBack={form.previousStep}
         onChangeText={form.setTextField}
         onChangeClientTerm={form.client.onTermChange}
         onSelectClient={form.client.onSelect}

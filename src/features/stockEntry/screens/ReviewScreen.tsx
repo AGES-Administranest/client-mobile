@@ -93,12 +93,9 @@ export function ReviewScreen({
     invalidExpiry: state.editLine,
   };
 
-  /** Leaves at once when everything is saved; asks when something is not. */
-  async function requestClose() {
-    if (await autosave.flush()) {
-      onClose();
-      return;
-    }
+  // The review is filled in on the spot and not kept: leaving it always asks,
+  // and what was typed goes away with it.
+  function requestClose() {
     setSheet('leave');
   }
 

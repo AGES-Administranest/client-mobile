@@ -287,7 +287,7 @@
       "confirm": "Dar entrada no estoque",
       "confirmUnavailable": "Dar entrada no estoque chega na próxima etapa. A conferência fica salva como rascunho.",
       "leaveTitle": "Sair da conferência?",
-      "leaveMessage": "Algumas alterações não foram salvas e vão se perder.",
+      "leaveMessage": "O que foi preenchido não é guardado e vai se perder.",
       "leaveConfirm": "Sair sem salvar",
       "leaveCancel": "Continuar conferindo",
       "line": {
@@ -662,8 +662,7 @@
       "scope": {
         "label": "Escopo",
         "professional": "Profissional",
-        "personal": "Pessoal",
-        "hint": "Sugerido pela categoria. Você pode alterar."
+        "personal": "Pessoal"
       },
       "save": "Salvar",
       "saving": "Salvando…",
@@ -997,7 +996,11 @@
       "close": "Fechar",
       "location": "Local",
       "submitError": "Não foi possível salvar. Tente novamente.",
-      "registerClient": "Cadastrar nova clínica"
+      "registerClient": "Adicionar clínica",
+      "next": "Próximo",
+      "back": "Voltar",
+      "step1": "Passo 1 de 2",
+      "step2": "Passo 2 de 2"
     },
     "supplyPrompt": {
       "title": "Deseja registrar os insumos utilizados neste procedimento?",
@@ -1057,7 +1060,7 @@
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas."
+      "empty": "Nenhuma clínica encontrada."
     },
     "completion": {
       "action": "Finalizar procedimento",
@@ -1746,7 +1749,8 @@
       "inventory": "Estoque"
     },
     "history": {
-      "title": "Histórico de relatórios"
+      "title": "Histórico de relatórios",
+      "empty": "Nenhum relatório gerado ainda."
     }
   }
 }
