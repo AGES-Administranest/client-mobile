@@ -15,8 +15,14 @@ import {
   fetchClientSummary,
 } from '../services/clientService';
 
+let mockIdToken = 'id-token';
+let mockAccountId = 'account-1';
+
 jest.mock('features/auth', () => ({
-  useAuth: () => ({ session: { idToken: 'id-token' } }),
+  useAuth: () => ({
+    session: { idToken: mockIdToken },
+    account: { id: mockAccountId },
+  }),
 }));
 
 jest.mock('../services/clientService', () => ({
@@ -113,6 +119,8 @@ let restoreConnection: (() => void) | null = null;
 
 beforeEach(() => {
   jest.useFakeTimers({ now: new Date(2026, 10, 3, 10) });
+  mockIdToken = 'id-token';
+  mockAccountId = 'account-1';
   appointmentsMock.mockReset();
   summaryMock.mockReset();
   restoreConnection = null;
@@ -407,6 +415,72 @@ describe('useClientHistory', () => {
 
     expect(result.current.loadMoreFailed).toBe(false);
     expect(result.current.appointments).toHaveLength(HISTORY_PAGE_SIZE + 1);
+  });
+
+  it('keeps the loaded pages when the session token is renewed', async () => {
+    summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE * 2 + 1));
+    appointmentsMock
+      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'first'))
+      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'second'))
+      .mockResolvedValueOnce(pageOf(1, 'third'));
+
+    const { result, rerender } = renderHistory();
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
+
+    mockIdToken = 'renewed-token';
+    rerender('client-1');
+    await flush();
+
+    expect(result.current.appointments).toHaveLength(HISTORY_PAGE_SIZE * 2);
+    expect(summaryMock).toHaveBeenCalledTimes(1);
+    expect(appointmentsMock).toHaveBeenCalledTimes(2);
+
+    act(() => result.current.loadMore());
+    await flush();
+
+    expect(appointmentsMock).toHaveBeenLastCalledWith(
+      'renewed-token',
+      'client-1',
+      NOVEMBER,
+      3,
+    );
+    expect(result.current.appointments).toHaveLength(HISTORY_PAGE_SIZE * 2 + 1);
+  });
+
+  it('loads again for another account', async () => {
+    summaryMock.mockResolvedValue(summaryOf(1));
+    appointmentsMock.mockResolvedValue(pageOf(1));
+
+    const { rerender } = renderHistory();
+    await flush();
+
+    mockAccountId = 'account-2';
+    rerender('client-1');
+    await flush();
+
+    expect(summaryMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('asks with the new token when the account changes', async () => {
+    summaryMock.mockResolvedValue(summaryOf(1));
+    appointmentsMock.mockResolvedValue(pageOf(1));
+
+    const { rerender } = renderHistory();
+    await flush();
+
+    mockAccountId = 'account-2';
+    mockIdToken = 'other-token';
+    rerender('client-1');
+    await flush();
+
+    expect(summaryMock).toHaveBeenCalledTimes(2);
+    expect(summaryMock).toHaveBeenLastCalledWith(
+      'other-token',
+      'client-1',
+      NOVEMBER,
+    );
   });
 
   it('does not ask the API about a clinic created offline', async () => {

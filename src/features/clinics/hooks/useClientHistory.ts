@@ -41,8 +41,13 @@ export type ClientHistoryState = {
 type ChosenPeriod = { clientId: string; period: HistoryPeriod };
 
 export function useClientHistory(clientId: string | null): ClientHistoryState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
+  // O token renova sem mudar de quem é o histórico: lido na hora de cada
+  // pedido, ele não recarrega a ficha nem perde as páginas do "Ver mais". A
+  // ficha recarrega quando muda a conta.
+  const tokenRef = useRef(idToken);
   const [chosen, setChosen] = useState<ChosenPeriod | null>(null);
   const period =
     chosen !== null && chosen.clientId === clientId
@@ -75,6 +80,10 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
   }, []);
 
   useEffect(() => {
+    tokenRef.current = idToken;
+  }, [idToken]);
+
+  useEffect(() => {
     // Com a ficha fechando, o histórico fica como está até o sheet sair da
     // tela; quem abre a próxima ficha chama o reset.
     if (clientId === null) {
@@ -93,7 +102,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
     setStatus('loading');
     Promise.resolve()
       .then(() => {
-        const token = requireToken(idToken);
+        const token = requireToken(tokenRef.current);
         return Promise.all([
           fetchClientSummary(token, clientId, { from, to }),
           fetchClientAppointments(token, clientId, { from, to }, 1),
@@ -116,7 +125,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
     return () => {
       generation.current += 1;
     };
-  }, [idToken, clientId, from, to, version, clearHistory]);
+  }, [userId, clientId, from, to, version, clearHistory]);
 
   const isFailed = status === 'failed';
 
@@ -149,7 +158,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
     Promise.resolve()
       .then(() =>
         fetchClientAppointments(
-          requireToken(idToken),
+          requireToken(tokenRef.current),
           clientId,
           { from, to },
           nextPage,
@@ -170,7 +179,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
         isFetchingMore.current = false;
         setIsLoadingMore(false);
       });
-  }, [clientId, status, remaining, idToken, from, to]);
+  }, [clientId, status, remaining, from, to]);
 
   const setPeriod = useCallback(
     (next: HistoryPeriod) => {
