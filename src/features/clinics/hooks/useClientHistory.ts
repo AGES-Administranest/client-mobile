@@ -29,6 +29,7 @@ export type ClientHistoryState = {
   failure: TranslationKey | null;
   summary: ClientSummary;
   appointments: ClientAppointment[];
+  hasMore: boolean;
   remaining: number;
   isLoadingMore: boolean;
   loadMoreFailed: boolean;
@@ -144,7 +145,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
     if (
       clientId === null ||
       status !== 'ready' ||
-      remaining === 0 ||
+      !hasMorePages ||
       isFetchingMore.current
     ) {
       return;
@@ -179,7 +180,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
         isFetchingMore.current = false;
         setIsLoadingMore(false);
       });
-  }, [clientId, status, remaining, from, to]);
+  }, [clientId, status, hasMorePages, from, to]);
 
   const setPeriod = useCallback(
     (next: HistoryPeriod) => {
@@ -202,6 +203,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
     failure,
     summary,
     appointments,
+    hasMore: hasMorePages,
     remaining,
     isLoadingMore,
     loadMoreFailed,

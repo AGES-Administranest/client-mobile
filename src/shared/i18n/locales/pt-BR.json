@@ -640,6 +640,7 @@
       "appointmentDetail": "{{patient}} · {{date}}",
       "showMoreOne": "Ver mais 1 atendimento",
       "showMoreOther": "Ver mais {{count}} atendimentos",
+      "showMoreUncounted": "Ver mais atendimentos",
       "showMoreFailed": "Não foi possível carregar mais atendimentos. Tentar novamente",
       "loading": "Carregando o histórico",
       "loadingMore": "Carregando mais atendimentos…",

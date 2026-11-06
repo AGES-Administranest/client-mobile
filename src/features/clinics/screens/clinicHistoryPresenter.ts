@@ -86,15 +86,20 @@ export function historyTotalsView(
 }
 
 export function historyShowMoreLabel(
-  history: Pick<ClientHistoryState, 'remaining' | 'loadMoreFailed'>,
+  history: Pick<ClientHistoryState, 'hasMore' | 'remaining' | 'loadMoreFailed'>,
   t: Translate,
   locale: string,
 ): string | null {
   if (history.loadMoreFailed) {
     return t('clinics.history.showMoreFailed');
   }
-  if (history.remaining === 0) {
+  if (!history.hasMore) {
     return null;
+  }
+  // A lista ainda tem página, mas o resumo contou menos do que já veio (são
+  // duas consultas no backend): o botão fica, só que sem o número.
+  if (history.remaining === 0) {
+    return t('clinics.history.showMoreUncounted');
   }
   return history.remaining === 1
     ? t('clinics.history.showMoreOne')

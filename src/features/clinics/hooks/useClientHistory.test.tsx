@@ -193,7 +193,33 @@ describe('useClientHistory', () => {
     const { result } = renderHistory();
     await flush();
 
+    expect(result.current.hasMore).toBe(false);
     expect(result.current.remaining).toBe(0);
+  });
+
+  it('keeps offering more when the totals count fewer than the list', async () => {
+    summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE - 1));
+    appointmentsMock
+      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'first'))
+      .mockResolvedValueOnce(pageOf(2, 'second'));
+
+    const { result } = renderHistory();
+    await flush();
+
+    expect(result.current.hasMore).toBe(true);
+    expect(result.current.remaining).toBe(0);
+
+    act(() => result.current.loadMore());
+    await flush();
+
+    expect(appointmentsMock).toHaveBeenLastCalledWith(
+      'id-token',
+      'client-1',
+      NOVEMBER,
+      2,
+    );
+    expect(result.current.appointments).toHaveLength(HISTORY_PAGE_SIZE + 2);
+    expect(result.current.hasMore).toBe(false);
   });
 
   it('reloads for a new period and ignores the late answer of the old one', async () => {

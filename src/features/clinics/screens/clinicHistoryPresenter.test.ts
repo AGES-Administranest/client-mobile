@@ -120,24 +120,27 @@ describe('historyTotalsView', () => {
 
 describe('historyShowMoreLabel', () => {
   it.each([
-    ['pt-BR', 0, false, null],
-    ['pt-BR', 1, false, 'Ver mais 1 atendimento'],
-    ['pt-BR', 3, false, 'Ver mais 3 atendimentos'],
+    ['pt-BR', false, 0, false, null],
+    ['pt-BR', true, 1, false, 'Ver mais 1 atendimento'],
+    ['pt-BR', true, 3, false, 'Ver mais 3 atendimentos'],
+    ['pt-BR', true, 0, false, 'Ver mais atendimentos'],
     [
       'pt-BR',
+      true,
       3,
       true,
       'Não foi possível carregar mais atendimentos. Tentar novamente',
     ],
-    ['en-US', 1, false, 'Show 1 more appointment'],
-    ['en-US', 3, false, 'Show 3 more appointments'],
+    ['en-US', true, 1, false, 'Show 1 more appointment'],
+    ['en-US', true, 3, false, 'Show 3 more appointments'],
+    ['en-US', true, 0, false, 'Show more appointments'],
   ] as const)(
-    'labels %s with %p left (failed %p) as %p',
-    (locale, remaining, loadMoreFailed, expected) => {
+    'labels %s with more pages %p, %p left and failed %p as %p',
+    (locale, hasMore, remaining, loadMoreFailed, expected) => {
       const t = locale === 'pt-BR' ? tPt : tEn;
 
       expect(
-        historyShowMoreLabel({ remaining, loadMoreFailed }, t, locale),
+        historyShowMoreLabel({ hasMore, remaining, loadMoreFailed }, t, locale),
       ).toBe(expected);
     },
   );
