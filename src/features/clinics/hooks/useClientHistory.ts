@@ -50,10 +50,17 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
   // ficha recarrega quando muda a conta.
   const tokenRef = useRef(idToken);
   const [chosen, setChosen] = useState<ChosenPeriod | null>(null);
+  // O mês padrão é o do dia em que a ficha abriu: na virada do mês com ela
+  // aberta, o período não troca sozinho no meio da lista.
+  const [defaultPeriod, setDefaultPeriod] = useState(() =>
+    monthPeriodOf(new Date()),
+  );
+  // Enquanto a ficha fecha (clientId null), o período escolhido continua na
+  // tela junto com os dados dele.
   const period =
-    chosen !== null && chosen.clientId === clientId
+    chosen !== null && (clientId === null || chosen.clientId === clientId)
       ? chosen.period
-      : monthPeriodOf(new Date());
+      : defaultPeriod;
   const { from, to } = period;
   const [status, setStatus] = useState<ClientHistoryStatus>('loading');
   const [failure, setFailure] = useState<TranslationKey | null>(null);
@@ -184,15 +191,20 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
 
   const setPeriod = useCallback(
     (next: HistoryPeriod) => {
-      if (clientId !== null) setChosen({ clientId, period: next });
+      if (clientId === null) return;
+      setChosen({ clientId, period: next });
+      // Com o mesmo período o efeito não roda de novo; depois de uma falha,
+      // aplicar também é tentar outra vez.
+      if (isFailed) setVersion(value => value + 1);
     },
-    [clientId],
+    [clientId, isFailed],
   );
 
   const reload = useCallback(() => setVersion(value => value + 1), []);
 
   const reset = useCallback(() => {
     setChosen(null);
+    setDefaultPeriod(monthPeriodOf(new Date()));
     clearHistory();
     setStatus('loading');
   }, [clearHistory]);

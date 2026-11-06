@@ -42,6 +42,8 @@ const summaryMock = fetchClientSummary as jest.MockedFunction<
 >;
 
 const NOVEMBER = { from: '2026-11-01', to: '2026-11-30' };
+const OCTOBER = { from: '2026-10-01', to: '2026-10-31' };
+const DECEMBER = { from: '2026-12-01', to: '2026-12-31' };
 const AUGUST = { from: '2026-08-01', to: '2026-08-31' };
 
 function appointment(id: string): ClientAppointment {
@@ -259,7 +261,7 @@ describe('useClientHistory', () => {
     await flush();
 
     expect(result.current.status).toBe('ready');
-    expect(result.current.period).toEqual(NOVEMBER);
+    expect(result.current.period).toEqual(AUGUST);
     expect(result.current.summary).toEqual(summaryOf(2));
     expect(result.current.appointments).toHaveLength(2);
   });
@@ -284,6 +286,60 @@ describe('useClientHistory', () => {
       'client-1',
       NOVEMBER,
     );
+  });
+
+  it('keeps the month it opened on when the month turns', async () => {
+    jest.setSystemTime(new Date(2026, 9, 31, 23, 59, 50));
+    summaryMock.mockResolvedValue(summaryOf(2));
+    appointmentsMock.mockResolvedValue(pageOf(2));
+
+    const { result, rerender } = renderHistory();
+    await flush();
+
+    jest.setSystemTime(new Date(2026, 10, 1, 0, 0, 10));
+    rerender('client-1');
+    await flush();
+
+    expect(result.current.period).toEqual(OCTOBER);
+    expect(summaryMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens again on the month of that day', async () => {
+    summaryMock.mockResolvedValue(summaryOf(0));
+    appointmentsMock.mockResolvedValue([]);
+
+    const { result, rerender } = renderHistory('client-1');
+    await flush();
+
+    rerender(null);
+    jest.setSystemTime(new Date(2026, 11, 2, 10));
+    act(() => result.current.reset());
+    rerender('client-1');
+    await flush();
+
+    expect(result.current.period).toEqual(DECEMBER);
+    expect(summaryMock).toHaveBeenLastCalledWith(
+      'id-token',
+      'client-1',
+      DECEMBER,
+    );
+  });
+
+  it('tries again when the same period is applied after a failure', async () => {
+    summaryMock
+      .mockRejectedValueOnce(new NetworkError('offline'))
+      .mockResolvedValueOnce(summaryOf(1));
+    appointmentsMock.mockResolvedValue(pageOf(1));
+
+    const { result } = renderHistory();
+    await flush();
+    expect(result.current.status).toBe('failed');
+
+    act(() => result.current.setPeriod(NOVEMBER));
+    await flush();
+
+    expect(result.current.status).toBe('ready');
+    expect(summaryMock).toHaveBeenCalledTimes(2);
   });
 
   it('shows the loading state while a new period loads', async () => {
