@@ -8,12 +8,14 @@ export type HistoryPeriod = {
   to: string;
 };
 
+// Os números chegam opcionais porque um total sem linhas costuma vir null e um
+// campo que faltar viraria NaN na tela; a conversão abaixo trata os dois.
 export type ClientAppointmentResponse = {
   id: string;
   startsAt: string;
   procedureName: string | null;
   patientName: string | null;
-  amount: string | null;
+  amount?: string | null;
 };
 
 export type ClientAppointment = Omit<ClientAppointmentResponse, 'amount'> & {
@@ -21,10 +23,10 @@ export type ClientAppointment = Omit<ClientAppointmentResponse, 'amount'> & {
 };
 
 export type ClientSummaryResponse = {
-  appointmentsCount: number;
-  billedTotal: string;
-  tripCost: string;
-  tripCount: number;
+  appointmentsCount?: number | null;
+  billedTotal?: string | null;
+  tripCost?: string | null;
+  tripCount?: number | null;
 };
 
 export type ClientSummary = {
@@ -51,12 +53,18 @@ export function monthPeriodOf(day: Date): HistoryPeriod {
   };
 }
 
+function parseApiDecimal(value: string | null | undefined): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function toClientAppointment(
   response: ClientAppointmentResponse,
 ): ClientAppointment {
   return {
     ...response,
-    amount: response.amount === null ? null : Number(response.amount),
+    amount: parseApiDecimal(response.amount),
   };
 }
 
@@ -64,10 +72,10 @@ export function toClientSummary(
   response: ClientSummaryResponse,
 ): ClientSummary {
   return {
-    appointmentsCount: response.appointmentsCount,
-    billedTotal: Number(response.billedTotal),
-    tripCost: Number(response.tripCost),
-    tripCount: response.tripCount,
+    appointmentsCount: response.appointmentsCount ?? 0,
+    billedTotal: parseApiDecimal(response.billedTotal) ?? 0,
+    tripCost: parseApiDecimal(response.tripCost) ?? 0,
+    tripCount: response.tripCount ?? 0,
   };
 }
 

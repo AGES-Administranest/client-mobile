@@ -39,7 +39,11 @@ describe('toClientAppointment', () => {
     ['620.00', 620],
     ['0.50', 0.5],
     ['1234.56', 1234.56],
+    ['0.00', 0],
     [null, null],
+    [undefined, null],
+    ['', null],
+    ['abc', null],
   ])('reads the amount %p as %p', (amount, expected) => {
     expect(
       toClientAppointment({
@@ -53,19 +57,37 @@ describe('toClientAppointment', () => {
   });
 });
 
-test('toClientSummary turns the API decimals into numbers', () => {
-  expect(
-    toClientSummary({
+describe('toClientSummary', () => {
+  it('turns the API decimals into numbers', () => {
+    expect(
+      toClientSummary({
+        appointmentsCount: 6,
+        billedTotal: '3420.00',
+        tripCost: '96.50',
+        tripCount: 6,
+      }),
+    ).toEqual({
       appointmentsCount: 6,
-      billedTotal: '3420.00',
-      tripCost: '96.50',
+      billedTotal: 3420,
+      tripCost: 96.5,
       tripCount: 6,
-    }),
-  ).toEqual({
-    appointmentsCount: 6,
-    billedTotal: 3420,
-    tripCost: 96.5,
-    tripCount: 6,
+    });
+  });
+
+  it.each([
+    ['missing', {}],
+    [
+      'null',
+      {
+        appointmentsCount: null,
+        billedTotal: null,
+        tripCost: null,
+        tripCount: null,
+      },
+    ],
+    ['not a number', { billedTotal: 'abc', tripCost: '' }],
+  ])('reads %s values as zero', (_, response) => {
+    expect(toClientSummary(response)).toEqual(EMPTY_CLIENT_SUMMARY);
   });
 });
 
