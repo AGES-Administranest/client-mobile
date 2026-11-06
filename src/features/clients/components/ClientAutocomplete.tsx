@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react-native';
 
 import {
   SearchSelect,
+  type SearchSelectAddOption,
   type SearchSelectMessages,
   type SearchSelectOption,
 } from 'app/components/ui/search-select';
@@ -22,6 +23,7 @@ type ClientAutocompleteProps<T extends ClientOption> = {
   trailingIcon?: LucideIcon;
   compact?: boolean;
   className?: string;
+  addOption?: SearchSelectAddOption;
   onChangeText: (value: string) => void;
   onSelect: (option: T) => void;
 };
@@ -37,6 +39,7 @@ export function ClientAutocomplete<T extends ClientOption>({
   trailingIcon,
   compact,
   className,
+  addOption,
   onChangeText,
   onSelect,
 }: ClientAutocompleteProps<T>) {
@@ -57,6 +60,7 @@ export function ClientAutocomplete<T extends ClientOption>({
       trailingIcon={trailingIcon}
       compact={compact}
       className={className}
+      addOption={addOption}
       onChangeText={onChangeText}
       onSelect={selectPickedClient}
     />

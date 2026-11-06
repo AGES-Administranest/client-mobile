@@ -58,10 +58,14 @@ export type ProcedureClientField = {
   term: string;
   status: ClientSearchStatus;
   options: ClientOptionWithAddress[];
+  canRegister: boolean;
+  onRegister: () => void;
 };
 
 type ProcedureFormSheetProps = {
   visible: boolean;
+  onClosed?: () => void;
+  registerClientLabel: string;
   values: ProcedureFormValues;
   submitting: boolean;
   submitFailed: boolean;
@@ -80,6 +84,8 @@ type ProcedureFormSheetProps = {
 
 export function ProcedureFormSheet({
   visible,
+  onClosed,
+  registerClientLabel,
   values,
   submitting,
   submitFailed,
@@ -100,7 +106,7 @@ export function ProcedureFormSheet({
     option => option.value === values.species,
   );
 
-  const sheet = useSheetAnimation(visible, onClose);
+const sheet = useSheetAnimation(visible, onClose, onClosed);
 
   return (
     <Modal
@@ -168,6 +174,11 @@ export function ProcedureFormSheet({
                 status={client.status}
                 options={client.options}
                 messages={texts.clientSearchMessages}
+                addOption={
+                  client.canRegister
+                    ? { label: registerClientLabel, onPress: client.onRegister }
+                    : undefined
+                }
                 onChangeText={onChangeClientTerm}
                 onSelect={onSelectClient}
               />

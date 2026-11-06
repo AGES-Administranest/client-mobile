@@ -998,7 +998,8 @@
       "client": "Tomador",
       "location": "Local do atendimento",
       "locationHint": "Sugerido pelo endereço do tomador. Você pode alterar.",
-      "submitError": "Não foi possível salvar. Tente novamente."
+      "submitError": "Não foi possível salvar. Tente novamente.",
+      "registerClient": "Cadastrar novo tomador"
     },
     "supplyPrompt": {
       "title": "Deseja registrar os insumos utilizados neste procedimento?",

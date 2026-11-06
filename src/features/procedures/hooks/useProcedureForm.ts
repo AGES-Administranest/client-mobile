@@ -42,6 +42,8 @@ type SupplyPrompt = {
   step: 'confirm' | 'selector';
 };
 
+type RegisterStage = 'none' | 'leaving' | 'open' | 'returning';
+
 // Com `editing`, o formulário abre preenchido e o envio faz PATCH em vez de POST.
 export function useProcedureForm(
   // `created` só vem na criação: a tela usa para levar a agenda ao dia novo.
@@ -65,6 +67,8 @@ export function useProcedureForm(
   const [supplyPrompt, setSupplyPrompt] = useState<SupplyPrompt | null>(null);
   const [conflict, setConflict] = useState<ConflictingAppointment | null>(null);
   const [suggestedLocation, setSuggestedLocation] = useState('');
+  const [registerStage, setRegisterStage] = useState<RegisterStage>('none');
+  const [registerName, setRegisterName] = useState(''); 
 
   useEffect(() => {
     if (!visible || !editing) {
@@ -77,6 +81,10 @@ export function useProcedureForm(
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, editing?.id]);
+  // Se a tela fechar com o cadastro em andamento, não fica preso.
+  useEffect(() => {
+    if (!visible) setRegisterStage('none');
+  }, [visible]);
 
   function setField<K extends keyof ProcedureFormValues>(
     key: K,
@@ -130,6 +138,34 @@ export function useProcedureForm(
     setSubmitFailed(false);
     setConflict(null);
     setSuggestedLocation('');
+    setRegisterStage('none');
+  }
+
+  // O formulário só sai de cena: values, tomador e busca continuam aqui no
+  // hook, então nada do que foi digitado se perde.
+  function startRegistration(): void {
+    setRegisterName(clientSearch.term.trim());
+    setRegisterStage('leaving');
+  }
+
+  // iOS: o cadastro só abre quando o formulário terminou de sair.
+  function onFormClosed(): void {
+    setRegisterStage(prev => (prev === 'leaving' ? 'open' : prev));
+  }
+
+  function cancelRegistration(): void {
+    setRegisterStage('returning');
+  }
+
+  // Seleciona o tomador criado (e sugere o local) e volta ao formulário.
+  function finishRegistration(created: ClientOptionWithAddress): void {
+    selectClient(created);
+    setRegisterStage('returning');
+  }
+
+  // iOS: o formulário só reaparece quando o cadastro terminou de sair.
+  function onRegisterClosed(): void {
+    setRegisterStage(prev => (prev === 'returning' ? 'none' : prev));
   }
 
   // Volta ao formulário com o que foi digitado, para trocar o horário.
@@ -264,6 +300,20 @@ export function useProcedureForm(
       options: clientSearch.options,
       onTermChange: changeClientTerm,
       onSelect: selectClient,
+      canRegister:
+        clientSearch.status === 'empty' &&
+        clientSearch.term.trim() !== '' &&
+        selectedClient === null,
+      onRegister: startRegistration,
+    },
+    registration: {
+      isHidingForm: registerStage !== 'none',
+      isOpen: registerStage === 'open',
+      initialName: registerName,
+      onFormClosed,
+      cancel: cancelRegistration,
+      onCreated: finishRegistration,
+      onClosed: onRegisterClosed,
     },
     supplyPrompt,
     conflict,

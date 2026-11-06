@@ -601,3 +601,112 @@ describe('sugestão de local pelo endereço do tomador', () => {
     );
   });
 });
+
+describe('cadastro de novo tomador a partir do formulário', () => {
+  const CREATED = {
+    id: 'client-new',
+    name: 'Clínica Nova',
+    addressLine: 'Rua Augusta, 1500',
+    city: 'São Paulo',
+    state: 'SP',
+  };
+  const CREATED_ADDRESS = 'Rua Augusta, 1500, São Paulo, SP';
+
+  async function startRegistration() {
+    const mounted = await mountHook();
+    const { result } = mounted;
+    await act(async () => result.current.setTextField('patientName', 'Rex'));
+    await act(async () => result.current.setTextField('amount', '350'));
+    await act(async () => result.current.client.onTermChange('Clínica Nova'));
+    await act(async () => result.current.client.onRegister());
+    return mounted;
+  }
+
+  test('abrir o cadastro esconde o formulário, leva o nome digitado e não perde nada', async () => {
+    const { result } = await startRegistration();
+
+    expect(result.current.registration.isHidingForm).toBe(true);
+    // Só abre quando o formulário terminou de sair (iOS).
+    expect(result.current.registration.isOpen).toBe(false);
+    expect(result.current.registration.initialName).toBe('Clínica Nova');
+    expect(result.current.values.patientName).toBe('Rex');
+    expect(result.current.values.amount).toBe('350');
+
+    await act(async () => result.current.registration.onFormClosed());
+
+    expect(result.current.registration.isOpen).toBe(true);
+    expect(result.current.registration.isHidingForm).toBe(true);
+  });
+
+  test('cadastrar seleciona o tomador, sugere o local e volta com os campos preservados', async () => {
+    const { result } = await startRegistration();
+    await act(async () => result.current.registration.onFormClosed());
+
+    await act(async () => result.current.registration.onCreated(CREATED));
+
+    expect(result.current.values.clientId).toBe('client-new');
+    expect(result.current.client.term).toBe('Clínica Nova');
+    expect(result.current.values.location).toBe(CREATED_ADDRESS);
+    expect(result.current.showLocationHint).toBe(true);
+    // O formulário só volta quando o cadastro terminou de sair.
+    expect(result.current.registration.isHidingForm).toBe(true);
+
+    await act(async () => result.current.registration.onClosed());
+
+    expect(result.current.registration.isHidingForm).toBe(false);
+    expect(result.current.registration.isOpen).toBe(false);
+    expect(result.current.values.patientName).toBe('Rex');
+    expect(result.current.values.amount).toBe('350');
+    expect(result.current.values.clientId).toBe('client-new');
+  });
+
+  test('cancelar volta ao formulário intacto, sem tomador selecionado', async () => {
+    const { result } = await startRegistration();
+    await act(async () => result.current.registration.onFormClosed());
+
+    await act(async () => result.current.registration.cancel());
+    await act(async () => result.current.registration.onClosed());
+
+    expect(result.current.registration.isHidingForm).toBe(false);
+    expect(result.current.values.clientId).toBeNull();
+    expect(result.current.values.patientName).toBe('Rex');
+    expect(result.current.values.amount).toBe('350');
+    expect(result.current.client.term).toBe('Clínica Nova');
+  });
+
+  test('o reset durante o cadastro não deixa o formulário preso escondido', async () => {
+    const { result } = await startRegistration();
+
+    await act(async () => result.current.reset());
+
+    expect(result.current.registration.isHidingForm).toBe(false);
+    expect(result.current.registration.isOpen).toBe(false);
+  });
+
+  test('tomador criado sem rede (id local) segue direto para a fila', async () => {
+    const { result, onSuccess } = await mountWithFilledForm();
+    await act(async () => result.current.setField('date', FUTURE_DATE));
+    await act(async () => result.current.client.onTermChange('Clínica Nova'));
+    await act(async () => result.current.client.onRegister());
+    await act(async () => result.current.registration.onFormClosed());
+    await act(async () =>
+      result.current.registration.onCreated({
+        ...CREATED,
+        id: 'local:clinic-9',
+      }),
+    );
+    await act(async () => result.current.registration.onClosed());
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(createAppointmentMock).not.toHaveBeenCalled();
+    expect(queueAppointmentCreate).toHaveBeenCalledWith(
+      'user-1',
+      'cg-1',
+      expect.objectContaining({ clientId: 'local:clinic-9' }),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+});
