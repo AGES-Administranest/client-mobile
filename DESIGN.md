@@ -36,6 +36,9 @@ The good news: **the palette is already implemented** in this repo. Every color 
 | Warm muted text | Hourly calculator: "automático · do app", "Atualizado em…", breakdown captions and shares, hints | `#736961` | `Colors.label.muted` | `text-label-muted` |
 | Warm body text | Hourly calculator: highlight description, mini-tile labels, initial-state message | `#38332E` | `Colors.label.body` | `text-label-body` |
 | Composition bar | Hourly calculator breakdown: fixed costs, variable costs, pró-labore, safety margin (bar segments and row dots) | `#A07E62`, `#D2BBA0`, `#594236`, `#8C9A5B` | `Colors.chart.fixedCosts`, `Colors.chart.variableCosts`, `Colors.button.primary`, `Colors.chart.safetyMargin` | `bg-chart-fixed-costs`, `bg-chart-variable-costs`, `bg-button-primary`, `bg-chart-safety-margin` |
+| Rate rise | Hourly rate history (US22): rise chip text, the arrow and percentage on a month row | `#5D6B2F` | `Colors.trend.up` | `text-trend-up` |
+| Rate rise fill | Hourly rate history: background of the rise chip ("+2,4% vs set.", "+22,3%") | `#EEF1E2` | `Colors.trend.upFill` | `bg-trend-up-fill` |
+| Rate fall | Hourly rate history: arrow and percentage of a month whose rate dropped ("−1,4%"). A drop is not a blocking state, so it is not `alert-primary` | `#A34A25` | `Colors.trend.down` | `text-trend-down` |
 
 Since `Colors.background.primary` is a 3-stop gradient object (not a hex string), it's meant to be consumed via a `LinearGradient` component, not a plain Tailwind background class — check how `src/app/App.tsx` or existing screens already render it before adding a second implementation.
 

@@ -17,7 +17,12 @@ jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
 jest.mock('../services/pricingService', () => ({
-  pricingService: { getHourlyRate: jest.fn(), saveSettings: jest.fn() },
+  pricingService: {
+    getHourlyRate: jest.fn(),
+    saveSettings: jest.fn(),
+    getHourlyRateHistory: jest.fn(),
+    getHourlyRateHistoryMonth: jest.fn(),
+  },
 }));
 // The fixed costs card reads its service from inside the calculator
 // feature, so the mock replaces that module, not the public index.
@@ -31,6 +36,9 @@ const fixedCostsService = jest.requireMock(
 
 const getHourlyRate = pricingService.getHourlyRate as jest.Mock;
 const saveSettings = pricingService.saveSettings as jest.Mock;
+const getHourlyRateHistory = pricingService.getHourlyRateHistory as jest.Mock;
+const getHourlyRateHistoryMonth =
+  pricingService.getHourlyRateHistoryMonth as jest.Mock;
 const fetchSummary = fixedCostsService.fetchFixedCostsSummary;
 
 const METRICS = {
@@ -124,7 +132,7 @@ async function renderScreen(onClose = jest.fn()) {
   return { renderer, onClose, texts, press, input, typeAndBlur };
 }
 
-beforeAll(() => {
+beforeEach(() => {
   jest.useFakeTimers({
     now: NOW,
     doNotFake: [
@@ -144,7 +152,7 @@ beforeAll(() => {
   });
 });
 
-afterAll(() => {
+afterEach(() => {
   jest.useRealTimers();
 });
 
@@ -160,6 +168,8 @@ beforeEach(() => {
   saveSettings
     .mockReset()
     .mockImplementation((_token, dto) => Promise.resolve(dto));
+  getHourlyRateHistory.mockReset().mockResolvedValue([]);
+  getHourlyRateHistoryMonth.mockReset().mockResolvedValue(null);
   fetchSummary.mockReset().mockResolvedValue(SUMMARY);
 });
 
@@ -321,6 +331,45 @@ describe('configured', () => {
     await press('Tentar novamente');
 
     expect(texts()).toContain(nbsp('R$ 98,07'));
+  });
+});
+
+describe('history shortcut', () => {
+  test('shows "Ver histórico" in the rate card, without fetching anything yet', async () => {
+    const { texts } = await renderScreen();
+
+    expect(texts()).toContain('Ver histórico');
+    expect(getHourlyRateHistory).not.toHaveBeenCalled();
+  });
+
+  test('opens the history over the calculator and comes back to it', async () => {
+    const { renderer, texts, press } = await renderScreen();
+
+    await press('Ver histórico');
+
+    expect(getHourlyRateHistory).toHaveBeenCalledWith('id-token');
+    expect(texts()).toEqual(
+      expect.arrayContaining([
+        'Histórico do valor da hora',
+        'Calculadora de hora',
+      ]),
+    );
+
+    const backButtons = renderer.root.findAll(
+      node =>
+        node.props.accessibilityLabel === 'Voltar' &&
+        typeof node.props.onPress === 'function',
+    );
+    await act(async () => backButtons[backButtons.length - 1].props.onPress());
+
+    expect(texts()).toContain(nbsp('R$ 98,07'));
+    expect(
+      renderer.root.findAll(
+        node =>
+          node.props.accessibilityLabel === 'Voltar' &&
+          typeof node.props.onPress === 'function',
+      ),
+    ).toHaveLength(1);
   });
 });
 

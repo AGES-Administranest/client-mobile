@@ -31,6 +31,7 @@ type HourlyRateResultViewProps = {
   hourlyRate: HourlyRate;
   isRefreshing: boolean;
   onChanged: () => void;
+  onOpenHistory: () => void;
 };
 
 export function HourlyRateResultView({
@@ -39,6 +40,7 @@ export function HourlyRateResultView({
   hourlyRate,
   isRefreshing,
   onChanged,
+  onOpenHistory,
 }: HourlyRateResultViewProps) {
   const { t, locale } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -133,6 +135,10 @@ export function HourlyRateResultView({
         )}
         isExpanded={isExpanded}
         onToggle={() => setIsExpanded(expanded => !expanded)}
+        historyShortcut={{
+          label: t('pricing.history.openShortcut'),
+          onPress: onOpenHistory,
+        }}
       >
         <HourlyRateBreakdown
           title={t('pricing.hourlyRate.breakdown.title')}

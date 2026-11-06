@@ -149,3 +149,133 @@ describe('getHourlyRate', () => {
     ).rejects.toBeInstanceOf(ApiError);
   });
 });
+
+describe('getHourlyRateHistory', () => {
+  const urlCalled = () => fetchMock.mock.calls[0][0] as string;
+
+  test('reads every stored month, newest first, with the id token', async () => {
+    respondWith(200, [
+      {
+        year: 2026,
+        month: 10,
+        hourlyRate: '98.07',
+        calculatedAt: '2026-10-19T20:42:00.000Z',
+      },
+      {
+        year: 2026,
+        month: 3,
+        hourlyRate: '85.15',
+        calculatedAt: '2026-03-19T20:42:00.000Z',
+      },
+    ]);
+
+    await expect(
+      pricingService.getHourlyRateHistory(ID_TOKEN),
+    ).resolves.toEqual([
+      {
+        month: { month: 10, year: 2026 },
+        hourlyRate: 98.07,
+        calculatedAt: '2026-10-19T20:42:00.000Z',
+      },
+      {
+        month: { month: 3, year: 2026 },
+        hourlyRate: 85.15,
+        calculatedAt: '2026-03-19T20:42:00.000Z',
+      },
+    ]);
+
+    expect(urlCalled()).toMatch(/\/pricing\/hourly-rate\/history$/);
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('GET');
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      `Bearer ${ID_TOKEN}`,
+    );
+  });
+
+  test('answers an empty list while nothing was calculated', async () => {
+    respondWith(200, []);
+
+    await expect(
+      pricingService.getHourlyRateHistory(ID_TOKEN),
+    ).resolves.toEqual([]);
+  });
+
+  test('fails when the history cannot be read', async () => {
+    respondWith(500, { code: 'INTERNAL_ERROR', message: 'Oops' });
+
+    await expect(
+      pricingService.getHourlyRateHistory(ID_TOKEN),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe('getHourlyRateHistoryMonth', () => {
+  const OCTOBER = { month: 10, year: 2026 };
+  const DETAIL = {
+    month: 10,
+    year: 2026,
+    items: [
+      { key: 'FIXED_COSTS', amount: '1399.08' },
+      { key: 'VARIABLE_COSTS', amount: '1225.00' },
+      { key: 'OWNER_DRAW', amount: '8000.00' },
+      { key: 'SAFETY_MARGIN', amount: '2124.82' },
+    ].map(item => ({ ...item, label: item.key, percentOfTotal: '0.00' })),
+    total: '12748.90',
+    productiveHours: '130.00',
+    hourlyRate: '98.07',
+    minimumHourlyRate: '81.72',
+    calculatedAt: '2026-10-19T20:42:00.000Z',
+    parameters: {
+      monthlyIncomeGoal: '8000.00',
+      weeklyHours: '30.00',
+      safetyMarginPct: '20.00',
+    },
+  };
+
+  test('reads the month as it was calculated, with the goals it used', async () => {
+    respondWith(200, DETAIL);
+
+    const rate = await pricingService.getHourlyRateHistoryMonth(
+      ID_TOKEN,
+      OCTOBER,
+    );
+
+    expect(rate).toMatchObject({
+      month: OCTOBER,
+      settings: {
+        monthlyIncomeGoal: 8000,
+        weeklyHours: 30,
+        safetyMarginPct: 20,
+      },
+      parts: { fixedCosts: 1399.08, safetyMargin: 2124.82 },
+      hourlyRate: 98.07,
+      minimumHourlyRate: 81.72,
+    });
+    expect(fetchMock.mock.calls[0][0]).toMatch(
+      /\/pricing\/hourly-rate\/history\/2026\/10$/,
+    );
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      `Bearer ${ID_TOKEN}`,
+    );
+  });
+
+  test('is null for a month with no stored calculation', async () => {
+    respondWith(404, {
+      code: 'HOURLY_RATE_SNAPSHOT_NOT_FOUND',
+      message: 'This month has no stored hourly rate',
+    });
+
+    await expect(
+      pricingService.getHourlyRateHistoryMonth(ID_TOKEN, OCTOBER),
+    ).resolves.toBeNull();
+  });
+
+  test('fails on any other error', async () => {
+    respondWith(404, { code: 'PRICING_SETTINGS_NOT_FOUND', message: 'No' });
+
+    await expect(
+      pricingService.getHourlyRateHistoryMonth(ID_TOKEN, OCTOBER),
+    ).rejects.toMatchObject({ status: 404 });
+  });
+});

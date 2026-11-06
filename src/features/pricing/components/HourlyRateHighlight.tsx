@@ -1,4 +1,9 @@
-import { ChevronDown, ChevronUp, Clock } from 'lucide-react-native';
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  Clock,
+} from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
@@ -27,6 +32,8 @@ export type HourlyRateHighlightProps = {
   toggleLabel: string;
   isExpanded: boolean;
   onToggle: () => void;
+  // Left out while the history is not available.
+  historyShortcut?: { label: string; onPress: () => void };
   children?: ReactNode;
 };
 
@@ -61,6 +68,7 @@ export function HourlyRateHighlight({
   toggleLabel,
   isExpanded,
   onToggle,
+  historyShortcut,
   children,
 }: HourlyRateHighlightProps) {
   return (
@@ -111,6 +119,19 @@ export function HourlyRateHighlight({
           {updatedAt}
         </Text>
       </View>
+
+      {historyShortcut ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={historyShortcut.onPress}
+          className="flex-row items-center gap-2.5 rounded-[10px] bg-details-warm px-3 py-2.5 active:opacity-70"
+        >
+          <Text className="flex-1 text-xs font-semibold leading-[18px] text-label-quartenery">
+            {historyShortcut.label}
+          </Text>
+          <Icon as={ChevronRight} size={16} className="text-label-tertiary" />
+        </Pressable>
+      ) : null}
 
       <View className="h-px bg-border-warm" />
 
