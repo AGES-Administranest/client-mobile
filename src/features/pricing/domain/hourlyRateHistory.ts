@@ -46,6 +46,8 @@ export type HourlyRateHistoryRow = {
   // nothing to compare against.
   variation: number | null;
   isOldest: boolean;
+  // The month it is compared with, `null` for the oldest.
+  previousMonth: MonthPeriod | null;
 };
 
 export type HourlyRateYearGroup = {
@@ -102,20 +104,28 @@ export function buildHistoryRows(
         ? percentChange(previous.hourlyRate, rate.hourlyRate)
         : null,
       isOldest: !previous,
+      previousMonth: previous?.month ?? null,
     };
   });
 }
 
 // Windows count records, not calendar months: a gap in the history does not
-// leave a window short.
+// leave a window short. Newest first, and every window holds `size` records
+// (or all of them, when there are fewer): the oldest one is the `size` oldest,
+// overlapping the one before it when the records do not divide evenly, so the
+// last stop of the navigator is never a short list.
 export function splitIntoWindows<T>(
   items: readonly T[],
   size = HISTORY_WINDOW_SIZE,
 ): T[][] {
+  if (items.length === 0) return [];
+  if (items.length <= size) return [[...items]];
+
   const windows: T[][] = [];
-  for (let start = 0; start < items.length; start += size) {
+  for (let start = 0; start + size < items.length; start += size) {
     windows.push(items.slice(start, start + size));
   }
+  windows.push(items.slice(-size));
   return windows;
 }
 

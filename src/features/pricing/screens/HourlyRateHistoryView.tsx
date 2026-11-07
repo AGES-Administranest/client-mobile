@@ -6,11 +6,13 @@ import { useTranslation } from 'shared/i18n';
 
 import {
   currentValueView,
+  evolutionCardView,
   monthRowView,
   windowCaption,
   windowRange,
 } from './hourlyRateHistoryPresenter';
 import { HourlyRateChartPlaceholder } from '../components/HourlyRateChartPlaceholder';
+import { HourlyRateEvolutionCard } from '../components/HourlyRateEvolutionCard';
 import { HourlyRateHistoryHighlight } from '../components/HourlyRateHistoryHighlight';
 import { HourlyRateMonthsCard } from '../components/HourlyRateMonthsCard';
 import { HourlyRateNote } from '../components/HourlyRateNote';
@@ -76,7 +78,11 @@ export function HourlyRateHistoryView({
         {...currentValueView(rows, safetyMarginPct, format)}
       />
 
-      {hasChart ? null : (
+      {hasChart ? (
+        <HourlyRateEvolutionCard
+          {...evolutionCardView(windowRows, selectedId, setPickedId, format)}
+        />
+      ) : (
         <HourlyRateChartPlaceholder
           title={t('pricing.history.chart.title')}
           heading={t('pricing.history.chart.placeholderTitle')}
@@ -85,7 +91,6 @@ export function HourlyRateHistoryView({
           })}
         />
       )}
-      {/* The evolution chart of 2+ months is a separate task: its card goes here. */}
 
       <HourlyRateMonthsCard
         title={t('pricing.history.months.title')}
