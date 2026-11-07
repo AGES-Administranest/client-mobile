@@ -86,6 +86,17 @@ async function renderScreen(onClose = jest.fn()) {
         typeof node.props.onPress === 'function' &&
         String(node.props.accessibilityLabel ?? '').startsWith(`${month},`),
     );
+  // The classes of a month row, to see whether it draws its divider.
+  const rowClassName = (month: string) =>
+    String(
+      renderer.root.findAll(
+        node =>
+          typeof node.props.className === 'string' &&
+          String(node.props.accessibilityLabel ?? '').startsWith(`${month},`),
+      )[0].props.className,
+    );
+  const hasDivider = (month: string) =>
+    rowClassName(month).includes('border-b');
   const selectedRows = () =>
     renderer.root
       .findAll(
@@ -110,6 +121,7 @@ async function renderScreen(onClose = jest.fn()) {
     press,
     control,
     row,
+    hasDivider,
     selectedRows,
     rowTexts,
   };
@@ -174,6 +186,8 @@ describe('states', () => {
     expect(texts()).toContain(
       'Não foi possível carregar o histórico do valor da hora.',
     );
+
+    expect(texts()).not.toContain('Registro mensal');
 
     await press('Tentar novamente');
 
@@ -247,6 +261,14 @@ describe('one month', () => {
     expect(rowTexts()).toEqual(['Outubro 2026']);
     expect(selectedRows()).toEqual([]);
   });
+
+  test('keeps the legend under the only month', async () => {
+    getHistory.mockResolvedValue(newestPeriods(1));
+
+    const { texts } = await renderScreen();
+
+    expect(texts()).toContain(nbsp('130 h produtivas · mín. R$ 81,72'));
+  });
 });
 
 describe('three months', () => {
@@ -292,6 +314,20 @@ describe('three months', () => {
     expect(texts().join(' ')).not.toContain('Ver todos');
   });
 
+  test('draws the productive hours and the minimum under each month, and no divider after the last', async () => {
+    const { texts, hasDivider } = await renderScreen();
+
+    expect(texts()).toEqual(
+      expect.arrayContaining([
+        nbsp('130 h produtivas · mín. R$ 81,72'),
+        nbsp('130 h produtivas · mín. R$ 79,84'),
+        nbsp('134 h produtivas · mín. R$ 76,92'),
+      ]),
+    );
+    expect(hasDivider('Setembro 2026')).toBe(true);
+    expect(hasDivider('Agosto 2026')).toBe(false);
+  });
+
   test('starts with the newest month selected and follows a tap', async () => {
     const { row, selectedRows } = await renderScreen();
 
@@ -300,6 +336,63 @@ describe('three months', () => {
     await act(async () => row('Agosto 2026').props.onPress());
 
     expect(selectedRows()).toEqual(['Agosto 2026']);
+  });
+});
+
+describe('two and five months', () => {
+  test.each([[2], [5]])(
+    'with %s months it has the short-history note and no way to other windows',
+    async count => {
+      getHistory.mockResolvedValue(newestPeriods(count));
+
+      const { texts, rowTexts, hasDivider } = await renderScreen();
+
+      expect(rowTexts()).toHaveLength(count);
+      expect(texts()).toContain(
+        'Com menos de 6 meses, o gráfico mostra todos os meses calculados. Novos meses entram aqui no fechamento.',
+      );
+      expect(texts()).not.toContain('O gráfico aparece no próximo mês');
+      expect(texts().join(' ')).not.toContain('Ver todos');
+      expect(texts()).not.toContain('Últimos 6 meses');
+      expect(hasDivider('Setembro 2026')).toBe(count > 2);
+    },
+  );
+});
+
+describe('seven months', () => {
+  beforeEach(() => {
+    getHistory.mockResolvedValue(newestPeriods(7));
+  });
+
+  test('starts on the latest six, with the link to the seventh', async () => {
+    const { texts, rowTexts } = await renderScreen();
+
+    expect(rowTexts()).toEqual([
+      'Outubro 2026',
+      'Setembro 2026',
+      'Agosto 2026',
+      'Julho 2026',
+      'Junho 2026',
+      'Maio 2026',
+    ]);
+    expect(texts()).toEqual(
+      expect.arrayContaining([
+        'Mai – Out 2026',
+        'Últimos 6 meses',
+        'Ver todos os meses (7)',
+      ]),
+    );
+  });
+
+  test('the older arrow shows the single month left over', async () => {
+    const { texts, rowTexts, press } = await renderScreen();
+
+    await press('Meses mais antigos');
+
+    expect(rowTexts()).toEqual(['Abril 2026']);
+    expect(texts()).toEqual(
+      expect.arrayContaining(['Abr 2026', '6 meses anteriores']),
+    );
   });
 });
 
@@ -324,6 +417,7 @@ describe('twelve months', () => {
     expect(texts()).toEqual(
       expect.arrayContaining([
         'Mai – Out 2026',
+        nbsp('136 h produtivas · mín. R$ 73,67'),
         'Últimos 6 meses',
         'Ver todos os meses (12)',
         'O gráfico mostra até 6 meses por vez. Use as setas acima para ver períodos anteriores.',
@@ -343,6 +437,13 @@ describe('twelve months', () => {
     ]);
     expect(selectedRows()).toEqual(['Outubro 2026']);
     expect(texts()).toContain('−1,4%');
+  });
+
+  test('the last row of the window keeps its divider because "Ver todos os meses" sits right under it', async () => {
+    const { hasDivider } = await renderScreen();
+
+    expect(hasDivider('Maio 2026')).toBe(true);
+    expect(hasDivider('Junho 2026')).toBe(true);
   });
 
   test('marks only the current month of the calendar', async () => {
@@ -430,11 +531,24 @@ describe('twelve months', () => {
         'Novembro 2025',
         'início do histórico',
         '−0,8%',
+        nbsp('126 h produtivas · mín. R$ 69,50'),
+        nbsp('138 h produtivas · mín. R$ 66,83'),
       ]),
     );
     expect(texts()).not.toContain('Registro mensal');
     expect(texts().join(' ')).not.toContain('Toque em um mês');
     expect(getHistory).toHaveBeenCalledTimes(1);
+  });
+
+  test('the last row of each year has no divider, as there is no link under it', async () => {
+    const { press, hasDivider } = await renderScreen();
+
+    await press('Ver todos os meses (12)');
+
+    expect(hasDivider('Fevereiro 2026')).toBe(true);
+    expect(hasDivider('Janeiro 2026')).toBe(false);
+    expect(hasDivider('Dezembro 2025')).toBe(true);
+    expect(hasDivider('Novembro 2025')).toBe(false);
   });
 
   test('the rows of "Todos os meses" have no action yet', async () => {
@@ -489,6 +603,26 @@ test('asks for the detail of the newest month only, to read the margin', async (
 
   expect(getMonth).toHaveBeenCalledTimes(1);
   expect(getMonth).toHaveBeenCalledWith('id-token', { month: 10, year: 2026 });
+  expect(texts()).toContain('20% de margem');
+});
+
+test('shows the list as soon as it arrives and the margin chip when the detail answers', async () => {
+  let answer!: (month: typeof OCTOBER_HOURLY_RATE) => void;
+  getMonth.mockReturnValue(
+    new Promise(resolve => {
+      answer = resolve;
+    }),
+  );
+
+  const { texts } = await renderScreen();
+
+  expect(texts()).toEqual(
+    expect.arrayContaining(['Registro mensal', nbsp('R$ 98,07')]),
+  );
+  expect(texts().join(' ')).not.toContain('de margem');
+
+  await act(async () => answer(OCTOBER_HOURLY_RATE));
+
   expect(texts()).toContain('20% de margem');
 });
 

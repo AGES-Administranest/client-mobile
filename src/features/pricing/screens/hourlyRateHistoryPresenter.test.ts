@@ -4,6 +4,7 @@ import { translate } from 'shared/i18n/translate';
 import {
   formatChange,
   formatSignedCurrency,
+  monthRowView,
   windowRange,
 } from './hourlyRateHistoryPresenter';
 import {
@@ -204,6 +205,49 @@ describe('windowRange', () => {
       );
 
       expect(labels).toEqual(names.map(name => `${name} – ${name} 2026`));
+    },
+  );
+});
+
+describe('monthRowView', () => {
+  const TODAY = new Date(2026, 9, 19);
+  const rowOf = (overrides: Partial<(typeof HISTORY_PERIODS)[number]>) =>
+    buildHistoryRows([{ ...HISTORY_PERIODS[0], ...overrides }])[0];
+
+  it.each([
+    [
+      'pt-BR',
+      130,
+      81.72,
+      '130 h produtivas · mín. R$ 81,72',
+      'Outubro 2026, R$ 98,07, 130 horas produtivas, mínimo R$ 81,72, início do histórico',
+    ],
+    [
+      'en-US',
+      130,
+      81.72,
+      '130 productive h · min. R$81.72',
+      'October 2026, R$98.07, 130 productive hours, minimum R$81.72, start of history',
+    ],
+    // The Figma shows whole hours; the API sends two decimals.
+    [
+      'pt-BR',
+      173.33,
+      57.69,
+      '173 h produtivas · mín. R$ 57,69',
+      'Outubro 2026, R$ 98,07, 173 horas produtivas, mínimo R$ 57,69, início do histórico',
+    ],
+  ] as [Locale, number, number, string, string][])(
+    'in %s writes %s h and a minimum of %s under the month',
+    (locale, productiveHours, minimumHourlyRate, detail, label) => {
+      const view = monthRowView(
+        rowOf({ productiveHours, minimumHourlyRate }),
+        formatFor(locale),
+        TODAY,
+      );
+
+      expect(plain(view.detail)).toBe(plain(detail));
+      expect(plain(view.accessibilityLabel)).toBe(plain(label));
     },
   );
 });

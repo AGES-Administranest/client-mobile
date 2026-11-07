@@ -16,6 +16,8 @@ export type HourlyRateMonthRowProps = {
   id: string;
   label: string;
   currentChip: string | null;
+  // "130 h produtivas · mín. R$ 81,72", under the month.
+  detail: string;
   value: string;
   // A rise or a fall against the previous month, or the caption the oldest
   // month shows in its place.
@@ -29,7 +31,8 @@ export type HourlyRateMonthsCardProps = {
   titleCaption?: string;
   titleVariant?: 'eyebrow' | 'year';
   rows: HourlyRateMonthRowProps[];
-  // With no `onSelect` the rows are plain, not pressable.
+  // With no `onSelect` the rows are plain, not pressable. The last row keeps
+  // its divider only when the footer action sits right under it.
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   footerAction?: { label: string; onPress: () => void };
@@ -37,12 +40,12 @@ export type HourlyRateMonthsCardProps = {
 
 function MonthRow({
   row,
-  isLast,
+  hasDivider,
   isSelected,
   onSelect,
 }: {
   row: HourlyRateMonthRowProps;
-  isLast: boolean;
+  hasDivider: boolean;
   isSelected: boolean;
   onSelect?: (id: string) => void;
 }) {
@@ -61,6 +64,9 @@ function MonthRow({
             </View>
           ) : null}
         </View>
+        <Text className="text-[10px] leading-[15px] text-label-muted">
+          {row.detail}
+        </Text>
       </View>
       <View className="items-end">
         <Text className="text-sm font-semibold leading-[21px] text-label-primary">
@@ -102,7 +108,7 @@ function MonthRow({
     'flex-row items-center gap-2.5 px-2 py-[11px]',
     isSelected
       ? 'rounded-[10px] bg-details-warm'
-      : !isLast && 'border-b border-border-warm',
+      : hasDivider && 'border-b border-border-warm',
   );
 
   if (!onSelect) {
@@ -164,7 +170,7 @@ export function HourlyRateMonthsCard({
           <MonthRow
             key={row.id}
             row={row}
-            isLast={index === rows.length - 1}
+            hasDivider={index < rows.length - 1 || Boolean(footerAction)}
             isSelected={row.id === selectedId}
             onSelect={onSelect}
           />
@@ -175,6 +181,7 @@ export function HourlyRateMonthsCard({
         <Pressable
           accessibilityRole="button"
           onPress={footerAction.onPress}
+          hitSlop={8}
           className="flex-row items-center gap-1 px-2 pt-2.5 active:opacity-70"
         >
           <Text className="text-xs font-semibold leading-[18px] text-label-quartenery">
