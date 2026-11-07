@@ -19,6 +19,7 @@ import { BackgroundPrimary } from 'theme/colors';
 
 import { HourlyRateResultView } from './HourlyRateResultView';
 import { PricingSetupView } from './PricingSetupView';
+import { ProcedureEstimateScreen } from './ProcedureEstimateScreen';
 import { PricingOnboarding } from '../components/PricingOnboarding';
 import { useHourlyRate } from '../hooks/useHourlyRate';
 
@@ -65,6 +66,7 @@ function HourlyRateContent({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const [month, setMonth] = useState(() => monthOf(new Date()));
   const [isConfiguring, setIsConfiguring] = useState(false);
+  const [isEstimateVisible, setIsEstimateVisible] = useState(false);
   const { state, reload } = useHourlyRate(month);
 
   const goBack = isConfiguring ? () => setIsConfiguring(false) : onClose;
@@ -159,9 +161,16 @@ function HourlyRateContent({ onClose }: { onClose: () => void }) {
             hourlyRate={state.hourlyRate}
             isRefreshing={state.isRefreshing}
             onChanged={reload}
+            onOpenProcedureEstimate={() => setIsEstimateVisible(true)}
           />
         )}
       </ScrollView>
+
+      {/* Ponto de entrada US21: Tela de simulação de valor mínimo por procedimento */}
+      <ProcedureEstimateScreen
+        visible={isEstimateVisible}
+        onClose={() => setIsEstimateVisible(false)}
+      />
     </>
   );
 }

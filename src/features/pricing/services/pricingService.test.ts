@@ -1,6 +1,6 @@
 import { ApiError } from 'shared/services/apiClient';
 
-import { pricingService } from './pricingService';
+import { isPricingUnconfiguredError, pricingService } from './pricingService';
 
 const ID_TOKEN = 'id-token';
 const GOALS = {
@@ -147,5 +147,103 @@ describe('getHourlyRate', () => {
     await expect(
       pricingService.getHourlyRate(ID_TOKEN, OCTOBER),
     ).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe('estimateProcedure', () => {
+  const ESTIMATE_RESPONSE = {
+    minimumPrice: '131.47',
+    breakEvenPrice: '126.28',
+    hoursCost: '57.12',
+    tripCost: '49.35',
+    suppliesCost: '25.00',
+    hourlyRateUsed: '38.08',
+    minimumHourlyRateUsed: '34.62',
+    tripEstimateAvailable: true,
+    tripEstimateDays: 2,
+    suppliesWithoutCost: [],
+    durationMinutes: 90,
+    month: 11,
+    year: 2026,
+  };
+
+  test('calls POST /pricing/procedure-estimate with token and payload', async () => {
+    respondWith(200, ESTIMATE_RESPONSE);
+
+    const dto = {
+      durationMinutes: 90,
+      clientId: 'client-1',
+      supplies: [{ itemId: 'item-1', quantity: 2 }],
+    };
+
+    const response = await pricingService.estimateProcedure(ID_TOKEN, dto);
+
+    expect(response).toEqual(ESTIMATE_RESPONSE);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toMatch(/\/pricing\/procedure-estimate$/);
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual(dto);
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      `Bearer ${ID_TOKEN}`,
+    );
+  });
+
+  test('rethrows 409 or 404 unconfigured errors as ApiError', async () => {
+    respondWith(409, {
+      code: 'PRICING_SETTINGS_NOT_FOUND',
+      message: 'Configuração de honorários não encontrada',
+    });
+
+    const failure = pricingService.estimateProcedure(ID_TOKEN, {
+      durationMinutes: 60,
+    });
+
+    await expect(failure).rejects.toBeInstanceOf(ApiError);
+    await expect(failure).rejects.toMatchObject({
+      status: 409,
+      code: 'PRICING_SETTINGS_NOT_FOUND',
+    });
+  });
+
+  test('rethrows 400 validation error as ApiError', async () => {
+    respondWith(400, {
+      code: 'VALIDATION_ERROR',
+      message: 'Duração deve ser um número inteiro',
+    });
+
+    const failure = pricingService.estimateProcedure(ID_TOKEN, {
+      durationMinutes: 0,
+    });
+
+    await expect(failure).rejects.toBeInstanceOf(ApiError);
+    await expect(failure).rejects.toMatchObject({
+      status: 400,
+      code: 'VALIDATION_ERROR',
+    });
+  });
+});
+
+describe('isPricingUnconfiguredError', () => {
+  test('identifies 409 ApiError as unconfigured', () => {
+    const err = new ApiError('Conflict', null, 409);
+    expect(isPricingUnconfiguredError(err)).toBe(true);
+  });
+
+  test('identifies PRICING_SETTINGS_NOT_FOUND code as unconfigured', () => {
+    const err = new ApiError('Not found', 'PRICING_SETTINGS_NOT_FOUND', 404);
+    expect(isPricingUnconfiguredError(err)).toBe(true);
+  });
+
+  test('returns false for generic errors or other status codes', () => {
+    expect(isPricingUnconfiguredError(new Error('Network failure'))).toBe(
+      false,
+    );
+    expect(
+      isPricingUnconfiguredError(new ApiError('Bad request', null, 400)),
+    ).toBe(false);
+    expect(
+      isPricingUnconfiguredError(new ApiError('Internal error', null, 500)),
+    ).toBe(false);
   });
 });
