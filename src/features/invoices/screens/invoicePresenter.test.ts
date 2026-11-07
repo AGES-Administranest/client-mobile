@@ -18,6 +18,7 @@ const INVOICE: Invoice = {
   amount: 1284.5,
   issuedAt: '2026-08-10T12:00:00.000Z',
   syncStatus: 'SYNCED',
+  hasOriginalFile: true,
 };
 
 describe('invoiceCardView', () => {

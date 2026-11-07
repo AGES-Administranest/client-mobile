@@ -839,6 +839,9 @@
     "reports": "Reports",
     "clinics": "Clinics"
   },
+  "reports": {
+    "title": "Reports"
+  },
   "optionsModal": {
     "scanNote": "Scan note",
     "typeSupply": "Type supply"
@@ -1728,6 +1731,8 @@
   },
   "invoices": {
     "trigger": "Invoices",
+    "seeAll": "See all",
+    "originalFile": "Original file",
     "title": "Invoices",
     "back": "Back",
     "filters": {

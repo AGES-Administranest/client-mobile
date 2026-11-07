@@ -12,6 +12,7 @@ function invoice(number: string, issuedAt: string): Invoice {
     amount: 100,
     issuedAt,
     syncStatus: 'SYNCED',
+    hasOriginalFile: true,
   };
 }
 

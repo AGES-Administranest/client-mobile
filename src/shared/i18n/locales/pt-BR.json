@@ -839,6 +839,9 @@
     "reports": "Relatórios",
     "clinics": "Clínicas"
   },
+  "reports": {
+    "title": "Relatórios"
+  },
   "optionsModal": {
     "scanNote": "Escanear nota",
     "typeSupply": "Digitar insumo"
@@ -1728,6 +1731,8 @@
   },
   "invoices": {
     "trigger": "Notas fiscais",
+    "seeAll": "Ver todos",
+    "originalFile": "Arquivo original",
     "title": "Notas fiscais",
     "back": "Voltar",
     "filters": {

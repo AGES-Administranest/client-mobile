@@ -12,6 +12,7 @@ export type Invoice = {
   amount: number;
   issuedAt: string;
   syncStatus: InvoiceSyncStatus;
+  hasOriginalFile: boolean;
 };
 
 export type InvoicePage = {
