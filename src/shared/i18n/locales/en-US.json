@@ -1450,6 +1450,59 @@
         "explanationTitle": "How is the hourly rate calculated?",
         "explanation": "We add the fixed costs, the month's variable costs and the owner's draw, and apply the safety margin to that total. The result is divided by the month's productive hours: available hours per week × 52 weeks ÷ 12 months. The minimum is the same math without the margin."
       }
+    },
+    "history": {
+      "title": "Hourly rate history",
+      "subtitle": "Follow how your minimum hourly rate changed month by month",
+      "openShortcut": "View history",
+      "loading": "Loading the hourly rate history",
+      "loadFailure": "Could not load the hourly rate history.",
+      "empty": {
+        "title": "No calculations yet",
+        "message": "Your hourly rate for each month will show up here after the first calculation."
+      },
+      "period": {
+        "previousButton": "Older months",
+        "nextButton": "Newer months",
+        "single": "{{month}} {{year}}",
+        "sameYear": "{{from}} – {{to}} {{year}}",
+        "crossYear": "{{from}} {{fromYear}} – {{to}} {{toYear}}",
+        "latest": "Last {{count}} months",
+        "earlier": "Previous {{count}} months"
+      },
+      "current": {
+        "title": "Current hourly rate",
+        "variationChip": "{{variation}} vs {{month}}",
+        "firstMonth": "First month calculated: {{month}}.",
+        "sinceStart": "Since the history began ({{month}}): **{{difference}}** ({{percent}})."
+      },
+      "chart": {
+        "title": "Trend",
+        "placeholderTitle": "The chart shows up next month",
+        "placeholderMessage": "We need at least {{count}} calculated months to show how your hourly rate evolves."
+      },
+      "months": {
+        "title": "Monthly record",
+        "currentChip": "Current month",
+        "oldest": "start of history",
+        "detail": "{{hours}} productive h · min. {{minimum}}",
+        "rowLabel": "{{month}}, {{value}}, {{hours}} productive hours, minimum {{minimum}}",
+        "viewAll": "View all months ({{count}})"
+      },
+      "notes": {
+        "underWindow": "With fewer than {{count}} months, the chart shows every calculated month. New months are added here when the month closes.",
+        "overWindow": "The chart shows up to {{count}} months at a time. Use the arrows above to see earlier periods."
+      },
+      "all": {
+        "title": "All months",
+        "subtitle": "{{count}} months calculated since {{month}}",
+        "sinceStartTitle": "Since the history began",
+        "sinceStartText": "From {{from}} in {{fromMonth}} to {{to}} in {{toMonth}}.",
+        "monthCount": {
+          "one": "{{count}} month",
+          "other": "{{count}} months"
+        }
+      }
     }
   },
   "vehicles": {
