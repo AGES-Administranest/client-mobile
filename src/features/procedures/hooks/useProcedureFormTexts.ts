@@ -25,7 +25,8 @@ export function useProcedureFormTexts(
   const labels: Record<keyof ProcedureFormValues, string> = {
     patientName: t('procedures.fields.patientName'),
     procedureName: t('procedures.fields.procedureName'),
-    clientId: t('procedures.form.location'),
+    clientId: t('procedures.form.client'),
+    location: t('procedures.form.location'),
     patientAgeYears: t('procedures.fields.patientAgeYears'),
     weightKg: t('procedures.fields.weightKg'),
     startTime: t('procedures.fields.startTime'),
@@ -45,7 +46,8 @@ export function useProcedureFormTexts(
     placeholders: {
       patientName: t('procedures.placeholders.patientName'),
       procedureName: t('procedures.placeholders.procedureName'),
-      clientId: t('procedures.placeholders.location'),
+      clientId: t('procedures.placeholders.client'),
+      location: t('procedures.placeholders.location'),
       notes: t('procedures.placeholders.notes'),
       patientAgeYears: t('procedures.placeholders.number'),
       weightKg: t('procedures.placeholders.number'),
@@ -73,6 +75,7 @@ export function useProcedureFormTexts(
     },
     nameMaxLength: APPOINTMENT_NAME_MAX_LENGTH,
     notesMaxLength: CANCELLATION_REASON_MAX_LENGTH,
+    locationHint: t('procedures.form.locationHint'),
   };
 
   return texts;

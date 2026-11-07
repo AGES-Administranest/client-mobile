@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { ConflictAlertSheet } from 'features/appointments';
 import { useAuth } from 'features/auth';
+import { NewClientSheet } from 'features/clinics';
 import {
   formatSupplyPrice,
   SupplySelectorSheet,
@@ -30,8 +31,10 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     submitting,
     submitFailed,
     client,
+    showLocationHint,
     supplyPrompt,
     conflict,
+    registration,
     dismissConflict,
     setField,
     setTextField,
@@ -78,13 +81,21 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
       <ProcedureFormSheet
         // Um Modal sobre outro não abre no iOS: o formulário sai de cena
         // enquanto a pergunta ou o alerta de conflito estão abertos.
-        visible={visible && supplyPrompt === null && conflict === null}
+        visible={
+          visible &&
+          supplyPrompt === null &&
+          conflict === null &&
+          !registration.isHidingForm
+        }
+        registerClientLabel={t('procedures.form.registerClient')}
+        onClosed={registration.onFormClosed}
         values={values}
         submitting={submitting}
         submitFailed={submitFailed}
         submitErrorText={t('procedures.form.submitError')}
         texts={texts}
         client={client}
+        showLocationHint={showLocationHint}
         onChangeText={setTextField}
         onChangeClientTerm={client.onTermChange}
         onSelectClient={client.onSelect}
@@ -93,6 +104,13 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onSubmit={submit}
         // O ItemModal passa o evento do toque; fechar sem criar não leva dado.
         onClose={() => onClose()}
+      />
+      <NewClientSheet
+        visible={registration.isOpen}
+        initialName={registration.initialName}
+        onCreated={registration.onCreated}
+        onClose={registration.cancel}
+        onClosed={registration.onClosed}
       />
       <ConflictAlertSheet
         visible={visible && conflictAlert.visible}

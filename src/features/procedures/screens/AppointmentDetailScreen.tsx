@@ -38,6 +38,7 @@ import {
   formatAppointmentDateBadge,
   useExportToCalendar,
 } from 'features/appointments';
+import { NewClientSheet } from 'features/clinics';
 import { SupplySelectorSheet, useSupplySelector } from 'features/stock';
 import { useAppointmentTrips, useTripRowTexts } from 'features/trips';
 import { useTranslation } from 'shared/i18n';
@@ -664,7 +665,13 @@ export function AppointmentDetailScreen({
       </Animated.View>
 
       <ProcedureFormSheet
-        visible={editVisible && form.conflict === null}
+        visible={
+          editVisible &&
+          form.conflict === null &&
+          !form.registration.isHidingForm
+        }
+        registerClientLabel={t('procedures.form.registerClient')}
+        onClosed={form.registration.onFormClosed} 
         values={form.values}
         submitting={form.submitting}
         submitFailed={form.submitFailed}
@@ -672,12 +679,20 @@ export function AppointmentDetailScreen({
         texts={formTexts}
         client={form.client}
         onChangeText={form.setTextField}
+        showLocationHint={form.showLocationHint}
         onChangeClientTerm={form.client.onTermChange}
         onSelectClient={form.client.onSelect}
         onChangeSpecies={value => form.setField('species', value)}
         onChangeAsa={value => form.setField('asaClassification', value)}
         onSubmit={form.submit}
         onClose={() => setEditVisible(false)}
+      />
+      <NewClientSheet
+        visible={form.registration.isOpen}
+        initialName={form.registration.initialName}
+        onCreated={form.registration.onCreated}
+        onClose={form.registration.cancel}
+        onClosed={form.registration.onClosed}
       />
       <ConflictAlertSheet
         visible={editVisible && conflictAlert.visible}

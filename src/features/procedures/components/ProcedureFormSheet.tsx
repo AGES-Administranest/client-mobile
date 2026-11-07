@@ -19,7 +19,7 @@ import { Text } from 'app/components/ui/text';
 import {
   ClientAutocomplete,
   type ClientAutocompleteMessages,
-  type ClientOption,
+  type ClientOptionWithAddress,
   type ClientSearchStatus,
 } from 'features/clients';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
@@ -34,6 +34,11 @@ import type {
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
+// Altura de um campo multilinha: linhas de texto (20px) + padding e borda.
+// Com 4 linhas dá 96px, o mesmo do antigo `h-24`.
+const LINE_HEIGHT = 20;
+const MULTILINE_CHROME = 16;
+
 export type ProcedureFormTexts = {
   title: string;
   confirm: string;
@@ -44,6 +49,7 @@ export type ProcedureFormTexts = {
   asaOptions: AsaClassification[];
   errors: Partial<Record<keyof ProcedureFormValues, string>>;
   clientSearchMessages: ClientAutocompleteMessages;
+  locationHint: string;
   nameMaxLength: number;
   notesMaxLength: number;
 };
@@ -51,20 +57,25 @@ export type ProcedureFormTexts = {
 export type ProcedureClientField = {
   term: string;
   status: ClientSearchStatus;
-  options: ClientOption[];
+  options: ClientOptionWithAddress[];
+  canRegister: boolean;
+  onRegister: () => void;
 };
 
 type ProcedureFormSheetProps = {
   visible: boolean;
+  onClosed?: () => void;
+  registerClientLabel: string;
   values: ProcedureFormValues;
   submitting: boolean;
   submitFailed: boolean;
   submitErrorText: string;
   texts: ProcedureFormTexts;
   client: ProcedureClientField;
+  showLocationHint: boolean;
   onChangeText: (key: ProcedureTextField, value: string) => void;
   onChangeClientTerm: (term: string) => void;
-  onSelectClient: (client: ClientOption) => void;
+  onSelectClient: (client: ClientOptionWithAddress) => void;
   onChangeSpecies: (value: Species) => void;
   onChangeAsa: (value: AsaClassification) => void;
   onSubmit: () => void;
@@ -73,12 +84,15 @@ type ProcedureFormSheetProps = {
 
 export function ProcedureFormSheet({
   visible,
+  onClosed,
+  registerClientLabel,
   values,
   submitting,
   submitFailed,
   submitErrorText,
   texts,
   client,
+  showLocationHint,
   onChangeText,
   onChangeClientTerm,
   onSelectClient,
@@ -92,7 +106,7 @@ export function ProcedureFormSheet({
     option => option.value === values.species,
   );
 
-  const sheet = useSheetAnimation(visible, onClose);
+const sheet = useSheetAnimation(visible, onClose, onClosed);
 
   return (
     <Modal
@@ -160,8 +174,24 @@ export function ProcedureFormSheet({
                 status={client.status}
                 options={client.options}
                 messages={texts.clientSearchMessages}
+                addOption={
+                  client.canRegister
+                    ? { label: registerClientLabel, onPress: client.onRegister }
+                    : undefined
+                }
                 onChangeText={onChangeClientTerm}
                 onSelect={onSelectClient}
+              />
+
+              <Field
+                label={texts.labels.location}
+                placeholder={texts.placeholders.location}
+                value={values.location}
+                error={texts.errors.location}
+                multiline
+                numberOfLines={3}
+                hint={showLocationHint ? texts.locationHint : undefined}
+                onChangeText={v => onChangeText('location', v)}
               />
 
               <View className="flex-row gap-3">
@@ -332,8 +362,10 @@ type FieldProps = {
   onChangeText: (value: string) => void;
   placeholder?: string;
   error?: string;
+  hint?: string;
   keyboardType?: 'default' | 'number-pad' | 'decimal-pad';
   multiline?: boolean;
+  numberOfLines?: number;
   maxLength?: number;
 };
 
@@ -343,8 +375,10 @@ function Field({
   onChangeText,
   placeholder,
   error,
+  hint,
   keyboardType = 'default',
   multiline = false,
+  numberOfLines = 4,
   maxLength,
 }: FieldProps) {
   return (
@@ -353,10 +387,11 @@ function Field({
         {label}
       </Text>
       <TextInput
-        className={
+        className="rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary"
+        style={
           multiline
-            ? 'h-24 rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
-            : 'rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
+            ? { height: numberOfLines * LINE_HEIGHT + MULTILINE_CHROME }
+            : undefined
         }
         placeholder={placeholder}
         placeholderTextColor={LabelPlaceholder}
@@ -365,11 +400,14 @@ function Field({
         keyboardType={keyboardType}
         maxLength={maxLength}
         multiline={multiline}
-        numberOfLines={multiline ? 4 : undefined}
+        numberOfLines={multiline ? numberOfLines : undefined}
         textAlignVertical={multiline ? 'top' : undefined}
       />
       {error ? (
         <Text className="mt-1 text-xs text-alert-primary">{error}</Text>
+      ) : null}
+      {hint && !error ? (
+        <Text className="mt-1 text-xs text-label-tertiary">{hint}</Text>
       ) : null}
     </View>
   );

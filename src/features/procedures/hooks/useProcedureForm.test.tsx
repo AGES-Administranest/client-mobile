@@ -55,6 +55,24 @@ const ACCOUNT: Account = {
 
 const VETCENTER = { id: 'client-7', name: 'Clínica VetCenter' };
 
+const VETCENTER_WITH_ADDRESS = {
+  ...VETCENTER,
+  addressLine: 'Rua das Hortênsias, 340 — Jardim Europa',
+  city: 'São Paulo',
+  state: 'SP',
+};
+const VETCENTER_ADDRESS =
+  'Rua das Hortênsias, 340 — Jardim Europa, São Paulo, SP';
+
+const OTHER_CLINIC_WITH_ADDRESS = {
+  id: 'client-8',
+  name: 'Clínica Outra',
+  addressLine: 'Av. Ipiranga, 1200',
+  city: 'Porto Alegre',
+  state: 'RS',
+};
+const OTHER_CLINIC_ADDRESS = 'Av. Ipiranga, 1200, Porto Alegre, RS';
+
 async function mountHook(onSuccess: () => void = jest.fn(), visible = true) {
   const result = {
     current: null as unknown as ReturnType<typeof useProcedureForm>,
@@ -453,6 +471,241 @@ describe('sem conexão', () => {
       'user-1',
       'local:cg-9',
       expect.any(Object),
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('sugestão de local pelo endereço do tomador', () => {
+  test('escolher um tomador com endereço preenche o local e mostra o hint', async () => {
+    const { result } = await mountHook();
+
+    await act(async () =>
+      result.current.client.onSelect(VETCENTER_WITH_ADDRESS),
+    );
+
+    expect(result.current.values.location).toBe(VETCENTER_ADDRESS);
+    expect(result.current.showLocationHint).toBe(true);
+  });
+
+  test('tomador sem endereço não preenche o local nem mostra o hint', async () => {
+    const { result } = await mountHook();
+
+    await act(async () => result.current.client.onSelect(VETCENTER));
+
+    expect(result.current.values.location).toBe('');
+    expect(result.current.showLocationHint).toBe(false);
+  });
+
+  test('trocar de tomador troca a sugestão se o local não foi editado', async () => {
+    const { result } = await mountHook();
+    await act(async () =>
+      result.current.client.onSelect(VETCENTER_WITH_ADDRESS),
+    );
+
+    await act(async () =>
+      result.current.client.onSelect(OTHER_CLINIC_WITH_ADDRESS),
+    );
+
+    expect(result.current.values.location).toBe(OTHER_CLINIC_ADDRESS);
+    expect(result.current.showLocationHint).toBe(true);
+  });
+
+  test('trocar de tomador mantém o local que o usuário editou e esconde o hint', async () => {
+    const { result } = await mountHook();
+    await act(async () =>
+      result.current.client.onSelect(VETCENTER_WITH_ADDRESS),
+    );
+    await act(async () =>
+      result.current.setTextField('location', 'Sala 2 da clínica'),
+    );
+    expect(result.current.showLocationHint).toBe(false);
+
+    await act(async () =>
+      result.current.client.onSelect(OTHER_CLINIC_WITH_ADDRESS),
+    );
+
+    expect(result.current.values.location).toBe('Sala 2 da clínica');
+    expect(result.current.showLocationHint).toBe(false);
+  });
+
+  test('um local digitado antes de escolher o tomador não é sobrescrito', async () => {
+    const { result } = await mountHook();
+    await act(async () =>
+      result.current.setTextField('location', 'Consultório do Dr. João'),
+    );
+
+    await act(async () =>
+      result.current.client.onSelect(VETCENTER_WITH_ADDRESS),
+    );
+
+    expect(result.current.values.location).toBe('Consultório do Dr. João');
+  });
+
+  test('apagar o local e escolher outro tomador volta a sugerir', async () => {
+    const { result } = await mountHook();
+    await act(async () =>
+      result.current.client.onSelect(VETCENTER_WITH_ADDRESS),
+    );
+    await act(async () => result.current.setTextField('location', ''));
+
+    await act(async () =>
+      result.current.client.onSelect(OTHER_CLINIC_WITH_ADDRESS),
+    );
+
+    expect(result.current.values.location).toBe(OTHER_CLINIC_ADDRESS);
+  });
+
+  test('editar o local não altera o tomador escolhido', async () => {
+    const { result } = await mountHook();
+    await act(async () =>
+      result.current.client.onSelect(VETCENTER_WITH_ADDRESS),
+    );
+
+    await act(async () =>
+      result.current.setTextField('location', 'Outro endereço'),
+    );
+
+    expect(result.current.values.clientId).toBe('client-7');
+    expect(result.current.client.term).toBe('Clínica VetCenter');
+  });
+
+  test('o reset limpa o local e a sugestão', async () => {
+    const { result } = await mountHook();
+    await act(async () =>
+      result.current.client.onSelect(VETCENTER_WITH_ADDRESS),
+    );
+
+    await act(async () => result.current.reset());
+
+    expect(result.current.values.location).toBe('');
+    expect(result.current.showLocationHint).toBe(false);
+  });
+
+  test('envia o local sugerido para a API', async () => {
+    const { result } = await mountWithFilledForm();
+    await act(async () =>
+      result.current.client.onSelect(VETCENTER_WITH_ADDRESS),
+    );
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(createAppointmentMock).toHaveBeenCalledWith(
+      'id-token',
+      expect.objectContaining({
+        clientId: 'client-7',
+        location: VETCENTER_ADDRESS,
+      }),
+    );
+  });
+});
+
+describe('cadastro de novo tomador a partir do formulário', () => {
+  const CREATED = {
+    id: 'client-new',
+    name: 'Clínica Nova',
+    addressLine: 'Rua Augusta, 1500',
+    city: 'São Paulo',
+    state: 'SP',
+  };
+  const CREATED_ADDRESS = 'Rua Augusta, 1500, São Paulo, SP';
+
+  async function startRegistration() {
+    const mounted = await mountHook();
+    const { result } = mounted;
+    await act(async () => result.current.setTextField('patientName', 'Rex'));
+    await act(async () => result.current.setTextField('amount', '350'));
+    await act(async () => result.current.client.onTermChange('Clínica Nova'));
+    await act(async () => result.current.client.onRegister());
+    return mounted;
+  }
+
+  test('abrir o cadastro esconde o formulário, leva o nome digitado e não perde nada', async () => {
+    const { result } = await startRegistration();
+
+    expect(result.current.registration.isHidingForm).toBe(true);
+    // Só abre quando o formulário terminou de sair (iOS).
+    expect(result.current.registration.isOpen).toBe(false);
+    expect(result.current.registration.initialName).toBe('Clínica Nova');
+    expect(result.current.values.patientName).toBe('Rex');
+    expect(result.current.values.amount).toBe('350');
+
+    await act(async () => result.current.registration.onFormClosed());
+
+    expect(result.current.registration.isOpen).toBe(true);
+    expect(result.current.registration.isHidingForm).toBe(true);
+  });
+
+  test('cadastrar seleciona o tomador, sugere o local e volta com os campos preservados', async () => {
+    const { result } = await startRegistration();
+    await act(async () => result.current.registration.onFormClosed());
+
+    await act(async () => result.current.registration.onCreated(CREATED));
+
+    expect(result.current.values.clientId).toBe('client-new');
+    expect(result.current.client.term).toBe('Clínica Nova');
+    expect(result.current.values.location).toBe(CREATED_ADDRESS);
+    expect(result.current.showLocationHint).toBe(true);
+    // O formulário só volta quando o cadastro terminou de sair.
+    expect(result.current.registration.isHidingForm).toBe(true);
+
+    await act(async () => result.current.registration.onClosed());
+
+    expect(result.current.registration.isHidingForm).toBe(false);
+    expect(result.current.registration.isOpen).toBe(false);
+    expect(result.current.values.patientName).toBe('Rex');
+    expect(result.current.values.amount).toBe('350');
+    expect(result.current.values.clientId).toBe('client-new');
+  });
+
+  test('cancelar volta ao formulário intacto, sem tomador selecionado', async () => {
+    const { result } = await startRegistration();
+    await act(async () => result.current.registration.onFormClosed());
+
+    await act(async () => result.current.registration.cancel());
+    await act(async () => result.current.registration.onClosed());
+
+    expect(result.current.registration.isHidingForm).toBe(false);
+    expect(result.current.values.clientId).toBeNull();
+    expect(result.current.values.patientName).toBe('Rex');
+    expect(result.current.values.amount).toBe('350');
+    expect(result.current.client.term).toBe('Clínica Nova');
+  });
+
+  test('o reset durante o cadastro não deixa o formulário preso escondido', async () => {
+    const { result } = await startRegistration();
+
+    await act(async () => result.current.reset());
+
+    expect(result.current.registration.isHidingForm).toBe(false);
+    expect(result.current.registration.isOpen).toBe(false);
+  });
+
+  test('tomador criado sem rede (id local) segue direto para a fila', async () => {
+    const { result, onSuccess } = await mountWithFilledForm();
+    await act(async () => result.current.setField('date', FUTURE_DATE));
+    await act(async () => result.current.client.onTermChange('Clínica Nova'));
+    await act(async () => result.current.client.onRegister());
+    await act(async () => result.current.registration.onFormClosed());
+    await act(async () =>
+      result.current.registration.onCreated({
+        ...CREATED,
+        id: 'local:clinic-9',
+      }),
+    );
+    await act(async () => result.current.registration.onClosed());
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    expect(createAppointmentMock).not.toHaveBeenCalled();
+    expect(queueAppointmentCreate).toHaveBeenCalledWith(
+      'user-1',
+      'cg-1',
+      expect.objectContaining({ clientId: 'local:clinic-9' }),
     );
     expect(onSuccess).toHaveBeenCalledTimes(1);
   });
