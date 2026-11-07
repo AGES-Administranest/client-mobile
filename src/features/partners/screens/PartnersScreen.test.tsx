@@ -78,5 +78,8 @@ test('switching to suppliers hides the clinics content', async () => {
     suppliersTab.props.onPress();
   });
 
-  expect(textsOf(renderer)).not.toContain('Adicionar clínica');
+  const texts = textsOf(renderer);
+  expect(texts).not.toContain('Adicionar clínica');
+  expect(texts).toContain('Nenhum fornecedor cadastrado.');
+  expect(texts).toContain('Adicionar fornecedor');
 });
