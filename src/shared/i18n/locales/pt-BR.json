@@ -1681,12 +1681,16 @@
       "all": {
         "title": "Todos os meses",
         "subtitle": "{{count}} meses calculados desde {{month}}",
+        "note": "Toque em um mês para ver os valores daquele mês.",
         "sinceStartTitle": "Desde o início do histórico",
         "sinceStartText": "De {{from}} em {{fromMonth}} para {{to}} em {{toMonth}}.",
         "monthCount": {
           "one": "{{count}} mês",
           "other": "{{count}} meses"
         }
+      },
+      "detail": {
+        "monthLabel": "Valores de {{month}}/{{year}}"
       }
     }
   },

@@ -2,6 +2,7 @@ import {
   buildHistoryRows,
   groupByYear,
   monthKey,
+  monthOfKey,
   percentChange,
   splitIntoWindows,
   summarizeSinceStart,
@@ -301,5 +302,40 @@ describe('toHourlyRateHistory', () => {
 
   it('answers an empty list with an empty list', () => {
     expect(toHourlyRateHistory([])).toEqual([]);
+  });
+});
+
+describe('monthOfKey', () => {
+  const rows = buildHistoryRows([
+    rate(2026, 10, 98.07),
+    rate(2026, 3, 85.1),
+    rate(2025, 12, 81.9),
+  ]);
+
+  it.each([
+    ['2026-10', { month: 10, year: 2026 }],
+    ['2026-3', { month: 3, year: 2026 }],
+    ['2025-12', { month: 12, year: 2025 }],
+  ])('the row keyed %s is the month %j', (key, expected) => {
+    expect(monthOfKey(rows, key)).toEqual(expected);
+  });
+
+  it.each([['2026-4'], ['2026-04'], [''], ['2024-12']])(
+    'is null when no row has the key %p',
+    key => {
+      expect(monthOfKey(rows, key)).toBeNull();
+    },
+  );
+
+  it('is null for no rows at all', () => {
+    expect(monthOfKey([], '2026-10')).toBeNull();
+  });
+
+  it('turns back what monthKey made', () => {
+    for (const row of rows) {
+      expect(monthOfKey(rows, monthKey(row.rate.month))).toEqual(
+        row.rate.month,
+      );
+    }
   });
 });
