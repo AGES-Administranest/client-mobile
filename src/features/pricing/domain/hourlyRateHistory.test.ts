@@ -284,6 +284,8 @@ describe('toHourlyRateHistory', () => {
       {
         month: { month: 10, year: 2026 },
         hourlyRate: 98.07,
+        productiveHours: 130,
+        minimumHourlyRate: 81.72,
         calculatedAt: '2026-10-19T20:42:00.000Z',
       },
     ]);

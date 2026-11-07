@@ -1461,7 +1461,8 @@
         "title": "Monthly record",
         "currentChip": "Current month",
         "oldest": "start of history",
-        "rowLabel": "{{month}}, {{value}}",
+        "detail": "{{hours}} productive h · min. {{minimum}}",
+        "rowLabel": "{{month}}, {{value}}, {{hours}} productive hours, minimum {{minimum}}",
         "viewAll": "View all months ({{count}})"
       },
       "notes": {

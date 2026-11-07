@@ -116,6 +116,8 @@ export function monthRowView(
 ): HourlyRateMonthRowProps {
   const label = formatMonthLabel(rate.month, locale);
   const value = formatCurrency(rate.hourlyRate, locale);
+  const hours = number(rate.productiveHours, locale, 0);
+  const minimum = formatCurrency(rate.minimumHourlyRate, locale);
   const trend = variation === null ? null : formatChange(variation, locale);
   const caption = isOldest ? t('pricing.history.months.oldest') : null;
 
@@ -126,11 +128,17 @@ export function monthRowView(
       relativeMonth(rate.month, today) === 'current'
         ? t('pricing.history.months.currentChip')
         : null,
+    detail: t('pricing.history.months.detail', { hours, minimum }),
     value,
     trend,
     caption,
     accessibilityLabel: [
-      t('pricing.history.months.rowLabel', { month: label, value }),
+      t('pricing.history.months.rowLabel', {
+        month: label,
+        value,
+        hours,
+        minimum,
+      }),
       trend?.label ?? caption,
     ]
       .filter(Boolean)

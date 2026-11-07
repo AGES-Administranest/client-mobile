@@ -14,8 +14,9 @@ export type HourlyRateHistoryState =
   | {
       status: 'ready';
       rows: HourlyRateHistoryRow[];
-      // From the newest month's detail. `null` when that call fails: the
-      // list is still worth showing without the margin chip.
+      // From the newest month's detail, which answers after the list is
+      // already on screen. `null` until then, and for good when that call
+      // fails: the list is still worth showing without the margin chip.
       safetyMarginPct: number | null;
     };
 
@@ -63,8 +64,16 @@ export function useHourlyRateHistory(): UseHourlyRateHistory {
       .getHourlyRateHistory(idToken)
       .then(async history => {
         const rows = buildHistoryRows(history);
+        if (!isMounted) return;
+        setState({ status: 'ready', rows, safetyMarginPct: null });
+
         const safetyMarginPct = await fetchLatestMargin(idToken, rows);
-        if (isMounted) setState({ status: 'ready', rows, safetyMarginPct });
+        if (!isMounted) return;
+        setState(current =>
+          current.status === 'ready'
+            ? { ...current, safetyMarginPct }
+            : current,
+        );
       })
       .catch(() => {
         if (isMounted) setState({ status: 'error' });
