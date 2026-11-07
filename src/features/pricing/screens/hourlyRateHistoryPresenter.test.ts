@@ -311,9 +311,9 @@ describe('evolutionCardView', () => {
     const { chart } = view(6, '2026-10');
 
     expect(chart.ticks.map(tick => plain(tick.label))).toEqual([
-      'R$ 85',
+      'R$ 70',
+      'R$ 80',
       'R$ 90',
-      'R$ 95',
       'R$ 100',
     ]);
     expect(chart.points.map(point => point.label)).toEqual([
@@ -400,12 +400,12 @@ describe('evolutionCardView', () => {
     const { chart } = view(6, '2026-10');
 
     expect(chart.points.map(point => plain(point.accessibilityLabel))).toEqual([
-      'Maio 2026, R$ 88,40 por hora',
-      'Junho 2026, R$ 90,15 por hora, +2,0% vs maio',
-      'Julho 2026, R$ 93,60 por hora, +3,8% vs junho',
-      'Agosto 2026, R$ 92,30 por hora, −1,4% vs julho',
-      'Setembro 2026, R$ 95,81 por hora, +3,8% vs agosto',
-      'Outubro 2026, R$ 98,07 por hora, +2,4% vs setembro',
+      'Maio 2026, R$ 88,40 por hora, mínimo R$ 73,67',
+      'Junho 2026, R$ 90,15 por hora, mínimo R$ 75,13, +2,0% vs maio',
+      'Julho 2026, R$ 93,60 por hora, mínimo R$ 78,00, +3,8% vs junho',
+      'Agosto 2026, R$ 92,30 por hora, mínimo R$ 76,92, −1,4% vs julho',
+      'Setembro 2026, R$ 95,81 por hora, mínimo R$ 79,84, +3,8% vs agosto',
+      'Outubro 2026, R$ 98,07 por hora, mínimo R$ 81,72, +2,4% vs setembro',
     ]);
   });
 });

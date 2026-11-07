@@ -19,12 +19,12 @@ const point = (
   id: string,
   x: number,
   y: number,
-  secondaryY: number | null = null,
+  minimumY = y - 0.1,
 ): EvolutionChartPoint => ({
   id,
   x,
   y,
-  secondaryY,
+  minimumY,
   label: id,
   accessibilityLabel: `${id}, por hora`,
 });
@@ -95,6 +95,20 @@ describe('touch targets', () => {
     },
   );
 
+  it('keeps 44px columns on a narrow chart', async () => {
+    const { renderer, columns } = await render();
+
+    await act(async () => {
+      renderer.root
+        .findAll(node => typeof node.props.onLayout === 'function')[0]
+        .props.onLayout({ nativeEvent: { layout: { width: 200 } } });
+    });
+
+    for (const column of columns()) {
+      expect(flat(column.props.style).width).toBe(44);
+    }
+  });
+
   it('selects the month of the column that is pressed', async () => {
     const { columns, onSelect } = await render();
 
@@ -157,21 +171,23 @@ describe('drawing', () => {
     expect(radii.filter(r => r === 8)).toHaveLength(1);
   });
 
-  it('draws only the line of the value while there is no second series', async () => {
+  it('draws the rate line solid and the minimum line dashed, 1.5px wide', async () => {
     const { renderer } = await render();
 
-    expect(renderer.root.findAllByType(Polyline)).toHaveLength(1);
+    const [minimum, rate] = renderer.root.findAllByType(Polyline);
+
+    expect(minimum.props).toMatchObject({
+      stroke: '#A07E62',
+      strokeWidth: 1.5,
+      strokeDasharray: '4 4',
+    });
+    expect(rate.props.strokeDasharray).toBeUndefined();
   });
 
-  it('draws a dashed second line when the points carry one', async () => {
-    const { renderer } = await render({
-      points: SIX.map(p => ({ ...p, secondaryY: p.y - 0.1 })),
-    });
+  it('puts no dots on the minimum line', async () => {
+    const { renderer } = await render({ selectedId: null, tooltip: null });
 
-    const lines = renderer.root.findAllByType(Polyline);
-
-    expect(lines).toHaveLength(2);
-    expect(lines.filter(line => line.props.strokeDasharray)).toHaveLength(1);
+    expect(renderer.root.findAllByType(Circle)).toHaveLength(SIX.length);
   });
 });
 

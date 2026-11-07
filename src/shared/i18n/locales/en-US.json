@@ -1445,10 +1445,11 @@
         "titleWithCount": "Trend · {{count}} months",
         "periodChange": "{{change}} in the period",
         "legendRate": "Hourly rate",
+        "legendMinimum": "Minimum (before margin)",
         "tooltipValue": "{{value}}/h",
         "tooltipChange": "{{change}} vs {{month}}",
-        "pointLabel": "{{month}}, {{value}} per hour",
-        "pointLabelWithChange": "{{month}}, {{value}} per hour, {{change}} vs {{previous}}",
+        "pointLabel": "{{month}}, {{value}} per hour, minimum {{minimum}}",
+        "pointLabelWithChange": "{{month}}, {{value}} per hour, minimum {{minimum}}, {{change}} vs {{previous}}",
         "summary": {
           "average": "Average",
           "highest": "Highest",

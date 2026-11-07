@@ -1445,10 +1445,11 @@
         "titleWithCount": "Evolução · {{count}} meses",
         "periodChange": "{{change}} no período",
         "legendRate": "Valor da hora",
+        "legendMinimum": "Mínimo (sem margem)",
         "tooltipValue": "{{value}}/h",
         "tooltipChange": "{{change}} vs {{month}}",
-        "pointLabel": "{{month}}, {{value}} por hora",
-        "pointLabelWithChange": "{{month}}, {{value}} por hora, {{change}} vs {{previous}}",
+        "pointLabel": "{{month}}, {{value}} por hora, mínimo {{minimum}}",
+        "pointLabelWithChange": "{{month}}, {{value}} por hora, mínimo {{minimum}}, {{change}} vs {{previous}}",
         "summary": {
           "average": "Média",
           "highest": "Maior",

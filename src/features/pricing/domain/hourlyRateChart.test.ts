@@ -2,19 +2,31 @@ import { buildHourlyRateChart } from './hourlyRateChart';
 import { buildHistoryRows, monthKey } from './hourlyRateHistory';
 import { HISTORY_PERIODS, newestPeriods } from './hourlyRateHistory.fixture';
 
-// Rows newest first, one per [year, month, rate].
-const rowsOf = (...entries: [number, number, number][]) =>
+// Rows newest first, one per [year, month, rate, minimum]. Without a minimum,
+// it equals the rate and so adds nothing to the axis.
+const rowsOf = (...entries: [number, number, number, number?][]) =>
   buildHistoryRows(
-    entries.map(([year, month, hourlyRate]) => ({
+    entries.map(([year, month, hourlyRate, minimumHourlyRate]) => ({
       ...HISTORY_PERIODS[0],
       month: { month, year },
       hourlyRate,
+      minimumHourlyRate: minimumHourlyRate ?? hourlyRate,
     })),
   );
 
 const rowsWithRates = (...rates: number[]) =>
   rowsOf(
     ...rates.map((rate, i): [number, number, number] => [2026, 10 - i, rate]),
+  );
+
+const rowsWithMinimums = (...pairs: [number, number][]) =>
+  rowsOf(
+    ...pairs.map(([rate, minimum], i): [number, number, number, number] => [
+      2026,
+      10 - i,
+      rate,
+      minimum,
+    ]),
   );
 
 describe('points', () => {
@@ -204,40 +216,62 @@ describe('change', () => {
   });
 });
 
-describe('second series', () => {
-  it('leaves it out by default', () => {
-    const { points } = buildHourlyRateChart(rowsWithRates(98.07, 95.81));
+describe('minimum line', () => {
+  it('is placed on the same axis as the rate, below it', () => {
+    const { points } = buildHourlyRateChart(buildHistoryRows(newestPeriods(6)));
 
-    expect(points.map(point => point.secondaryY)).toEqual([null, null]);
-  });
-
-  it('is placed on the same axis, which grows to fit it', () => {
-    const rows = rowsWithRates(98.07, 95.81, 92.3);
-
-    const alone = buildHourlyRateChart(rows);
-    const withMinimum = buildHourlyRateChart(rows, [81.72, 79.84, 76.92]);
-
-    expect(withMinimum.ticks[0].value).toBeLessThan(alone.ticks[0].value);
-    expect(withMinimum.points.map(point => point.secondaryY)).toEqual([
-      expect.any(Number),
-      expect.any(Number),
-      expect.any(Number),
-    ]);
-    for (const point of withMinimum.points) {
-      expect(point.secondaryY).toBeLessThan(point.y);
-      expect(point.secondaryY).toBeGreaterThan(0);
+    for (const point of points) {
+      expect(point.minimumY).toBeLessThan(point.y);
+      expect(point.minimumY).toBeGreaterThanOrEqual(0);
     }
   });
 
-  it('follows the rows: the first value is the newest month', () => {
-    const { points } = buildHourlyRateChart(rowsWithRates(98.07, 95.81), [
-      81.72,
-      null,
-    ]);
+  it('widens the axis to 70-100 for the six months of the Figma', () => {
+    const { ticks } = buildHourlyRateChart(buildHistoryRows(newestPeriods(6)));
 
-    expect(points.map(point => point.secondaryY === null)).toEqual([
-      true,
-      false,
+    expect(ticks.map(tick => tick.value)).toEqual([70, 80, 90, 100]);
+  });
+
+  it('widens the axis to 60-90 for the oldest six months of the Figma', () => {
+    const oldestSix = buildHistoryRows(newestPeriods(12).slice(6));
+
+    const { ticks } = buildHourlyRateChart(oldestSix);
+
+    expect(oldestSix.map(row => row.rate.hourlyRate)).toEqual([
+      86.95, 85.1, 82.75, 83.4, 81.9, 80.2,
     ]);
+    expect(oldestSix.map(row => row.rate.minimumHourlyRate)).toEqual([
+      72.46, 70.92, 68.96, 69.5, 68.25, 66.83,
+    ]);
+    expect(ticks.map(tick => tick.value)).toEqual([60, 70, 80, 90]);
+  });
+
+  it('follows the rows: the last point is the newest month', () => {
+    const { points } = buildHourlyRateChart(buildHistoryRows(newestPeriods(6)));
+
+    expect(points[5].id).toBe('2026-10');
+    expect(points[5].minimumY).toBeGreaterThan(points[0].minimumY);
+  });
+
+  it('covers a minimum above the lowest rate of the window', () => {
+    const { ticks, points } = buildHourlyRateChart(
+      rowsWithMinimums([98, 99], [90, 120]),
+    );
+
+    expect(ticks[ticks.length - 1].value).toBeGreaterThan(120);
+    for (const point of points) {
+      expect(point.minimumY).toBeLessThan(1);
+    }
+  });
+
+  it('stays out of the average, the highest, the lowest and the change', () => {
+    const chart = buildHourlyRateChart(
+      rowsWithMinimums([100, 20], [90, 10], [80, 5]),
+    );
+
+    expect(chart.average).toBe(90);
+    expect(chart.highest.rate.hourlyRate).toBe(100);
+    expect(chart.lowest.rate.hourlyRate).toBe(80);
+    expect(chart.change).toBeCloseTo(25);
   });
 });

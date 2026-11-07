@@ -678,6 +678,77 @@ describe('evolution chart', () => {
     expect(pointTexts()).toHaveLength(count);
   });
 
+  it('draws only the latest six of seven months, then the overlapping window', async () => {
+    getHistory.mockResolvedValue(newestPeriods(7));
+    const { press, pointTexts } = await renderScreen();
+
+    expect(pointTexts()).toEqual([
+      'Maio 2026',
+      'Junho 2026',
+      'Julho 2026',
+      'Agosto 2026',
+      'Setembro 2026',
+      'Outubro 2026',
+    ]);
+
+    await press('Meses mais antigos');
+
+    expect(pointTexts()).toEqual([
+      'Abril 2026',
+      'Maio 2026',
+      'Junho 2026',
+      'Julho 2026',
+      'Agosto 2026',
+      'Setembro 2026',
+    ]);
+  });
+
+  it('draws six points for each window of thirteen months', async () => {
+    getHistory.mockResolvedValue([
+      ...newestPeriods(12),
+      {
+        ...newestPeriods(1)[0],
+        month: { month: 10, year: 2025 },
+        hourlyRate: 79.5,
+      },
+    ]);
+    const { press, pointTexts } = await renderScreen();
+
+    expect(pointTexts()).toHaveLength(6);
+    await press('Meses mais antigos');
+    expect(pointTexts()).toHaveLength(6);
+    await press('Meses mais antigos');
+    expect(pointTexts()).toEqual([
+      'Outubro 2025',
+      'Novembro 2025',
+      'Dezembro 2025',
+      'Janeiro 2026',
+      'Fevereiro 2026',
+      'Março 2026',
+    ]);
+  });
+
+  it('puts the minimum on the axis even when it is above the lowest rate', async () => {
+    getHistory.mockResolvedValue(
+      newestPeriods(3).map((period, index) => ({
+        ...period,
+        minimumHourlyRate: index === 0 ? 130 : period.minimumHourlyRate,
+      })),
+    );
+
+    const { texts } = await renderScreen();
+
+    expect(texts()).toContain(nbsp('R$ 150'));
+  });
+
+  it('names the minimum in the legend and reads it in each column', async () => {
+    getHistory.mockResolvedValue(newestPeriods(6));
+    const { texts, pointTexts } = await renderScreen();
+
+    expect(texts()).toContain('Mínimo (sem margem)');
+    expect(pointTexts()).toHaveLength(6);
+  });
+
   it('is not drawn with a single month: the placeholder stays', async () => {
     getHistory.mockResolvedValue(newestPeriods(1));
 
@@ -698,9 +769,10 @@ describe('evolution chart', () => {
         'Evolução',
         '+10,9% no período',
         'Valor da hora',
-        nbsp('R$ 85'),
+        'Mínimo (sem margem)',
+        nbsp('R$ 70'),
+        nbsp('R$ 80'),
         nbsp('R$ 90'),
-        nbsp('R$ 95'),
         nbsp('R$ 100'),
         'Mai',
         'Jun',
@@ -739,7 +811,9 @@ describe('evolution chart', () => {
     const { point } = await renderScreen();
 
     expect(point('Outubro 2026').props.accessibilityLabel).toBe(
-      nbsp('Outubro 2026, R$ 98,07 por hora, +2,4% vs setembro'),
+      nbsp(
+        'Outubro 2026, R$ 98,07 por hora, mínimo R$ 81,72, +2,4% vs setembro',
+      ),
     );
   });
 

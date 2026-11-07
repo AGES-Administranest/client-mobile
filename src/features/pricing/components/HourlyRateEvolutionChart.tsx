@@ -14,7 +14,7 @@ import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import {
   BorderWarm,
-  LabelMuted,
+  ChartMinimum,
   LabelQuartenery,
   LabelSecondary,
 } from 'theme/colors';
@@ -27,8 +27,8 @@ export type EvolutionChartPoint = {
   x: number;
   // 0..1 from the lowest to the highest tick.
   y: number;
-  // The second series at this month, `null` where it has none.
-  secondaryY: number | null;
+  // 0..1 like `y`: the minimum of the month, on the same axis.
+  minimumY: number;
   label: string;
   accessibilityLabel: string;
 };
@@ -64,9 +64,11 @@ const PLOT_RIGHT_INSET = 14;
 const MONTH_LABEL_WIDTH = 30;
 const TOOLTIP_WIDTH = 112;
 const MAX_COLUMN_WIDTH = 96;
+export const MIN_TOUCH_TARGET = 44;
 // Until the first layout pass, and wherever there is none (tests).
 const DEFAULT_WIDTH = 318;
 const DASH = '3 4';
+export const MINIMUM_DASH = '4 4';
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -86,9 +88,9 @@ const column = (left: number, width: number) => ({
   height: HEIGHT,
 });
 
-// Line chart of one series by month, with a second one on the same axis when
-// the points carry it. Each month owns a whole column of the chart as its
-// touch target, so a 7px dot is never what has to be hit.
+// Line chart of the rate by month, with the minimum as a dashed line on the
+// same axis. Each month owns a whole column of the chart as its touch target,
+// so a 7px dot is never what has to be hit.
 export function HourlyRateEvolutionChart({
   points,
   ticks,
@@ -116,12 +118,12 @@ export function HourlyRateEvolutionChart({
     `L${placedPoints[placedPoints.length - 1].px},${PLOT_BOTTOM}`,
     'Z',
   ].join(' ');
-  const secondaryLine = placedPoints
-    .filter(point => point.secondaryY !== null)
-    .map(point => `${point.px},${toY(point.secondaryY as number)}`)
+  const minimumLine = placedPoints
+    .map(point => `${point.px},${toY(point.minimumY)}`)
     .join(' ');
-  const columnWidth = Math.min(
+  const columnWidth = clamp(
     points.length > 1 ? plotWidth / (points.length - 1) : plotWidth,
+    MIN_TOUCH_TARGET,
     MAX_COLUMN_WIDTH,
   );
 
@@ -170,15 +172,13 @@ export function HourlyRateEvolutionChart({
             />
           ) : null}
 
-          {secondaryLine ? (
-            <Polyline
-              points={secondaryLine}
-              fill="none"
-              stroke={LabelMuted}
-              strokeWidth={1.5}
-              strokeDasharray="5 4"
-            />
-          ) : null}
+          <Polyline
+            points={minimumLine}
+            fill="none"
+            stroke={ChartMinimum}
+            strokeWidth={1.5}
+            strokeDasharray={MINIMUM_DASH}
+          />
 
           <Polyline
             points={line}

@@ -1,8 +1,10 @@
 import { View } from 'react-native';
+import Svg, { Line } from 'react-native-svg';
 
 import { Card } from 'app/components/ui/card';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
+import { ChartMinimum } from 'theme/colors';
 
 import {
   HourlyRateEvolutionChart,
@@ -20,6 +22,7 @@ export type HourlyRateEvolutionCardProps = {
   title: string;
   periodChange: TrendChipProps | null;
   legend: string;
+  minimumLegend: string;
   chart: HourlyRateEvolutionChartProps;
   stats: EvolutionStat[];
 };
@@ -28,6 +31,7 @@ export function HourlyRateEvolutionCard({
   title,
   periodChange,
   legend,
+  minimumLegend,
   chart,
   stats,
 }: HourlyRateEvolutionCardProps) {
@@ -43,11 +47,29 @@ export function HourlyRateEvolutionCard({
         {periodChange ? <TrendChip {...periodChange} /> : null}
       </View>
 
-      <View className="flex-row items-center gap-1.5">
-        <View className="h-[2.5px] w-[18px] rounded-full bg-label-quartenery" />
-        <Text className="text-[11px] leading-[16.5px] text-label-body">
-          {legend}
-        </Text>
+      <View className="flex-row items-center gap-4">
+        <View className="flex-row items-center gap-1.5">
+          <View className="h-[2.5px] w-[18px] rounded-full bg-label-quartenery" />
+          <Text className="text-[11px] leading-[16.5px] text-label-body">
+            {legend}
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <Svg width={18} height={2}>
+            <Line
+              x1={0}
+              x2={18}
+              y1={1}
+              y2={1}
+              stroke={ChartMinimum}
+              strokeWidth={1.5}
+              strokeDasharray="4 3"
+            />
+          </Svg>
+          <Text className="text-[11px] leading-[16.5px] text-label-body">
+            {minimumLegend}
+          </Text>
+        </View>
       </View>
 
       <HourlyRateEvolutionChart {...chart} />

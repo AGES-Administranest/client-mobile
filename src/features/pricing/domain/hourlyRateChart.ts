@@ -10,7 +10,7 @@ const TICK_STEPS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
 const MAX_TICKS = 4;
 // Breathing room above the highest and below the lowest value, and the least
 // the axis may span around a flat series.
-const PADDING_SHARE = 0.1;
+const PADDING_SHARE = 0.05;
 const MIN_PADDING = 0.5;
 
 export type ChartPoint = {
@@ -21,9 +21,8 @@ export type ChartPoint = {
   // 0 at the lowest tick, 1 at the highest.
   y: number;
   value: number;
-  // The same value on the optional second series (the minimum, later), or
-  // `null` where it has none.
-  secondaryY: number | null;
+  // The minimum of the month (the rate without the margin) on the same axis.
+  minimumY: number;
 };
 
 export type ChartTick = { value: number; y: number };
@@ -70,20 +69,16 @@ function tickValues(min: number, max: number): number[] {
 //
 // `rows` come newest first, as the window does. The X axis counts records, so
 // a month missing from the history takes no room: the label tells the month.
-// `secondary` is a second series by position (newest first too); it widens
-// the Y axis to fit, and it stays out of it when left out.
+// The Y axis covers the rate and the minimum of every month, while the
+// average, the highest and the lowest are read from the rate alone.
 export function buildHourlyRateChart(
   rows: readonly HourlyRateHistoryRow[],
-  secondary?: readonly (number | null)[],
 ): HourlyRateChart {
   const oldestFirst = [...rows].reverse();
-  const secondaryOldestFirst = secondary && [...secondary].reverse();
   const values = oldestFirst.map(row => row.rate.hourlyRate);
   const all = [
     ...values,
-    ...(secondaryOldestFirst ?? []).filter(
-      (value): value is number => value !== null,
-    ),
+    ...oldestFirst.map(row => row.rate.minimumHourlyRate),
   ];
 
   const tickList = tickValues(Math.min(...all), Math.max(...all));
@@ -91,16 +86,13 @@ export function buildHourlyRateChart(
   const span = tickList[tickList.length - 1] - bottom;
   const toY = (value: number) => (value - bottom) / span;
 
-  const points = oldestFirst.map((row, index) => {
-    const secondaryValue = secondaryOldestFirst?.[index] ?? null;
-    return {
-      id: monthKey(row.rate.month),
-      x: oldestFirst.length === 1 ? 0.5 : index / (oldestFirst.length - 1),
-      y: toY(row.rate.hourlyRate),
-      value: row.rate.hourlyRate,
-      secondaryY: secondaryValue === null ? null : toY(secondaryValue),
-    };
-  });
+  const points = oldestFirst.map((row, index) => ({
+    id: monthKey(row.rate.month),
+    x: oldestFirst.length === 1 ? 0.5 : index / (oldestFirst.length - 1),
+    y: toY(row.rate.hourlyRate),
+    value: row.rate.hourlyRate,
+    minimumY: toY(row.rate.minimumHourlyRate),
+  }));
 
   // On a tie the newest month wins, which is the first one met in `rows`.
   const highest = rows.reduce((best, row) =>

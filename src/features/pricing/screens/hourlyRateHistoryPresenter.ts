@@ -280,13 +280,15 @@ function pointAccessibilityLabel(
 ): string {
   const month = formatMonthLabel(row.rate.month, locale);
   const value = formatCurrency(row.rate.hourlyRate, locale);
+  const minimum = formatCurrency(row.rate.minimumHourlyRate, locale);
   if (row.variation === null || row.previousMonth === null) {
-    return t('pricing.history.chart.pointLabel', { month, value });
+    return t('pricing.history.chart.pointLabel', { month, value, minimum });
   }
 
   return t('pricing.history.chart.pointLabelWithChange', {
     month,
     value,
+    minimum,
     change: formatChange(row.variation, locale).label,
     previous: longMonthName(row.previousMonth, locale),
   });
@@ -337,6 +339,7 @@ export function evolutionCardView(
             };
           })(),
     legend: t('pricing.history.chart.legendRate'),
+    minimumLegend: t('pricing.history.chart.legendMinimum'),
     chart: {
       points: chart.points.map(point => {
         const row = rowById.get(point.id) as HourlyRateHistoryRow;
@@ -344,7 +347,7 @@ export function evolutionCardView(
           id: point.id,
           x: point.x,
           y: point.y,
-          secondaryY: point.secondaryY,
+          minimumY: point.minimumY,
           label: shortMonthTitle(row.rate.month, locale),
           accessibilityLabel: pointAccessibilityLabel(row, format),
         };
