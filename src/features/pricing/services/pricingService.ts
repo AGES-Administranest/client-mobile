@@ -92,8 +92,9 @@ export const pricingService = {
     return toHourlyRate(response, settings);
   },
 
-  // One entry per month with a stored calculation. The list carries only the
-  // hour value; the rest of a month is `getHourlyRateHistoryMonth`.
+  // One entry per month with a stored calculation: the hour value, the
+  // productive hours and the minimum. The parts and the goals of a month are
+  // `getHourlyRateHistoryMonth`.
   async getHourlyRateHistory(idToken: string): Promise<HourlyRatePeriod[]> {
     const response = await apiClient.get<HourlyRateHistoryResponse>(
       '/pricing/hourly-rate/history',

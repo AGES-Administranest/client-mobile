@@ -159,12 +159,16 @@ describe('getHourlyRateHistory', () => {
         year: 2026,
         month: 10,
         hourlyRate: '98.07',
+        productiveHours: '130.00',
+        minimumHourlyRate: '81.72',
         calculatedAt: '2026-10-19T20:42:00.000Z',
       },
       {
         year: 2026,
         month: 3,
         hourlyRate: '85.15',
+        productiveHours: '173.33',
+        minimumHourlyRate: '70.96',
         calculatedAt: '2026-03-19T20:42:00.000Z',
       },
     ]);
@@ -175,11 +179,15 @@ describe('getHourlyRateHistory', () => {
       {
         month: { month: 10, year: 2026 },
         hourlyRate: 98.07,
+        productiveHours: 130,
+        minimumHourlyRate: 81.72,
         calculatedAt: '2026-10-19T20:42:00.000Z',
       },
       {
         month: { month: 3, year: 2026 },
         hourlyRate: 85.15,
+        productiveHours: 173.33,
+        minimumHourlyRate: 70.96,
         calculatedAt: '2026-03-19T20:42:00.000Z',
       },
     ]);

@@ -1,8 +1,11 @@
-import { ChartLine } from 'lucide-react-native';
+import { ChartLine, RotateCw } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 
+import { Button } from 'app/components/ui/button';
+import { Card } from 'app/components/ui/card';
 import { EmptyState } from 'app/components/ui/empty-state';
+import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
@@ -88,16 +91,25 @@ function HourlyRateHistoryContent({
             <ActivityIndicator />
           </View>
         ) : state.status === 'error' ? (
-          <View className="items-center gap-2 py-10">
-            <Text className="text-center text-sm text-alert-primary">
+          <Card
+            role="alert"
+            accessibilityLiveRegion="polite"
+            className="items-center gap-3 rounded-[14px] px-6 py-8"
+          >
+            <Text className="text-center text-[13px] leading-[19.5px] text-label-placeholder">
               {t('pricing.history.loadFailure')}
             </Text>
-            <Pressable accessibilityRole="button" onPress={reload}>
-              <Text className="text-[13px] font-semibold text-label-quartenery">
-                {t('common.retry')}
-              </Text>
-            </Pressable>
-          </View>
+            <Button
+              shape="pill"
+              size="sm"
+              hitSlop={6}
+              onPress={reload}
+              className="h-8 gap-1.5 px-3.5"
+            >
+              <Icon as={RotateCw} size={14} />
+              <Text className="text-xs font-semibold">{t('common.retry')}</Text>
+            </Button>
+          </Card>
         ) : rows.length === 0 ? (
           <EmptyState
             icon={ChartLine}

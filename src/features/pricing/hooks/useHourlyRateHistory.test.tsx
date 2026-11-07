@@ -51,13 +51,25 @@ function Probe() {
 }
 
 async function mount(session: typeof SESSION | null) {
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
-    ReactTestRenderer.create(
+    renderer = ReactTestRenderer.create(
       <AuthProvider initialSession={session} initialAccount={ACCOUNT}>
         <Probe />
       </AuthProvider>,
     );
   });
+  return renderer;
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: Error) => void;
+  const promise = new Promise<T>((done, fail) => {
+    resolve = done;
+    reject = fail;
+  });
+  return { promise, resolve, reject };
 }
 
 beforeEach(() => {
@@ -158,6 +170,49 @@ test('reads the margin from the detail of the newest month', async () => {
   expect(getMonth).toHaveBeenCalledTimes(1);
   expect(getMonth).toHaveBeenCalledWith('id-token', { month: 10, year: 2026 });
   expect(current.state).toMatchObject({ status: 'ready', safetyMarginPct: 20 });
+});
+
+test('is ready with the list before the detail answers, then gains the margin', async () => {
+  const detail = deferred<typeof OCTOBER_HOURLY_RATE>();
+  getHistory.mockResolvedValue([SEPTEMBER, OCTOBER]);
+  getMonth.mockReturnValue(detail.promise);
+
+  await mount(SESSION);
+
+  expect(current.state).toMatchObject({
+    status: 'ready',
+    safetyMarginPct: null,
+  });
+
+  await act(async () => detail.resolve(OCTOBER_HOURLY_RATE));
+
+  expect(current.state).toMatchObject({ status: 'ready', safetyMarginPct: 20 });
+});
+
+// A state update after unmounting is silent in React 18, so the guard shows
+// only in what the hook does next: it must not go on to ask for the margin.
+describe('unmounting before an answer', () => {
+  let errors: jest.SpyInstance;
+
+  beforeEach(() => {
+    errors = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    errors.mockRestore();
+  });
+
+  test('ignores the list and does not ask for the margin', async () => {
+    const history = deferred<typeof HISTORY_PERIODS>();
+    getHistory.mockReturnValue(history.promise);
+    const renderer = await mount(SESSION);
+
+    act(() => renderer.unmount());
+    await act(async () => history.resolve([OCTOBER]));
+
+    expect(getMonth).not.toHaveBeenCalled();
+    expect(errors).not.toHaveBeenCalled();
+  });
 });
 
 test('stays ready without the margin when the detail fails', async () => {

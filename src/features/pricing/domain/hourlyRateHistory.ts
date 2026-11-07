@@ -4,12 +4,16 @@ import type { HourlyRateResponse } from './hourlyRate';
 
 export const HISTORY_WINDOW_SIZE = 6;
 
-// One item of GET /pricing/hourly-rate/history: the hour value stored for a
-// month, newest month first. Decimals come as strings.
+// One item of GET /pricing/hourly-rate/history, newest month first: the hour
+// value stored for the month and, derived from the same row, the productive
+// hours and the minimum (without the margin) of the month's own route.
+// Decimals come as strings.
 export type HourlyRateHistoryItem = {
   year: number;
   month: number;
   hourlyRate: string;
+  productiveHours: string;
+  minimumHourlyRate: string;
   calculatedAt: string;
 };
 
@@ -30,6 +34,8 @@ export type HourlyRateHistoryMonthResponse = HourlyRateResponse & {
 export type HourlyRatePeriod = {
   month: MonthPeriod;
   hourlyRate: number;
+  productiveHours: number;
+  minimumHourlyRate: number;
   calculatedAt: string;
 };
 
@@ -60,6 +66,8 @@ export function toHourlyRateHistory(
   return response.map(item => ({
     month: { month: item.month, year: item.year },
     hourlyRate: Number(item.hourlyRate),
+    productiveHours: Number(item.productiveHours),
+    minimumHourlyRate: Number(item.minimumHourlyRate),
     calculatedAt: item.calculatedAt,
   }));
 }

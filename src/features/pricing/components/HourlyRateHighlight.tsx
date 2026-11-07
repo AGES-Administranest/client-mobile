@@ -32,7 +32,7 @@ export type HourlyRateHighlightProps = {
   toggleLabel: string;
   isExpanded: boolean;
   onToggle: () => void;
-  // Left out while the history is not available.
+  // Opens the hourly rate history. Left out where there is no history to open.
   historyShortcut?: { label: string; onPress: () => void };
   children?: ReactNode;
 };
@@ -124,6 +124,7 @@ export function HourlyRateHighlight({
         <Pressable
           accessibilityRole="button"
           onPress={historyShortcut.onPress}
+          hitSlop={4}
           className="flex-row items-center gap-2.5 rounded-[10px] bg-details-warm px-3 py-2.5 active:opacity-70"
         >
           <Text className="flex-1 text-xs font-semibold leading-[18px] text-label-quartenery">
