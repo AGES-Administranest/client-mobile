@@ -71,6 +71,10 @@ module.exports = {
         'trend-up': '#5D6B2F',
         'trend-up-fill': '#EEF1E2',
         'trend-down': '#A34A25',
+        'tooltip-surface': '#1A100A',
+        'tooltip-month': '#CFC8C2',
+        'tooltip-rise': '#D7E0B4',
+        'tooltip-fall': '#F3B9A0',
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -79,29 +79,30 @@ async function renderScreen(onClose = jest.fn()) {
   const press = async (label: string) => {
     await act(async () => control(label).props.onPress());
   };
+  const isRow = (node: ReactTestRenderer.ReactTestInstance) =>
+    typeof node.props.onPress === 'function' &&
+    String(node.props.testID).startsWith('month-row-');
+  const isPoint = (node: ReactTestRenderer.ReactTestInstance) =>
+    typeof node.props.onPress === 'function' &&
+    String(node.props.testID).startsWith('chart-column-');
+  const firstWord = (node: ReactTestRenderer.ReactTestInstance) =>
+    String(node.props.accessibilityLabel).split(',')[0];
   // A month row, found by the month it starts with.
   const row = (month: string) =>
-    renderer.root.find(
-      node =>
-        typeof node.props.onPress === 'function' &&
-        String(node.props.accessibilityLabel ?? '').startsWith(`${month},`),
-    );
+    renderer.root.find(node => isRow(node) && firstWord(node) === month);
+  // A column of the chart, found the same way.
+  const point = (month: string) =>
+    renderer.root.find(node => isPoint(node) && firstWord(node) === month);
   const selectedRows = () =>
     renderer.root
-      .findAll(
-        node =>
-          typeof node.props.onPress === 'function' &&
-          node.props.accessibilityState?.selected === true,
-      )
-      .map(node => String(node.props.accessibilityLabel).split(',')[0]);
-  const rowTexts = () =>
+      .findAll(node => isRow(node) && node.props.accessibilityState.selected)
+      .map(firstWord);
+  const selectedPoints = () =>
     renderer.root
-      .findAll(
-        node =>
-          typeof node.props.onPress === 'function' &&
-          typeof node.props.accessibilityState?.selected === 'boolean',
-      )
-      .map(node => String(node.props.accessibilityLabel).split(',')[0]);
+      .findAll(node => isPoint(node) && node.props.accessibilityState.selected)
+      .map(firstWord);
+  const rowTexts = () => renderer.root.findAll(isRow).map(firstWord);
+  const pointTexts = () => renderer.root.findAll(isPoint).map(firstWord);
 
   return {
     renderer,
@@ -110,8 +111,11 @@ async function renderScreen(onClose = jest.fn()) {
     press,
     control,
     row,
+    point,
     selectedRows,
+    selectedPoints,
     rowTexts,
+    pointTexts,
   };
 }
 
@@ -519,4 +523,223 @@ test('does not ask for a detail when there is no month', async () => {
   await renderScreen();
 
   expect(getMonth).not.toHaveBeenCalled();
+});
+
+describe('evolution chart', () => {
+  it.each([[2], [3], [6]])('is drawn with %s months', async count => {
+    getHistory.mockResolvedValue(newestPeriods(count));
+
+    const { texts, pointTexts } = await renderScreen();
+
+    expect(texts()).toContain(
+      count === 6 ? 'Evolução' : `Evolução · ${count} meses`,
+    );
+    expect(pointTexts()).toHaveLength(count);
+  });
+
+  it('is not drawn with a single month: the placeholder stays', async () => {
+    getHistory.mockResolvedValue(newestPeriods(1));
+
+    const { texts, pointTexts } = await renderScreen();
+
+    expect(pointTexts()).toEqual([]);
+    expect(texts()).toContain('O gráfico aparece no próximo mês');
+    expect(texts()).not.toContain('Valor da hora');
+  });
+
+  it('shows the six months of the Figma, with the newest one in the tooltip', async () => {
+    getHistory.mockResolvedValue(newestPeriods(6));
+
+    const { texts, pointTexts, selectedPoints } = await renderScreen();
+
+    expect(texts()).toEqual(
+      expect.arrayContaining([
+        'Evolução',
+        '+10,9% no período',
+        'Valor da hora',
+        nbsp('R$ 85'),
+        nbsp('R$ 90'),
+        nbsp('R$ 95'),
+        nbsp('R$ 100'),
+        'Mai',
+        'Jun',
+        'Jul',
+        'Ago',
+        'Set',
+        'Out',
+        'Outubro 2026',
+        nbsp('R$ 98,07/h'),
+        '+2,4% vs set',
+        'Média',
+        nbsp('R$ 93,06'),
+        'mai – out',
+        'Maior',
+        nbsp('R$ 98,07'),
+        'outubro',
+        'Menor',
+        nbsp('R$ 88,40'),
+        'maio',
+      ]),
+    );
+    expect(pointTexts()).toEqual([
+      'Maio 2026',
+      'Junho 2026',
+      'Julho 2026',
+      'Agosto 2026',
+      'Setembro 2026',
+      'Outubro 2026',
+    ]);
+    expect(selectedPoints()).toEqual(['Outubro 2026']);
+  });
+
+  it('labels each column with the month, the value and the change', async () => {
+    getHistory.mockResolvedValue(newestPeriods(6));
+
+    const { point } = await renderScreen();
+
+    expect(point('Outubro 2026').props.accessibilityLabel).toBe(
+      nbsp('Outubro 2026, R$ 98,07 por hora, +2,4% vs setembro'),
+    );
+  });
+
+  it('summarises 3 months by their count, as the Figma does', async () => {
+    getHistory.mockResolvedValue(newestPeriods(3));
+
+    const { texts } = await renderScreen();
+
+    expect(texts()).toEqual(
+      expect.arrayContaining([
+        '+6,3% no período',
+        nbsp('R$ 95,39'),
+        '3 meses',
+        nbsp('R$ 92,30'),
+        'agosto',
+      ]),
+    );
+  });
+
+  it('moves the tooltip and highlights the list row when a point is tapped', async () => {
+    getHistory.mockResolvedValue(newestPeriods(6));
+    const { texts, point, selectedRows, selectedPoints } = await renderScreen();
+
+    await act(async () => point('Agosto 2026').props.onPress());
+
+    expect(selectedPoints()).toEqual(['Agosto 2026']);
+    expect(selectedRows()).toEqual(['Agosto 2026']);
+    expect(texts()).toEqual(
+      expect.arrayContaining([
+        'Agosto 2026',
+        nbsp('R$ 92,30/h'),
+        '−1,4% vs jul',
+      ]),
+    );
+    expect(texts()).not.toContain('+2,4% vs set');
+  });
+
+  it('moves the selection of the chart when a list row is tapped', async () => {
+    getHistory.mockResolvedValue(newestPeriods(6));
+    const { texts, row, selectedPoints } = await renderScreen();
+
+    await act(async () => row('Junho 2026').props.onPress());
+
+    expect(selectedPoints()).toEqual(['Junho 2026']);
+    expect(texts()).toEqual(
+      expect.arrayContaining([
+        'Junho 2026',
+        nbsp('R$ 90,15/h'),
+        '+2,0% vs mai',
+      ]),
+    );
+  });
+
+  it('goes back to the newest month of the window when the window changes', async () => {
+    const { texts, point, press, selectedPoints, selectedRows } =
+      await renderScreen();
+    await act(async () => point('Agosto 2026').props.onPress());
+
+    await press('Meses mais antigos');
+
+    expect(selectedPoints()).toEqual(['Abril 2026']);
+    expect(selectedRows()).toEqual(['Abril 2026']);
+    expect(texts()).toEqual(
+      expect.arrayContaining(['Evolução', '+8,4% no período', 'Nov', 'Abr']),
+    );
+  });
+
+  it('leaves the change out of the tooltip for the oldest month of the history', async () => {
+    const { texts, point, press } = await renderScreen();
+    await press('Meses mais antigos');
+
+    await act(async () => point('Novembro 2025').props.onPress());
+
+    expect(texts()).toEqual(
+      expect.arrayContaining(['Novembro 2025', nbsp('R$ 80,20/h')]),
+    );
+    // Only the card of the current value, which has its own, keeps one.
+    expect(texts().filter(text => / vs /.test(text))).toEqual([
+      '+2,4% vs set.',
+    ]);
+  });
+});
+
+describe('the oldest window', () => {
+  // October 2025 on top of the twelve months, so there are 13.
+  const THIRTEEN = [
+    ...newestPeriods(12),
+    {
+      ...newestPeriods(1)[0],
+      month: { month: 10, year: 2025 },
+      hourlyRate: 79.5,
+    },
+  ];
+
+  it('holds the six oldest months, overlapping the previous window', async () => {
+    getHistory.mockResolvedValue(THIRTEEN);
+    const { texts, press, rowTexts, pointTexts, selectedRows } =
+      await renderScreen();
+    expect(rowTexts()).toEqual([
+      'Outubro 2026',
+      'Setembro 2026',
+      'Agosto 2026',
+      'Julho 2026',
+      'Junho 2026',
+      'Maio 2026',
+    ]);
+    expect(texts()).toContain('Mai – Out 2026');
+
+    await press('Meses mais antigos');
+    expect(rowTexts()).toEqual([
+      'Abril 2026',
+      'Março 2026',
+      'Fevereiro 2026',
+      'Janeiro 2026',
+      'Dezembro 2025',
+      'Novembro 2025',
+    ]);
+    expect(texts()).toContain('6 meses anteriores');
+
+    await press('Meses mais antigos');
+    expect(rowTexts()).toEqual([
+      'Março 2026',
+      'Fevereiro 2026',
+      'Janeiro 2026',
+      'Dezembro 2025',
+      'Novembro 2025',
+      'Outubro 2025',
+    ]);
+    expect(pointTexts()).toEqual([...rowTexts()].reverse());
+    expect(texts()).toContain('Out 2025 – Mar 2026');
+    expect(texts()).toContain('6 meses anteriores');
+    expect(selectedRows()).toEqual(['Março 2026']);
+  });
+
+  it('is the last stop of the navigator', async () => {
+    getHistory.mockResolvedValue(THIRTEEN);
+    const { control, press } = await renderScreen();
+
+    await press('Meses mais antigos');
+    await press('Meses mais antigos');
+
+    expect(control('Meses mais antigos').props.disabled).toBe(true);
+  });
 });

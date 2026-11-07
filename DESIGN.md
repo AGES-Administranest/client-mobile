@@ -39,6 +39,10 @@ The good news: **the palette is already implemented** in this repo. Every color 
 | Rate rise | Hourly rate history (US22): rise chip text, the arrow and percentage on a month row | `#5D6B2F` | `Colors.trend.up` | `text-trend-up` |
 | Rate rise fill | Hourly rate history: background of the rise chip ("+2,4% vs set.", "+22,3%") | `#EEF1E2` | `Colors.trend.upFill` | `bg-trend-up-fill` |
 | Rate fall | Hourly rate history: arrow and percentage of a month whose rate dropped ("−1,4%"). A drop is not a blocking state, so it is not `alert-primary` | `#A34A25` | `Colors.trend.down` | `text-trend-down` |
+| Tooltip surface | Hourly rate evolution chart (US22): background of the tooltip over the selected point | `#1A100A` | `Colors.tooltip.surface` | `bg-tooltip-surface` |
+| Tooltip month | Evolution chart tooltip: the month line ("Outubro 2026") | `#CFC8C2` | `Colors.tooltip.month` | `text-tooltip-month` |
+| Tooltip rise | Evolution chart tooltip: a rise against the previous month ("+2,4% vs set") | `#D7E0B4` | `Colors.tooltip.rise` | `text-tooltip-rise` |
+| Tooltip fall | Evolution chart tooltip: a fall against the previous month | `#F3B9A0` | `Colors.tooltip.fall` | `text-tooltip-fall` |
 
 Since `Colors.background.primary` is a 3-stop gradient object (not a hex string), it's meant to be consumed via a `LinearGradient` component, not a plain Tailwind background class — check how `src/app/App.tsx` or existing screens already render it before adding a second implementation.
 

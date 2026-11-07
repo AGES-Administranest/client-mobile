@@ -109,6 +109,7 @@ function MonthRow({
     return (
       <View
         accessible
+        testID={`month-row-${row.id}`}
         accessibilityLabel={row.accessibilityLabel}
         className={className}
       >
@@ -119,6 +120,7 @@ function MonthRow({
 
   return (
     <Pressable
+      testID={`month-row-${row.id}`}
       accessibilityRole="button"
       accessibilityLabel={row.accessibilityLabel}
       accessibilityState={{ selected: isSelected }}

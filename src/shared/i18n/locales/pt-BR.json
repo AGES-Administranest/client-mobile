@@ -1441,7 +1441,21 @@
       "chart": {
         "title": "Evolução",
         "placeholderTitle": "O gráfico aparece no próximo mês",
-        "placeholderMessage": "Precisamos de pelo menos {{count}} meses calculados para mostrar a evolução do valor da sua hora."
+        "placeholderMessage": "Precisamos de pelo menos {{count}} meses calculados para mostrar a evolução do valor da sua hora.",
+        "titleWithCount": "Evolução · {{count}} meses",
+        "periodChange": "{{change}} no período",
+        "legendRate": "Valor da hora",
+        "tooltipValue": "{{value}}/h",
+        "tooltipChange": "{{change}} vs {{month}}",
+        "pointLabel": "{{month}}, {{value}} por hora",
+        "pointLabelWithChange": "{{month}}, {{value}} por hora, {{change}} vs {{previous}}",
+        "summary": {
+          "average": "Média",
+          "highest": "Maior",
+          "lowest": "Menor",
+          "averageRange": "{{from}} – {{to}}",
+          "averageCount": "{{count}} meses"
+        }
       },
       "months": {
         "title": "Registro mensal",

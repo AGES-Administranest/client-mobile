@@ -149,20 +149,60 @@ describe('splitIntoWindows', () => {
     [1, [1]],
     [5, [5]],
     [6, [6]],
-    [7, [6, 1]],
+    [7, [6, 6]],
+    [8, [6, 6]],
     [12, [6, 6]],
-    [13, [6, 6, 1]],
+    [13, [6, 6, 6]],
+    [18, [6, 6, 6]],
+    [19, [6, 6, 6, 6]],
   ])('splits %s records into windows of %j', (count, sizes) => {
     expect(splitIntoWindows(items(count)).map(window => window.length)).toEqual(
       sizes,
     );
   });
 
-  it('keeps the newest records in the first window', () => {
-    expect(splitIntoWindows(items(8))).toEqual([
-      [0, 1, 2, 3, 4, 5],
-      [6, 7],
-    ]);
+  it.each([
+    [6, [[0, 1, 2, 3, 4, 5]]],
+    [
+      7,
+      [
+        [0, 1, 2, 3, 4, 5],
+        [1, 2, 3, 4, 5, 6],
+      ],
+    ],
+    [
+      12,
+      [
+        [0, 1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 10, 11],
+      ],
+    ],
+    [
+      13,
+      [
+        [0, 1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 10, 11],
+        [7, 8, 9, 10, 11, 12],
+      ],
+    ],
+  ])('splits %s records into these windows', (count, windows) => {
+    expect(splitIntoWindows(items(count))).toEqual(windows);
+  });
+
+  it('always ends with the oldest records, never a short window', () => {
+    for (const count of [7, 8, 11, 13, 17, 25]) {
+      const windows = splitIntoWindows(items(count));
+
+      expect(windows[windows.length - 1]).toEqual(items(count).slice(-6));
+    }
+  });
+
+  it('does not change the list it receives', () => {
+    const list = items(8);
+
+    splitIntoWindows(list);
+
+    expect(list).toEqual(items(8));
   });
 
   it('counts records, so a gap in the months does not shorten a window', () => {

@@ -47,6 +47,13 @@ export const TrendUp = '#5D6B2F';
 export const TrendUpFill = '#EEF1E2';
 export const TrendDown = '#A34A25';
 
+// Tooltip of the hourly rate evolution chart (US22): a dark card with the
+// month, the value and the change in lighter tones.
+export const TooltipSurface = '#1A100A';
+export const TooltipMonth = '#CFC8C2';
+export const TooltipRise = '#D7E0B4';
+export const TooltipFall = '#F3B9A0';
+
 export const Colors = {
   button: {
     primary: ButtonPrimary,
@@ -89,5 +96,11 @@ export const Colors = {
     up: TrendUp,
     upFill: TrendUpFill,
     down: TrendDown,
+  },
+  tooltip: {
+    surface: TooltipSurface,
+    month: TooltipMonth,
+    rise: TooltipRise,
+    fall: TooltipFall,
   },
 } as const;
