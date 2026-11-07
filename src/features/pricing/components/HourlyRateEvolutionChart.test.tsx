@@ -1,4 +1,4 @@
-import { Circle, Polyline } from 'react-native-svg';
+import { Circle, Line, Polyline } from 'react-native-svg';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import {
@@ -75,27 +75,64 @@ async function render(overrides: Partial<HourlyRateEvolutionChartProps> = {}) {
 const flat = (style: unknown) =>
   Object.assign({}, ...[style].flat(Infinity).filter(Boolean));
 
+const DEFAULT_WIDTH = 318;
+// The newest point sits 14px short of the right edge, the oldest 38px from the
+// left one (the width of the Y labels).
+const pointX = (x: number, width = DEFAULT_WIDTH) => 38 + x * (width - 38 - 14);
+
+const edges = (column: ReactTestRenderer.ReactTestInstance) => {
+  const { left, width } = flat(column.props.style);
+  return { left: left as number, right: (left + width) as number };
+};
+
 describe('touch targets', () => {
   it.each([[2], [3], [6]])(
-    'gives each of %s months a column of at least 44px by 44px',
+    'gives each of %s months a column as high as the chart, at least 44px',
     async count => {
       const { columns } = await render({
         points: SIX.slice(0, count).map((p, i) => ({
           ...p,
-          x: count === 1 ? 0.5 : i / (count - 1),
+          x: i / (count - 1),
         })),
       });
 
       expect(columns()).toHaveLength(count);
       for (const column of columns()) {
-        const { width, height } = flat(column.props.style);
-        expect(width).toBeGreaterThanOrEqual(44);
-        expect(height).toBeGreaterThanOrEqual(44);
+        expect(flat(column.props.style).height).toBeGreaterThanOrEqual(44);
       }
     },
   );
 
-  it('keeps 44px columns on a narrow chart', async () => {
+  it.each([[2], [3], [6]])(
+    'covers the whole chart with the columns of %s months, with no overlap and no gap',
+    async count => {
+      const { columns } = await render({
+        points: SIX.slice(0, count).map((p, i) => ({
+          ...p,
+          x: i / (count - 1),
+        })),
+      });
+
+      const all = columns().map(edges);
+
+      expect(all[0].left).toBe(0);
+      expect(all[all.length - 1].right).toBe(DEFAULT_WIDTH);
+      all.slice(1).forEach((column, i) => {
+        expect(column.left).toBe(all[i].right);
+      });
+    },
+  );
+
+  it('splits the columns at the midpoint between two months', async () => {
+    const { columns } = await render();
+
+    const [, , third, fourth] = columns().map(edges);
+
+    expect(third.right).toBeCloseTo((pointX(0.4) + pointX(0.6)) / 2, 5);
+    expect(fourth.left).toBe(third.right);
+  });
+
+  it('keeps the columns apart on a narrow chart, where they get under 44px wide', async () => {
     const { renderer, columns } = await render();
 
     await act(async () => {
@@ -104,10 +141,32 @@ describe('touch targets', () => {
         .props.onLayout({ nativeEvent: { layout: { width: 200 } } });
     });
 
-    for (const column of columns()) {
-      expect(flat(column.props.style).width).toBe(44);
-    }
+    const all = columns().map(edges);
+    expect(all[0].left).toBe(0);
+    expect(all[all.length - 1].right).toBe(200);
+    all.slice(1).forEach((column, i) => {
+      expect(column.left).toBe(all[i].right);
+    });
   });
+
+  it.each([
+    ['just before', -1, 'c'],
+    ['just after', 1, 'd'],
+  ])(
+    'selects the right month for a touch %s the border between two months',
+    async (_name, offset, expected) => {
+      const { columns, onSelect } = await render();
+      const border = (pointX(0.4) + pointX(0.6)) / 2;
+
+      const touched = columns().find(column => {
+        const { left, right } = edges(column);
+        return left <= border + offset && border + offset < right;
+      });
+      await act(async () => touched?.props.onPress());
+
+      expect(onSelect).toHaveBeenCalledWith(expected);
+    },
+  );
 
   it('selects the month of the column that is pressed', async () => {
     const { columns, onSelect } = await render();
@@ -182,6 +241,26 @@ describe('drawing', () => {
       strokeDasharray: '4 4',
     });
     expect(rate.props.strokeDasharray).toBeUndefined();
+  });
+
+  it('draws the marker of the selected month at half opacity, from behind the tooltip down to the baseline', async () => {
+    const { renderer } = await render({ selectedId: 'c' });
+
+    const marker = renderer.root
+      .findAllByType(Line)
+      .find(
+        line =>
+          line.props.strokeDasharray === '3 4' &&
+          line.props.x1 === line.props.x2 &&
+          line.props.stroke === '#594236',
+      );
+
+    expect(marker?.props).toMatchObject({
+      strokeOpacity: 0.5,
+      y1: 48,
+      y2: 180,
+    });
+    expect(marker?.props.y1).toBeLessThan(TOOLTIP_HEIGHT);
   });
 
   it('puts no dots on the minimum line', async () => {

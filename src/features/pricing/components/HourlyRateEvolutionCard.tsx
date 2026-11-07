@@ -12,6 +12,9 @@ import {
 } from './HourlyRateEvolutionChart';
 import { TrendChip, type TrendChipProps } from './TrendChip';
 
+// The minimum line of the legend (node 2486:4130): 4px dash, 3px gap.
+const LEGEND_MINIMUM_DASH = '4 3';
+
 export type EvolutionStat = {
   label: string;
   value: string;
@@ -44,7 +47,7 @@ export function HourlyRateEvolutionCard({
         >
           {title}
         </Text>
-        {periodChange ? <TrendChip {...periodChange} /> : null}
+        {periodChange ? <TrendChip {...periodChange} showIcon={false} /> : null}
       </View>
 
       <View className="flex-row items-center gap-4">
@@ -63,7 +66,7 @@ export function HourlyRateEvolutionCard({
               y2={1}
               stroke={ChartMinimum}
               strokeWidth={1.5}
-              strokeDasharray="4 3"
+              strokeDasharray={LEGEND_MINIMUM_DASH}
             />
           </Svg>
           <Text className="text-[11px] leading-[16.5px] text-label-body">

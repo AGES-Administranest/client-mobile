@@ -49,25 +49,37 @@ export type HourlyRateEvolutionChartProps = {
   onSelect: (id: string) => void;
 };
 
+// Layout read from the Figma frame "Gráfico · evolução" (node 2486:4133),
+// 318 x 214, unless noted.
 const HEIGHT = 214;
-// The tooltip stacks three lines (15 + 20 + 15) with a 1px gap between them
-// and 6px of padding above and below.
+// Tooltip (node 2486:4166): three lines (15 + 20 + 15) with a 1px gap between
+// them and 6px of padding above and below.
 export const TOOLTIP_HEIGHT = 15 + 20 + 15 + 2 + 12;
+const TOOLTIP_WIDTH = 112;
+// Halo of the selected point (node 2486:4158), a 16px circle.
 const SELECTED_HALO_RADIUS = 8;
-// The highest point sits at PLOT_TOP, so its halo must start below the tooltip
-// that is drawn over it.
+// The Figma puts the top grid line at y=64, right where the tooltip ends, so
+// the halo of the highest point touches it. Here the highest point sits 8px
+// lower (72) so that the halo starts below the tooltip that is drawn over it.
 export const PLOT_TOP = TOOLTIP_HEIGHT + SELECTED_HALO_RADIUS;
+// The lowest grid line, "Grade R$ 70" (node 2486:4134).
 const PLOT_BOTTOM = 180;
+// Month labels (node 2486:4160): 30px wide, centred on their point.
 const LABELS_TOP = 198;
+const MONTH_LABEL_WIDTH = 30;
+// The grid starts at x=38 (node 2486:4134), after the Y labels, and the newest
+// point sits at x=304, 14px short of the right edge.
 const TICK_LABELS_WIDTH = 38;
 const PLOT_RIGHT_INSET = 14;
-const MONTH_LABEL_WIDTH = 30;
-const TOOLTIP_WIDTH = 112;
-const MAX_COLUMN_WIDTH = 96;
-export const MIN_TOUCH_TARGET = 44;
+// The marker of the selected month (node 2486:4148) starts at y=48, behind
+// the tooltip, and runs down to the baseline at half opacity.
+const MARKER_TOP = 48;
+const MARKER_OPACITY = 0.5;
 // Until the first layout pass, and wherever there is none (tests).
 const DEFAULT_WIDTH = 318;
-const DASH = '3 4';
+// Grid lines and the marker of the selected month: 3px dash, 4px gap.
+const GRID_DASH = '3 4';
+// The minimum line (node 2486:4151).
 export const MINIMUM_DASH = '4 4';
 
 const clamp = (value: number, min: number, max: number) =>
@@ -88,9 +100,13 @@ const column = (left: number, width: number) => ({
   height: HEIGHT,
 });
 
+const rootStyle = { height: HEIGHT };
+
 // Line chart of the rate by month, with the minimum as a dashed line on the
 // same axis. Each month owns a whole column of the chart as its touch target,
-// so a 7px dot is never what has to be hit.
+// so a 7px dot is never what has to be hit: the column runs from the midpoint
+// with the month before it to the midpoint with the next one, and the first
+// and the last reach the edges, so the columns never overlap and leave no gap.
 export function HourlyRateEvolutionChart({
   points,
   ticks,
@@ -121,17 +137,20 @@ export function HourlyRateEvolutionChart({
   const minimumLine = placedPoints
     .map(point => `${point.px},${toY(point.minimumY)}`)
     .join(' ');
-  const columnWidth = clamp(
-    points.length > 1 ? plotWidth / (points.length - 1) : plotWidth,
-    MIN_TOUCH_TARGET,
-    MAX_COLUMN_WIDTH,
-  );
+  const columns = placedPoints.map((point, index) => {
+    const left = index === 0 ? 0 : (placedPoints[index - 1].px + point.px) / 2;
+    const right =
+      index === placedPoints.length - 1
+        ? width
+        : (point.px + placedPoints[index + 1].px) / 2;
+    return { left, width: right - left };
+  });
 
   const onLayout = (event: LayoutChangeEvent) =>
     setWidth(event.nativeEvent.layout.width);
 
   return (
-    <View onLayout={onLayout} className="h-[214px] w-full">
+    <View onLayout={onLayout} className="w-full" style={rootStyle}>
       <View
         pointerEvents="none"
         accessibilityElementsHidden
@@ -154,7 +173,7 @@ export function HourlyRateEvolutionChart({
               y2={toY(tick.y)}
               stroke={BorderWarm}
               strokeWidth={1}
-              strokeDasharray={index === 0 ? undefined : DASH}
+              strokeDasharray={index === 0 ? undefined : GRID_DASH}
             />
           ))}
 
@@ -164,11 +183,12 @@ export function HourlyRateEvolutionChart({
             <Line
               x1={selected.px}
               x2={selected.px}
-              y1={selected.py}
+              y1={MARKER_TOP}
               y2={PLOT_BOTTOM}
               stroke={LabelQuartenery}
+              strokeOpacity={MARKER_OPACITY}
               strokeWidth={1}
-              strokeDasharray={DASH}
+              strokeDasharray={GRID_DASH}
             />
           ) : null}
 
@@ -252,7 +272,7 @@ export function HourlyRateEvolutionChart({
         ))}
       </View>
 
-      {placedPoints.map(point => (
+      {placedPoints.map((point, index) => (
         <Pressable
           key={point.id}
           accessibilityRole="button"
@@ -260,17 +280,14 @@ export function HourlyRateEvolutionChart({
           accessibilityState={{ selected: point.id === selectedId }}
           onPress={() => onSelect(point.id)}
           testID={`chart-column-${point.id}`}
-          style={column(
-            clamp(point.px - columnWidth / 2, 0, width - columnWidth),
-            columnWidth,
-          )}
+          style={column(columns[index].left, columns[index].width)}
         />
       ))}
 
       {selected && tooltip ? (
         <View
           pointerEvents="none"
-          className="gap-px rounded-lg bg-tooltip-surface px-2.5 py-1.5 shadow-[0px_6px_7px_rgba(0,0,0,0.25)]"
+          className="gap-px rounded-[8px] bg-tooltip-surface px-2.5 py-1.5 shadow-[0px_6px_7px_rgba(0,0,0,0.25)]"
           style={placed(
             clamp(selected.px - TOOLTIP_WIDTH / 2, 0, width - TOOLTIP_WIDTH),
             0,

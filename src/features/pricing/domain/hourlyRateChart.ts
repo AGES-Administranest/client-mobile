@@ -9,7 +9,9 @@ import {
 const TICK_STEPS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
 const MAX_TICKS = 4;
 // Breathing room above the highest and below the lowest value, and the least
-// the axis may span around a flat series.
+// the axis may span around a flat series. 5% and not 10%: with 10% the six
+// Figma months (98,07 at the top) would be pushed to a 60–120 axis, not the
+// 70–100 the frames draw.
 const PADDING_SHARE = 0.05;
 const MIN_PADDING = 0.5;
 
@@ -20,7 +22,6 @@ export type ChartPoint = {
   x: number;
   // 0 at the lowest tick, 1 at the highest.
   y: number;
-  value: number;
   // The minimum of the month (the rate without the margin) on the same axis.
   minimumY: number;
 };
@@ -90,7 +91,6 @@ export function buildHourlyRateChart(
     id: monthKey(row.rate.month),
     x: oldestFirst.length === 1 ? 0.5 : index / (oldestFirst.length - 1),
     y: toY(row.rate.hourlyRate),
-    value: row.rate.hourlyRate,
     minimumY: toY(row.rate.minimumHourlyRate),
   }));
 
