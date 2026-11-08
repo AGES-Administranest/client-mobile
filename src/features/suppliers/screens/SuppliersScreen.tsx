@@ -1,4 +1,4 @@
-import { Plus, Truck } from 'lucide-react-native';
+import { Phone, Plus, Truck } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
@@ -19,7 +19,7 @@ import {
   type SupplierField,
 } from '../domain/supplierForm';
 import { useSupplierForm } from '../hooks/useSupplierForm';
-import { useSuppliers } from '../hooks/useSuppliers';
+import { DUPLICATED_TAX_ID, useSuppliers } from '../hooks/useSuppliers';
 
 export function SuppliersScreen() {
   const { t } = useTranslation();
@@ -74,7 +74,9 @@ export function SuppliersScreen() {
     setIsSaving(true);
     const created = await create(payload);
     setIsSaving(false);
-    if (created) setIsNewOpen(false);
+    if (created === DUPLICATED_TAX_ID)
+      newForm.setFieldError('taxId', 'duplicated');
+    else if (created) setIsNewOpen(false);
   };
 
   const submitDetail = async () => {
@@ -83,7 +85,9 @@ export function SuppliersScreen() {
     setIsSaving(true);
     const updated = await update(selectedId, payload);
     setIsSaving(false);
-    if (updated) closeDetail();
+    if (updated === DUPLICATED_TAX_ID)
+      detailForm.setFieldError('taxId', 'duplicated');
+    else if (updated) closeDetail();
   };
 
   const deleteSelected = async () => {
@@ -122,7 +126,16 @@ export function SuppliersScreen() {
             <PartnerCard
               key={supplier.id}
               name={supplier.name}
-              location={supplier.address ?? undefined}
+              location={supplier.phone ?? undefined}
+              locationIcon={Phone}
+              status={{
+                label: t(
+                  supplier.active
+                    ? 'suppliers.detail.active'
+                    : 'suppliers.detail.inactive',
+                ),
+                active: supplier.active,
+              }}
               onPress={() => openDetail(supplier.id)}
             />
           ))}

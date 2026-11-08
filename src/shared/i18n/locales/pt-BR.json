@@ -1044,9 +1044,9 @@
         "label": "Email",
         "placeholder": "Digite o email do fornecedor"
       },
-      "address": {
-        "label": "Endereço",
-        "placeholder": "Digite a rua, número e bairro"
+      "taxId": {
+        "label": "CNPJ",
+        "placeholder": "Digite o CNPJ do fornecedor"
       },
       "phone": {
         "label": "Contato",
@@ -1060,6 +1060,10 @@
       },
       "email": {
         "invalid": "Informe um e-mail válido."
+      },
+      "taxId": {
+        "invalid": "Informe um CNPJ válido.",
+        "duplicated": "Já existe um fornecedor com esse CNPJ."
       },
       "phone": {
         "invalid": "Informe o telefone com DDD."

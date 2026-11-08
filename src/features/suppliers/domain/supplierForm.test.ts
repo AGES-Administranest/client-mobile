@@ -25,7 +25,14 @@ describe('validateSupplierDraft', () => {
     ['short phone', { phone: '(11) 9999' }, { phone: 'invalid' }],
     ['phone with 10 digits', { phone: '(11) 3456-7890' }, {}],
     ['phone with 11 digits', { phone: '(11) 93456-7890' }, {}],
-    ['optional fields blank', { email: ' ', phone: ' ', address: ' ' }, {}],
+    ['optional fields blank', { email: ' ', phone: ' ', taxId: ' ' }, {}],
+    ['short tax id', { taxId: '1234' }, { taxId: 'invalid' }],
+    [
+      'wrong check digits',
+      { taxId: '11.222.333/0001-82' },
+      { taxId: 'invalid' },
+    ],
+    ['masked CNPJ', { taxId: '11.222.333/0001-81' }, {}],
   ])('%s', (_label, overrides, expected) => {
     expect(validateSupplierDraft(draft(overrides))).toEqual(expected);
   });
@@ -42,12 +49,17 @@ describe('toSupplierPayload', () => {
   it('trims values and turns blank optional fields into null', () => {
     expect(
       toSupplierPayload(
-        draft({ name: ' Vet ', email: ' ', address: 'Rua A, 1', phone: '' }),
+        draft({
+          name: ' Vet ',
+          email: ' ',
+          taxId: '11.222.333/0001-81',
+          phone: '',
+        }),
       ),
     ).toEqual({
       name: 'Vet',
       email: null,
-      address: 'Rua A, 1',
+      taxId: '11222333000181',
       phone: null,
       active: true,
     });
@@ -61,14 +73,14 @@ describe('supplierToDraft', () => {
         id: '1',
         name: 'Vet',
         email: null,
-        address: null,
+        taxId: null,
         phone: '11999990000',
         active: false,
       }),
     ).toEqual({
       name: 'Vet',
       email: '',
-      address: '',
+      taxId: '',
       phone: '11999990000',
       active: false,
     });

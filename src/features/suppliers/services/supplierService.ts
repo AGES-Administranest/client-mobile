@@ -1,38 +1,64 @@
+import { apiClient } from 'shared/services/apiClient';
+
 import type { Supplier, SupplierPayload } from '../domain/supplierForm';
 
-// Stand-in: o backend de fornecedores (endereço, edição, exclusão e status)
-// ainda não existe. Mesmas assinaturas da chamada real — o token do usuário
-// primeiro, sem userId — para trocar por apiClient sem mexer nos hooks.
-let stored: Supplier[] = [];
-let nextId = 1;
+// QuerySupplierDto limita `limit` a 100 (@Max(100)).
+const MAX_PAGE_SIZE = 100;
 
-export async function fetchSuppliers(_idToken: string): Promise<Supplier[]> {
-  return Promise.resolve([...stored]);
+// O CNPJ é o único tipo de documento aceito; taxId e taxIdType andam juntos.
+const toBody = ({ active: _active, ...rest }: SupplierPayload) => ({
+  ...rest,
+  taxIdType: rest.taxId ? 'CNPJ' : null,
+});
+
+// O backend só devolve inativos com active=false explícito, então são duas
+// buscas; ativos primeiro.
+export async function fetchSuppliers(idToken: string): Promise<Supplier[]> {
+  const fetchByStatus = (active: boolean) => {
+    const query = new URLSearchParams({
+      active: String(active),
+      page: '1',
+      limit: String(MAX_PAGE_SIZE),
+    });
+    return apiClient.get<Supplier[]>(`/supplier?${query.toString()}`, {
+      token: idToken,
+    });
+  };
+  const [active, inactive] = await Promise.all([
+    fetchByStatus(true),
+    fetchByStatus(false),
+  ]);
+  return [...active, ...inactive];
 }
 
+// CreateSupplierDto não tem `active`: todo fornecedor nasce ativo.
 export async function createSupplier(
-  _idToken: string,
+  idToken: string,
   payload: SupplierPayload,
 ): Promise<Supplier> {
-  const created: Supplier = { id: `supplier-${nextId++}`, ...payload };
-  stored = [...stored, created];
-  return Promise.resolve(created);
+  return apiClient.post<Supplier>('/supplier', toBody(payload), {
+    token: idToken,
+  });
 }
 
 export async function updateSupplier(
-  _idToken: string,
+  idToken: string,
   id: string,
   payload: SupplierPayload,
 ): Promise<Supplier> {
-  const updated: Supplier = { id, ...payload };
-  stored = stored.map(supplier => (supplier.id === id ? updated : supplier));
-  return Promise.resolve(updated);
+  return apiClient.patch<Supplier>(
+    `/supplier/${id}`,
+    { ...toBody(payload), active: payload.active },
+    { token: idToken },
+  );
 }
 
+// DELETE só inativa (active: false): o fornecedor continua na lista.
 export async function deleteSupplier(
-  _idToken: string,
+  idToken: string,
   id: string,
 ): Promise<void> {
-  stored = stored.filter(supplier => supplier.id !== id);
-  return Promise.resolve();
+  await apiClient.delete<Supplier>(`/supplier/${id}`, {
+    token: idToken,
+  });
 }

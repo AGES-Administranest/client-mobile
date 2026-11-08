@@ -20,7 +20,11 @@ const INPUT_PROPS: Record<SupplierField, TextInputProps> = {
     autoComplete: 'email',
     maxLength: SUPPLIER_FIELD_MAX_LENGTH.email,
   },
-  address: { maxLength: SUPPLIER_FIELD_MAX_LENGTH.address },
+  taxId: {
+    autoCapitalize: 'characters',
+    autoCorrect: false,
+    maxLength: SUPPLIER_FIELD_MAX_LENGTH.taxId,
+  },
   phone: {
     keyboardType: 'phone-pad',
     inputMode: 'tel',
@@ -52,8 +56,8 @@ function SupplierFields({
   onChangeField,
 }: SupplierFieldsProps) {
   const fields: SupplierField[] = showName
-    ? ['name', 'email', 'address', 'phone']
-    : ['email', 'address', 'phone'];
+    ? ['name', 'email', 'taxId', 'phone']
+    : ['email', 'taxId', 'phone'];
 
   return (
     <>
@@ -61,6 +65,7 @@ function SupplierFields({
         <View key={field} className="gap-1.5">
           <Text className="text-xs font-semibold uppercase leading-[18px] tracking-[0.48px] text-label-primary">
             {fieldTexts[field].label}
+            {field === 'name' ? ' *' : ''}
           </Text>
           <TextInput
             {...INPUT_PROPS[field]}

@@ -1044,9 +1044,9 @@
         "label": "Email",
         "placeholder": "Enter the supplier email"
       },
-      "address": {
-        "label": "Address",
-        "placeholder": "Enter street, number and neighborhood"
+      "taxId": {
+        "label": "CNPJ",
+        "placeholder": "Enter the supplier CNPJ"
       },
       "phone": {
         "label": "Phone",
@@ -1060,6 +1060,10 @@
       },
       "email": {
         "invalid": "Enter a valid email."
+      },
+      "taxId": {
+        "invalid": "Enter a CNPJ that is valid.",
+        "duplicated": "A supplier with this CNPJ already exists."
       },
       "phone": {
         "invalid": "Enter the phone number with area code."

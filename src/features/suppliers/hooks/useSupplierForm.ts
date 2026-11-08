@@ -7,6 +7,7 @@ import {
   validateSupplierDraft,
   type SupplierDraft,
   type SupplierDraftErrors,
+  type SupplierErrorCode,
   type SupplierField,
   type SupplierPayload,
 } from '../domain/supplierForm';
@@ -15,6 +16,7 @@ export type SupplierFormState = {
   draft: SupplierDraft;
   errors: SupplierDraftErrors;
   setField: (field: SupplierField, value: string) => void;
+  setFieldError: (field: SupplierField, code: SupplierErrorCode) => void;
   setActive: (active: boolean) => void;
   reset: (initial?: SupplierDraft) => void;
   validate: () => SupplierPayload | null;
@@ -34,6 +36,12 @@ export function useSupplierForm(): SupplierFormState {
     });
   }, []);
 
+  const setFieldError = useCallback(
+    (field: SupplierField, code: SupplierErrorCode) =>
+      setErrors(current => ({ ...current, [field]: code })),
+    [],
+  );
+
   const setActive = useCallback(
     (active: boolean) => setDraft(current => ({ ...current, active })),
     [],
@@ -50,5 +58,5 @@ export function useSupplierForm(): SupplierFormState {
     return isSupplierDraftValid(found) ? toSupplierPayload(draft) : null;
   }, [draft]);
 
-  return { draft, errors, setField, setActive, reset, validate };
+  return { draft, errors, setField, setFieldError, setActive, reset, validate };
 }
