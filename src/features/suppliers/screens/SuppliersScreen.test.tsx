@@ -124,6 +124,7 @@ test('creates, edits, deactivates and deletes a supplier', async () => {
   await pressByText(renderer, 'Adicionar fornecedor');
   await pressByText(renderer, 'Confirmar');
   expect(textsOf(renderer)).toContain('Informe o nome do fornecedor.');
+  expect(textsOf(renderer)).toContain('Informe o CNPJ do fornecedor.');
 
   await typeInto(renderer, 'Nome do fornecedor', 'PetCare Central');
   await typeInto(renderer, 'CNPJ', '11.222.333/0001-81');
@@ -175,6 +176,7 @@ test('keeps the supplier active when the deactivation is cancelled', async () =>
   const renderer = await renderScreen();
   await pressByText(renderer, 'Adicionar fornecedor');
   await typeInto(renderer, 'Nome do fornecedor', 'Vet Oeste');
+  await typeInto(renderer, 'CNPJ', '00.000.000/0001-91');
   await pressByText(renderer, 'Confirmar');
   await pressByText(renderer, 'Vet Oeste');
   await pressByText(renderer, 'Editar Fornecedor');
@@ -192,6 +194,7 @@ test('registers a supplier without a connection and keeps it in the send queue',
   const renderer = await renderScreen();
   await pressByText(renderer, 'Adicionar fornecedor');
   await typeInto(renderer, 'Nome do fornecedor', 'Vet Offline');
+  await typeInto(renderer, 'CNPJ', '45.723.174/0001-10');
   await pressByText(renderer, 'Confirmar');
 
   expect(textsOf(renderer)).toContain('Vet Offline');

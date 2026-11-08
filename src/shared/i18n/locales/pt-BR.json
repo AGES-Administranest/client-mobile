@@ -1062,6 +1062,7 @@
         "invalid": "Informe um e-mail válido."
       },
       "taxId": {
+        "required": "Informe o CNPJ do fornecedor.",
         "invalid": "Informe um CNPJ válido.",
         "duplicated": "Já existe um fornecedor com esse CNPJ."
       },

@@ -33,6 +33,8 @@ const INPUT_PROPS: Record<SupplierField, TextInputProps> = {
   },
 };
 
+const REQUIRED_FIELDS: SupplierField[] = ['name', 'taxId'];
+
 type SupplierFieldTexts = {
   label: string;
   placeholder: string;
@@ -65,7 +67,7 @@ function SupplierFields({
         <View key={field} className="gap-1.5">
           <Text className="text-xs font-semibold uppercase leading-[18px] tracking-[0.48px] text-label-primary">
             {fieldTexts[field].label}
-            {field === 'name' ? ' *' : ''}
+            {REQUIRED_FIELDS.includes(field) ? ' *' : ''}
           </Text>
           <TextInput
             {...INPUT_PROPS[field]}

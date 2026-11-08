@@ -90,7 +90,7 @@ export function supplierToDraft(supplier: Supplier): SupplierDraft {
   };
 }
 
-// Só o nome é obrigatório: e-mail, CNPJ e contato são opcionais, mas
+// Nome e CNPJ são obrigatórios: e-mail e contato são opcionais, mas
 // quando preenchidos precisam ser válidos.
 export function validateSupplierDraft(
   draft: SupplierDraft,
@@ -112,7 +112,9 @@ export function validateSupplierDraft(
   if (phone && phone.replace(/\D/g, '').length < MIN_PHONE_DIGITS) {
     errors.phone = 'invalid';
   }
-  if (taxId && !isValidCnpj(unmaskTaxId(taxId))) {
+  if (!taxId) {
+    errors.taxId = 'required';
+  } else if (!isValidCnpj(unmaskTaxId(taxId))) {
     errors.taxId = 'invalid';
   }
   return errors;

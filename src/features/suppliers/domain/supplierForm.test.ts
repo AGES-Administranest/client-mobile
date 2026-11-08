@@ -10,6 +10,7 @@ import {
 const draft = (overrides: Partial<SupplierDraft>): SupplierDraft => ({
   ...EMPTY_SUPPLIER_DRAFT,
   name: 'Vet Distribuidora',
+  taxId: '11.222.333/0001-81',
   ...overrides,
 });
 
@@ -25,7 +26,8 @@ describe('validateSupplierDraft', () => {
     ['short phone', { phone: '(11) 9999' }, { phone: 'invalid' }],
     ['phone with 10 digits', { phone: '(11) 3456-7890' }, {}],
     ['phone with 11 digits', { phone: '(11) 93456-7890' }, {}],
-    ['optional fields blank', { email: ' ', phone: ' ', taxId: ' ' }, {}],
+    ['empty CNPJ', { taxId: ' ' }, { taxId: 'required' }],
+    ['optional fields blank', { email: ' ', phone: ' ' }, {}],
     ['short tax id', { taxId: '1234' }, { taxId: 'invalid' }],
     [
       'wrong check digits',

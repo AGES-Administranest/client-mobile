@@ -1062,6 +1062,7 @@
         "invalid": "Enter a valid email."
       },
       "taxId": {
+        "required": "Enter the supplier CNPJ.",
         "invalid": "Enter a CNPJ that is valid.",
         "duplicated": "A supplier with this CNPJ already exists."
       },
