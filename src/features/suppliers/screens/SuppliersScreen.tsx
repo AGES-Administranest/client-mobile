@@ -249,6 +249,7 @@ export function SuppliersScreen() {
           }.confirm`,
         )}
         cancelLabel={t('suppliers.statusConfirm.cancel')}
+        cancelAppearance="button"
         onConfirm={confirmStatus}
         onCancel={() => setPendingStatus(null)}
       />
