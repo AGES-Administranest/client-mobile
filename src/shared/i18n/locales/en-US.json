@@ -613,9 +613,47 @@
       "edit": "Edit clinic",
       "editTitle": "Edit",
       "confirm": "Confirm",
-      "delete": "Delete"
+      "delete": "Delete",
+      "tabs": {
+        "history": "History",
+        "data": "Details"
+      }
     },
-    "loadFailure": "Could not load the clinics."
+    "loadFailure": "Could not load the clinics.",
+    "history": {
+      "period": "Period",
+      "periodRange": "{{from}} – {{to}}",
+      "choosePeriod": "Choose period",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "currentMonth": "This month",
+      "apply": "Apply",
+      "billed": "Billed",
+      "appointments": "Appointments",
+      "trips": "Travel",
+      "tripCountZero": "No trips in the period",
+      "tripCountOne": "1 trip in the period",
+      "tripCountOther": "{{count}} trips in the period",
+      "listTitle": "Appointments in the period",
+      "noProcedure": "Procedure not provided",
+      "noAmount": "No amount",
+      "appointmentDetail": "{{patient}} · {{date}}",
+      "showMoreOne": "Show 1 more appointment",
+      "showMoreOther": "Show {{count}} more appointments",
+      "showMoreUncounted": "Show more appointments",
+      "showMoreFailed": "Could not load more appointments. Try again",
+      "loading": "Loading the history",
+      "loadingMore": "Loading more appointments…",
+      "empty": {
+        "title": "No appointments in this period",
+        "message": "Appointments linked to this clinic show up here. Try another period."
+      },
+      "failures": {
+        "network": "Could not load the history. Check your connection and try again.",
+        "session": "Your session has expired. Sign out and sign in again.",
+        "unknown": "Could not load the history. Please try again."
+      }
+    }
   },
   "financialEntries": {
     "newEntry": "New entry",
