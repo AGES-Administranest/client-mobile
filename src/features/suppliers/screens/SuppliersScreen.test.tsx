@@ -89,7 +89,8 @@ const textsOf = (renderer: Renderer) =>
   );
 
 function pressByText(renderer: Renderer, label: string) {
-  const [button] = renderer.root.findAll(
+  // O mais interno: o fundo de um diálogo também tem onPress e contém o texto.
+  const button = renderer.root.findAll(
     node =>
       typeof node.props.onPress === 'function' &&
       node
@@ -97,7 +98,7 @@ function pressByText(renderer: Renderer, label: string) {
         .some(text => text.props.children === label),
   );
   return act(async () => {
-    button.props.onPress();
+    button.at(-1)!.props.onPress();
   });
 }
 
@@ -136,6 +137,8 @@ test('creates, edits, deactivates and deletes a supplier', async () => {
   await typeInto(renderer, 'Nome do fornecedor', 'PetCare Sul');
   await pressByText(renderer, 'Desativo');
   await pressByText(renderer, 'Confirmar');
+  expect(textsOf(renderer)).toContain('Desativar fornecedor?');
+  await pressByText(renderer, 'Desativar');
   texts = textsOf(renderer);
   expect(texts).toContain('PetCare Sul');
   expect(texts).not.toContain('PetCare Central');
@@ -162,4 +165,21 @@ test('refuses a second supplier with the same CNPJ', async () => {
   expect(texts).toContain('Já existe um fornecedor com esse CNPJ.');
   expect(texts).toContain('PetCare Norte');
   expect(texts).not.toContain('PetCare Leste');
+});
+
+test('keeps the supplier active when the deactivation is cancelled', async () => {
+  const renderer = await renderScreen();
+  await pressByText(renderer, 'Adicionar fornecedor');
+  await typeInto(renderer, 'Nome do fornecedor', 'Vet Oeste');
+  await pressByText(renderer, 'Confirmar');
+  await pressByText(renderer, 'Vet Oeste');
+  await pressByText(renderer, 'Editar Fornecedor');
+  await pressByText(renderer, 'Desativo');
+  await pressByText(renderer, 'Confirmar');
+  expect(textsOf(renderer)).toContain('Desativar fornecedor?');
+
+  await pressByText(renderer, 'Cancelar');
+  expect(textsOf(renderer)).not.toContain('Desativar fornecedor?');
+  await pressByText(renderer, 'Excluir');
+  expect(textsOf(renderer)).toContain('Desativar fornecedor?');
 });

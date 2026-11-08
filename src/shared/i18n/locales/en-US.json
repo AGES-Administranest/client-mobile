@@ -1069,6 +1069,19 @@
         "invalid": "Enter the phone number with area code."
       }
     },
+    "statusConfirm": {
+      "deactivate": {
+        "title": "Deactivate supplier?",
+        "message": "The supplier leaves the active ones and moves to the end of the list. Records linked to it are kept.",
+        "confirm": "Deactivate"
+      },
+      "activate": {
+        "title": "Activate supplier?",
+        "message": "The supplier goes back to the active ones.",
+        "confirm": "Activate"
+      },
+      "cancel": "Cancel"
+    },
     "detail": {
       "title": "Supplier",
       "editTitle": "Edit",

@@ -1069,6 +1069,19 @@
         "invalid": "Informe o telefone com DDD."
       }
     },
+    "statusConfirm": {
+      "deactivate": {
+        "title": "Desativar fornecedor?",
+        "message": "O fornecedor sai dos ativos e vai para o fim da lista. Os registros ligados a ele são mantidos.",
+        "confirm": "Desativar"
+      },
+      "activate": {
+        "title": "Ativar fornecedor?",
+        "message": "O fornecedor volta para os ativos.",
+        "confirm": "Ativar"
+      },
+      "cancel": "Cancelar"
+    },
     "detail": {
       "title": "Fornecedor",
       "editTitle": "Editar",

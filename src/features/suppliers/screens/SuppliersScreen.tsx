@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { ConfirmDialog } from 'app/components/ui/confirm-dialog';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { PartnerCard } from 'app/components/ui/partner-card';
@@ -17,6 +18,7 @@ import {
   supplierToDraft,
   type SupplierDraftErrors,
   type SupplierField,
+  type SupplierPayload,
 } from '../domain/supplierForm';
 import { useSupplierForm } from '../hooks/useSupplierForm';
 import { DUPLICATED_TAX_ID, useSuppliers } from '../hooks/useSuppliers';
@@ -31,6 +33,11 @@ export function SuppliersScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<{
+    kind: 'activate' | 'deactivate';
+    action: 'save' | 'delete';
+    payload?: SupplierPayload;
+  } | null>(null);
 
   const fieldTexts = Object.fromEntries(
     SUPPLIER_FIELDS.map(field => [
@@ -79,15 +86,47 @@ export function SuppliersScreen() {
     else if (created) setIsNewOpen(false);
   };
 
-  const submitDetail = async () => {
-    const payload = detailForm.validate();
-    if (!payload || !selectedId) return;
+  const selected = suppliers.find(item => item.id === selectedId);
+
+  const submitDetail = async (payload: SupplierPayload) => {
+    if (!selectedId) return;
     setIsSaving(true);
     const updated = await update(selectedId, payload);
     setIsSaving(false);
     if (updated === DUPLICATED_TAX_ID)
       detailForm.setFieldError('taxId', 'duplicated');
     else if (updated) closeDetail();
+  };
+
+  // Ativar ou desativar pede confirmação; editar sem mudar o status não.
+  const requestSave = () => {
+    const payload = detailForm.validate();
+    if (!payload) return;
+    if (selected && selected.active !== payload.active) {
+      setPendingStatus({
+        kind: payload.active ? 'activate' : 'deactivate',
+        action: 'save',
+        payload,
+      });
+      return;
+    }
+    submitDetail(payload);
+  };
+
+  const requestDelete = () => {
+    if (selected?.active) {
+      setPendingStatus({ kind: 'deactivate', action: 'delete' });
+      return;
+    }
+    deleteSelected();
+  };
+
+  const confirmStatus = () => {
+    const pending = pendingStatus;
+    setPendingStatus(null);
+    if (!pending) return;
+    if (pending.action === 'delete') deleteSelected();
+    else if (pending.payload) submitDetail(pending.payload);
   };
 
   const deleteSelected = async () => {
@@ -186,9 +225,32 @@ export function SuppliersScreen() {
         onChangeField={detailForm.setField}
         onChangeActive={detailForm.setActive}
         onEdit={() => setIsEditing(true)}
-        onConfirm={submitDetail}
-        onDelete={deleteSelected}
+        onConfirm={requestSave}
+        onDelete={requestDelete}
         onClose={closeDetail}
+      />
+
+      <ConfirmDialog
+        visible={pendingStatus !== null}
+        tone={pendingStatus?.kind === 'activate' ? 'neutral' : 'danger'}
+        title={t(
+          `suppliers.statusConfirm.${
+            pendingStatus?.kind ?? 'deactivate'
+          }.title`,
+        )}
+        message={t(
+          `suppliers.statusConfirm.${
+            pendingStatus?.kind ?? 'deactivate'
+          }.message`,
+        )}
+        confirmLabel={t(
+          `suppliers.statusConfirm.${
+            pendingStatus?.kind ?? 'deactivate'
+          }.confirm`,
+        )}
+        cancelLabel={t('suppliers.statusConfirm.cancel')}
+        onConfirm={confirmStatus}
+        onCancel={() => setPendingStatus(null)}
       />
     </View>
   );
