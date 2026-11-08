@@ -5,6 +5,7 @@ import { AuthProvider, TERMS_VERSION } from 'features/auth';
 import { I18nProvider } from 'shared/i18n';
 
 import { SuppliersScreen } from './SuppliersScreen';
+import { loadSupplierOutbox } from '../services/offlineSupplierStore';
 
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
@@ -22,6 +23,9 @@ jest.mock('shared/services/apiClient', () => {
         return rows.filter(row => row.active === wanted);
       },
       post: async (_path: string, body: { taxId?: string }) => {
+        if ((body as { name?: string }).name === 'Vet Offline') {
+          throw new TypeError('Network request failed');
+        }
         if (body.taxId && rows.some(row => row.taxId === body.taxId)) {
           throw new ApiError('dup', 'DUPLICATED_SUPPLIER_TAX_ID', 409);
         }
@@ -182,4 +186,19 @@ test('keeps the supplier active when the deactivation is cancelled', async () =>
   expect(textsOf(renderer)).not.toContain('Desativar fornecedor?');
   await pressByText(renderer, 'Excluir');
   expect(textsOf(renderer)).toContain('Desativar fornecedor?');
+});
+
+test('registers a supplier without a connection and keeps it in the send queue', async () => {
+  const renderer = await renderScreen();
+  await pressByText(renderer, 'Adicionar fornecedor');
+  await typeInto(renderer, 'Nome do fornecedor', 'Vet Offline');
+  await pressByText(renderer, 'Confirmar');
+
+  expect(textsOf(renderer)).toContain('Vet Offline');
+  const outbox = await loadSupplierOutbox('user-1');
+  expect(outbox).toHaveLength(1);
+  expect(outbox[0]).toMatchObject({
+    kind: 'create',
+    payload: { name: 'Vet Offline' },
+  });
 });

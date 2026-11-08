@@ -3,8 +3,17 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from 'features/auth';
 import type { TranslationKey } from 'shared/i18n';
 import { ApiError } from 'shared/services/apiClient';
+import { isNetworkError } from 'shared/utils/network';
 
+import { isLocalSupplierId, toSupplierBody } from '../domain/offlineSuppliers';
 import type { Supplier, SupplierPayload } from '../domain/supplierForm';
+import {
+  hasOfflineSupplierTaxId,
+  loadSuppliersWithOffline,
+  queueSupplierCreate,
+  queueSupplierUpdate,
+  subscribeOfflineSuppliers,
+} from '../services/offlineSupplierStore';
 import {
   createSupplier,
   deleteSupplier,
@@ -36,11 +45,19 @@ export type SuppliersState = {
 };
 
 export function useSuppliers(): SuppliersState {
-  const { session } = useAuth();
+  const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
+  const userId = account?.id ?? null;
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [failure, setFailure] = useState<TranslationKey | null>(null);
+  const [version, setVersion] = useState(0);
+
+  // A fila muda (cadastro offline, envio feito): a lista se refaz.
+  useEffect(
+    () => subscribeOfflineSuppliers(() => setVersion(current => current + 1)),
+    [],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -49,12 +66,11 @@ export function useSuppliers(): SuppliersState {
       setIsLoading(false);
       return;
     }
-    setIsLoading(true);
     setFailure(null);
 
-    fetchSuppliers(idToken)
+    loadSuppliersWithOffline(userId, () => fetchSuppliers(idToken))
       .then(loaded => {
-        if (isMounted) setSuppliers(loaded);
+        if (isMounted) setSuppliers(activeFirst(loaded.suppliers));
       })
       .catch(() => {
         if (isMounted) setFailure('suppliers.loadFailure');
@@ -66,45 +82,92 @@ export function useSuppliers(): SuppliersState {
     return () => {
       isMounted = false;
     };
-  }, [idToken]);
+  }, [idToken, userId, version]);
+
+  const replace = useCallback((saved: Supplier) => {
+    setSuppliers(current =>
+      activeFirst(
+        current.some(supplier => supplier.id === saved.id)
+          ? current.map(supplier =>
+              supplier.id === saved.id ? saved : supplier,
+            )
+          : [...current, saved],
+      ),
+    );
+  }, []);
 
   const create = useCallback(
-    async (payload: SupplierPayload) => {
+    async (payload: SupplierPayload): Promise<SaveResult> => {
       if (!idToken) return null;
       try {
         const created = await createSupplier(idToken, payload);
-        setSuppliers(current => activeFirst([...current, created]));
+        replace(created);
         return created;
       } catch (error) {
         if (isDuplicatedTaxId(error)) return DUPLICATED_TAX_ID;
-        return null;
+        if (!userId || !isNetworkError(error)) return null;
+        if (
+          payload.taxId &&
+          (await hasOfflineSupplierTaxId(userId, payload.taxId))
+        ) {
+          return DUPLICATED_TAX_ID;
+        }
+        const queued = await queueSupplierCreate(
+          userId,
+          toSupplierBody(payload),
+        );
+        replace(queued);
+        return queued;
       }
     },
-    [idToken],
+    [idToken, userId, replace],
   );
 
   const update = useCallback(
-    async (id: string, payload: SupplierPayload) => {
+    async (id: string, payload: SupplierPayload): Promise<SaveResult> => {
       if (!idToken) return null;
+      const queue = async (): Promise<SaveResult> => {
+        if (!userId) return null;
+        if (
+          payload.taxId &&
+          (await hasOfflineSupplierTaxId(userId, payload.taxId, id))
+        ) {
+          return DUPLICATED_TAX_ID;
+        }
+        const queued = await queueSupplierUpdate(
+          userId,
+          id,
+          toSupplierBody(payload),
+        );
+        if (queued) replace(queued);
+        return queued;
+      };
+      // Um fornecedor que ainda nem existe no backend só se edita na fila.
+      if (isLocalSupplierId(id)) return queue();
       try {
         const updated = await updateSupplier(idToken, id, payload);
-        setSuppliers(current =>
-          activeFirst(
-            current.map(supplier => (supplier.id === id ? updated : supplier)),
-          ),
-        );
+        replace(updated);
         return updated;
       } catch (error) {
         if (isDuplicatedTaxId(error)) return DUPLICATED_TAX_ID;
-        return null;
+        return isNetworkError(error) ? queue() : null;
       }
     },
-    [idToken],
+    [idToken, userId, replace],
   );
 
   const remove = useCallback(
     async (id: string) => {
       if (!idToken) return false;
+      const inactivateInQueue = async () => {
+        if (!userId) return false;
+        const queued = await queueSupplierUpdate(userId, id, {
+          active: false,
+        });
+        if (queued) replace(queued);
+        return queued !== null;
+      };
+      if (isLocalSupplierId(id)) return inactivateInQueue();
       try {
         await deleteSupplier(idToken, id);
         setSuppliers(current =>
@@ -115,11 +178,11 @@ export function useSuppliers(): SuppliersState {
           ),
         );
         return true;
-      } catch {
-        return false;
+      } catch (error) {
+        return isNetworkError(error) ? inactivateInQueue() : false;
       }
     },
-    [idToken],
+    [idToken, userId, replace],
   );
 
   return { suppliers, isLoading, failure, create, update, remove };
