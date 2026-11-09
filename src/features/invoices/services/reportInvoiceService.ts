@@ -6,10 +6,10 @@ import {
   type ReportInvoice,
 } from '../domain/reportInvoice';
 
-// O dono das notas vem do token: o backend lê o usuário do Authorization e
-// recusa campos que não conhece (forbidNonWhitelisted), então nada aqui
-// carrega userId. Só as notas confirmadas, da data de emissão mais recente
-// para a mais antiga.
+// The owner of the notes comes from the token: the backend reads the user from
+// Authorization and refuses fields it does not know (forbidNonWhitelisted), so
+// nothing here carries userId. Only confirmed notes, from the most recent issue
+// date to the oldest.
 export async function fetchReportInvoices(
   idToken: string,
   limit: number,

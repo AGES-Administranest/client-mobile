@@ -4,15 +4,12 @@ import { ScrollView, View } from 'react-native';
 import { Text } from 'app/components/ui/text';
 import { RecentInvoicesSection } from 'features/invoices';
 import { useTranslation } from 'shared/i18n';
+import { formatShortCalendarDate } from 'shared/utils/calendar';
 
 import { ReportKindCard } from '../components/ReportKindCard';
 import { ReportPeriodSelector } from '../components/ReportPeriodSelector';
 import { ReportsHistoryLink } from '../components/ReportsHistoryLink';
-import {
-  formatReportDate,
-  REPORT_PERIOD_CHOICES,
-  type ReportKind,
-} from '../domain/reportPeriod';
+import { REPORT_PERIOD_CHOICES, type ReportKind } from '../domain/reportPeriod';
 import { useReportsScreen } from '../hooks/useReportsScreen';
 
 const KIND_ICONS = { general: FileText, invoicePackage: Receipt } as const;
@@ -42,7 +39,7 @@ export function ReportsScreen({
   const dateLabel = (date: string | null) =>
     date === null
       ? t('reports.period.selectDate')
-      : formatReportDate(date, locale);
+      : formatShortCalendarDate(date, locale);
 
   const generate = (kind: ReportKind) => {
     if (range.from !== null && range.to !== null) {
@@ -94,17 +91,19 @@ export function ReportsScreen({
               icon={KIND_ICONS[kind]}
               title={t(`reports.kinds.${kind}.title`)}
               description={t(`reports.kinds.${kind}.description`)}
-              disabled={!canGenerate}
+              disabled={!canGenerate || !onGenerateReport}
               onPress={() => generate(kind)}
             />
           ))}
         </View>
 
-        <ReportsHistoryLink
-          title={t('reports.history.title')}
-          actionLabel={t('reports.history.viewAll')}
-          onPress={() => onOpenHistory?.()}
-        />
+        {onOpenHistory ? (
+          <ReportsHistoryLink
+            title={t('reports.history.title')}
+            actionLabel={t('reports.history.viewAll')}
+            onPress={onOpenHistory}
+          />
+        ) : null}
       </View>
 
       <RecentInvoicesSection />

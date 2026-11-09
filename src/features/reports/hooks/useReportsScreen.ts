@@ -1,12 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
-import type { CalendarRange } from 'shared/utils/calendar';
+import { isRangeComplete, type CalendarRange } from 'shared/utils/calendar';
 
 import {
-  isReportPeriodReady,
   reportPeriodFor,
   reportToday,
-  validateReportPeriod,
   type ReportPeriodChoice,
 } from '../domain/reportPeriod';
 
@@ -21,20 +19,25 @@ export type ReportsScreenState = {
 
 export function useReportsScreen(): ReportsScreenState {
   const [choice, setChoice] = useState<ReportPeriodChoice>('currentMonth');
-  const [range, setRange] = useState<CalendarRange>(() =>
-    reportPeriodFor('currentMonth', new Date()),
-  );
+  const [customRange, setRange] = useState<CalendarRange>({
+    from: null,
+    to: null,
+  });
+
+  // The shortcuts are worked out on every render, so "Mês atual" follows the
+  // calendar even when the tab stays open across midnight or a month change.
+  const now = new Date();
+  const range =
+    choice === 'custom' ? customRange : reportPeriodFor(choice, now);
 
   // "Personalizado" starts from the period that was showing, so the calendar
   // opens on it instead of empty.
-  const selectChoice = useCallback((next: ReportPeriodChoice) => {
-    setChoice(next);
-    if (next !== 'custom') {
-      setRange(reportPeriodFor(next, new Date()));
+  const selectChoice = (next: ReportPeriodChoice) => {
+    if (next === 'custom' && choice !== 'custom') {
+      setRange(range);
     }
-  }, []);
-
-  const now = new Date();
+    setChoice(next);
+  };
 
   return {
     choice,
@@ -42,7 +45,6 @@ export function useReportsScreen(): ReportsScreenState {
     range,
     setRange,
     maxDate: reportToday(now),
-    canGenerate:
-      isReportPeriodReady(range) && validateReportPeriod(range, now) === null,
+    canGenerate: isRangeComplete(range),
   };
 }

@@ -46,7 +46,7 @@ const REAL_TIMERS = [
 // is faked, timers stay real.
 beforeAll(() => {
   jest.useFakeTimers({
-    now: new Date(2026, 10, 2, 12),
+    now: new Date(Date.UTC(2026, 10, 2, 15)),
     doNotFake: [...REAL_TIMERS],
   });
 });
@@ -55,6 +55,8 @@ afterAll(() => {
   jest.useRealTimers();
 });
 
+// The cards and the history link only work when the app wires the callbacks,
+// so the tests wire them unless a case says otherwise.
 async function render(props: React.ComponentProps<typeof ReportsScreen> = {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
@@ -62,7 +64,11 @@ async function render(props: React.ComponentProps<typeof ReportsScreen> = {}) {
     renderer = ReactTestRenderer.create(
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
-          <ReportsScreen {...props} />
+          <ReportsScreen
+            onGenerateReport={jest.fn()}
+            onOpenHistory={jest.fn()}
+            {...props}
+          />
         </I18nProvider>
       </SafeAreaProvider>,
     );
@@ -236,7 +242,6 @@ describe('ReportsScreen', () => {
         'accessibilityState' in node.props,
     );
     expect(tomorrow.props.disabled).toBe(true);
-    expect(tomorrow.props.onPress).toBeUndefined();
     expect(dayCell(renderer, '2026-11-02')).toBeDefined();
   });
 
@@ -261,6 +266,22 @@ describe('ReportsScreen', () => {
       'Data de início: 01/11/2026',
       'Data de fim: 02/11/2026',
     ]);
+  });
+
+  it('disables the report cards and hides the history while nothing is wired', async () => {
+    const renderer = await render({
+      onGenerateReport: undefined,
+      onOpenHistory: undefined,
+    });
+
+    expect(
+      pressable(renderer, label => label === 'Relatório Geral').props.disabled,
+    ).toBe(true);
+    expect(
+      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR')
+        .props.disabled,
+    ).toBe(true);
+    expect(textsOf(renderer)).not.toContain('Histórico de relatórios');
   });
 
   it('opens the history', async () => {

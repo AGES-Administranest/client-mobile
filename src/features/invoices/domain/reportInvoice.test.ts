@@ -37,7 +37,11 @@ describe('formatReportDate', () => {
     ['', ''],
     ['not-a-date', ''],
     ['22/04/2026', ''],
-  ])('formats %p as %p', (input, expected) => {
-    expect(formatReportDate(input)).toBe(expected);
+  ])('formats %p as %p in pt-BR', (input, expected) => {
+    expect(formatReportDate(input, 'pt-BR')).toBe(expected);
+  });
+
+  it('follows the locale', () => {
+    expect(formatReportDate('2026-04-22', 'en-US')).toBe('4/22/26');
   });
 });

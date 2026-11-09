@@ -14,7 +14,7 @@ import { useRecentInvoices } from '../hooks/useRecentInvoices';
 import { isInvoiceListAvailable } from '../services/availability';
 
 export function RecentInvoicesSection() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { invoices, status } = useRecentInvoices();
   const [selected, setSelected] = useState<ReportInvoice | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -71,7 +71,7 @@ export function RecentInvoicesSection() {
             <RecentInvoiceCard
               key={invoice.id}
               taker={invoice.takerName}
-              date={formatReportDate(invoice.issueDate)}
+              date={formatReportDate(invoice.issueDate, locale)}
               originalFileLabel={
                 invoice.hasOriginalFile ? t('invoices.originalFile') : undefined
               }
@@ -90,7 +90,7 @@ export function RecentInvoicesSection() {
             { label: t('invoices.detail.taker'), value: selected.takerName },
             {
               label: t('invoices.detail.issuedAt'),
-              value: formatReportDate(selected.issueDate),
+              value: formatReportDate(selected.issueDate, locale),
             },
             {
               label: t('invoices.detail.originalFile'),

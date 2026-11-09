@@ -1,10 +1,4 @@
-import {
-  formatReportDate,
-  isReportPeriodReady,
-  reportPeriodFor,
-  reportToday,
-  validateReportPeriod,
-} from './reportPeriod';
+import { reportPeriodFor, reportToday } from './reportPeriod';
 
 // Midday in Sao Paulo (UTC-3), so the calendar day is the same in any zone.
 const noon = (year: number, month: number, day: number) =>
@@ -88,17 +82,6 @@ describe('reportPeriodFor in America/Sao_Paulo', () => {
   );
 });
 
-describe('isReportPeriodReady', () => {
-  it.each([
-    [{ from: '2026-11-01', to: '2026-11-02' }, true],
-    [{ from: '2026-11-01', to: '2026-11-01' }, true],
-    [{ from: '2026-11-01', to: null }, false],
-    [{ from: null, to: null }, false],
-  ])('%j -> %s', (range, expected) => {
-    expect(isReportPeriodReady(range)).toBe(expected);
-  });
-});
-
 describe('reportToday', () => {
   it.each([
     ['2026-11-04T15:00:00Z', '2026-11-04'],
@@ -107,40 +90,5 @@ describe('reportToday', () => {
     ['2026-01-01T03:00:00Z', '2026-01-01'],
   ])('%s (UTC) is %s in Sao Paulo', (instant, expected) => {
     expect(reportToday(new Date(instant))).toBe(expected);
-  });
-});
-
-describe('validateReportPeriod', () => {
-  it.each([
-    ['ends yesterday', '2026-11-03', null],
-    ['ends today', '2026-11-04', null],
-    ['ends tomorrow', '2026-11-05', 'END_AFTER_TODAY'],
-    ['has no end yet', null, null],
-  ])('%s', (_name, to, expected) => {
-    expect(
-      validateReportPeriod({ from: '2026-11-01', to }, noon(2026, 11, 4)),
-    ).toBe(expected);
-  });
-
-  it.each([
-    [
-      'still January 31st in Sao Paulo',
-      '2026-02-01T01:00:00Z',
-      'END_AFTER_TODAY',
-    ],
-    ['already February 1st in Sao Paulo', '2026-02-01T03:00:00Z', null],
-  ])('follows the Sao Paulo calendar day: %s', (_name, instant, expected) => {
-    expect(
-      validateReportPeriod(
-        { from: '2026-01-01', to: '2026-02-01' },
-        new Date(instant),
-      ),
-    ).toBe(expected);
-  });
-});
-
-describe('formatReportDate', () => {
-  it('formats as a short date in the locale', () => {
-    expect(formatReportDate('2026-11-02', 'pt-BR')).toBe('02/11/2026');
   });
 });

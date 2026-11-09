@@ -1,3 +1,5 @@
+import { formatShortCalendarDate } from 'shared/utils/calendar';
+
 /** What `GET /service-invoices/reports` documents for each confirmed note. */
 export type BackendReportInvoice = {
   id: string;
@@ -25,17 +27,12 @@ export function toReportInvoice(invoice: BackendReportInvoice): ReportInvoice {
 }
 
 /**
- * `YYYY-MM-DD` as `dd/mm/aaaa`, read from the text. Going through `Date`
- * would take the day as UTC midnight and show the day before in Brazil.
+ * The `YYYY-MM-DD` part of an issue date as a short date in the locale, read
+ * from the text. Going through `Date` would take the day as UTC midnight and
+ * show the day before in Brazil.
  */
-export function formatReportDate(isoDate: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate);
+export function formatReportDate(isoDate: string, locale: string): string {
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(isoDate);
 
-  if (!match) {
-    return '';
-  }
-
-  const [, year, month, day] = match;
-
-  return `${day}/${month}/${year}`;
+  return match ? formatShortCalendarDate(match[1], locale) : '';
 }

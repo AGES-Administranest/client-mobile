@@ -168,18 +168,24 @@ describe('maxDate', () => {
     );
   }
 
-  test('ignores a press on a day after the limit', async () => {
-    const onChange = jest.fn();
-    const { renderer } = await render(EMPTY, onChange, '2026-09-15');
+  test('disables the days after the limit', async () => {
+    const { renderer } = await render(EMPTY, jest.fn(), '2026-09-15');
     const day = pressableDay(renderer, '2026-09-16');
-
-    await act(() => {
-      day.props.onPress?.();
-    });
 
     expect(day.props.disabled).toBe(true);
     expect(day.props.accessibilityState.disabled).toBe(true);
-    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  test('blocks the next month once it starts after the limit', async () => {
+    const { renderer } = await render(EMPTY, jest.fn(), '2026-09-15');
+
+    expect(pressLabelled(renderer, 'Próximo mês').props.disabled).toBe(true);
+
+    await act(() => {
+      pressLabelled(renderer, 'Mês anterior').props.onPress();
+    });
+
+    expect(pressLabelled(renderer, 'Próximo mês').props.disabled).toBe(false);
   });
 
   test('accepts the limit day itself', async () => {

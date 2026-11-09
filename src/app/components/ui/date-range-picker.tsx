@@ -11,6 +11,7 @@ import {
   fromCalendarDate,
   isWithinCalendarRange,
   selectRangeDay,
+  toCalendarDate,
   type CalendarRange,
 } from 'shared/utils/calendar';
 
@@ -67,6 +68,10 @@ function DateRangePicker({
     days.slice(index * WEEK_LENGTH, (index + 1) * WEEK_LENGTH),
   );
 
+  const isNextMonthBlocked =
+    maxDate !== undefined &&
+    toCalendarDate(new Date(visible.year, visible.monthIndex + 1, 1)) > maxDate;
+
   const goToMonth = (amount: number) =>
     setVisible(current => addMonths(current.year, current.monthIndex, amount));
 
@@ -85,8 +90,13 @@ function DateRangePicker({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={nextMonthLabel}
+          accessibilityState={{ disabled: isNextMonthBlocked || undefined }}
+          disabled={isNextMonthBlocked}
           onPress={() => goToMonth(1)}
-          className="size-8 items-center justify-center rounded-full bg-details-primary"
+          className={cn(
+            'size-8 items-center justify-center rounded-full bg-details-primary',
+            isNextMonthBlocked && 'opacity-40',
+          )}
         >
           <Icon as={ChevronRight} className="size-4 text-label-primary" />
         </Pressable>
@@ -127,11 +137,7 @@ function DateRangePicker({
                   disabled: isDisabled || undefined,
                 }}
                 disabled={isDisabled}
-                onPress={
-                  isDisabled
-                    ? undefined
-                    : () => onChange(selectRangeDay(value, day.date))
-                }
+                onPress={() => onChange(selectRangeDay(value, day.date))}
                 className={cn(
                   'h-9 flex-1 items-center justify-center rounded-lg',
                   isInside && 'bg-details-primary',
