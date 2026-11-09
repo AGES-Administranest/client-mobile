@@ -1,9 +1,11 @@
 import { Check, Pencil, Phone, Trash2 } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
+import { SegmentedControl } from 'app/components/ui/segmented-control';
 import { Text } from 'app/components/ui/text';
 import { ButtonPrimary } from 'theme/colors';
 
@@ -17,6 +19,15 @@ type ClinicDetailSheetLabels = {
   delete: string;
 };
 
+type ClinicDetailSheetTab = 'history' | 'data';
+
+type ClinicDetailSheetTabs = {
+  value: ClinicDetailSheetTab;
+  labels: Record<ClinicDetailSheetTab, string>;
+  onChange: (tab: ClinicDetailSheetTab) => void;
+  history: ReactNode;
+};
+
 type ClinicDetailSheetProps = {
   visible: boolean;
   title: string;
@@ -28,6 +39,7 @@ type ClinicDetailSheetProps = {
   fieldTexts: Record<ClinicField, ClinicFieldTexts>;
   labels: ClinicDetailSheetLabels;
   closeLabel: string;
+  tabs?: ClinicDetailSheetTabs;
   onChangeField: (field: ClinicField, value: string) => void;
   onCall?: () => void;
   onEdit: () => void;
@@ -47,6 +59,7 @@ function ClinicDetailSheet({
   fieldTexts,
   labels,
   closeLabel,
+  tabs,
   onChangeField,
   onCall,
   onEdit,
@@ -54,6 +67,9 @@ function ClinicDetailSheet({
   onDelete,
   onClose,
 }: ClinicDetailSheetProps) {
+  const visibleTabs = editing ? undefined : tabs;
+  const showsHistory = visibleTabs?.value === 'history';
+
   return (
     <BottomSheet
       visible={visible}
@@ -61,7 +77,7 @@ function ClinicDetailSheet({
       closeLabel={closeLabel}
       onClose={onClose}
       footer={
-        editing ? (
+        showsHistory ? undefined : editing ? (
           <>
             {failureMessage ? (
               <View className="rounded-xl border border-alert-primary bg-white p-3">
@@ -119,17 +135,36 @@ function ClinicDetailSheet({
         )
       }
     >
-      <ClinicFields
-        draft={draft}
-        fieldErrors={fieldErrors}
-        fieldTexts={fieldTexts}
-        editable={editing}
-        showName={editing}
-        onChangeField={onChangeField}
-      />
+      {visibleTabs ? (
+        <SegmentedControl
+          options={[
+            { value: 'history', label: visibleTabs.labels.history },
+            { value: 'data', label: visibleTabs.labels.data },
+          ]}
+          value={visibleTabs.value}
+          onValueChange={visibleTabs.onChange}
+        />
+      ) : null}
+      {showsHistory ? (
+        visibleTabs.history
+      ) : (
+        <ClinicFields
+          draft={draft}
+          fieldErrors={fieldErrors}
+          fieldTexts={fieldTexts}
+          editable={editing}
+          showName={editing}
+          onChangeField={onChangeField}
+        />
+      )}
     </BottomSheet>
   );
 }
 
 export { ClinicDetailSheet };
-export type { ClinicDetailSheetLabels, ClinicDetailSheetProps };
+export type {
+  ClinicDetailSheetLabels,
+  ClinicDetailSheetProps,
+  ClinicDetailSheetTab,
+  ClinicDetailSheetTabs,
+};
