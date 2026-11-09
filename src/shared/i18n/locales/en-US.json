@@ -807,9 +807,9 @@
       "title": "Generate new report"
     },
     "period": {
-      "label": "Period",
-      "range": "{{from}} to {{to}}",
-      "incomplete": "Select the period",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "selectDate": "Select",
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
       "choices": {

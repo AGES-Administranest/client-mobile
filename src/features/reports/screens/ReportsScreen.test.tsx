@@ -110,13 +110,37 @@ function textsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
   return JSON.stringify(renderer.toJSON());
 }
 
+function dateField(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  name: string,
+) {
+  return pressable(renderer, label => label.startsWith(`${name}: `));
+}
+
+function dateFieldLabels(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return [
+    dateField(renderer, 'Data de início').props.accessibilityLabel,
+    dateField(renderer, 'Data de fim').props.accessibilityLabel,
+  ];
+}
+
+function isCalendarShown(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return (
+    renderer.root.findAll(node => node.props.testID === '2026-11-10').length > 0
+  );
+}
+
 describe('ReportsScreen', () => {
   it('shows the two report cards, the period and the history access', async () => {
-    const output = textsOf(await render());
+    const renderer = await render();
+    const output = textsOf(renderer);
 
     expect(output).toContain('Relatório Geral');
     expect(output).toContain('Pacote de Notas Fiscais para IR');
-    expect(output).toContain('01/11/2026 até 02/11/2026');
+    expect(dateFieldLabels(renderer)).toEqual([
+      'Data de início: 01/11/2026',
+      'Data de fim: 02/11/2026',
+    ]);
     expect(output).toContain('Histórico de relatórios');
   });
 
@@ -146,21 +170,22 @@ describe('ReportsScreen', () => {
   });
 
   it.each([
-    ['Mês atual', '01/11/2026 até 02/11/2026', '2026-11-01', '2026-11-02'],
-    ['Mês anterior', '01/10/2026 até 31/10/2026', '2026-10-01', '2026-10-31'],
-    ['Ano atual', '01/01/2026 até 02/11/2026', '2026-01-01', '2026-11-02'],
+    ['Mês atual', '01/11/2026', '02/11/2026', '2026-11-01', '2026-11-02'],
+    ['Mês anterior', '01/10/2026', '31/10/2026', '2026-10-01', '2026-10-31'],
+    ['Ano atual', '01/01/2026', '02/11/2026', '2026-01-01', '2026-11-02'],
   ])(
-    'the %s shortcut sets the period and sends it as YYYY-MM-DD',
-    async (name, label, from, to) => {
+    'the %s shortcut fills both date fields and sends YYYY-MM-DD',
+    async (name, start, end, from, to) => {
       const onGenerateReport = jest.fn();
       const renderer = await render({ onGenerateReport });
 
       await press(tab(renderer, name));
 
-      expect(textsOf(renderer)).toContain(label);
-      expect(
-        renderer.root.findAll(node => node.props.testID === '2026-11-10'),
-      ).toHaveLength(0);
+      expect(dateFieldLabels(renderer)).toEqual([
+        `Data de início: ${start}`,
+        `Data de fim: ${end}`,
+      ]);
+      expect(isCalendarShown(renderer)).toBe(false);
 
       await press(pressable(renderer, title => title === 'Relatório Geral'));
 
@@ -171,19 +196,48 @@ describe('ReportsScreen', () => {
   it('shows the calendar only for the custom period', async () => {
     const renderer = await render();
 
-    expect(
-      renderer.root.findAll(node => node.props.testID === '2026-11-10'),
-    ).toHaveLength(0);
+    expect(isCalendarShown(renderer)).toBe(false);
 
     await press(tab(renderer, 'Personalizado'));
 
-    expect(dayCell(renderer, '2026-11-10')).toBeDefined();
+    expect(isCalendarShown(renderer)).toBe(true);
 
     await press(tab(renderer, 'Mês atual'));
 
-    expect(
-      renderer.root.findAll(node => node.props.testID === '2026-11-10'),
-    ).toHaveLength(0);
+    expect(isCalendarShown(renderer)).toBe(false);
+  });
+
+  it.each(['Data de início', 'Data de fim'])(
+    'a tap on %s moves to the custom period and keeps the dates',
+    async name => {
+      const renderer = await render();
+
+      await press(dateField(renderer, name));
+
+      expect(
+        tab(renderer, 'Personalizado').props.accessibilityState.selected,
+      ).toBe(true);
+      expect(isCalendarShown(renderer)).toBe(true);
+      expect(dateFieldLabels(renderer)).toEqual([
+        'Data de início: 01/11/2026',
+        'Data de fim: 02/11/2026',
+      ]);
+    },
+  );
+
+  it('blocks the days after today in the calendar', async () => {
+    const renderer = await render();
+
+    await press(tab(renderer, 'Personalizado'));
+
+    const tomorrow = renderer.root.find(
+      node =>
+        node.props.testID === '2026-11-03' &&
+        'accessibilityState' in node.props,
+    );
+    expect(tomorrow.props.disabled).toBe(true);
+    expect(tomorrow.props.onPress).toBeUndefined();
+    expect(dayCell(renderer, '2026-11-02')).toBeDefined();
   });
 
   it('keeps the cards disabled until the custom period has both ends', async () => {
@@ -192,15 +246,21 @@ describe('ReportsScreen', () => {
       pressable(renderer, label => label === 'Relatório Geral');
 
     await press(tab(renderer, 'Personalizado'));
-    await press(dayCell(renderer, '2026-11-10'));
+    await press(dayCell(renderer, '2026-11-01'));
 
-    expect(textsOf(renderer)).toContain('Selecione o período');
+    expect(dateFieldLabels(renderer)).toEqual([
+      'Data de início: 01/11/2026',
+      'Data de fim: Selecione',
+    ]);
     expect(generalCard().props.disabled).toBe(true);
 
-    await press(dayCell(renderer, '2026-11-12'));
+    await press(dayCell(renderer, '2026-11-02'));
 
     expect(generalCard().props.disabled).toBe(false);
-    expect(textsOf(renderer)).toContain('10/11/2026 até 12/11/2026');
+    expect(dateFieldLabels(renderer)).toEqual([
+      'Data de início: 01/11/2026',
+      'Data de fim: 02/11/2026',
+    ]);
   });
 
   it('opens the history', async () => {

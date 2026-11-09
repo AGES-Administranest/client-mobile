@@ -807,9 +807,9 @@
       "title": "Gerar novo relatório"
     },
     "period": {
-      "label": "Período",
-      "range": "{{from}} até {{to}}",
-      "incomplete": "Selecione o período",
+      "startDate": "Data de início",
+      "endDate": "Data de fim",
+      "selectDate": "Selecione",
       "previousMonth": "Mês anterior",
       "nextMonth": "Próximo mês",
       "choices": {

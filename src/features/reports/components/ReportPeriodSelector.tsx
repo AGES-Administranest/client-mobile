@@ -1,25 +1,28 @@
-import { CalendarDays } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { DateRangePicker } from 'app/components/ui/date-range-picker';
-import { Icon } from 'app/components/ui/icon';
 import {
   SegmentedControl,
   type SegmentOption,
 } from 'app/components/ui/segmented-control';
-import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import type { CalendarRange } from 'shared/utils/calendar';
 
+import { ReportDateField } from './ReportDateField';
+
 type ReportPeriodSelectorProps<T extends string> = {
-  label: string;
   options: readonly SegmentOption<T>[];
   value: T;
   onValueChange: (value: T) => void;
-  periodLabel: string;
+  startDateLabel: string;
+  startDateValue: string;
+  endDateLabel: string;
+  endDateValue: string;
+  onDateFieldPress: () => void;
   isCustom: boolean;
   range: CalendarRange;
   onRangeChange: (range: CalendarRange) => void;
+  maxDate: string;
   locale: string;
   previousMonthLabel: string;
   nextMonthLabel: string;
@@ -27,41 +30,49 @@ type ReportPeriodSelectorProps<T extends string> = {
 };
 
 export function ReportPeriodSelector<T extends string>({
-  label,
   options,
   value,
   onValueChange,
-  periodLabel,
+  startDateLabel,
+  startDateValue,
+  endDateLabel,
+  endDateValue,
+  onDateFieldPress,
   isCustom,
   range,
   onRangeChange,
+  maxDate,
   locale,
   previousMonthLabel,
   nextMonthLabel,
   className,
 }: ReportPeriodSelectorProps<T>) {
   return (
-    <View className={cn('gap-2', className)}>
-      <Text className="text-sm font-medium">{label}</Text>
+    <View className={cn('gap-3', className)}>
       <SegmentedControl
         options={options}
         value={value}
         onValueChange={onValueChange}
       />
-      <View
-        accessible
-        accessibilityLabel={`${label}: ${periodLabel}`}
-        className="min-h-9 flex-row items-center gap-2 rounded-lg border border-border-primary bg-white px-3 py-2"
-      >
-        <Icon as={CalendarDays} className="size-4 text-label-primary" />
-        <Text className="flex-1 text-sm" numberOfLines={1}>
-          {periodLabel}
-        </Text>
+      <View className="flex-row gap-3">
+        <ReportDateField
+          label={startDateLabel}
+          value={startDateValue}
+          isCalendarOpen={isCustom}
+          onPress={onDateFieldPress}
+        />
+        <ReportDateField
+          label={endDateLabel}
+          value={endDateValue}
+          isCalendarOpen={isCustom}
+          onPress={onDateFieldPress}
+        />
       </View>
       {isCustom ? (
         <DateRangePicker
           value={range}
           onChange={onRangeChange}
+          maxDate={maxDate}
           locale={locale}
           previousMonthLabel={previousMonthLabel}
           nextMonthLabel={nextMonthLabel}
