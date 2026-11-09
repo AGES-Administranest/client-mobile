@@ -23,6 +23,7 @@ type DateRangePickerProps = {
   locale: string;
   previousMonthLabel: string;
   nextMonthLabel: string;
+  maxDate?: string;
   className?: string;
 };
 
@@ -41,6 +42,7 @@ function DateRangePicker({
   locale,
   previousMonthLabel,
   nextMonthLabel,
+  maxDate,
   className,
 }: DateRangePickerProps) {
   const [visible, setVisible] = useVisibleMonth(value);
@@ -110,6 +112,7 @@ function DateRangePicker({
               value.from !== null &&
               value.to !== null &&
               isWithinCalendarRange(day.date, value);
+            const isDisabled = maxDate !== undefined && day.date > maxDate;
 
             return (
               <Pressable
@@ -119,12 +122,21 @@ function DateRangePicker({
                 accessibilityLabel={new Intl.DateTimeFormat(locale, {
                   dateStyle: 'long',
                 }).format(fromCalendarDate(day.date))}
-                accessibilityState={{ selected: isEdge || isInside }}
-                onPress={() => onChange(selectRangeDay(value, day.date))}
+                accessibilityState={{
+                  selected: isEdge || isInside,
+                  disabled: isDisabled || undefined,
+                }}
+                disabled={isDisabled}
+                onPress={
+                  isDisabled
+                    ? undefined
+                    : () => onChange(selectRangeDay(value, day.date))
+                }
                 className={cn(
                   'h-9 flex-1 items-center justify-center rounded-lg',
                   isInside && 'bg-details-primary',
                   isEdge && 'bg-button-primary',
+                  isDisabled && 'opacity-40',
                 )}
               >
                 <Text

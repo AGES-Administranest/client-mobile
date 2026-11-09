@@ -31,7 +31,7 @@ export function ReportsScreen({
   onOpenHistory,
 }: ReportsScreenProps) {
   const { t, locale } = useTranslation();
-  const { choice, selectChoice, range, setRange, canGenerate } =
+  const { choice, selectChoice, range, setRange, maxDate, canGenerate } =
     useReportsScreen();
 
   const choiceOptions = REPORT_PERIOD_CHOICES.map(value => ({
@@ -39,13 +39,10 @@ export function ReportsScreen({
     label: t(`reports.period.choices.${value}`),
   }));
 
-  const periodLabel =
-    range.from !== null && range.to !== null
-      ? t('reports.period.range', {
-          from: formatReportDate(range.from, locale),
-          to: formatReportDate(range.to, locale),
-        })
-      : t('reports.period.incomplete');
+  const dateLabel = (date: string | null) =>
+    date === null
+      ? t('reports.period.selectDate')
+      : formatReportDate(date, locale);
 
   const generate = (kind: ReportKind) => {
     if (range.from !== null && range.to !== null) {
@@ -75,14 +72,18 @@ export function ReportsScreen({
             {t('reports.generate.title')}
           </Text>
           <ReportPeriodSelector
-            label={t('reports.period.label')}
             options={choiceOptions}
             value={choice}
             onValueChange={selectChoice}
-            periodLabel={periodLabel}
+            startDateLabel={t('reports.period.startDate')}
+            startDateValue={dateLabel(range.from)}
+            endDateLabel={t('reports.period.endDate')}
+            endDateValue={dateLabel(range.to)}
+            onDateFieldPress={() => selectChoice('custom')}
             isCustom={choice === 'custom'}
             range={range}
             onRangeChange={setRange}
+            maxDate={maxDate}
             locale={locale}
             previousMonthLabel={t('reports.period.previousMonth')}
             nextMonthLabel={t('reports.period.nextMonth')}

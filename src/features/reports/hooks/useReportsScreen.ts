@@ -5,6 +5,8 @@ import type { CalendarRange } from 'shared/utils/calendar';
 import {
   isReportPeriodReady,
   reportPeriodFor,
+  reportToday,
+  validateReportPeriod,
   type ReportPeriodChoice,
 } from '../domain/reportPeriod';
 
@@ -13,6 +15,7 @@ export type ReportsScreenState = {
   selectChoice: (choice: ReportPeriodChoice) => void;
   range: CalendarRange;
   setRange: (range: CalendarRange) => void;
+  maxDate: string;
   canGenerate: boolean;
 };
 
@@ -31,11 +34,15 @@ export function useReportsScreen(): ReportsScreenState {
     }
   }, []);
 
+  const now = new Date();
+
   return {
     choice,
     selectChoice,
     range,
     setRange,
-    canGenerate: isReportPeriodReady(range),
+    maxDate: reportToday(now),
+    canGenerate:
+      isReportPeriodReady(range) && validateReportPeriod(range, now) === null,
   };
 }
