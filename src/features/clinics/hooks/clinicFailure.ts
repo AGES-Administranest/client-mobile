@@ -1,5 +1,6 @@
 import type { TranslationKey } from 'shared/i18n';
 import { ApiError } from 'shared/services/apiClient';
+import { isNetworkError } from 'shared/utils/network';
 
 const FAILURE_KEYS: Record<string, TranslationKey> = {
   DUPLICATED_CLIENT_NAME: 'clinics.newClinic.failures.duplicatedName',
@@ -28,4 +29,14 @@ export function toClinicFailureKey(error: unknown): TranslationKey {
     (error.code && FAILURE_KEYS[error.code]) ||
     'clinics.newClinic.failures.unknown'
   );
+}
+
+export function toHistoryFailureKey(error: unknown): TranslationKey {
+  if (isNetworkError(error)) {
+    return 'clinics.history.failures.network';
+  }
+  if (error instanceof ApiError && error.status === 401) {
+    return 'clinics.history.failures.session';
+  }
+  return 'clinics.history.failures.unknown';
 }
