@@ -39,6 +39,7 @@ export type TripFormErrorCode =
   | 'vehicleRequired'
   | 'distanceRequired'
   | 'distanceInvalid'
+  | 'distanceNotPositive'
   | 'costRequired'
   | 'costInvalid';
 
@@ -100,7 +101,9 @@ export function validateTripForm(values: TripFormValues): TripFormErrors {
         values.distanceKm,
         DISTANCE_DECIMAL_PLACES,
       );
-      if (distance === null || distance <= 0 || distance > MAX_DISTANCE_KM) {
+      if (distance !== null && distance <= 0) {
+        errors.distanceKm = 'distanceNotPositive';
+      } else if (distance === null || distance > MAX_DISTANCE_KM) {
         errors.distanceKm = 'distanceInvalid';
       }
     }
@@ -119,7 +122,9 @@ export function validateTripForm(values: TripFormValues): TripFormErrors {
         values.distanceKm,
         DISTANCE_DECIMAL_PLACES,
       );
-      if (distance === null || distance <= 0 || distance > MAX_DISTANCE_KM) {
+      if (distance !== null && distance <= 0) {
+        errors.distanceKm = 'distanceNotPositive';
+      } else if (distance === null || distance > MAX_DISTANCE_KM) {
         errors.distanceKm = 'distanceInvalid';
       }
     }

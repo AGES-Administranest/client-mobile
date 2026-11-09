@@ -457,9 +457,15 @@ describe('month statement', () => {
 
     expect(textsOf(renderer)).toContain('Nenhum lançamento neste mês');
     const money = textsOf(renderer).map(text => text.replace(/\u00a0/g, ' '));
-    expect(money.filter(text => text === 'R$ 0,00')).toHaveLength(4);
+    expect(money.filter(text => text === 'R$ 0,00')).toHaveLength(5);
     expect(money).toEqual(
-      expect.arrayContaining(['Saldo líquido', 'Receitas', 'Prof.', 'Pessoal']),
+      expect.arrayContaining([
+        'Saldo líquido',
+        'Receitas',
+        'Prof.',
+        'Pessoal',
+        'Total de saídas',
+      ]),
     );
 
     const emptyState = renderer.root.findByType(EmptyState);

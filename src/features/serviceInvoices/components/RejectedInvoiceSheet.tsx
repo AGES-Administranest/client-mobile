@@ -1,4 +1,4 @@
-import { Check, Trash2 } from 'lucide-react-native';
+import { Check, Send, Trash2 } from 'lucide-react-native';
 
 import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
@@ -11,6 +11,8 @@ type RejectedInvoiceSheetProps = {
   message: string;
   discardLabel: string;
   keepLabel: string;
+  /** Only for a refusal the person can overrule. */
+  sendAnyway?: { label: string; onPress: () => void };
   onDiscard: () => void;
   onKeep: () => void;
 };
@@ -25,6 +27,7 @@ export function RejectedInvoiceSheet({
   message,
   discardLabel,
   keepLabel,
+  sendAnyway,
   onDiscard,
   onKeep,
 }: RejectedInvoiceSheetProps) {
@@ -45,6 +48,17 @@ export function RejectedInvoiceSheet({
           >
             <Text className="font-semibold">{discardLabel}</Text>
           </Button>
+          {sendAnyway ? (
+            <Button
+              shape="pill"
+              variant="outline"
+              icon={Send}
+              className="h-[49px] w-full"
+              onPress={sendAnyway.onPress}
+            >
+              <Text className="font-semibold">{sendAnyway.label}</Text>
+            </Button>
+          ) : null}
           <Button
             shape="pill"
             icon={Check}

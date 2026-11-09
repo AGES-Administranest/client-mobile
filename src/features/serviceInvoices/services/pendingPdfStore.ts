@@ -21,13 +21,16 @@ export function savePendingPdf(
   file.write(bytes);
 }
 
+/** The uri is what native uploads from; the bytes are what the hash is taken of. */
+export type PendingPdf = { uri: string; bytes: Uint8Array };
+
 /** null when the file is gone (cleared app data, a failed save). */
 export async function readPendingPdf(
   userId: string,
   invoiceId: string,
-): Promise<Uint8Array | null> {
+): Promise<PendingPdf | null> {
   const file = fileOf(userId, invoiceId);
-  return file.exists ? file.bytes() : null;
+  return file.exists ? { uri: file.uri, bytes: await file.bytes() } : null;
 }
 
 export function removePendingPdf(userId: string, invoiceId: string): void {

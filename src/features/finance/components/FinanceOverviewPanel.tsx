@@ -1,8 +1,8 @@
 import { RefreshCw } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Card } from 'app/components/ui/card';
-import { Icon } from 'app/components/ui/icon';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
@@ -20,6 +20,7 @@ type FinanceOverviewPanelProps = {
   previousMonthLabel: string;
   nextMonthLabel: string;
   totalizers: readonly TotalizerCardProps[];
+  totalExpenses: TotalizerCardProps;
   balanceNotice: string | null;
   overview: FinanceOverview | null;
   hasError: boolean;
@@ -63,6 +64,7 @@ export function FinanceOverviewPanel({
   previousMonthLabel,
   nextMonthLabel,
   totalizers,
+  totalExpenses,
   balanceNotice,
   overview,
   hasError,
@@ -95,6 +97,9 @@ export function FinanceOverviewPanel({
           <TotalizerCard key={item.title} {...item} />
         ))}
       </View>
+      <View className="-mt-2.5 flex-row">
+        <TotalizerCard {...totalExpenses} />
+      </View>
 
       <View>
         <Text className="text-[13px] font-semibold uppercase tracking-[0.52px] text-label-primary">
@@ -121,11 +126,6 @@ export function FinanceOverviewPanel({
             <Text className="text-[11px] font-semibold uppercase tracking-[0.44px] text-label-primary">
               {t('finance.equipmentDepreciation')}
             </Text>
-            <Text className="pt-1 text-[13px] text-label-primary">
-              {t('finance.equipmentMonthlyCost', {
-                count: overview?.equipmentCount ?? 0,
-              })}
-            </Text>
           </View>
           <View className="items-end">
             <Text className="text-lg font-bold text-label-primary">
@@ -139,23 +139,14 @@ export function FinanceOverviewPanel({
       </View>
 
       {hasError ? (
-        <View className="flex-row items-center justify-between rounded-xl border border-alert-primary bg-background-modal p-3">
-          <View className="flex-1 pr-2">
-            <Text className="text-sm font-semibold text-label-primary">
-              {t('finance.overviewError')}
-            </Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onRetry}
-            className="flex-row items-center gap-1 rounded-full bg-button-primary px-3 py-2"
-          >
-            <Icon as={RefreshCw} size={14} className="text-label-secondary" />
-            <Text className="text-xs font-semibold text-label-secondary">
-              {t('common.retry')}
-            </Text>
-          </Pressable>
-        </View>
+        <NoticeBanner
+          tone="alert"
+          message={t('finance.overviewError')}
+          actionLabel={t('common.retry')}
+          actionIcon={RefreshCw}
+          actionPlacement="inline"
+          onAction={onRetry}
+        />
       ) : null}
     </View>
   );

@@ -20,6 +20,7 @@ type ClientAutocompleteProps = {
   options: ClientOption[];
   messages: ClientAutocompleteMessages;
   trailingIcon?: LucideIcon;
+  compact?: boolean;
   className?: string;
   onChangeText: (value: string) => void;
   onSelect: (option: ClientOption) => void;
@@ -34,6 +35,7 @@ export function ClientAutocomplete({
   options,
   messages,
   trailingIcon,
+  compact,
   className,
   onChangeText,
   onSelect,
@@ -53,6 +55,7 @@ export function ClientAutocomplete({
       options={options.map(toSearchSelectOption)}
       messages={messages}
       trailingIcon={trailingIcon}
+      compact={compact}
       className={className}
       onChangeText={onChangeText}
       onSelect={selectPickedClient}

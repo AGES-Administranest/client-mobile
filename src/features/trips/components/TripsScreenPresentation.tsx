@@ -1,18 +1,23 @@
-import { ArrowLeft, CarFront, Plus } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowLeft, Plus, RotateCw, Route } from 'lucide-react-native';
 import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Button } from 'app/components/ui/button';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { BackgroundPrimary } from 'theme/colors';
 
 import { TripListItem, type TripListItemTexts } from './TripListItem';
+import { TripsListSkeleton } from './TripsListSkeleton';
 import { TripsSummaryCard, type TripsSummaryTexts } from './TripsSummaryCard';
 import type { Trip } from '../domain/trip.types';
 
@@ -34,8 +39,11 @@ export type TripsScreenTexts = {
   subtitle: string;
   back: string;
   add: string;
+  loading: string;
   emptyTitle: string;
   emptyMessage: string;
+  loadFailed: string;
+  retry: string;
   summary: TripsSummaryTexts;
 };
 
@@ -46,6 +54,7 @@ export type TripsScreenPresentationProps = {
   onNextMonth: () => void;
   groups: TripRowGroup[];
   isLoading: boolean;
+  hasError: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
@@ -55,6 +64,37 @@ export type TripsScreenPresentationProps = {
   onBack: () => void;
 };
 
+const styles = StyleSheet.create({ fill: { flex: 1 } });
+
+// A message and one pill, in the card the Figma uses for a list that could
+// not be read.
+function LoadFailedCard({
+  message,
+  retryLabel,
+  onRetry,
+}: {
+  message: string;
+  retryLabel: string;
+  onRetry: () => void;
+}) {
+  return (
+    <View className="items-center gap-3 rounded-[14px] bg-white px-6 py-8 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]">
+      <Text className="text-center text-[13px] leading-[19.5px] text-label-placeholder">
+        {message}
+      </Text>
+      <Button
+        shape="pill"
+        size="sm"
+        className="h-8 gap-1.5 px-3.5"
+        onPress={onRetry}
+      >
+        <Icon as={RotateCw} size={14} />
+        <Text className="text-xs font-semibold">{retryLabel}</Text>
+      </Button>
+    </View>
+  );
+}
+
 export function TripsScreenPresentation({
   texts,
   isCurrentMonth,
@@ -62,6 +102,7 @@ export function TripsScreenPresentation({
   onNextMonth,
   groups,
   isLoading,
+  hasError,
   isLoadingMore,
   hasMore,
   onLoadMore,
@@ -72,13 +113,57 @@ export function TripsScreenPresentation({
 }: TripsScreenPresentationProps) {
   const insets = useSafeAreaInsets();
 
+  const hasTrips = groups.length > 0;
+  const isInitialLoading = isLoading && !hasTrips;
+  const failedToLoad = hasError && !isLoading && !hasTrips;
+  const isEmpty = !isLoading && !hasError && !hasTrips;
+  const summaryStatus = isInitialLoading
+    ? 'loading'
+    : failedToLoad
+    ? 'error'
+    : 'ready';
+
   return (
-    <View className="flex-1 bg-background-modal">
+    <View style={[styles.fill, { paddingTop: Math.max(insets.top, 16) }]}>
+      <LinearGradient
+        colors={BackgroundPrimary.colors}
+        locations={BackgroundPrimary.locations}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <View className="gap-3 px-[15px] pb-2 pt-0">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={texts.back}
+          hitSlop={8}
+          onPress={onBack}
+          className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+        >
+          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
+        </Pressable>
+
+        <View className="px-[7px]">
+          <Text
+            accessibilityRole="header"
+            className="text-xl font-bold leading-[30px] tracking-[-0.2px] text-label-primary"
+          >
+            {texts.title}
+          </Text>
+          <Text className="text-[13px] leading-[19.5px] text-label-primary">
+            {texts.subtitle}
+          </Text>
+        </View>
+      </View>
+
       <ScrollView
-        contentContainerClassName="p-4 pb-28"
-        style={{ paddingTop: Math.max(insets.top, 16) }}
+        contentContainerClassName="gap-[18px] px-[22px] pb-28 pt-2.5"
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isLoading && hasTrips}
+            onRefresh={onRefresh}
+          />
         }
         onScroll={({ nativeEvent }) => {
           const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
@@ -91,94 +176,83 @@ export function TripsScreenPresentation({
         }}
         scrollEventThrottle={400}
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={texts.back}
-          hitSlop={8}
-          onPress={onBack}
-          className="size-10 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-        >
-          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-        </Pressable>
-
-        <View className="mb-4 mt-3">
-          <Text
-            accessibilityRole="header"
-            className="text-2xl font-bold text-label-primary"
-          >
-            {texts.title}
-          </Text>
-          <Text className="mt-1 text-sm text-label-tertiary">
-            {texts.subtitle}
-          </Text>
-        </View>
-
         <TripsSummaryCard
           texts={texts.summary}
+          status={summaryStatus}
           isCurrentMonth={isCurrentMonth}
           onPreviousMonth={onPreviousMonth}
           onNextMonth={onNextMonth}
         />
 
-        {groups.length === 0 && !isLoading ? (
-          <View className="mt-4">
-            <EmptyState
-              icon={CarFront}
-              title={texts.emptyTitle}
-              message={texts.emptyMessage}
-            />
-          </View>
-        ) : (
-          <View className="mt-2">
-            {groups.map(group => (
-              <View key={group.date} className="mt-4">
-                <Text className="mb-2 text-xs font-bold uppercase tracking-wider text-label-primary">
-                  {group.label}
-                </Text>
+        {isInitialLoading ? <TripsListSkeleton label={texts.loading} /> : null}
 
-                <View className="overflow-hidden rounded-2xl border border-border-primary bg-white">
-                  {group.rows.map((row, index) => (
-                    <View
-                      key={row.trip.id}
-                      className={
-                        index > 0 ? 'border-t border-border-primary' : ''
-                      }
-                    >
-                      <TripListItem
-                        trip={row.trip}
-                        texts={row.texts}
-                        onPress={onTripPress}
-                      />
-                    </View>
-                  ))}
+        {failedToLoad ? (
+          <LoadFailedCard
+            message={texts.loadFailed}
+            retryLabel={texts.retry}
+            onRetry={onRefresh}
+          />
+        ) : null}
+
+        {isEmpty ? (
+          <EmptyState
+            icon={Route}
+            title={texts.emptyTitle}
+            message={texts.emptyMessage}
+            titleClassName="text-base leading-6 text-label-quartenery"
+            messageClassName="text-[13px] leading-[19.5px]"
+            action={{ label: texts.add, icon: Plus, onPress: onAddTrip }}
+            className="shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]"
+          />
+        ) : null}
+
+        {groups.map(group => (
+          <View key={group.date} className="gap-2">
+            <Text className="px-1 text-[11px] font-semibold uppercase leading-[16.5px] tracking-[0.44px] text-label-primary">
+              {group.label}
+            </Text>
+
+            <View className="overflow-hidden rounded-[14px] bg-white shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]">
+              {group.rows.map((row, index) => (
+                <View
+                  key={row.trip.id}
+                  className={
+                    index > 0 ? 'border-t border-details-primary' : undefined
+                  }
+                >
+                  <TripListItem
+                    trip={row.trip}
+                    texts={row.texts}
+                    onPress={onTripPress}
+                  />
                 </View>
-              </View>
-            ))}
-
-            {isLoadingMore ? (
-              <ActivityIndicator size="small" className="py-4" />
-            ) : null}
+              ))}
+            </View>
           </View>
-        )}
+        ))}
+
+        {isLoadingMore ? (
+          <ActivityIndicator size="small" className="py-4" />
+        ) : null}
       </ScrollView>
 
-      <View
-        pointerEvents="box-none"
-        style={{ paddingBottom: Math.max(insets.bottom, 20) }}
-        className="absolute bottom-0 left-0 right-0 px-4"
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={texts.add}
-          onPress={onAddTrip}
-          className="h-14 w-full flex-row items-center justify-center gap-2 rounded-full bg-button-primary shadow-lg shadow-black/20 active:opacity-90"
+      {isEmpty ? null : (
+        <View
+          pointerEvents="box-none"
+          style={{ paddingBottom: Math.max(insets.bottom, 20) }}
+          className="absolute bottom-0 left-0 right-0 px-[22px]"
         >
-          <Icon as={Plus} size={20} className="text-label-secondary" />
-          <Text className="text-base font-semibold text-label-secondary">
-            {texts.add}
-          </Text>
-        </Pressable>
-      </View>
+          <Button
+            shape="pill"
+            icon={Plus}
+            accessibilityLabel={texts.add}
+            className="h-[49px] w-full"
+            onPress={onAddTrip}
+          >
+            <Text>{texts.add}</Text>
+          </Button>
+        </View>
+      )}
     </View>
   );
 }

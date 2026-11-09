@@ -3,7 +3,6 @@ import { ArrowLeft } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from 'app/components/ui/icon';
+import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { monthOf } from 'shared/utils/monthPeriod';
@@ -22,6 +22,11 @@ import { PricingSetupView } from './PricingSetupView';
 import { PricingOnboarding } from '../components/PricingOnboarding';
 import { useHourlyRate } from '../hooks/useHourlyRate';
 
+// Browsers report no top inset, which left the back button on the edge.
+const MIN_TOP_PADDING = 16;
+
+const styles = StyleSheet.create({ fill: { flex: 1 } });
+
 type HourlyRateScreenProps = {
   visible: boolean;
   onClose: () => void;
@@ -31,15 +36,15 @@ export function HourlyRateScreen({ visible, onClose }: HourlyRateScreenProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
+    <SlideInModal visible={visible} onRequestClose={onClose}>
       <View
-        className="flex-1"
-        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+        style={[
+          styles.fill,
+          {
+            paddingTop: Math.max(insets.top, MIN_TOP_PADDING),
+            paddingBottom: insets.bottom,
+          },
+        ]}
       >
         <LinearGradient
           colors={BackgroundPrimary.colors}
@@ -50,7 +55,7 @@ export function HourlyRateScreen({ visible, onClose }: HourlyRateScreenProps) {
         />
         <HourlyRateContent onClose={onClose} />
       </View>
-    </Modal>
+    </SlideInModal>
   );
 }
 
@@ -104,7 +109,6 @@ function HourlyRateContent({ onClose }: { onClose: () => void }) {
               reload();
               setIsConfiguring(false);
             }}
-            onOpenFixedCosts={onClose}
           />
         ) : state.status === 'loading' ? (
           <View
@@ -155,7 +159,6 @@ function HourlyRateContent({ onClose }: { onClose: () => void }) {
             hourlyRate={state.hourlyRate}
             isRefreshing={state.isRefreshing}
             onChanged={reload}
-            onOpenFixedCosts={onClose}
           />
         )}
       </ScrollView>

@@ -103,7 +103,7 @@ const CATEGORIES: FinancialCategory[] = [
 ];
 
 const OPTIONS_DESCRIPTION =
-  'Envie a nota ou o pedido em PDF, preencha à mão ou dê baixa em um item do estoque';
+  'Envie a nota fiscal em PDF, preencha à mão ou dê baixa em um item do estoque';
 
 const STOCK_WRITE_OFF_TITLE = 'Registro de ajuste de saída';
 
@@ -159,6 +159,8 @@ afterEach(() => {
   mounted.splice(0).forEach(renderer => act(() => renderer.unmount()));
 });
 
+const sendDocument = jest.fn();
+
 async function renderFlow() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
@@ -167,7 +169,7 @@ async function renderFlow() {
         <I18nProvider>
           <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
             <StockSyncProvider>
-              <NewEntryFlow />
+              <NewEntryFlow onSendDocument={sendDocument} />
             </StockSyncProvider>
           </AuthProvider>
         </I18nProvider>
@@ -251,6 +253,7 @@ function holdExitAnimations() {
 
 beforeEach(async () => {
   await AsyncStorage.clear();
+  sendDocument.mockReset();
   mockFetchAdjustableItems.mockReset().mockResolvedValue(ADJUSTABLE_ITEMS);
   fetchCategoriesMock.mockReset().mockResolvedValue(CATEGORIES);
   createMock.mockReset().mockImplementation(async (_token, payload) => ({
@@ -282,24 +285,14 @@ test('opens the options sheet with the PDF, the manual and the stock write-off c
   );
 });
 
-test('answers the PDF choice with a notice only after the options sheet is gone', async () => {
+test('starts the PDF upload once the options sheet is gone', async () => {
   const renderer = await renderFlow();
   await openOptions(renderer);
 
   await pressByText(renderer, 'Enviar documento (PDF)');
 
-  const texts = textsOf(renderer);
-  expect(texts).not.toContain(OPTIONS_DESCRIPTION);
-  expect(texts).toEqual(
-    expect.arrayContaining([
-      'Envio de PDF em breve',
-      'Por enquanto, registre a entrada ou a saída pelo lançamento manual.',
-    ]),
-  );
-
-  await pressByText(renderer, 'Entendi');
-
-  expect(textsOf(renderer)).toEqual(['Novo lançamento']);
+  expect(sendDocument).toHaveBeenCalledTimes(1);
+  expect(textsOf(renderer)).not.toContain(OPTIONS_DESCRIPTION);
 });
 
 test('the manual choice opens the form, and only then loads the categories', async () => {
