@@ -85,6 +85,21 @@ export function isReportPeriodReady(range: CalendarRange): boolean {
   return isRangeComplete(range);
 }
 
+export type ReportPeriodError = 'END_AFTER_TODAY';
+
+export function reportToday(now: Date): string {
+  return toCalendarString(todayInReportTimeZone(now));
+}
+
+export function validateReportPeriod(
+  range: CalendarRange,
+  now: Date,
+): ReportPeriodError | null {
+  return range.to !== null && range.to > reportToday(now)
+    ? 'END_AFTER_TODAY'
+    : null;
+}
+
 export function formatReportDate(calendarDate: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: 'short' }).format(
     fromCalendarDate(calendarDate),
