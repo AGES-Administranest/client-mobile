@@ -356,21 +356,28 @@ function ItemModal({
     return supplierNotPicked ? { ...found, supplierName: 'pickOrAdd' } : found;
   }
 
+  const FIRST_STEP_FIELDS: ItemFormField[] = [
+    'name',
+    'supplierName',
+    'unitCost',
+    'unit',
+  ];
+
   function handleNext() {
-    const { name, supplierName: supplier } = validate();
-    const found: ItemFormErrors = {
-      ...(name ? { name } : {}),
-      ...(supplier ? { supplierName: supplier } : {}),
-    };
-    setErrors(found);
-    if (Object.keys(found).length === 0) setStep(1);
+    const found = validate();
+    const firstStep: ItemFormErrors = {};
+    for (const field of FIRST_STEP_FIELDS) {
+      if (found[field]) Object.assign(firstStep, { [field]: found[field] });
+    }
+    setErrors(firstStep);
+    if (Object.keys(firstStep).length === 0) setStep(1);
   }
 
   function handleConfirm() {
     const found = validate();
     setErrors(found);
     if (Object.keys(found).length > 0) {
-      if (found.name) setStep(0);
+      if (FIRST_STEP_FIELDS.some(field => found[field])) setStep(0);
       return;
     }
 
