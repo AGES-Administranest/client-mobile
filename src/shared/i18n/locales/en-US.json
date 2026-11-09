@@ -843,6 +843,10 @@
     "typeSupply": "Type supply"
   },
   "itemModal": {
+    "next": "Next",
+    "back": "Back",
+    "step1": "Step 1 of 2",
+    "step2": "Step 2 of 2",
     "title": "New supply or medication",
     "categoryLabel": "CATEGORY",
     "nameLabel": "NAME",
@@ -892,9 +896,14 @@
         "past": "The expiration date cannot be in the past"
       },
       "supplierName": {
-        "tooShort": "The supplier name needs at least 2 characters."
+        "tooShort": "The supplier name needs at least 2 characters.",
+        "pickOrAdd": "Pick a supplier from the list or add a new one"
       }
-    }
+    },
+    "supplierLoading": "Loading suppliers…",
+    "supplierEmpty": "No supplier found",
+    "supplierError": "Could not load the suppliers",
+    "supplierAdd": "Add supplier"
   },
   "auth": {
     "back": "Back",
@@ -1317,7 +1326,7 @@
     "revenue": "REVENUE",
     "estimated": "estimated",
     "agenda": "SCHEDULE",
-    "addAttendance": "+ Add appointment",
+    "addAttendance": "Add appointment",
     "sectionTitle": "PROCEDURES FOR MONTH OR DAY",
     "emptyDay": "No appointments for this day.",
     "emptyDaySub": "Tap the button below to schedule an appointment.",
@@ -1734,6 +1743,10 @@
       "delete": "Delete trip"
     },
     "form": {
+      "next": "Next",
+      "back": "Back",
+      "step1": "Step 1 of 2",
+      "step2": "Step 2 of 2",
       "newTitle": "New trip",
       "editTitle": "Edit trip",
       "close": "Close",

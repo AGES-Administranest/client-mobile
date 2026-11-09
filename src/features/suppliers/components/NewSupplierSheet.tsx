@@ -20,6 +20,8 @@ type NewSupplierSheetProps = {
   onChangeField: (field: SupplierField, value: string) => void;
   onSubmit: () => void;
   onClose: () => void;
+  /** iOS: abra o próximo sheet aqui, não no onClose. */
+  onClosed?: () => void;
 };
 
 function NewSupplierSheet({
@@ -34,6 +36,7 @@ function NewSupplierSheet({
   onChangeField,
   onSubmit,
   onClose,
+  onClosed,
 }: NewSupplierSheetProps) {
   return (
     <BottomSheet
@@ -41,6 +44,7 @@ function NewSupplierSheet({
       title={title}
       closeLabel={closeLabel}
       onClose={onClose}
+      onClosed={onClosed}
       footer={
         <Button
           shape="pill"

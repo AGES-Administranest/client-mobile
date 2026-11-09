@@ -843,6 +843,10 @@
     "typeSupply": "Digitar insumo"
   },
   "itemModal": {
+    "next": "Próximo",
+    "back": "Voltar",
+    "step1": "Passo 1 de 2",
+    "step2": "Passo 2 de 2",
     "title": "Novo insumo ou medicamento",
     "categoryLabel": "CATEGORIA",
     "nameLabel": "NOME",
@@ -892,9 +896,14 @@
         "past": "A validade não pode ser uma data passada"
       },
       "supplierName": {
-        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres."
+        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres.",
+        "pickOrAdd": "Escolha um fornecedor da lista ou adicione um novo"
       }
-    }
+    },
+    "supplierLoading": "Carregando fornecedores…",
+    "supplierEmpty": "Nenhum fornecedor encontrado",
+    "supplierError": "Não foi possível carregar os fornecedores",
+    "supplierAdd": "Adicionar fornecedor"
   },
   "auth": {
     "back": "Voltar",
@@ -1317,7 +1326,7 @@
     "revenue": "RECEITA",
     "estimated": "estimado",
     "agenda": "AGENDA",
-    "addAttendance": "+ Adicionar Atendimento",
+    "addAttendance": "Adicionar atendimento",
     "sectionTitle": "PROCEDIMENTOS DO MÊS OU DIA",
     "emptyDay": "Nenhum agendamento para este dia.",
     "emptyDaySub": "Toque no botão abaixo para agendar um procedimento.",
@@ -1734,6 +1743,10 @@
       "delete": "Excluir deslocamento"
     },
     "form": {
+      "next": "Próximo",
+      "back": "Voltar",
+      "step1": "Passo 1 de 2",
+      "step2": "Passo 2 de 2",
       "newTitle": "Novo deslocamento",
       "editTitle": "Editar deslocamento",
       "close": "Fechar",

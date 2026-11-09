@@ -18,6 +18,7 @@ import { ItemModal } from 'app/components/ui/item-modal/item-modal';
 import type {
   ItemDraft,
   ItemModalMode,
+  SupplierOption,
 } from 'app/components/ui/item-modal/item-modal';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { SegmentedControl } from 'app/components/ui/segmented-control';
@@ -35,6 +36,11 @@ import {
   type EquipmentFormTexts,
 } from 'features/equipment';
 import { StockEntryFlow } from 'features/stockEntry';
+import {
+  NewSupplierSheet,
+  useNewSupplierSheetTexts,
+  useSupplierRegistration,
+} from 'features/suppliers';
 import { useTranslation } from 'shared/i18n';
 import type { TranslationKey } from 'shared/i18n/dictionary';
 import { formatCurrency } from 'shared/utils/currency';
@@ -283,6 +289,16 @@ export function MaterialsScreen() {
 
   const [modalMode, setModalMode] = useState<ItemModalMode | null>(null);
   const [modalItem, setModalItem] = useState<StockItem | null>(null);
+  const [pickedSupplier, setPickedSupplier] = useState<SupplierOption | null>(
+    null,
+  );
+  const supplierRegistration = useSupplierRegistration({
+    onCreated: supplier =>
+      setPickedSupplier({ id: supplier.id, name: supplier.name }),
+  });
+  const supplierSheet = useNewSupplierSheetTexts(
+    supplierRegistration.form.errors,
+  );
   const [pendingDelete, setPendingDelete] = useState<StockItem | null>(null);
   const [actionError, setActionError] = useState<TranslationKey | null>(null);
 
@@ -325,6 +341,7 @@ export function MaterialsScreen() {
   function closeModal() {
     setModalMode(null);
     setModalItem(null);
+    setPickedSupplier(null);
   }
 
   function openDetail(item: StockItem | null) {
@@ -335,6 +352,7 @@ export function MaterialsScreen() {
 
   function openCreate() {
     setModalItem(null);
+    setPickedSupplier(null);
     setModalMode('create');
   }
 
@@ -465,6 +483,19 @@ export function MaterialsScreen() {
       <ItemModal
         mode={modalMode ?? 'create'}
         visible={modalMode !== null}
+        // O fornecedor é cadastrado em outro sheet: o do item sai de cena, com
+        // o que já foi preenchido, e volta com o fornecedor escolhido.
+        suspended={!supplierRegistration.isReviewShown}
+        onClosed={supplierRegistration.onReviewLeft}
+        supplierPicker={{
+          suppliers: supplierRegistration.suppliers
+            .filter(supplier => supplier.active)
+            .map(supplier => ({ id: supplier.id, name: supplier.name })),
+          isLoading: supplierRegistration.isLoading,
+          hasError: supplierRegistration.failure !== null,
+          picked: pickedSupplier,
+          onRegister: supplierRegistration.open,
+        }}
         onClose={closeModal}
         item={modalItem}
         items={stockItems}
@@ -473,6 +504,21 @@ export function MaterialsScreen() {
         onConfirm={handleConfirmAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+
+      <NewSupplierSheet
+        visible={supplierRegistration.isRegisterShown}
+        title={supplierSheet.title}
+        draft={supplierRegistration.form.draft}
+        fieldErrors={supplierSheet.fieldErrors}
+        fieldTexts={supplierSheet.fieldTexts}
+        confirmLabel={supplierSheet.confirmLabel}
+        closeLabel={supplierSheet.closeLabel}
+        isSaving={supplierRegistration.isSaving}
+        onChangeField={supplierRegistration.form.setField}
+        onSubmit={supplierRegistration.submit}
+        onClose={supplierRegistration.cancel}
+        onClosed={supplierRegistration.onRegisterLeft}
       />
 
       <ConfirmSheet

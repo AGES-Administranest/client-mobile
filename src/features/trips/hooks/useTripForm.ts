@@ -25,6 +25,14 @@ import {
 } from '../services/offlineTripStore';
 import { tripService } from '../services/tripService';
 
+export type TripFormStep = 0 | 1;
+
+// Step 0 is the route (where, from where, for whom); step 1 is the cost.
+const FIRST_STEP_FIELDS = ['origin', 'destination'] as const;
+
+const hasFirstStepErrors = (errors: TripFormErrors) =>
+  FIRST_STEP_FIELDS.some(field => errors[field] !== undefined);
+
 export type UseTripFormOptions = {
   trip?: Trip | null;
   clientName?: string;
@@ -58,6 +66,7 @@ export function useTripForm(options: UseTripFormOptions = {}) {
   );
   const [errors, setErrors] = useState<TripFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [step, setStep] = useState<TripFormStep>(0);
   const [isClientSearchPaused, setIsClientSearchPaused] = useState(
     Boolean(values.clientId),
   );
@@ -75,6 +84,7 @@ export function useTripForm(options: UseTripFormOptions = {}) {
     const initial = buildInitialTripValues(latestOptions.current, new Date());
     setValues(initial);
     setErrors({});
+    setStep(0);
     setIsClientSearchPaused(Boolean(initial.clientId));
     latestSetClientSearchTerm.current(initial.clientId ? clientName ?? '' : '');
   }, [active, trip, clientName]);
@@ -154,10 +164,24 @@ export function useTripForm(options: UseTripFormOptions = {}) {
     [setClientSearchTerm],
   );
 
+  const nextStep = useCallback(() => {
+    const validationErrors = validateTripForm(values);
+    const firstStepErrors: TripFormErrors = {};
+    for (const field of FIRST_STEP_FIELDS) {
+      if (validationErrors[field])
+        firstStepErrors[field] = validationErrors[field];
+    }
+    setErrors(firstStepErrors);
+    if (!hasFirstStepErrors(firstStepErrors)) setStep(1);
+  }, [values]);
+
+  const previousStep = useCallback(() => setStep(0), []);
+
   const submit = useCallback(async (): Promise<Trip | null> => {
     const validationErrors = validateTripForm(values);
     setErrors(validationErrors);
     if (!isTripFormValid(validationErrors)) {
+      if (hasFirstStepErrors(validationErrors)) setStep(0);
       return null;
     }
 
@@ -256,6 +280,9 @@ export function useTripForm(options: UseTripFormOptions = {}) {
     errors,
     submitting,
     isEditing: Boolean(trip),
+    step,
+    nextStep,
+    previousStep,
     mode: values.mode,
     previewCost,
     vehicles,
