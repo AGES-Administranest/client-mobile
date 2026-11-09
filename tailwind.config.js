@@ -67,6 +67,10 @@ module.exports = {
         'chart-fixed-costs': '#A07E62',
         'chart-variable-costs': '#D2BBA0',
         'chart-safety-margin': '#8C9A5B',
+        // Hourly rate history (US22), read from the Figma frames.
+        'trend-up': '#5D6B2F',
+        'trend-up-fill': '#EEF1E2',
+        'trend-down': '#A34A25',
       },
       borderRadius: {
         lg: 'var(--radius)',
