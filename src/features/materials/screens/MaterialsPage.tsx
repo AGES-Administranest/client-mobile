@@ -1,6 +1,6 @@
 import {
-  FileText,
-  Inbox,
+  Camera,
+  FilePlus,
   PackageSearch,
   Plus,
   Trash2,
@@ -34,7 +34,6 @@ import {
   type EquipmentFormTarget,
   type EquipmentFormTexts,
 } from 'features/equipment';
-import { InvoicesScreen, isInvoiceListAvailable } from 'features/invoices';
 import { StockEntryFlow } from 'features/stockEntry';
 import { useTranslation } from 'shared/i18n';
 import type { TranslationKey } from 'shared/i18n/dictionary';
@@ -278,7 +277,6 @@ function EquipmentSegment() {
 export function MaterialsScreen() {
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
-  const [isInvoicesOpen, setIsInvoicesOpen] = useState(false);
   const [actionsVisible, setActionsVisible] = useState(false);
   // iOS: um Modal não abre enquanto outro fecha.
   const openAfterActionsLeave = useRef<(() => void) | null>(null);
@@ -426,7 +424,7 @@ export function MaterialsScreen() {
             ))}
           </ScrollView>
           <StockEntryFlow onTypeItem={openCreate} showButton={false}>
-            {({ openList, pendingCount }) => (
+            {({ scanNote, attachPdf }) => (
               <OptionsModal
                 visible={actionsVisible}
                 onClose={() => setActionsVisible(false)}
@@ -434,25 +432,15 @@ export function MaterialsScreen() {
                 title={t('materials.actions.title')}
                 options={[
                   {
-                    label:
-                      pendingCount > 0
-                        ? t('stockEntry.triggerWithCount', {
-                            count: pendingCount,
-                          })
-                        : t('stockEntry.trigger'),
-                    icon: Inbox,
-                    onPress: () => chooseAction(openList),
+                    label: t('stockEntry.menu.photo'),
+                    icon: Camera,
+                    onPress: () => chooseAction(scanNote),
                   },
-                  ...(isInvoiceListAvailable()
-                    ? [
-                        {
-                          label: t('invoices.trigger'),
-                          icon: FileText,
-                          onPress: () =>
-                            chooseAction(() => setIsInvoicesOpen(true)),
-                        },
-                      ]
-                    : []),
+                  {
+                    label: t('stockEntry.menu.attachPdf'),
+                    icon: FilePlus,
+                    onPress: () => chooseAction(attachPdf),
+                  },
                   {
                     label: t('materials.actions.manual'),
                     icon: Plus,
@@ -462,12 +450,6 @@ export function MaterialsScreen() {
               />
             )}
           </StockEntryFlow>
-          {isInvoiceListAvailable() && (
-            <InvoicesScreen
-              visible={isInvoicesOpen}
-              onClose={() => setIsInvoicesOpen(false)}
-            />
-          )}
           <Button
             shape="pill"
             icon={Plus}

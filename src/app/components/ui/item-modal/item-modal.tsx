@@ -5,6 +5,7 @@ import {
   Dimensions,
   Modal,
   Pressable,
+  ScrollView,
   TextInput,
   View,
 } from 'react-native';
@@ -313,7 +314,7 @@ function ItemModal({
             }}
           >
             <Pressable
-              className="gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
+              className="shrink gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4"
               onPress={e => e.stopPropagation()}
             >
               <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
@@ -324,7 +325,11 @@ function ItemModal({
 
               <View className="h-px bg-details-primary" />
 
-              <View className="gap-4">
+              <ScrollView
+                className="shrink"
+                contentContainerClassName="gap-4"
+                keyboardShouldPersistTaps="handled"
+              >
                 <View className="gap-2">
                   <Text className="text-xs font-semibold text-label-primary">
                     {t('itemModal.categoryLabel')}
@@ -579,7 +584,7 @@ function ItemModal({
                     )}
                   </View>
                 )}
-              </View>
+              </ScrollView>
 
               {isDetail ? (
                 <View className="gap-3">

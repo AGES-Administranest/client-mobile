@@ -103,6 +103,14 @@ test('lists each entry with its date, category and signed amount', async () => {
   ]);
 });
 
+test('an income arrow sits on a green chip and an expense arrow on a red one', async () => {
+  const { renderer } = await render();
+  const json = JSON.stringify(renderer.toJSON());
+
+  expect(json).toContain('bg-details-finish');
+  expect(json).toContain('bg-alert-primary/20');
+});
+
 test('rows open the entry only when the screen asks for it', async () => {
   const silent = await render();
   expect(buttons(silent.renderer)).toHaveLength(0);

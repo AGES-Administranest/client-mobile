@@ -21,6 +21,7 @@ function invoice(number: string): Invoice {
     number,
     kind: 'SERVICE',
     issuerName: 'Emitente',
+    issuerCity: 'São Paulo, SP',
     takerName: 'Tomador',
     takerCnpj: '12.345.678/0001-90',
     amount: 100,
@@ -30,7 +31,7 @@ function invoice(number: string): Invoice {
 }
 
 function pageOf(numbers: string[], hasMore: boolean): InvoicePage {
-  return { items: numbers.map(invoice), hasMore };
+  return { items: numbers.map(invoice), hasMore, total: numbers.length };
 }
 
 function numbersOf(list: Invoice[]) {

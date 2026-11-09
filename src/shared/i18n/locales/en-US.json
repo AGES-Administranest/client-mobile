@@ -287,7 +287,7 @@
       "confirm": "Add to stock",
       "confirmUnavailable": "Adding to stock comes in the next step. The review stays saved as a draft.",
       "leaveTitle": "Leave the review?",
-      "leaveMessage": "Some changes were not saved and will be lost.",
+      "leaveMessage": "What you filled in is not kept and will be lost.",
       "leaveConfirm": "Leave without saving",
       "leaveCancel": "Keep reviewing",
       "line": {
@@ -700,8 +700,7 @@
       "scope": {
         "label": "Scope",
         "professional": "Professional",
-        "personal": "Personal",
-        "hint": "Suggested by the category. You can change it."
+        "personal": "Personal"
       },
       "save": "Save",
       "saving": "Saving…",
@@ -1100,7 +1099,12 @@
       "confirm": "Confirm",
       "close": "Close",
       "location": "Location",
-      "submitError": "Couldn't save. Please try again."
+      "submitError": "Couldn't save. Please try again.",
+      "registerClient": "Add clinic",
+      "next": "Next",
+      "back": "Back",
+      "step1": "Step 1 of 2",
+      "step2": "Step 2 of 2"
     },
     "supplyPrompt": {
       "title": "Do you want to record the supplies used in this procedure?",
@@ -1160,7 +1164,7 @@
     "clientSearch": {
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
-      "empty": "No clinics found. Add one under Partners → Clinics."
+      "empty": "No clinic found."
     },
     "completion": {
       "action": "Complete procedure",
@@ -1188,7 +1192,9 @@
       "lineDetail": "{{quantity}} u. × {{unitCost}}",
       "remove": "Remove {{name}}",
       "totalCost": "Supplies total",
-      "grossMargin": "Gross margin"
+      "grossMargin": "Gross margin",
+      "travelCost": "Total travel",
+      "costsTotal": "Total costs"
     },
     "status": {
       "SCHEDULED": "Scheduled",
@@ -1793,31 +1799,13 @@
     "loadFailed": "Could not load the trips."
   },
   "invoices": {
-    "trigger": "Invoices",
     "title": "Invoices",
     "back": "Back",
-    "filters": {
-      "searchPlaceholder": "Name, CNPJ or invoice number",
-      "period": "Period",
-      "periodRange": "{{from}} to {{to}}",
-      "periodSingle": "{{day}}",
-      "periodFrom": "From {{from}}",
-      "clear": "Clear",
-      "previousMonth": "Previous month",
-      "nextMonth": "Next month",
-      "invalidRange": "The start date cannot be after the end date."
-    },
     "loading": "Loading invoices...",
     "loadingMore": "Loading more invoices",
     "loadMoreError": "Could not load more invoices.",
     "error": "Could not load the invoices.",
     "empty": "No invoices registered.",
-    "emptyFiltered": "No invoices found for the filter.",
-    "card": {
-      "title": "Invoice {{number}}",
-      "issuer": "Issuer: {{name}}",
-      "taker": "Customer: {{name}}"
-    },
     "status": {
       "SYNCED": "Synced",
       "NOT_SYNCED": "Not synced",
@@ -1836,7 +1824,37 @@
       "takerCnpj": "Customer CNPJ",
       "value": "Amount",
       "issuedAt": "Issue date",
-      "status": "Status"
+      "status": "Status",
+      "download": "Download invoice",
+      "downloading": "Downloading the invoice...",
+      "downloaded": "Invoice downloaded.",
+      "downloadFailed": "Couldn't download the invoice. Try again."
+    },
+    "countSingular": "{{count}} invoice",
+    "countPlural": "{{count}} invoices",
+    "addInvoice": "Add invoice"
+  },
+  "reports": {
+    "seeAll": "See all",
+    "addInvoice": "Add invoice",
+    "generate": {
+      "title": "Generate new report",
+      "categoryPlaceholder": "Select category",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "selectDate": "Select the date",
+      "button": "Generate report",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "categories": {
+      "financial": "Financial",
+      "appointments": "Appointments",
+      "inventory": "Inventory"
+    },
+    "history": {
+      "title": "Report history",
+      "empty": "No report generated yet."
     }
   }
 }

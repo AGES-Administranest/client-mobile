@@ -13,6 +13,7 @@ const INVOICE: Invoice = {
   number: '000458',
   kind: 'PURCHASE',
   issuerName: 'Vet Farma Distribuidora',
+  issuerCity: 'São Paulo, SP',
   takerName: 'Clínica Veterinária Boa Vida',
   takerCnpj: '12.345.678/0001-90',
   amount: 1284.5,
@@ -21,26 +22,12 @@ const INVOICE: Invoice = {
 };
 
 describe('invoiceCardView', () => {
-  it('formats the card the way the design shows it', () => {
-    const view = invoiceCardView(INVOICE, t, 'pt-BR');
-
-    expect(view.title).toBe('Nota Fiscal 000458');
-    expect(view.date).toBe('10/08/2026');
-    expect(view.issuer).toBe('Emitente: Vet Farma Distribuidora');
-    expect(view.taker).toBe('Tomador: Clínica Veterinária Boa Vida');
-    expect(view.value.replace(/\s/g, ' ')).toBe('R$ 1.284,50');
-    expect(view.statusLabel).toBe('Sincronizada');
-  });
-
-  it.each([
-    ['SYNCED', 'Sincronizada', 'success'],
-    ['NOT_SYNCED', 'Não sincronizada', 'attention'],
-    ['ERROR', 'Erro no processamento', 'alert'],
-  ] as const)('maps %s to its label and tone', (syncStatus, label, tone) => {
-    const view = invoiceCardView({ ...INVOICE, syncStatus }, t, 'pt-BR');
-
-    expect(view.statusLabel).toBe(label);
-    expect(view.statusTone).toBe(tone);
+  it('shows the issuer, the issue date and the city', () => {
+    expect(invoiceCardView(INVOICE, 'pt-BR')).toEqual({
+      issuer: 'Vet Farma Distribuidora',
+      date: '10/08/2026',
+      location: 'São Paulo, SP',
+    });
   });
 });
 
