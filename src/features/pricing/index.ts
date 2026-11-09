@@ -38,7 +38,6 @@ export type {
   ProcedureSupplyDto,
 } from './domain/pricing.types';
 
-// --- US21: Sugestão de Valor Mínimo por Procedimento ---
 export { ProcedureEstimateScreen } from './screens/ProcedureEstimateScreen';
 export type { ProcedureEstimateScreenProps } from './screens/ProcedureEstimateScreen';
 export { ProcedureEstimateContent } from './components/ProcedureEstimateContent';

@@ -4,11 +4,13 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 import { ApiError } from 'shared/services/apiClient';
 
 import { useProcedureEstimate } from './useProcedureEstimate';
-import type { HourlyRate } from '../domain/hourlyRate';
 import type { ProcedureEstimateResponse } from '../domain/pricing.types';
 import { pricingService } from '../services/pricingService';
+import {
+  resetLegacyCleanedForTesting,
+  savedProcedureEstimateService,
+} from '../services/savedProcedureEstimateService';
 
-// Mock do auth
 jest.mock('features/auth', () => ({
   useAuth: () => ({
     session: { idToken: 'test-token' },
@@ -16,7 +18,6 @@ jest.mock('features/auth', () => ({
   }),
 }));
 
-// Mock do pricingService
 jest.mock('../services/pricingService', () => {
   const actual = jest.requireActual('../services/pricingService');
   return {
@@ -27,26 +28,6 @@ jest.mock('../services/pricingService', () => {
     },
   };
 });
-
-const mockHourlyRate: HourlyRate = {
-  month: { month: 11, year: 2026 },
-  settings: {
-    monthlyIncomeGoal: 8000,
-    weeklyHours: 30,
-    safetyMarginPct: 20,
-  },
-  parts: {
-    fixedCosts: 1000,
-    variableCosts: 500,
-    proLabore: 8000,
-    safetyMargin: 1900,
-  },
-  total: 11400,
-  productiveHours: 130,
-  hourlyRate: 87.69,
-  minimumHourlyRate: 73.08,
-  calculatedAt: '2026-11-01T00:00:00.000Z',
-};
 
 const mockEstimateResponse: ProcedureEstimateResponse = {
   minimumPrice: '131.47',
@@ -75,6 +56,7 @@ describe('useProcedureEstimate', () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
     jest.clearAllMocks();
+    resetLegacyCleanedForTesting();
     jest.useFakeTimers();
   });
 
@@ -82,34 +64,72 @@ describe('useProcedureEstimate', () => {
     jest.useRealTimers();
   });
 
-  it('sets status to needsPricingSetup when initial getHourlyRate returns null', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(null);
-
+  it('starts in idle status and makes no API call when no simulation is saved and duration is empty', async () => {
     await act(async () => {
-      ReactTestRenderer.create(<Probe />);
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
       await Promise.resolve();
     });
 
-    expect(current.status).toBe('needsPricingSetup');
-  });
-
-  it('sets status to idle after initial check when pricing is configured and no duration set', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
-
-    await act(async () => {
-      ReactTestRenderer.create(<Probe />);
-      await Promise.resolve();
+    act(() => {
+      jest.advanceTimersByTime(100);
     });
 
     expect(current.status).toBe('idle');
+    expect(pricingService.estimateProcedure).not.toHaveBeenCalled();
+  });
+
+  it('restores saved simulation on mount, displays result without editing, and calls estimateProcedure once', async () => {
+    (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
+      mockEstimateResponse,
+    );
+
+    await savedProcedureEstimateService.save('test-user', {
+      hours: '1',
+      minutes: '30',
+      client: { id: 'client-1', name: 'Clínica Veterinária' },
+      supplies: [
+        {
+          itemId: 'item-1',
+          name: 'Seringa',
+          unit: 'un',
+          quantity: 2,
+          unitCost: 15,
+        },
+      ],
+      estimate: null,
+      savedAt: '2026-11-09T10:00:00.000Z',
+    });
+
+    await act(async () => {
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
+      await Promise.resolve();
+    });
+
+    expect(current.hours).toBe('1');
+    expect(current.minutes).toBe('30');
+    expect(current.selectedClient?.name).toBe('Clínica Veterinária');
+    expect(current.selectedSupplies).toHaveLength(1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+    });
+
+    expect(pricingService.estimateProcedure).toHaveBeenCalledTimes(1);
+    expect(pricingService.estimateProcedure).toHaveBeenCalledWith(
+      'test-token',
+      {
+        durationMinutes: 90,
+        clientId: 'client-1',
+        supplies: [{ itemId: 'item-1', quantity: 2 }],
+      },
+    );
+
+    expect(current.status).toBe('success');
+    expect(current.estimate?.minimumPrice).toBe(131.47);
   });
 
   it('calculates estimate when duration is set and debounces', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
     (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
       mockEstimateResponse,
     );
@@ -121,13 +141,11 @@ describe('useProcedureEstimate', () => {
 
     expect(current.status).toBe('idle');
 
-    // Define duração
     act(() => {
       current.setHours('1');
       current.setMinutes('30');
     });
 
-    // Avança debounce
     await act(async () => {
       jest.advanceTimersByTime(50);
       await Promise.resolve();
@@ -144,10 +162,29 @@ describe('useProcedureEstimate', () => {
     expect(current.estimate?.minimumPrice).toBe(131.47);
   });
 
-  it('transitions to needsPricingSetup if estimateProcedure rejects with 409', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
+  it('transitions to needsPricingSetup if estimateProcedure rejects with 404 PRICING_SETTINGS_NOT_FOUND', async () => {
+    (pricingService.estimateProcedure as jest.Mock).mockRejectedValue(
+      new ApiError('Not found', 'PRICING_SETTINGS_NOT_FOUND', 404),
     );
+
+    await act(async () => {
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
+      await Promise.resolve();
+    });
+
+    act(() => {
+      current.setHours('1');
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+    });
+
+    expect(current.status).toBe('needsPricingSetup');
+  });
+
+  it('transitions to needsPricingSetup if estimateProcedure rejects with 409', async () => {
     (pricingService.estimateProcedure as jest.Mock).mockRejectedValue(
       new ApiError('Conflict', 'PRICING_SETTINGS_NOT_FOUND', 409),
     );
@@ -169,10 +206,44 @@ describe('useProcedureEstimate', () => {
     expect(current.status).toBe('needsPricingSetup');
   });
 
+  it('recalculates on reload after pricing setup is completed', async () => {
+    (pricingService.estimateProcedure as jest.Mock)
+      .mockRejectedValueOnce(
+        new ApiError('Not found', 'PRICING_SETTINGS_NOT_FOUND', 404),
+      )
+      .mockResolvedValueOnce(mockEstimateResponse);
+
+    await act(async () => {
+      ReactTestRenderer.create(<Probe debounceMs={50} />);
+      await Promise.resolve();
+    });
+
+    act(() => {
+      current.setHours('1');
+      current.setMinutes('30');
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+    });
+
+    expect(current.status).toBe('needsPricingSetup');
+
+    act(() => {
+      current.reload();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+    });
+
+    expect(current.status).toBe('success');
+    expect(current.estimate?.minimumPrice).toBe(131.47);
+  });
+
   it('transitions to error if estimateProcedure rejects with 400 validation error', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
     (pricingService.estimateProcedure as jest.Mock).mockRejectedValueOnce(
       new ApiError('Bad request', 'VALIDATION_ERROR', 400),
     );
@@ -195,9 +266,6 @@ describe('useProcedureEstimate', () => {
   });
 
   it('transitions to error if estimateProcedure rejects with generic error and allows retry', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
     (pricingService.estimateProcedure as jest.Mock).mockRejectedValueOnce(
       new Error('Network failure'),
     );
@@ -218,7 +286,6 @@ describe('useProcedureEstimate', () => {
 
     expect(current.status).toBe('error');
 
-    // Tentar de novo
     (pricingService.estimateProcedure as jest.Mock).mockResolvedValueOnce(
       mockEstimateResponse,
     );
@@ -236,9 +303,6 @@ describe('useProcedureEstimate', () => {
   });
 
   it('adds and removes supplies properly', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
     (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
       mockEstimateResponse,
     );
@@ -269,9 +333,6 @@ describe('useProcedureEstimate', () => {
   });
 
   it('sums quantity when adding a supply that already exists in the list', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
     (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
       mockEstimateResponse,
     );
@@ -308,9 +369,6 @@ describe('useProcedureEstimate', () => {
   });
 
   it('updates quantity of an existing supply', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
     (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
       mockEstimateResponse,
     );
@@ -338,9 +396,6 @@ describe('useProcedureEstimate', () => {
   });
 
   it('clears all fields when clearForm is called', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
     (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
       mockEstimateResponse,
     );
@@ -383,9 +438,6 @@ describe('useProcedureEstimate', () => {
   });
 
   it('saves simulation locally when saveSimulation is called and sets canSave', async () => {
-    (pricingService.getHourlyRate as jest.Mock).mockResolvedValue(
-      mockHourlyRate,
-    );
     (pricingService.estimateProcedure as jest.Mock).mockResolvedValue(
       mockEstimateResponse,
     );

@@ -29,22 +29,17 @@ export type PricingSettingsValidation =
   | { valid: true; settings: PricingSettings }
   | { valid: false; errors: PricingSettingsErrors };
 
-// --- US21: Simulação de Valor Mínimo por Procedimento ---
-
-/** Item de insumo na requisição da simulação */
 export type ProcedureSupplyDto = {
   itemId: string;
   quantity: number;
 };
 
-/** DTO de entrada para POST /pricing/procedure-estimate */
 export type ProcedureEstimateDto = {
   durationMinutes: number;
   clientId?: string | null;
   supplies?: ProcedureSupplyDto[];
 };
 
-/** DTO de resposta do backend para POST /pricing/procedure-estimate */
 export type ProcedureEstimateResponse = {
   minimumPrice: string;
   breakEvenPrice: string;
@@ -61,7 +56,6 @@ export type ProcedureEstimateResponse = {
   year: number;
 };
 
-/** Tipo de domínio mapeado (valores numéricos prontos para apresentação) */
 export type ProcedureEstimate = {
   minimumPrice: number;
   breakEvenPrice: number;
@@ -78,7 +72,6 @@ export type ProcedureEstimate = {
   year: number;
 };
 
-/** Insumo selecionado no formulário da simulação */
 export type ProcedureSelectedSupply = {
   itemId: string;
   name: string;

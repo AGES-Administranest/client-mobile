@@ -148,7 +148,6 @@ export function HourlyRateResultView({
         />
       </HourlyRateHighlight>
 
-      {/* Ponto de entrada US21: Simulação de valor mínimo por procedimento */}
       {onOpenProcedureEstimate ? (
         <Button
           shape="pill"

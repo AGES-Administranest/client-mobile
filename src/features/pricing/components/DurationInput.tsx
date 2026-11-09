@@ -58,7 +58,6 @@ export function DurationInput({
       ) : null}
 
       <View className="flex-row items-center gap-3 pt-1">
-        {/* Campo Horas */}
         <View className="flex-1">
           <Text className="mb-1 text-xs font-bold tracking-wider text-label-body">
             {hoursLabel}
@@ -82,7 +81,6 @@ export function DurationInput({
           </View>
         </View>
 
-        {/* Campo Minutos */}
         <View className="flex-1">
           <Text className="mb-1 text-xs font-bold tracking-wider text-label-body">
             {minutesLabel}

@@ -338,7 +338,6 @@ function ProcedureEstimateBody({
         )}
       </ScrollView>
 
-      {/* Sheet para seleção de insumos (US06 / Stock) */}
       <SupplySelectorSheet
         visible={isSupplySheetVisible}
         onClose={() => setIsSupplySheetVisible(false)}
@@ -369,7 +368,6 @@ function ProcedureEstimateBody({
         formatPrice={option => formatSupplyPrice(option.price)}
       />
 
-      {/* Modal para edição de quantidade de um insumo */}
       <EditSupplyQuantityModal
         visible={editingSupply !== null}
         supply={editingSupply}

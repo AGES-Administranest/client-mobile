@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import type { ClientOption } from 'features/clients';
-import { monthOf } from 'shared/utils/monthPeriod';
 
 import type {
   ProcedureEstimate,
@@ -30,21 +29,14 @@ export type ProcedureEstimateStatus =
   | 'needsPricingSetup';
 
 export type UseProcedureEstimate = {
-  // Estado do formulário
   hours: string;
   minutes: string;
   selectedClient: ClientOption | null;
   selectedSupplies: ProcedureSelectedSupply[];
-
-  // Validação
   durationValidation: DurationValidationResult;
-
-  // Estado da simulação
   status: ProcedureEstimateStatus;
   estimate: ProcedureEstimate | null;
   canSave: boolean;
-
-  // Ações do formulário
   setHours: (hours: string) => void;
   setMinutes: (minutes: string) => void;
   selectClient: (client: ClientOption) => void;
@@ -54,8 +46,6 @@ export type UseProcedureEstimate = {
   removeSupply: (itemId: string) => void;
   clearForm: () => void;
   saveSimulation: () => Promise<boolean>;
-
-  // Controle de fluxo
   retry: () => void;
   reload: () => void;
 };
@@ -63,7 +53,8 @@ export type UseProcedureEstimate = {
 export function useProcedureEstimate(
   debounceMs: number = ESTIMATE_DEBOUNCE_MS,
 ): UseProcedureEstimate {
-  const { session } = useAuth();
+  const { account, session } = useAuth();
+  const userId = account?.id ?? null;
   const idToken = session?.idToken ?? null;
 
   const [hours, setHours] = useState('');
@@ -75,93 +66,32 @@ export function useProcedureEstimate(
     ProcedureSelectedSupply[]
   >([]);
 
-  const [status, setStatus] = useState<ProcedureEstimateStatus>('loading');
+  const [status, setStatus] = useState<ProcedureEstimateStatus>('idle');
   const [estimate, setEstimate] = useState<ProcedureEstimate | null>(null);
-
-  // Versão de reload para forçar nova verificação inicial de honorários e recálculo
-  const [checkVersion, setCheckVersion] = useState(0);
-  const reload = useCallback(() => {
-    setCheckVersion(v => v + 1);
-  }, []);
-
-  // Tentativa de recálculo (retry) sem rechecar honorários do zero
-  const [retryAttempt, setRetryAttempt] = useState(0);
-  const retry = useCallback(() => {
-    setRetryAttempt(a => a + 1);
-  }, []);
+  const [isRestored, setIsRestored] = useState(false);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   const requestIdRef = useRef(0);
-  const pricingCheckedRef = useRef(false);
 
-  // Validação da duração
   const durationValidation = validateDuration(hours, minutes);
 
-  // Restauração da última simulação salva no dispositivo
   useEffect(() => {
     let isCurrent = true;
-    savedProcedureEstimateService.load().then(saved => {
-      if (!isCurrent || !saved) return;
-      setHours(prev => (prev === '' ? saved.hours : prev));
-      setMinutes(prev => (prev === '' ? saved.minutes : prev));
-      setSelectedClient(prev => (prev === null ? saved.client : prev));
-      setSelectedSupplies(prev =>
-        prev.length === 0 ? saved.supplies : prev,
-      );
+    savedProcedureEstimateService.load(userId).then(saved => {
+      if (!isCurrent) return;
+      if (saved) {
+        setHours(saved.hours);
+        setMinutes(saved.minutes);
+        setSelectedClient(saved.client);
+        setSelectedSupplies(saved.supplies);
+      }
+      setIsRestored(true);
     });
     return () => {
       isCurrent = false;
     };
-  }, []);
+  }, [userId]);
 
-  // Subtask 2: Checagem inicial ao acessar a simulação
-  // Faz a chamada real ao GET /pricing/hourly-rate (US20) para verificar se o usuário
-  // tem honorários configurados (retorna null se receber 404/409).
-  useEffect(() => {
-    if (!idToken) {
-      setStatus('error');
-      return;
-    }
-
-    let isMounted = true;
-    pricingCheckedRef.current = false;
-    setStatus('loading');
-
-    const currentMonth = monthOf(new Date());
-
-    pricingService
-      .getHourlyRate(idToken, currentMonth)
-      .then(hourlyRate => {
-        if (!isMounted) return;
-        if (!hourlyRate) {
-          pricingCheckedRef.current = false;
-          setStatus('needsPricingSetup');
-        } else {
-          pricingCheckedRef.current = true;
-          // Se a duração já estiver preenchida e válida, calcula; senão, fica ocioso
-          if (durationValidation.isValid) {
-            calculateEstimate();
-          } else {
-            setStatus('idle');
-          }
-        }
-      })
-      .catch(error => {
-        if (!isMounted) return;
-        if (isPricingUnconfiguredError(error)) {
-          pricingCheckedRef.current = false;
-          setStatus('needsPricingSetup');
-        } else {
-          setStatus('error');
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idToken, checkVersion]);
-
-  // Função interna de cálculo com descarte de requisições antigas
   const calculateEstimate = useCallback(async () => {
     if (!idToken) {
       setStatus('error');
@@ -192,7 +122,6 @@ export function useProcedureEstimate(
     try {
       const response = await pricingService.estimateProcedure(idToken, dto);
 
-      // Descarte de resposta antiga: só a última chamada tem efeito
       if (currentRequestId !== requestIdRef.current) {
         return;
       }
@@ -205,7 +134,6 @@ export function useProcedureEstimate(
       }
 
       if (isPricingUnconfiguredError(error)) {
-        pricingCheckedRef.current = false;
         setStatus('needsPricingSetup');
       } else {
         setStatus('error');
@@ -219,14 +147,11 @@ export function useProcedureEstimate(
     selectedSupplies,
   ]);
 
-  // Recálculo automático com debounce a cada alteração de duração, cliente ou insumos
   useEffect(() => {
-    // Se ainda não checou honorários ou está no estado de needsPricingSetup, não calcula
-    if (!pricingCheckedRef.current || status === 'needsPricingSetup') {
+    if (!isRestored) {
       return;
     }
 
-    // Se duração for inválida, volta para idle
     if (!durationValidation.isValid) {
       setStatus('idle');
       setEstimate(null);
@@ -242,17 +167,14 @@ export function useProcedureEstimate(
     return () => {
       clearTimeout(timer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    hours,
-    minutes,
-    selectedClient?.id,
-    selectedSupplies,
+    isRestored,
+    durationValidation.isValid,
     debounceMs,
-    retryAttempt,
+    calculateEstimate,
+    retryTrigger,
   ]);
 
-  // Handlers para insumos
   const addSupply = useCallback((newSupply: ProcedureSelectedSupply) => {
     setSelectedSupplies(prev => {
       const existingIndex = prev.findIndex(s => s.itemId === newSupply.itemId);
@@ -304,7 +226,7 @@ export function useProcedureEstimate(
     if (!durationValidation.isValid || !estimate || status !== 'success') {
       return false;
     }
-    await savedProcedureEstimateService.save({
+    await savedProcedureEstimateService.save(userId, {
       hours,
       minutes,
       client: selectedClient,
@@ -317,11 +239,20 @@ export function useProcedureEstimate(
     durationValidation.isValid,
     estimate,
     status,
+    userId,
     hours,
     minutes,
     selectedClient,
     selectedSupplies,
   ]);
+
+  const retry = useCallback(() => {
+    setRetryTrigger(prev => prev + 1);
+  }, []);
+
+  const reload = useCallback(() => {
+    setRetryTrigger(prev => prev + 1);
+  }, []);
 
   const canSave =
     durationValidation.isValid &&

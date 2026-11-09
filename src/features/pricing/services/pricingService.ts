@@ -14,10 +14,6 @@ import type {
   SavePricingSettingsDto,
 } from '../domain/pricing.types';
 
-/**
- * Detecta se um erro retornado pela API ou serviço indica falta de configuração de honorários
- * (409 Conflict ou PRICING_SETTINGS_NOT_FOUND, como a US20 trata).
- */
 export function isPricingUnconfiguredError(error: unknown): boolean {
   if (error instanceof ApiError) {
     return (
@@ -51,9 +47,6 @@ async function fetchHourlyRate(
   }
 }
 
-/**
- * Chama o endpoint real do backend POST /pricing/procedure-estimate (US21).
- */
 async function fetchProcedureEstimate(
   idToken: string,
   dto: ProcedureEstimateDto,
@@ -95,10 +88,6 @@ export const pricingService = {
     return toHourlyRate(response, settings);
   },
 
-  /**
-   * Simula a precificação mínima de um procedimento (US21).
-   * Chama o endpoint real do backend POST /pricing/procedure-estimate.
-   */
   estimateProcedure(
     idToken: string,
     dto: ProcedureEstimateDto,

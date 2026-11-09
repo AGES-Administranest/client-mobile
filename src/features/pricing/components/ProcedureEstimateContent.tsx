@@ -68,14 +68,11 @@ export type ProcedureEstimateTexts = {
 };
 
 export type ProcedureEstimateContentProps = {
-  // Duração
   hours: string;
   minutes: string;
   durationError?: string | null;
   onChangeHours: (hours: string) => void;
   onChangeMinutes: (minutes: string) => void;
-
-  // Tomador / Clínica
   selectedClient: ClientOption | null;
   clientTerm: string;
   clientSearchStatus: ClientSearchStatus;
@@ -83,16 +80,12 @@ export type ProcedureEstimateContentProps = {
   onChangeClientTerm: (term: string) => void;
   onSelectClient: (client: ClientOption) => void;
   onClearClient: () => void;
-
-  // Insumos
   supplies: ProcedureSelectedSupply[];
   onOpenSupplySelector: () => void;
   onEditSupply: (supply: ProcedureSelectedSupply) => void;
   onRemoveSupply: (itemId: string) => void;
   formatSupplyCost: (cost: number) => string;
   formattedSuppliesSubtotal: string;
-
-  // Estado e Resultado
   status: 'idle' | 'loading' | 'success' | 'error' | 'needsPricingSetup';
   estimate: ProcedureEstimate | null;
   canSave: boolean;
@@ -106,13 +99,9 @@ export type ProcedureEstimateContentProps = {
   laborCalculation?: string;
   onRetry: () => void;
   onConfigurePricing: () => void;
-
-  // Ações do rodapé
   onSaveSimulation: () => void;
   onClearFields: () => void;
   isSavedToastVisible?: boolean;
-
-  // Textos
   texts: ProcedureEstimateTexts;
   className?: string;
 };
@@ -167,7 +156,6 @@ export function ProcedureEstimateContent({
 
   return (
     <View className={cn('gap-4', className)}>
-      {/* Toast de sucesso ao salvar simulação */}
       {isSavedToastVisible ? (
         <View className="flex-row items-center gap-2 rounded-xl border border-details-finish bg-details-finish/20 px-4 py-3">
           <Text className="text-xs font-semibold text-label-body">
@@ -176,7 +164,6 @@ export function ProcedureEstimateContent({
         </View>
       ) : null}
 
-      {/* 1. Card: Duração do procedimento */}
       <DurationInput
         hours={hours}
         minutes={minutes}
@@ -191,7 +178,6 @@ export function ProcedureEstimateContent({
         minutesPlaceholder={texts.minutesPlaceholder}
       />
 
-      {/* 2. Card: Local do atendimento */}
       <Card className="gap-2 rounded-2xl border border-border-warm/40 bg-white p-4 shadow-sm">
         <View className="flex-row items-center justify-between">
           <Text
@@ -211,7 +197,6 @@ export function ProcedureEstimateContent({
           {texts.clientSupportText}
         </Text>
 
-        {/* Seletor do tomador */}
         <View className="pt-1">
           {selectedClient ? (
             <View className="h-12 flex-row items-center justify-between rounded-xl border border-border-warm bg-white px-3.5">
@@ -250,12 +235,10 @@ export function ProcedureEstimateContent({
           )}
         </View>
 
-        {/* Texto de apoio */}
         <Text className="text-xs text-label-muted">
           {texts.clientHelperText}
         </Text>
 
-        {/* Caixa de Custo de Deslocamento */}
         {selectedClient ? (
           status === 'loading' ? (
             <View className="mt-2 flex-row items-center justify-center gap-2 rounded-xl bg-details-warm p-3">
@@ -291,7 +274,6 @@ export function ProcedureEstimateContent({
         ) : null}
       </Card>
 
-      {/* 3. Card: Insumos previstos */}
       <Card className="gap-2 rounded-2xl border border-border-warm/40 bg-white p-4 shadow-sm">
         <View className="flex-row items-center justify-between">
           <Text
@@ -311,7 +293,6 @@ export function ProcedureEstimateContent({
           {texts.suppliesSupportText}
         </Text>
 
-        {/* Lista de insumos adicionados */}
         {supplies.length > 0 ? (
           <View className="pt-1">
             {supplies.map(supply => (
@@ -319,7 +300,6 @@ export function ProcedureEstimateContent({
                 key={supply.itemId}
                 className="border-b border-border-warm/40 pb-2.5 pt-2"
               >
-                {/* Linha superior: Nome e Ações */}
                 <View className="flex-row items-center justify-between">
                   <Text className="text-xs font-bold text-label-body">
                     {supply.name}
@@ -346,7 +326,6 @@ export function ProcedureEstimateContent({
                   </View>
                 </View>
 
-                {/* Linha inferior: Quantidade × Unitário e Total da Linha */}
                 <View className="flex-row items-center justify-between pt-0.5">
                   <Text className="text-xs text-label-muted">
                     {supply.quantity}{' '}
@@ -362,7 +341,6 @@ export function ProcedureEstimateContent({
           </View>
         ) : null}
 
-        {/* Botão + Adicionar insumo */}
         <Pressable
           accessibilityRole="button"
           onPress={onOpenSupplySelector}
@@ -373,12 +351,10 @@ export function ProcedureEstimateContent({
           </Text>
         </Pressable>
 
-        {/* Texto informativo */}
         <Text className="text-center text-xs text-label-muted">
           {texts.suppliesHelperText}
         </Text>
 
-        {/* Subtotal dos insumos */}
         <View className="flex-row items-center justify-between pt-1">
           <Text className="text-xs font-semibold text-label-body">
             {texts.suppliesSubtotalLabel}
@@ -389,7 +365,6 @@ export function ProcedureEstimateContent({
         </View>
       </Card>
 
-      {/* 4. Card: Valor mínimo sugerido (Imagem 1) OU Configure seu valor por hora (Imagem 2) */}
       {status === 'needsPricingSetup' ? (
         <PricingSetupRequired
           title={texts.unconfiguredTitle}
@@ -416,9 +391,7 @@ export function ProcedureEstimateContent({
         />
       )}
 
-      {/* Rodapé: Botões de Ação */}
       <View className="gap-2 pt-2">
-        {/* Botão principal: Salvar simulação */}
         <Pressable
           accessibilityRole="button"
           disabled={!canSave}
@@ -433,7 +406,6 @@ export function ProcedureEstimateContent({
           </Text>
         </Pressable>
 
-        {/* Botão secundário: Limpar campos */}
         <Pressable
           accessibilityRole="button"
           onPress={onClearFields}

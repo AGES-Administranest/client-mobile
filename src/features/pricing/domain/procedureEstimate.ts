@@ -3,7 +3,7 @@ import type {
   ProcedureEstimateResponse,
 } from './pricing.types';
 
-export const MAX_PROCEDURE_MINUTES = 1440; // 24 horas
+export const MAX_PROCEDURE_MINUTES = 1440;
 
 export type DurationValidationResult = {
   isValid: boolean;
@@ -11,16 +11,10 @@ export type DurationValidationResult = {
   error: string | null;
 };
 
-/**
- * Converte horas e minutos para o total de minutos.
- */
 export function toDurationMinutes(hours: number, minutes: number): number {
   return Math.max(0, hours) * 60 + Math.max(0, minutes);
 }
 
-/**
- * Decompõe o total de minutos em horas e minutos.
- */
 export function fromDurationMinutes(totalMinutes: number): {
   hours: number;
   minutes: number;
@@ -32,14 +26,6 @@ export function fromDurationMinutes(totalMinutes: number): {
   };
 }
 
-/**
- * Valida os campos de horas e minutos digitados no formulário.
- * Regras:
- * - Apenas números inteiros
- * - Minutos de 0 a 59
- * - Total de minutos maior que zero
- * - Total de minutos no máximo 1440 (24h)
- */
 export function validateDuration(
   hoursText: string,
   minutesText: string,
@@ -55,7 +41,6 @@ export function validateDuration(
     };
   }
 
-  // Verifica se contém apenas dígitos
   const integerRegex = /^\d+$/;
   if (trimmedHours !== '' && !integerRegex.test(trimmedHours)) {
     return {
@@ -109,9 +94,6 @@ export function validateDuration(
   };
 }
 
-/**
- * Formata minutos para exibição amigável: ex: 90 -> "1h30", 60 -> "1h", 45 -> "45min", 150 -> "2h30".
- */
 export function formatDurationDisplay(durationMinutes: number): string {
   if (durationMinutes <= 0) {
     return '0min';
@@ -126,10 +108,6 @@ export function formatDurationDisplay(durationMinutes: number): string {
   return `${hours}h${String(minutes).padStart(2, '0')}`;
 }
 
-/**
- * Formata a conta de mão de obra na composição da simulação.
- * Exemplo: 150min e "R$ 60,00" -> "2h30 × R$ 60,00/h"
- */
 export function formatLaborCalculation(
   durationMinutes: number,
   formattedHourlyRate: string,
@@ -138,9 +116,6 @@ export function formatLaborCalculation(
   return `${duration} × ${formattedHourlyRate}/h`;
 }
 
-/**
- * Calcula o custo total de uma linha de insumo (quantidade × custo unitário).
- */
 export function calculateSupplyLineTotal(
   quantity: number,
   unitCost: number,
@@ -148,9 +123,6 @@ export function calculateSupplyLineTotal(
   return Math.round(quantity * unitCost * 100) / 100;
 }
 
-/**
- * Calcula o subtotal da lista de insumos somando as linhas.
- */
 export function calculateSuppliesSubtotal(
   supplies: { quantity: number; unitCost: number }[],
 ): number {
@@ -161,9 +133,6 @@ export function calculateSuppliesSubtotal(
   return Math.round(sum * 100) / 100;
 }
 
-/**
- * Converte o DTO da API (com valores decimais em string) para o modelo de domínio com números.
- */
 export function mapProcedureEstimate(
   dto: ProcedureEstimateResponse,
 ): ProcedureEstimate {

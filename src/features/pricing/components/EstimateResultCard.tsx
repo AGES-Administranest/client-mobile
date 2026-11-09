@@ -139,7 +139,6 @@ export function EstimateResultCard({
         className,
       )}
     >
-      {/* Cabeçalho do Card */}
       <View className="flex-row items-center gap-2">
         <Icon as={Calculator} size={18} className="text-label-quartenery" />
         <Text
@@ -150,14 +149,11 @@ export function EstimateResultCard({
         </Text>
       </View>
 
-      {/* Destaque do Valor Mínimo */}
       <Text className="my-1 text-3xl font-extrabold tracking-tight text-label-body">
         {formattedMinimumPrice}
       </Text>
 
-      {/* Composição das Linhas */}
       <View className="gap-2.5 pt-1">
-        {/* 1. Mão de Obra */}
         <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
           <View>
             <Text className="text-xs font-medium text-label-body">
@@ -174,7 +170,6 @@ export function EstimateResultCard({
           </Text>
         </View>
 
-        {/* 2. Deslocamento */}
         <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
           <Text className="text-xs font-medium text-label-body">
             {tripTitle}
@@ -184,7 +179,6 @@ export function EstimateResultCard({
           </Text>
         </View>
 
-        {/* 3. Insumos */}
         <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
           <Text className="text-xs font-medium text-label-body">
             {suppliesTitle}
@@ -194,7 +188,6 @@ export function EstimateResultCard({
           </Text>
         </View>
 
-        {/* 4. Total Mínimo Sugerido */}
         <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
           <Text className="text-xs font-bold text-label-body">{totalTitle}</Text>
           <Text className="text-xs font-bold text-label-body">
@@ -203,7 +196,6 @@ export function EstimateResultCard({
         </View>
       </View>
 
-      {/* Caixa de Informação */}
       <View className="mt-2 rounded-xl bg-details-warm p-3">
         <Text className="text-xs leading-4 text-label-muted">
           {infoText}
