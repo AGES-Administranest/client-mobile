@@ -14,7 +14,11 @@ export type BackendMeasurementUnit =
   | 'MG'
   | 'GRAM'
   | 'TABLET'
-  | 'OTHER';
+  | 'OTHER'
+  | 'LITER'
+  | 'MICROGRAM'
+  | 'MG_PER_ML'
+  | 'MCG_PER_ML';
 
 export type BackendMovementType = 'INBOUND' | 'OUTBOUND';
 
@@ -41,6 +45,10 @@ const UNITS: Record<BackendMeasurementUnit, MeasurementUnit> = {
   GRAM: 'gram',
   TABLET: 'tablet',
   OTHER: 'other',
+  LITER: 'liter',
+  MICROGRAM: 'microgram',
+  MG_PER_ML: 'mgPerMl',
+  MCG_PER_ML: 'mcgPerMl',
 };
 
 const TYPES: Record<BackendMovementType, StockMovementType> = {

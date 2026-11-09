@@ -10,6 +10,11 @@ import {
   syncPendingClinics,
   type ClientSyncRejection,
 } from 'features/clients';
+import {
+  loadSupplierOutbox,
+  subscribeOfflineSuppliers,
+  syncPendingSuppliers,
+} from 'features/suppliers';
 
 import type { SyncRejection } from '../domain/offlineAppointments';
 import { syncPendingAppointments } from '../services/appointmentSyncService';
@@ -52,6 +57,7 @@ export function useAppointmentSync(): AppointmentSyncState {
       // Clínicas primeiro: um agendamento da fila pode apontar para uma
       // clínica cadastrada offline e só sai depois dela.
       await syncPendingClinics(idToken, userId);
+      await syncPendingSuppliers(idToken, userId);
       await syncPendingAppointments(idToken, userId);
     } finally {
       setClinicRejections(await loadClientRejections(userId));
@@ -75,18 +81,22 @@ export function useAppointmentSync(): AppointmentSyncState {
     });
     const unsubscribeAppointments = subscribeOfflineAppointments(run);
     const unsubscribeClients = subscribeOfflineClients(run);
+    const unsubscribeSuppliers = subscribeOfflineSuppliers(run);
     const interval = setInterval(() => {
-      Promise.all([loadClientOutbox(userId), loadOutbox(userId)]).then(
-        ([clinics, appointments]) => {
-          if (clinics.length > 0 || appointments.length > 0) run();
-        },
-      );
+      Promise.all([
+        loadClientOutbox(userId),
+        loadSupplierOutbox(userId),
+        loadOutbox(userId),
+      ]).then(([clinics, suppliers, appointments]) => {
+        if (clinics.length + suppliers.length + appointments.length > 0) run();
+      });
     }, RETRY_INTERVAL_MS);
 
     return () => {
       appState.remove();
       unsubscribeAppointments();
       unsubscribeClients();
+      unsubscribeSuppliers();
       clearInterval(interval);
     };
   }, [idToken, userId, sync]);

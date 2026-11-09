@@ -4,6 +4,7 @@ import {
   LogOut,
   Maximize2,
   Minimize2,
+  Plus,
   UserRound,
 } from 'lucide-react-native';
 import {
@@ -25,6 +26,7 @@ import {
   View,
 } from 'react-native';
 
+import { Button } from 'app/components/ui/button';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { OptionsModal } from 'app/components/ui/options-modal';
@@ -289,16 +291,17 @@ export function HomeScreen() {
                   : agendaDate(selected, locale)
               }`}
             </Text>
-            <Pressable
+            <Button
+              shape="pill"
+              size="sm"
+              icon={Plus}
               onPress={() => setNewProcedureVisible(true)}
-              accessibilityRole="button"
-              hitSlop={8}
-              className="active:opacity-70"
+              className="h-8 gap-1.5 px-3.5"
             >
-              <Text className="text-xs text-label-primary">
+              <Text className="text-xs font-semibold">
                 {t('appointments.addAttendance')}
               </Text>
-            </Pressable>
+            </Button>
           </View>
 
           {calendar.isOffline ? (

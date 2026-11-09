@@ -287,7 +287,7 @@
       "confirm": "Dar entrada no estoque",
       "confirmUnavailable": "Dar entrada no estoque chega na próxima etapa. A conferência fica salva como rascunho.",
       "leaveTitle": "Sair da conferência?",
-      "leaveMessage": "Algumas alterações não foram salvas e vão se perder.",
+      "leaveMessage": "O que foi preenchido não é guardado e vai se perder.",
       "leaveConfirm": "Sair sem salvar",
       "leaveCancel": "Continuar conferindo",
       "line": {
@@ -474,6 +474,22 @@
         "other": {
           "one": "un",
           "other": "un"
+        },
+        "liter": {
+          "one": "L",
+          "other": "L"
+        },
+        "microgram": {
+          "one": "µg",
+          "other": "µg"
+        },
+        "mgPerMl": {
+          "one": "mg/mL",
+          "other": "mg/mL"
+        },
+        "mcgPerMl": {
+          "one": "µg/mL",
+          "other": "µg/mL"
         }
       },
       "quantity": "{{quantity}} {{unit}}",
@@ -700,8 +716,7 @@
       "scope": {
         "label": "Escopo",
         "professional": "Profissional",
-        "personal": "Pessoal",
-        "hint": "Sugerido pela categoria. Você pode alterar."
+        "personal": "Pessoal"
       },
       "save": "Salvar",
       "saving": "Salvando…",
@@ -844,6 +859,10 @@
     "typeSupply": "Digitar insumo"
   },
   "itemModal": {
+    "next": "Próximo",
+    "back": "Voltar",
+    "step1": "Passo 1 de 2",
+    "step2": "Passo 2 de 2",
     "title": "Novo insumo ou medicamento",
     "categoryLabel": "CATEGORIA",
     "nameLabel": "NOME",
@@ -893,9 +912,14 @@
         "past": "A validade não pode ser uma data passada"
       },
       "supplierName": {
-        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres."
+        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres.",
+        "pickOrAdd": "Escolha um fornecedor da lista ou adicione um novo"
       }
-    }
+    },
+    "supplierLoading": "Carregando fornecedores…",
+    "supplierEmpty": "Nenhum fornecedor encontrado",
+    "supplierError": "Não foi possível carregar os fornecedores",
+    "supplierAdd": "Adicionar fornecedor"
   },
   "auth": {
     "back": "Voltar",
@@ -1025,8 +1049,74 @@
     "segments": {
       "clinics": "Clínicas",
       "suppliers": "Fornecedores"
+    }
+  },
+  "suppliers": {
+    "empty": "Nenhum fornecedor cadastrado.",
+    "loadFailure": "Não foi possível carregar os fornecedores.",
+    "countOne": "{{count}} fornecedor",
+    "countOther": "{{count}} fornecedores",
+    "add": "Adicionar fornecedor",
+    "newTitle": "Novo fornecedor",
+    "confirm": "Confirmar",
+    "close": "Fechar",
+    "fields": {
+      "name": {
+        "label": "Nome do fornecedor",
+        "placeholder": "Digite o nome do fornecedor"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Digite o email do fornecedor"
+      },
+      "taxId": {
+        "label": "CNPJ",
+        "placeholder": "Digite o CNPJ do fornecedor"
+      },
+      "phone": {
+        "label": "Contato",
+        "placeholder": "(00) 00000-0000"
+      }
     },
-    "suppliersEmpty": "Fornecedores ainda não estão disponíveis aqui."
+    "errors": {
+      "name": {
+        "required": "Informe o nome do fornecedor.",
+        "tooShort": "O nome precisa ter pelo menos 2 caracteres."
+      },
+      "email": {
+        "invalid": "Informe um e-mail válido."
+      },
+      "taxId": {
+        "required": "Informe o CNPJ do fornecedor.",
+        "invalid": "Informe um CNPJ válido.",
+        "duplicated": "Já existe um fornecedor com esse CNPJ."
+      },
+      "phone": {
+        "invalid": "Informe o telefone com DDD."
+      }
+    },
+    "statusConfirm": {
+      "deactivate": {
+        "title": "Desativar fornecedor?",
+        "message": "O fornecedor sai dos ativos e vai para o fim da lista. Os registros ligados a ele são mantidos.",
+        "confirm": "Desativar"
+      },
+      "activate": {
+        "title": "Ativar fornecedor?",
+        "message": "O fornecedor volta para os ativos.",
+        "confirm": "Ativar"
+      },
+      "cancel": "Cancelar"
+    },
+    "detail": {
+      "title": "Fornecedor",
+      "editTitle": "Editar",
+      "edit": "Editar Fornecedor",
+      "delete": "Excluir",
+      "status": "Status",
+      "active": "Ativo",
+      "inactive": "Desativo"
+    }
   },
   "procedures": {
     "newProcedure": "Novo atendimento",
@@ -1035,7 +1125,12 @@
       "confirm": "Confirmar",
       "close": "Fechar",
       "location": "Local",
-      "submitError": "Não foi possível salvar. Tente novamente."
+      "submitError": "Não foi possível salvar. Tente novamente.",
+      "registerClient": "Adicionar clínica",
+      "next": "Próximo",
+      "back": "Voltar",
+      "step1": "Passo 1 de 2",
+      "step2": "Passo 2 de 2"
     },
     "supplyPrompt": {
       "title": "Deseja registrar os insumos utilizados neste procedimento?",
@@ -1095,7 +1190,7 @@
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas."
+      "empty": "Nenhuma clínica encontrada."
     },
     "completion": {
       "action": "Finalizar procedimento",
@@ -1123,7 +1218,9 @@
       "lineDetail": "{{quantity}} un. × {{unitCost}}",
       "remove": "Remover {{name}}",
       "totalCost": "Total insumos",
-      "grossMargin": "Margem bruta"
+      "grossMargin": "Margem bruta",
+      "travelCost": "Total deslocamento",
+      "costsTotal": "Total de custos"
     },
     "status": {
       "SCHEDULED": "Agendado",
@@ -1246,7 +1343,7 @@
     "revenue": "RECEITA",
     "estimated": "estimado",
     "agenda": "AGENDA",
-    "addAttendance": "+ Adicionar Atendimento",
+    "addAttendance": "Adicionar atendimento",
     "sectionTitle": "PROCEDIMENTOS DO MÊS OU DIA",
     "emptyDay": "Nenhum agendamento para este dia.",
     "emptyDaySub": "Toque no botão abaixo para agendar um procedimento.",
@@ -1716,6 +1813,10 @@
       "delete": "Excluir deslocamento"
     },
     "form": {
+      "next": "Próximo",
+      "back": "Voltar",
+      "step1": "Passo 1 de 2",
+      "step2": "Passo 2 de 2",
       "newTitle": "Novo deslocamento",
       "editTitle": "Editar deslocamento",
       "close": "Fechar",
@@ -1781,31 +1882,13 @@
     "loadFailed": "Não foi possível carregar os deslocamentos."
   },
   "invoices": {
-    "trigger": "Notas fiscais",
     "title": "Notas fiscais",
     "back": "Voltar",
-    "filters": {
-      "searchPlaceholder": "Nome, CNPJ ou número da nota",
-      "period": "Período",
-      "periodRange": "{{from}} até {{to}}",
-      "periodSingle": "{{day}}",
-      "periodFrom": "A partir de {{from}}",
-      "clear": "Limpar",
-      "previousMonth": "Mês anterior",
-      "nextMonth": "Próximo mês",
-      "invalidRange": "A data inicial não pode ser maior que a final."
-    },
     "loading": "Carregando notas fiscais...",
     "loadingMore": "Carregando mais notas",
     "loadMoreError": "Não foi possível carregar mais notas.",
     "error": "Não foi possível carregar as notas fiscais.",
     "empty": "Nenhuma nota fiscal registrada.",
-    "emptyFiltered": "Nenhuma nota fiscal encontrada para o filtro.",
-    "card": {
-      "title": "Nota Fiscal {{number}}",
-      "issuer": "Emitente: {{name}}",
-      "taker": "Tomador: {{name}}"
-    },
     "status": {
       "SYNCED": "Sincronizada",
       "NOT_SYNCED": "Não sincronizada",
@@ -1824,7 +1907,37 @@
       "takerCnpj": "CNPJ do tomador",
       "value": "Valor",
       "issuedAt": "Data de emissão",
-      "status": "Situação"
+      "status": "Situação",
+      "download": "Baixar nota",
+      "downloading": "Baixando a nota...",
+      "downloaded": "Nota baixada.",
+      "downloadFailed": "Não foi possível baixar a nota. Tente novamente."
+    },
+    "countSingular": "{{count}} nota fiscal",
+    "countPlural": "{{count}} notas fiscais",
+    "addInvoice": "Adicionar nota fiscal"
+  },
+  "reports": {
+    "seeAll": "Ver todos",
+    "addInvoice": "Adicionar nota",
+    "generate": {
+      "title": "Gerar novo relatório",
+      "categoryPlaceholder": "Selecione categoria",
+      "startDate": "Data de início",
+      "endDate": "Data de fim",
+      "selectDate": "Selecione a data",
+      "button": "Gerar Relatório",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês"
+    },
+    "categories": {
+      "financial": "Financeiro",
+      "appointments": "Atendimentos",
+      "inventory": "Estoque"
+    },
+    "history": {
+      "title": "Histórico de relatórios",
+      "empty": "Nenhum relatório gerado ainda."
     }
   },
   "profile": {
