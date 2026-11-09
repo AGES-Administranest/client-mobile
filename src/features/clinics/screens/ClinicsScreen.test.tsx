@@ -122,15 +122,18 @@ beforeEach(() => {
     tripCost: 16,
     tripCount: 1,
   });
-  fetchClientAppointmentsMock.mockReset().mockResolvedValue([
-    {
-      id: 'appointment-1',
-      startsAt: '2026-08-17T16:00:00.000Z',
-      procedureName: 'Orquiectomia',
-      patientName: 'Mel',
-      amount: 620,
-    },
-  ]);
+  fetchClientAppointmentsMock.mockReset().mockResolvedValue({
+    appointments: [
+      {
+        id: 'appointment-1',
+        startsAt: '2026-08-17T16:00:00.000Z',
+        procedureName: 'Orquiectomia',
+        patientName: 'Mel',
+        amount: 620,
+      },
+    ],
+    total: 1,
+  });
   historyAvailableMock.mockReset().mockReturnValue(true);
 });
 
