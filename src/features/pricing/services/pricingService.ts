@@ -7,6 +7,12 @@ import {
   type HourlyRate,
   type HourlyRateResponse,
 } from '../domain/hourlyRate';
+import {
+  toHourlyRateHistory,
+  type HourlyRateHistoryMonthResponse,
+  type HourlyRateHistoryResponse,
+  type HourlyRatePeriod,
+} from '../domain/hourlyRateHistory';
 import type {
   PricingSettings,
   ProcedureEstimateDto,
@@ -58,6 +64,28 @@ async function fetchProcedureEstimate(
   );
 }
 
+// A month without a stored calculation is an empty month in the history, not
+// a failure.
+async function fetchHourlyRateHistoryMonth(
+  idToken: string,
+  { month, year }: MonthPeriod,
+): Promise<HourlyRateHistoryMonthResponse | null> {
+  try {
+    return await apiClient.get<HourlyRateHistoryMonthResponse>(
+      `/pricing/hourly-rate/history/${year}/${month}`,
+      { token: idToken },
+    );
+  } catch (error) {
+    if (
+      error instanceof ApiError &&
+      error.code === 'HOURLY_RATE_SNAPSHOT_NOT_FOUND'
+    ) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export const pricingService = {
   // Creates the goals on the first call and overwrites them after that; the
   // backend answers with the saved values, so there is nothing to read again.
@@ -93,5 +121,36 @@ export const pricingService = {
     dto: ProcedureEstimateDto,
   ): Promise<ProcedureEstimateResponse> {
     return fetchProcedureEstimate(idToken, dto);
+  },
+
+  // One entry per month with a stored calculation: the hour value, the
+  // productive hours and the minimum. The parts and the goals of a month are
+  // `getHourlyRateHistoryMonth`.
+  async getHourlyRateHistory(idToken: string): Promise<HourlyRatePeriod[]> {
+    const response = await apiClient.get<HourlyRateHistoryResponse>(
+      '/pricing/hourly-rate/history',
+      { token: idToken },
+    );
+
+    return toHourlyRateHistory(response);
+  },
+
+  // A month as it was calculated, with the goals it used. `null` when the
+  // month has no stored calculation.
+  async getHourlyRateHistoryMonth(
+    idToken: string,
+    period: MonthPeriod,
+  ): Promise<HourlyRate | null> {
+    const response = await fetchHourlyRateHistoryMonth(idToken, period);
+    if (!response) {
+      return null;
+    }
+
+    const { parameters, ...rate } = response;
+    return toHourlyRate(rate, {
+      monthlyIncomeGoal: Number(parameters.monthlyIncomeGoal),
+      weeklyHours: Number(parameters.weeklyHours),
+      safetyMarginPct: Number(parameters.safetyMarginPct),
+    });
   },
 };

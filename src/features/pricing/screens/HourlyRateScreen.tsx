@@ -1,32 +1,18 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft } from 'lucide-react-native';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
-import { Icon } from 'app/components/ui/icon';
-import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { monthOf } from 'shared/utils/monthPeriod';
-import { BackgroundPrimary } from 'theme/colors';
 
+import { HourlyRateHistoryScreen } from './HourlyRateHistoryScreen';
 import { HourlyRateResultView } from './HourlyRateResultView';
 import { PricingSetupView } from './PricingSetupView';
 import { ProcedureEstimateScreen } from './ProcedureEstimateScreen';
 import { PricingOnboarding } from '../components/PricingOnboarding';
+import { PricingScreenFrame } from '../components/PricingScreenFrame';
+import { PricingScreenHeader } from '../components/PricingScreenHeader';
 import { useHourlyRate } from '../hooks/useHourlyRate';
-
-// Browsers report no top inset, which left the back button on the edge.
-const MIN_TOP_PADDING = 16;
-
-const styles = StyleSheet.create({ fill: { flex: 1 } });
 
 type HourlyRateScreenProps = {
   visible: boolean;
@@ -34,29 +20,10 @@ type HourlyRateScreenProps = {
 };
 
 export function HourlyRateScreen({ visible, onClose }: HourlyRateScreenProps) {
-  const insets = useSafeAreaInsets();
-
   return (
-    <SlideInModal visible={visible} onRequestClose={onClose}>
-      <View
-        style={[
-          styles.fill,
-          {
-            paddingTop: Math.max(insets.top, MIN_TOP_PADDING),
-            paddingBottom: insets.bottom,
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={BackgroundPrimary.colors}
-          locations={BackgroundPrimary.locations}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <HourlyRateContent onClose={onClose} />
-      </View>
-    </SlideInModal>
+    <PricingScreenFrame visible={visible} onRequestClose={onClose}>
+      <HourlyRateContent onClose={onClose} />
+    </PricingScreenFrame>
   );
 }
 
@@ -67,37 +34,21 @@ function HourlyRateContent({ onClose }: { onClose: () => void }) {
   const [month, setMonth] = useState(() => monthOf(new Date()));
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [isEstimateVisible, setIsEstimateVisible] = useState(false);
+  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const { state, reload } = useHourlyRate(month);
 
   const goBack = isConfiguring ? () => setIsConfiguring(false) : onClose;
 
   return (
     <>
-      <View className="gap-3 px-[15px] pb-2 pt-0">
-        <Pressable
-          onPress={goBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('calculator.back')}
-          hitSlop={8}
-          className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-        >
-          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-        </Pressable>
-
-        <View className="px-[7px]">
-          <Text
-            accessibilityRole="header"
-            className="text-xl font-bold leading-[30px] tracking-[-0.2px] text-label-primary"
-          >
-            {t(isConfiguring ? 'pricing.setup.title' : 'calculator.title')}
-          </Text>
-          <Text className="text-[13px] leading-[19.5px] text-label-primary">
-            {t(
-              isConfiguring ? 'pricing.setup.subtitle' : 'calculator.subtitle',
-            )}
-          </Text>
-        </View>
-      </View>
+      <PricingScreenHeader
+        title={t(isConfiguring ? 'pricing.setup.title' : 'calculator.title')}
+        subtitle={t(
+          isConfiguring ? 'pricing.setup.subtitle' : 'calculator.subtitle',
+        )}
+        backLabel={t('calculator.back')}
+        onBack={goBack}
+      />
 
       <ScrollView
         keyboardShouldPersistTaps="handled"
@@ -162,6 +113,7 @@ function HourlyRateContent({ onClose }: { onClose: () => void }) {
             isRefreshing={state.isRefreshing}
             onChanged={reload}
             onOpenProcedureEstimate={() => setIsEstimateVisible(true)}
+            onOpenHistory={() => setIsHistoryVisible(true)}
           />
         )}
       </ScrollView>
@@ -170,6 +122,11 @@ function HourlyRateContent({ onClose }: { onClose: () => void }) {
       <ProcedureEstimateScreen
         visible={isEstimateVisible}
         onClose={() => setIsEstimateVisible(false)}
+      />
+
+      <HourlyRateHistoryScreen
+        visible={isHistoryVisible}
+        onClose={() => setIsHistoryVisible(false)}
       />
     </>
   );

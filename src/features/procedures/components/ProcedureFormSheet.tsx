@@ -1,4 +1,4 @@
-import { Check, ChevronDown } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Check, ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   Animated,
@@ -31,13 +31,28 @@ import type {
   ProcedureTextField,
   Species,
 } from '../domain/procedure.types';
+import type { ProcedureStep } from '../domain/procedureSteps';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+const REQUIRED_FIELDS: readonly (keyof ProcedureFormValues)[] = [
+  'patientName',
+  'procedureName',
+  'clientId',
+  'date',
+  'startTime',
+  'endTime',
+];
 
 export type ProcedureFormTexts = {
   title: string;
   confirm: string;
   close: string;
+  registerClient: string;
+  next: string;
+  back: string;
+  /** One per step, e.g. "Passo 1 de 2". */
+  stepLabels: [string, string];
   labels: Record<keyof ProcedureFormValues, string>;
   placeholders: Partial<Record<keyof ProcedureFormValues, string>>;
   speciesOptions: { value: Species; label: string }[];
@@ -62,6 +77,9 @@ type ProcedureFormSheetProps = {
   submitErrorText: string;
   texts: ProcedureFormTexts;
   client: ProcedureClientField;
+  step: ProcedureStep;
+  onNext: () => void;
+  onBack: () => void;
   onChangeText: (key: ProcedureTextField, value: string) => void;
   onChangeClientTerm: (term: string) => void;
   onSelectClient: (client: ClientOption) => void;
@@ -69,6 +87,9 @@ type ProcedureFormSheetProps = {
   onChangeAsa: (value: AsaClassification) => void;
   onSubmit: () => void;
   onClose: () => void;
+  /** iOS: abra o próximo sheet aqui, não no onClose. */
+  onClosed?: () => void;
+  onRegisterClient?: () => void;
 };
 
 export function ProcedureFormSheet({
@@ -79,6 +100,9 @@ export function ProcedureFormSheet({
   submitErrorText,
   texts,
   client,
+  step,
+  onNext,
+  onBack,
   onChangeText,
   onChangeClientTerm,
   onSelectClient,
@@ -86,13 +110,22 @@ export function ProcedureFormSheet({
   onChangeAsa,
   onSubmit,
   onClose,
+  onClosed,
+  onRegisterClient,
 }: ProcedureFormSheetProps) {
   const [speciesOpen, setSpeciesOpen] = useState(false);
   const selectedSpecies = texts.speciesOptions.find(
     option => option.value === values.species,
   );
 
-  const sheet = useSheetAnimation(visible, onClose);
+  const sheet = useSheetAnimation(visible, onClose, onClosed);
+
+  // O fim só é opcional para um atendimento já realizado; ao agendar, falta
+  // para o backend checar conflito. Por isso conta como obrigatório.
+  const labelOf = (field: keyof ProcedureFormValues): string =>
+    REQUIRED_FIELDS.includes(field)
+      ? `${texts.labels[field]} *`
+      : texts.labels[field];
 
   return (
     <Modal
@@ -126,9 +159,14 @@ export function ProcedureFormSheet({
           <View className="shrink gap-3 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
             <View className="h-1 w-10 self-center rounded-full bg-details-primary" />
 
-            <Text className="text-xl font-bold text-label-primary">
-              {texts.title}
-            </Text>
+            <View className="gap-0.5">
+              <Text className="text-xl font-bold text-label-primary">
+                {texts.title}
+              </Text>
+              <Text className="text-xs font-semibold text-label-tertiary">
+                {texts.stepLabels[step]}
+              </Text>
+            </View>
 
             <View className="h-px bg-details-primary" />
 
@@ -136,170 +174,188 @@ export function ProcedureFormSheet({
               keyboardShouldPersistTaps="handled"
               contentContainerClassName="pb-1"
             >
-              <Field
-                label={texts.labels.patientName}
-                placeholder={texts.placeholders.patientName}
-                value={values.patientName}
-                error={texts.errors.patientName}
-                maxLength={texts.nameMaxLength}
-                onChangeText={v => onChangeText('patientName', v)}
-              />
-              <Field
-                label={texts.labels.procedureName}
-                placeholder={texts.placeholders.procedureName}
-                value={values.procedureName}
-                error={texts.errors.procedureName}
-                maxLength={texts.nameMaxLength}
-                onChangeText={v => onChangeText('procedureName', v)}
-              />
-              <ClientAutocomplete
-                label={texts.labels.clientId}
-                placeholder={texts.placeholders.clientId}
-                value={client.term}
-                error={texts.errors.clientId}
-                status={client.status}
-                options={client.options}
-                messages={texts.clientSearchMessages}
-                onChangeText={onChangeClientTerm}
-                onSelect={onSelectClient}
-              />
-
-              <View className="flex-row gap-3">
-                <View className="flex-1">
+              {step === 0 ? (
+                <>
                   <Field
-                    label={texts.labels.patientAgeYears}
-                    placeholder={texts.placeholders.patientAgeYears}
-                    value={values.patientAgeYears}
-                    error={texts.errors.patientAgeYears}
-                    keyboardType="number-pad"
-                    onChangeText={v => onChangeText('patientAgeYears', v)}
+                    label={labelOf('patientName')}
+                    placeholder={texts.placeholders.patientName}
+                    value={values.patientName}
+                    error={texts.errors.patientName}
+                    maxLength={texts.nameMaxLength}
+                    onChangeText={v => onChangeText('patientName', v)}
                   />
-                </View>
-                <View className="flex-1">
                   <Field
-                    label={texts.labels.weightKg}
-                    placeholder={texts.placeholders.weightKg}
-                    value={values.weightKg}
-                    error={texts.errors.weightKg}
-                    keyboardType="decimal-pad"
-                    onChangeText={v => onChangeText('weightKg', v)}
+                    label={labelOf('procedureName')}
+                    placeholder={texts.placeholders.procedureName}
+                    value={values.procedureName}
+                    error={texts.errors.procedureName}
+                    maxLength={texts.nameMaxLength}
+                    onChangeText={v => onChangeText('procedureName', v)}
                   />
-                </View>
-              </View>
-
-              <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <Field
-                    label={texts.labels.startTime}
-                    placeholder={texts.placeholders.startTime}
-                    value={values.startTime}
-                    error={texts.errors.startTime}
-                    keyboardType="number-pad"
-                    onChangeText={v => onChangeText('startTime', v)}
-                  />
-                </View>
-                <View className="flex-1">
-                  <Field
-                    label={texts.labels.endTime}
-                    placeholder={texts.placeholders.endTime}
-                    value={values.endTime}
-                    error={texts.errors.endTime}
-                    keyboardType="number-pad"
-                    onChangeText={v => onChangeText('endTime', v)}
-                  />
-                </View>
-              </View>
-
-              <Field
-                label={texts.labels.date}
-                placeholder={texts.placeholders.date}
-                value={values.date}
-                error={texts.errors.date}
-                keyboardType="number-pad"
-                onChangeText={v => onChangeText('date', v)}
-              />
-
-              <Field
-                label={texts.labels.amount}
-                placeholder={texts.placeholders.amount}
-                value={values.amount}
-                error={texts.errors.amount}
-                keyboardType="decimal-pad"
-                onChangeText={v => onChangeText('amount', v)}
-              />
-
-              <Field
-                label={texts.labels.notes}
-                placeholder={texts.placeholders.notes}
-                value={values.notes}
-                error={texts.errors.notes}
-                multiline
-                maxLength={texts.notesMaxLength}
-                onChangeText={v => onChangeText('notes', v)}
-              />
-
-              <View className="z-10 mb-3">
-                <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
-                  {texts.labels.species}
-                </Text>
-                <Pressable
-                  onPress={() => setSpeciesOpen(open => !open)}
-                  accessibilityRole="button"
-                  className="flex-row items-center justify-between rounded-xl border border-border-primary bg-white px-4 py-2.5"
-                >
-                  <Text
-                    className={
-                      selectedSpecies
-                        ? 'text-[15px] text-label-primary'
-                        : 'text-[15px] text-label-tertiary'
+                  <ClientAutocomplete
+                    label={labelOf('clientId')}
+                    placeholder={texts.placeholders.clientId}
+                    value={client.term}
+                    error={texts.errors.clientId}
+                    status={client.status}
+                    options={client.options}
+                    messages={texts.clientSearchMessages}
+                    onChangeText={onChangeClientTerm}
+                    // Só depois de digitar algo que não existe: com resultados, ou
+                    // antes de buscar, a linha de adicionar só atrapalharia.
+                    addOption={
+                      onRegisterClient &&
+                      client.status === 'empty' &&
+                      client.term.trim() !== ''
+                        ? {
+                            label: texts.registerClient,
+                            onPress: onRegisterClient,
+                          }
+                        : undefined
                     }
-                  >
-                    {selectedSpecies?.label ?? texts.placeholders.species}
-                  </Text>
-                  <Icon
-                    as={ChevronDown}
-                    className="size-4 text-label-tertiary"
+                    onSelect={onSelectClient}
                   />
-                </Pressable>
 
-                {speciesOpen ? (
-                  <View className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
-                    {texts.speciesOptions.map((option, index) => (
-                      <Pressable
-                        key={option.value}
-                        accessibilityRole="button"
-                        onPress={() => {
-                          onChangeSpecies(option.value);
-                          setSpeciesOpen(false);
-                        }}
+                  <View className="flex-row gap-3">
+                    <View className="flex-1">
+                      <Field
+                        label={labelOf('startTime')}
+                        placeholder={texts.placeholders.startTime}
+                        value={values.startTime}
+                        error={texts.errors.startTime}
+                        keyboardType="number-pad"
+                        onChangeText={v => onChangeText('startTime', v)}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Field
+                        label={labelOf('endTime')}
+                        placeholder={texts.placeholders.endTime}
+                        value={values.endTime}
+                        error={texts.errors.endTime}
+                        keyboardType="number-pad"
+                        onChangeText={v => onChangeText('endTime', v)}
+                      />
+                    </View>
+                  </View>
+
+                  <Field
+                    label={labelOf('date')}
+                    placeholder={texts.placeholders.date}
+                    value={values.date}
+                    error={texts.errors.date}
+                    keyboardType="number-pad"
+                    onChangeText={v => onChangeText('date', v)}
+                  />
+                </>
+              ) : (
+                <>
+                  <View className="flex-row gap-3">
+                    <View className="flex-1">
+                      <Field
+                        label={labelOf('patientAgeYears')}
+                        placeholder={texts.placeholders.patientAgeYears}
+                        value={values.patientAgeYears}
+                        error={texts.errors.patientAgeYears}
+                        keyboardType="number-pad"
+                        onChangeText={v => onChangeText('patientAgeYears', v)}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Field
+                        label={labelOf('weightKg')}
+                        placeholder={texts.placeholders.weightKg}
+                        value={values.weightKg}
+                        error={texts.errors.weightKg}
+                        keyboardType="decimal-pad"
+                        onChangeText={v => onChangeText('weightKg', v)}
+                      />
+                    </View>
+                  </View>
+
+                  <Field
+                    label={labelOf('amount')}
+                    placeholder={texts.placeholders.amount}
+                    value={values.amount}
+                    error={texts.errors.amount}
+                    keyboardType="decimal-pad"
+                    onChangeText={v => onChangeText('amount', v)}
+                  />
+
+                  <Field
+                    label={labelOf('notes')}
+                    placeholder={texts.placeholders.notes}
+                    value={values.notes}
+                    error={texts.errors.notes}
+                    multiline
+                    maxLength={texts.notesMaxLength}
+                    onChangeText={v => onChangeText('notes', v)}
+                  />
+
+                  <View className="mb-3">
+                    <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
+                      {labelOf('species')}
+                    </Text>
+                    <Pressable
+                      onPress={() => setSpeciesOpen(open => !open)}
+                      accessibilityRole="button"
+                      className="flex-row items-center justify-between rounded-xl border border-border-primary bg-white px-4 py-2.5"
+                    >
+                      <Text
                         className={
-                          index === 0
-                            ? 'px-4 py-3'
-                            : 'border-t border-border-primary px-4 py-3'
+                          selectedSpecies
+                            ? 'text-[15px] text-label-primary'
+                            : 'text-[15px] text-label-tertiary'
                         }
                       >
-                        <Text className="text-[15px] text-label-primary">
-                          {option.label}
-                        </Text>
-                      </Pressable>
+                        {selectedSpecies?.label ?? texts.placeholders.species}
+                      </Text>
+                      <Icon
+                        as={ChevronDown}
+                        className="size-4 text-label-tertiary"
+                      />
+                    </Pressable>
+
+                    {speciesOpen ? (
+                      <View className="mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
+                        {texts.speciesOptions.map((option, index) => (
+                          <Pressable
+                            key={option.value}
+                            accessibilityRole="button"
+                            onPress={() => {
+                              onChangeSpecies(option.value);
+                              setSpeciesOpen(false);
+                            }}
+                            className={
+                              index === 0
+                                ? 'px-4 py-3'
+                                : 'border-t border-border-primary px-4 py-3'
+                            }
+                          >
+                            <Text className="text-[15px] text-label-primary">
+                              {option.label}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    ) : null}
+                  </View>
+
+                  <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
+                    {labelOf('asaClassification')}
+                  </Text>
+                  <View className="mb-4 flex-row gap-2">
+                    {texts.asaOptions.map(option => (
+                      <Segment
+                        key={option}
+                        label={option}
+                        active={values.asaClassification === option}
+                        onPress={() => onChangeAsa(option)}
+                      />
                     ))}
                   </View>
-                ) : null}
-              </View>
-
-              <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
-                {texts.labels.asaClassification}
-              </Text>
-              <View className="mb-4 flex-row gap-2">
-                {texts.asaOptions.map(option => (
-                  <Segment
-                    key={option}
-                    label={option}
-                    active={values.asaClassification === option}
-                    onPress={() => onChangeAsa(option)}
-                  />
-                ))}
-              </View>
+                </>
+              )}
             </ScrollView>
 
             {submitFailed ? (
@@ -308,17 +364,43 @@ export function ProcedureFormSheet({
               </Text>
             ) : null}
 
-            <Button
-              icon={Check}
-              shape="pill"
-              className="h-[49px] w-full"
-              disabled={submitting}
-              onPress={onSubmit}
-            >
-              <Text className="font-semibold text-label-secondary">
-                {texts.confirm}
-              </Text>
-            </Button>
+            {step === 0 ? (
+              <Button
+                icon={ArrowRight}
+                shape="pill"
+                className="h-[49px] w-full"
+                onPress={onNext}
+              >
+                <Text className="font-semibold text-label-secondary">
+                  {texts.next}
+                </Text>
+              </Button>
+            ) : (
+              <>
+                <Button
+                  icon={Check}
+                  shape="pill"
+                  className="h-[49px] w-full"
+                  disabled={submitting}
+                  onPress={onSubmit}
+                >
+                  <Text className="font-semibold text-label-secondary">
+                    {texts.confirm}
+                  </Text>
+                </Button>
+                <Button
+                  icon={ArrowLeft}
+                  shape="pill"
+                  className="h-[49px] w-full"
+                  disabled={submitting}
+                  onPress={onBack}
+                >
+                  <Text className="font-semibold text-label-secondary">
+                    {texts.back}
+                  </Text>
+                </Button>
+              </>
+            )}
           </View>
         </Animated.View>
       </KeyboardAvoidingView>

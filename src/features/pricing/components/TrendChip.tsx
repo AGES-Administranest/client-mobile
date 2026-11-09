@@ -1,0 +1,42 @@
+import { ArrowDownRight, ArrowUpRight } from 'lucide-react-native';
+import { View } from 'react-native';
+
+import { Icon } from 'app/components/ui/icon';
+import { Text } from 'app/components/ui/text';
+import { cn } from 'app/lib/utils';
+
+export type TrendTone = 'up' | 'down' | 'flat';
+
+export type TrendChipProps = {
+  tone: TrendTone;
+  label: string;
+};
+
+export function TrendChip({ tone, label }: TrendChipProps) {
+  return (
+    <View
+      className={cn(
+        'flex-row items-center gap-1 rounded-[20px] px-2 py-[3px]',
+        tone === 'up' ? 'bg-trend-up-fill' : 'bg-details-warm',
+      )}
+    >
+      {tone === 'flat' ? null : (
+        <Icon
+          as={tone === 'up' ? ArrowUpRight : ArrowDownRight}
+          size={11}
+          className={tone === 'up' ? 'text-trend-up' : 'text-trend-down'}
+        />
+      )}
+      <Text
+        className={cn(
+          'text-[10px] font-semibold leading-[15px]',
+          tone === 'up' && 'text-trend-up',
+          tone === 'down' && 'text-trend-down',
+          tone === 'flat' && 'text-label-muted',
+        )}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
