@@ -474,6 +474,22 @@
         "other": {
           "one": "un",
           "other": "un"
+        },
+        "liter": {
+          "one": "L",
+          "other": "L"
+        },
+        "microgram": {
+          "one": "µg",
+          "other": "µg"
+        },
+        "mgPerMl": {
+          "one": "mg/mL",
+          "other": "mg/mL"
+        },
+        "mcgPerMl": {
+          "one": "µg/mL",
+          "other": "µg/mL"
         }
       },
       "quantity": "{{quantity}} {{unit}}",

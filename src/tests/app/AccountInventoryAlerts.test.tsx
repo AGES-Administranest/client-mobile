@@ -185,7 +185,7 @@ describe('once the inventory is loaded', () => {
 
     const [{ body }] = scheduleMock.mock.calls[0];
 
-    expect(body).toContain('ampola');
+    expect(body).toContain('Amp');
     expect(body).not.toContain('AMPOULE');
   });
 
