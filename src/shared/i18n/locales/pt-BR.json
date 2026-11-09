@@ -1797,6 +1797,7 @@
     },
     "crmvNotice": "O CRMV é necessário para emitir relatórios com identificação profissional.",
     "staleNotice": "Mostrando os últimos dados salvos. Eles podem estar desatualizados.",
-    "loadError": "Não foi possível carregar o perfil."
+    "loadError": "Não foi possível carregar o perfil.",
+    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente."
   }
 }

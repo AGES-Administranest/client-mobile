@@ -97,6 +97,10 @@ function ProfileContent({ onClose }: { onClose: () => void }) {
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={ButtonPrimary} />
         </View>
+      ) : state.status === 'sessionExpired' ? (
+        <View className="px-4 pt-4">
+          <NoticeBanner tone="alert" message={t('profile.sessionExpired')} />
+        </View>
       ) : state.status === 'error' ? (
         <View className="px-4 pt-4">
           <NoticeBanner

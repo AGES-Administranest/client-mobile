@@ -3,6 +3,7 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { NetworkError } from 'shared/api';
+import { ApiError } from 'shared/services/apiClient';
 import { isOnline } from 'shared/services/network';
 
 import { useProfile, type UseProfileResult } from './useProfile';
@@ -127,6 +128,21 @@ describe('online', () => {
       isStale: true,
     });
   });
+
+  it.each([
+    ['an expired token', 'TOKEN_EXPIRED'],
+    ['an account with no mirror', 'USER_NOT_PROVISIONED'],
+  ])(
+    'asks to sign in again on %s instead of showing the saved profile',
+    async (_case, code) => {
+      await saveCachedProfile('user-1', SAVED);
+      fetchMock.mockRejectedValue(new ApiError('rejected', code, 401));
+
+      const { result } = await renderProfileHook();
+
+      expect(result.current.state).toEqual({ status: 'sessionExpired' });
+    },
+  );
 
   it('fails when the API fails and nothing was saved', async () => {
     fetchMock.mockRejectedValue(new Error('HTTP 500'));

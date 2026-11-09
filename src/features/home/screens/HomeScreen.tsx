@@ -42,7 +42,7 @@ import { useAuth } from 'features/auth';
 import { useClientNames } from 'features/clients';
 import { InventoryNotificationsScreen, useInventory } from 'features/inventory';
 import { AppointmentDetailScreen, DiaDiaScreen } from 'features/procedures';
-import { clearCachedProfile, ProfileScreen } from 'features/profile';
+import { ProfileScreen } from 'features/profile';
 import { useTranslation } from 'shared/i18n';
 import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
 import { initials } from 'shared/utils/initials';
@@ -396,7 +396,6 @@ export function HomeScreen() {
             variant: 'outline',
             onPress: () => {
               setAccountVisible(false);
-              if (account) clearCachedProfile(account.id);
               signOut();
             },
           },

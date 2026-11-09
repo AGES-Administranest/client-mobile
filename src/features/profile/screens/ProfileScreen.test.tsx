@@ -4,6 +4,7 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { I18nProvider } from 'shared/i18n';
+import { ApiError } from 'shared/services/apiClient';
 import { isOnline } from 'shared/services/network';
 
 import { ProfileScreen } from './ProfileScreen';
@@ -195,6 +196,24 @@ it('offers to try again when there is nothing to show', async () => {
   });
 
   expect(field(renderer, 'Cidade')).toBe('Porto Alegre');
+});
+
+it('asks to sign in again when the session is rejected, with no retry', async () => {
+  await saveCachedProfile('user-1', FILLED_IN);
+  fetchMock.mockRejectedValue(new ApiError('expired', 'TOKEN_EXPIRED', 401));
+
+  const renderer = await renderScreen();
+
+  expect(texts(renderer)).toContain(
+    'Sua sessão expirou. Saia da conta e entre novamente.',
+  );
+  expect(texts(renderer)).not.toContain(STALE_NOTICE);
+  expect(texts(renderer)).not.toContain('Tentar novamente');
+  expect(
+    renderer.root.findAll(node =>
+      String(node.props.accessibilityLabel).startsWith('Cidade: '),
+    ),
+  ).toHaveLength(0);
 });
 
 it('keeps editing off until US24 exists', async () => {

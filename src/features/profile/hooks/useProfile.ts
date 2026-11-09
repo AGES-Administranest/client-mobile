@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
+import { ApiError } from 'shared/services/apiClient';
 import { isOnline } from 'shared/services/network';
 
 import type { Profile } from '../domain/profile';
@@ -10,6 +11,7 @@ import { fetchProfile } from '../services/profileService';
 export type ProfileState =
   | { status: 'loading' }
   | { status: 'error' }
+  | { status: 'sessionExpired' }
   | { status: 'ready'; profile: Profile; isStale: boolean };
 
 export type UseProfileResult = {
@@ -60,8 +62,17 @@ export function useProfile(): UseProfileResult {
         if (!isMounted) return;
         await saveCachedProfile(owner, profile);
         setState({ status: 'ready', profile, isStale: false });
-      } catch {
-        if (isMounted) setState(fromCache);
+      } catch (error) {
+        if (!isMounted) return;
+        // A rejected token is not something to wait out: showing the saved
+        // profile would hide that the person has to sign in again. The id
+        // token is not refreshed while the app runs, so this follows the
+        // other screens' 401 handling.
+        setState(
+          error instanceof ApiError && error.status === 401
+            ? { status: 'sessionExpired' }
+            : fromCache,
+        );
       }
     }
 

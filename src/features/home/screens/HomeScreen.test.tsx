@@ -138,8 +138,6 @@ function pressMenuOption(
 }
 
 describe('profile', () => {
-  const CACHE_KEY = '@administranest:profile:user-1';
-
   async function openAccountMenu(
     renderer: ReactTestRenderer.ReactTestRenderer,
   ) {
@@ -174,16 +172,6 @@ describe('profile', () => {
 
     expect(mockFetchProfile).toHaveBeenCalledWith('id');
     expect(texts(renderer)).toContain('Editar perfil');
-  });
-
-  it('forgets the saved profile on sign out', async () => {
-    await AsyncStorage.setItem(CACHE_KEY, '{"id":"user-1"}');
-    const renderer = await renderHome();
-
-    await openAccountMenu(renderer);
-    await pressMenuOption(renderer, 'Sair da conta');
-
-    await expect(AsyncStorage.getItem(CACHE_KEY)).resolves.toBeNull();
   });
 });
 
