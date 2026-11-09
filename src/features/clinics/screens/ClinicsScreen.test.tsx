@@ -14,7 +14,6 @@ import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
 import { ClinicsScreen } from './ClinicsScreen';
 import type { Client } from '../domain/client';
 import { monthPeriodOf } from '../domain/clientHistory';
-import { isClientHistoryAvailable } from '../services/availability';
 import {
   createClient,
   deleteClient,
@@ -31,9 +30,6 @@ jest.mock('../services/clientService', () => ({
   fetchClientSummary: jest.fn(),
   fetchClinics: jest.fn(),
   updateClient: jest.fn(),
-}));
-jest.mock('../services/availability', () => ({
-  isClientHistoryAvailable: jest.fn(),
 }));
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
@@ -57,9 +53,6 @@ const fetchClientAppointmentsMock =
   >;
 const fetchClientSummaryMock = fetchClientSummary as jest.MockedFunction<
   typeof fetchClientSummary
->;
-const historyAvailableMock = isClientHistoryAvailable as jest.MockedFunction<
-  typeof isClientHistoryAvailable
 >;
 
 const METRICS = {
@@ -134,7 +127,6 @@ beforeEach(() => {
     ],
     total: 1,
   });
-  historyAvailableMock.mockReset().mockReturnValue(true);
 });
 
 async function render() {
@@ -567,18 +559,6 @@ test('hides the tabs while the clinic is being edited', async () => {
 
   await press(renderer, 'Confirmar');
   expect(tabsOf(renderer)).toHaveLength(2);
-});
-
-test('keeps the sheet as before while the history is a stand-in in production', async () => {
-  historyAvailableMock.mockReturnValue(false);
-  const renderer = await renderWithCreatedClinic();
-
-  await openClinic(renderer);
-
-  expect(tabsOf(renderer)).toHaveLength(0);
-  expect(textsOf(renderer)).toContain('Editar clínica');
-  expect(fetchClientSummaryMock).not.toHaveBeenCalled();
-  expect(fetchClientAppointmentsMock).not.toHaveBeenCalled();
 });
 
 test('shows the details without the name field, since the name is the title', async () => {
