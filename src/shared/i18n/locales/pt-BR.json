@@ -1451,6 +1451,59 @@
         "explanationTitle": "Como o valor da hora é calculado?",
         "explanation": "Somamos os custos fixos, os custos variáveis do mês e o pró-labore e aplicamos a margem de segurança sobre esse total. O resultado é dividido pelas horas produtivas do mês: horas disponíveis por semana × 52 semanas ÷ 12 meses. O mínimo é a mesma conta sem a margem."
       }
+    },
+    "history": {
+      "title": "Histórico do valor da hora",
+      "subtitle": "Acompanhe como o valor mínimo da sua hora mudou mês a mês",
+      "openShortcut": "Ver histórico",
+      "loading": "Carregando o histórico do valor da hora",
+      "loadFailure": "Não foi possível carregar o histórico do valor da hora.",
+      "empty": {
+        "title": "Nenhum cálculo registrado",
+        "message": "O valor da sua hora de cada mês passa a aparecer aqui depois do primeiro cálculo."
+      },
+      "period": {
+        "previousButton": "Meses mais antigos",
+        "nextButton": "Meses mais recentes",
+        "single": "{{month}} {{year}}",
+        "sameYear": "{{from}} – {{to}} {{year}}",
+        "crossYear": "{{from}} {{fromYear}} – {{to}} {{toYear}}",
+        "latest": "Últimos {{count}} meses",
+        "earlier": "{{count}} meses anteriores"
+      },
+      "current": {
+        "title": "Valor atual da hora",
+        "variationChip": "{{variation}} vs {{month}}",
+        "firstMonth": "Primeiro mês calculado: {{month}}.",
+        "sinceStart": "Desde o início do histórico ({{month}}): **{{difference}}** ({{percent}})."
+      },
+      "chart": {
+        "title": "Evolução",
+        "placeholderTitle": "O gráfico aparece no próximo mês",
+        "placeholderMessage": "Precisamos de pelo menos {{count}} meses calculados para mostrar a evolução do valor da sua hora."
+      },
+      "months": {
+        "title": "Registro mensal",
+        "currentChip": "Mês atual",
+        "oldest": "início do histórico",
+        "detail": "{{hours}} h produtivas · mín. {{minimum}}",
+        "rowLabel": "{{month}}, {{value}}, {{hours}} horas produtivas, mínimo {{minimum}}",
+        "viewAll": "Ver todos os meses ({{count}})"
+      },
+      "notes": {
+        "underWindow": "Com menos de {{count}} meses, o gráfico mostra todos os meses calculados. Novos meses entram aqui no fechamento.",
+        "overWindow": "O gráfico mostra até {{count}} meses por vez. Use as setas acima para ver períodos anteriores."
+      },
+      "all": {
+        "title": "Todos os meses",
+        "subtitle": "{{count}} meses calculados desde {{month}}",
+        "sinceStartTitle": "Desde o início do histórico",
+        "sinceStartText": "De {{from}} em {{fromMonth}} para {{to}} em {{toMonth}}.",
+        "monthCount": {
+          "one": "{{count}} mês",
+          "other": "{{count}} meses"
+        }
+      }
     }
   },
   "vehicles": {
