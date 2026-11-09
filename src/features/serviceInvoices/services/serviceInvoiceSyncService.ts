@@ -10,16 +10,17 @@ import {
 } from './offlineServiceInvoiceStore';
 import { readPendingPdf } from './pendingPdfStore';
 import {
-  requestServiceInvoiceUpload,
-  sendServiceInvoicePdf,
-  syncServiceInvoices,
+  confirmServiceInvoice,
+  extractServiceInvoice,
+  fetchServiceInvoiceStatus,
 } from './serviceInvoiceService';
 import {
   CLIENT_NOT_SYNCED,
   PENDING_FILE_MISSING,
+  POSSIBLE_DUPLICATE,
   nextToSend,
   readingDifference,
-  toSyncItem,
+  toServiceInvoiceInput,
   type PendingServiceInvoice,
 } from '../domain/offlineServiceInvoices';
 
@@ -67,29 +68,34 @@ async function send(
   invoice: PendingServiceInvoice,
   clientId: string,
 ): Promise<SendOutcome> {
-  const bytes = await readPendingPdf(userId, invoice.id);
-  if (!bytes) return { status: 'refused', code: PENDING_FILE_MISSING };
+  const pdf = await readPendingPdf(userId, invoice.id);
+  if (!pdf) return { status: 'refused', code: PENDING_FILE_MISSING };
 
-  // The file first, as in backend #71, where the draft is born in `upload-url`
-  // with the app's id. Both steps are safe to repeat for the same id.
-  const target = await requestServiceInvoiceUpload(idToken, invoice.id, {
-    filename: invoice.file.name,
-    fileMimeType: invoice.file.mimeType,
-    fileHash: invoice.file.hash,
-    fileBytesSize: invoice.file.bytesSize,
+  // A run that stopped after the confirmation, before the queue was saved:
+  // the note is in, and the backend refuses a new PDF for a confirmed one.
+  const status = await fetchServiceInvoiceStatus(idToken, invoice.id);
+  if (status === 'CONFIRMED') return { status: 'sent' };
+
+  // The same steps as the online upload, under the id the note got on the
+  // device, so repeating them never leaves a second draft behind.
+  const reading = await extractServiceInvoice(idToken, invoice.id, {
+    ...pdf,
+    name: invoice.file.name,
+    mimeType: invoice.file.mimeType,
   });
-  await sendServiceInvoicePdf(target, bytes);
-
-  const [result] = await syncServiceInvoices(idToken, [
-    toSyncItem(invoice, clientId),
-  ]);
-  if (!result || result.status === 'conflict') {
-    return { status: 'refused', code: result?.code ?? 'UNKNOWN' };
+  const confirmation = await confirmServiceInvoice(
+    idToken,
+    invoice.id,
+    toServiceInvoiceInput(invoice, clientId),
+    { allowDuplicate: invoice.allowDuplicate === true },
+  );
+  if ('duplicateOf' in confirmation) {
+    return { status: 'refused', code: POSSIBLE_DUPLICATE };
   }
 
   // What the typed data says is never overwritten by what the PDF says: a
   // difference is only kept, for the person to confirm.
-  const difference = readingDifference(invoice, result.reading);
+  const difference = readingDifference(invoice, reading);
   if (difference) await saveReadingDifference(userId, difference);
   return { status: 'sent' };
 }

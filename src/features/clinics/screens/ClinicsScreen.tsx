@@ -9,7 +9,11 @@ import { PartnerCard } from 'app/components/ui/partner-card';
 import { Text } from 'app/components/ui/text';
 import { useTranslation, type TranslationKey } from 'shared/i18n';
 
-import { ClinicDetailSheet } from '../components/ClinicDetailSheet';
+import { ClinicHistorySection } from './ClinicHistorySection';
+import {
+  ClinicDetailSheet,
+  type ClinicDetailSheetTab,
+} from '../components/ClinicDetailSheet';
 import type { ClinicFieldTexts } from '../components/ClinicFields';
 import { NewClinicSheet } from '../components/NewClinicSheet';
 import {
@@ -19,9 +23,12 @@ import {
   type ClinicField,
 } from '../domain/clinicForm';
 import { formatClinicLocation } from '../domain/clinicLocation';
+import { useClientHistory } from '../hooks/useClientHistory';
 import { useClinicDetail } from '../hooks/useClinicDetail';
 import { useClinics } from '../hooks/useClinics';
+import { useHistoryPeriodPicker } from '../hooks/useHistoryPeriodPicker';
 import { useNewClinicForm } from '../hooks/useNewClinicForm';
+import { isClientHistoryAvailable } from '../services/availability';
 
 export function ClinicsScreen() {
   const { t } = useTranslation();
@@ -29,8 +36,17 @@ export function ClinicsScreen() {
   const [isNewClinicOpen, setIsNewClinicOpen] = useState(false);
   const { clinics, isLoading, loadFailure, setClinics } = useClinics();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [sheetTab, setSheetTab] = useState<ClinicDetailSheetTab>('history');
   const selected = clinics.find(clinic => clinic.id === selectedId) ?? null;
   const detail = useClinicDetail(selected);
+  const historyAvailable = isClientHistoryAvailable();
+  const history = useClientHistory(
+    historyAvailable && selected ? selected.id : null,
+  );
+  const periodPicker = useHistoryPeriodPicker(
+    history.period,
+    history.setPeriod,
+  );
 
   const fieldTexts = Object.fromEntries(
     CLINIC_FIELDS.map(field => [
@@ -53,6 +69,13 @@ export function ClinicsScreen() {
   const openNewClinic = () => {
     newClinic.reset();
     setIsNewClinicOpen(true);
+  };
+
+  const openClinic = (id: string) => {
+    setSelectedId(id);
+    setSheetTab('history');
+    history.reset();
+    periodPicker.close();
   };
 
   const submitNewClinic = async () => {
@@ -113,7 +136,7 @@ export function ClinicsScreen() {
               key={clinic.id}
               name={clinic.name}
               location={formatClinicLocation(clinic)}
-              onPress={() => setSelectedId(clinic.id)}
+              onPress={() => openClinic(clinic.id)}
             />
           ))}
         </ScrollView>
@@ -162,6 +185,24 @@ export function ClinicsScreen() {
           delete: t('clinics.detail.delete'),
         }}
         closeLabel={t('clinics.newClinic.close')}
+        tabs={
+          historyAvailable
+            ? {
+                value: sheetTab,
+                labels: {
+                  history: t('clinics.detail.tabs.history'),
+                  data: t('clinics.detail.tabs.data'),
+                },
+                onChange: setSheetTab,
+                history: (
+                  <ClinicHistorySection
+                    history={history}
+                    picker={periodPicker}
+                  />
+                ),
+              }
+            : undefined
+        }
         onChangeField={detail.setField}
         onCall={selected?.phone ? callSelected : undefined}
         onEdit={detail.startEditing}

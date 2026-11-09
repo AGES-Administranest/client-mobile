@@ -6,5 +6,6 @@ declare const process: {
     EXPO_PUBLIC_COGNITO_OAUTH_URL?: string;
     EXPO_PUBLIC_AWS_REGION?: string;
     EXPO_PUBLIC_API_URL?: string;
+    EXPO_PUBLIC_CLIENT_HISTORY_STUB?: string;
   };
 };

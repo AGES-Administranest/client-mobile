@@ -9,12 +9,17 @@ import {
 } from 'features/auth';
 import { I18nProvider } from 'shared/i18n';
 import { ApiError } from 'shared/services/apiClient';
+import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
 
 import { ClinicsScreen } from './ClinicsScreen';
 import type { Client } from '../domain/client';
+import { monthPeriodOf } from '../domain/clientHistory';
+import { isClientHistoryAvailable } from '../services/availability';
 import {
   createClient,
   deleteClient,
+  fetchClientAppointments,
+  fetchClientSummary,
   fetchClinics,
   updateClient,
 } from '../services/clientService';
@@ -22,8 +27,13 @@ import {
 jest.mock('../services/clientService', () => ({
   createClient: jest.fn(),
   deleteClient: jest.fn(),
+  fetchClientAppointments: jest.fn(),
+  fetchClientSummary: jest.fn(),
   fetchClinics: jest.fn(),
   updateClient: jest.fn(),
+}));
+jest.mock('../services/availability', () => ({
+  isClientHistoryAvailable: jest.fn(),
 }));
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
@@ -40,6 +50,16 @@ const fetchClinicsMock = fetchClinics as jest.MockedFunction<
 >;
 const updateClientMock = updateClient as jest.MockedFunction<
   typeof updateClient
+>;
+const fetchClientAppointmentsMock =
+  fetchClientAppointments as jest.MockedFunction<
+    typeof fetchClientAppointments
+  >;
+const fetchClientSummaryMock = fetchClientSummary as jest.MockedFunction<
+  typeof fetchClientSummary
+>;
+const historyAvailableMock = isClientHistoryAvailable as jest.MockedFunction<
+  typeof isClientHistoryAvailable
 >;
 
 const METRICS = {
@@ -96,6 +116,22 @@ beforeEach(() => {
       city: payload.city ?? null,
     }),
   );
+  fetchClientSummaryMock.mockReset().mockResolvedValue({
+    appointmentsCount: 1,
+    billedTotal: 620,
+    tripCost: 16,
+    tripCount: 1,
+  });
+  fetchClientAppointmentsMock.mockReset().mockResolvedValue([
+    {
+      id: 'appointment-1',
+      startsAt: '2026-08-17T16:00:00.000Z',
+      procedureName: 'Orquiectomia',
+      patientName: 'Mel',
+      amount: 620,
+    },
+  ]);
+  historyAvailableMock.mockReset().mockReturnValue(true);
 });
 
 async function render() {
@@ -338,7 +374,7 @@ async function renderWithCreatedClinic() {
   return renderer;
 }
 
-async function openDetails(renderer: ReactTestRenderer.ReactTestRenderer) {
+async function openClinic(renderer: ReactTestRenderer.ReactTestRenderer) {
   await act(async () => {
     renderer.root
       .find(
@@ -352,6 +388,195 @@ async function openDetails(renderer: ReactTestRenderer.ReactTestRenderer) {
       .props.onPress();
   });
 }
+
+function tabsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root.findAll(
+    node =>
+      node.props.accessibilityRole === 'tab' &&
+      typeof node.props.onPress === 'function',
+  );
+}
+
+async function pressTab(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  label: string,
+) {
+  await act(async () => {
+    tabsOf(renderer)
+      .find(node =>
+        node
+          .findAllByType('Text' as never)
+          .some(text => text.props.children === label),
+      )!
+      .props.onPress();
+  });
+}
+
+async function openDetails(renderer: ReactTestRenderer.ReactTestRenderer) {
+  await openClinic(renderer);
+  await pressTab(renderer, 'Dados');
+}
+
+function shownTexts(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root
+    .findAllByType('Text' as never)
+    .map(node => node.props.children)
+    .filter((child): child is string => typeof child === 'string');
+}
+
+function dayOfThisMonth(day: number) {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), day);
+}
+
+function shortDate(date: Date) {
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
+function calendarDays(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root.findAll(
+    node =>
+      typeof node.props.testID === 'string' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(node.props.testID) &&
+      typeof node.props.onPress === 'function',
+  );
+}
+
+async function pressPeriodField(renderer: ReactTestRenderer.ReactTestRenderer) {
+  await act(async () => {
+    renderer.root
+      .find(
+        node =>
+          node.props.accessibilityHint === 'Escolher período' &&
+          typeof node.props.onPress === 'function',
+      )
+      .props.onPress();
+  });
+}
+
+async function pressDay(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  date: Date,
+) {
+  await act(async () => {
+    calendarDays(renderer)
+      .find(node => node.props.testID === toCalendarDate(date))!
+      .props.onPress();
+  });
+}
+
+async function closeSheet(renderer: ReactTestRenderer.ReactTestRenderer) {
+  await act(async () => {
+    renderer.root
+      .find(
+        node =>
+          node.props.accessibilityLabel === 'Fechar' &&
+          typeof node.props.onPress === 'function',
+      )
+      .props.onPress();
+  });
+}
+
+test('opens a clinic on the history of the current month', async () => {
+  const renderer = await renderWithCreatedClinic();
+
+  await openClinic(renderer);
+
+  const shown = shownTexts(renderer);
+  expect(shown).toContain('Histórico');
+  expect(shown).toContain('R$\u00a0620');
+  expect(shown).toContain('1 trecho no período');
+  expect(shown).toContain('Orquiectomia');
+  expect(shown).not.toContain('Editar clínica');
+  expect(fetchClientSummaryMock).toHaveBeenCalledWith(
+    'id-token',
+    'client-1',
+    monthPeriodOf(new Date()),
+  );
+});
+
+test('shows the registration data and its actions in the Dados tab', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openClinic(renderer);
+
+  await pressTab(renderer, 'Dados');
+
+  const shown = textsOf(renderer);
+  expect(shown).toContain('Editar clínica');
+  expect(shown).not.toContain('Orquiectomia');
+  expect(inputLabels(renderer)).toContain('CNPJ');
+});
+
+test('opens the clinic on its history again after closing it on Dados', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+
+  await act(async () => {
+    renderer.root
+      .find(
+        node =>
+          node.props.accessibilityLabel === 'Fechar' &&
+          typeof node.props.onPress === 'function',
+      )
+      .props.onPress();
+  });
+  await openClinic(renderer);
+
+  expect(textsOf(renderer)).toContain('Orquiectomia');
+});
+
+test('opens the same clinic again on the current month, with the calendar closed', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openClinic(renderer);
+  const month = monthPeriodOf(new Date());
+  const wholeMonth = `${shortDate(fromCalendarDate(month.from))} – ${shortDate(
+    fromCalendarDate(month.to),
+  )}`;
+
+  await pressPeriodField(renderer);
+  await pressDay(renderer, dayOfThisMonth(10));
+  await pressDay(renderer, dayOfThisMonth(12));
+  await press(renderer, 'Aplicar');
+
+  expect(shownTexts(renderer)).toContain(
+    `${shortDate(dayOfThisMonth(10))} – ${shortDate(dayOfThisMonth(12))}`,
+  );
+
+  await pressPeriodField(renderer);
+  expect(calendarDays(renderer).length).toBeGreaterThan(0);
+  await closeSheet(renderer);
+  await openClinic(renderer);
+
+  expect(shownTexts(renderer)).toContain(wholeMonth);
+  expect(calendarDays(renderer)).toHaveLength(0);
+});
+
+test('hides the tabs while the clinic is being edited', async () => {
+  const renderer = await renderWithCreatedClinic();
+  await openDetails(renderer);
+
+  await press(renderer, 'Editar clínica');
+  expect(tabsOf(renderer)).toHaveLength(0);
+
+  await press(renderer, 'Confirmar');
+  expect(tabsOf(renderer)).toHaveLength(2);
+});
+
+test('keeps the sheet as before while the history is a stand-in in production', async () => {
+  historyAvailableMock.mockReturnValue(false);
+  const renderer = await renderWithCreatedClinic();
+
+  await openClinic(renderer);
+
+  expect(tabsOf(renderer)).toHaveLength(0);
+  expect(textsOf(renderer)).toContain('Editar clínica');
+  expect(fetchClientSummaryMock).not.toHaveBeenCalled();
+  expect(fetchClientAppointmentsMock).not.toHaveBeenCalled();
+});
 
 test('shows the details without the name field, since the name is the title', async () => {
   const renderer = await renderWithCreatedClinic();

@@ -7,7 +7,10 @@ import {
 } from 'react-native';
 
 import { HourlyRateScreen } from 'features/pricing';
-import { ServiceInvoiceUploadFlow } from 'features/serviceInvoices';
+import {
+  ServiceInvoiceUploadFlow,
+  useServiceInvoiceUpload,
+} from 'features/serviceInvoices';
 import { TripsScreen } from 'features/trips';
 import { VehiclesScreen } from 'features/vehicles';
 import { useTranslation } from 'shared/i18n';
@@ -55,6 +58,7 @@ export function FinanceScreen() {
   const [period, setPeriod] = useState(() => currentPeriod(new Date()));
   const statement = useFinancialStatement({ period, scope });
   const overview = useFinanceOverview(period);
+  const invoiceUpload = useServiceInvoiceUpload();
   const [openEntry, setOpenEntry] = useState<FinancialEntry | null>(null);
 
   const categoryLabel = (category: FinancialEntry['category']) => {
@@ -122,6 +126,7 @@ export function FinanceScreen() {
   return (
     <View className="flex-1">
       <NewEntryFlow
+        onSendDocument={invoiceUpload.start}
         showButton={false}
         containerClassName="flex-1 gap-0 px-0 pt-0"
         onEntrySaved={() => {
@@ -174,6 +179,19 @@ export function FinanceScreen() {
                       type: 'expense',
                     },
                   ]}
+                  totalExpenses={{
+                    title: t('finance.totalExpenses'),
+                    value: displayAmount(
+                      totals
+                        ? Math.round(
+                            (totals.professionalExpenses +
+                              totals.personalExpenses) *
+                              100,
+                          ) / 100
+                        : undefined,
+                    ),
+                    type: 'expense',
+                  }}
                   overview={overview.overview}
                   hasError={overview.hasError}
                   onPreviousMonth={() => setPeriod(shiftMonth(period, -1))}
@@ -188,7 +206,13 @@ export function FinanceScreen() {
                     label={t('financialEntries.newEntry')}
                     onPress={openOptions}
                   />
-                  <ServiceInvoiceUploadFlow />
+                  <ServiceInvoiceUploadFlow
+                    upload={invoiceUpload}
+                    onInvoiceConfirmed={() => {
+                      statement.reload();
+                      overview.retry();
+                    }}
+                  />
                 </View>
                 <View className="gap-3 px-5">
                   <ScopeFilter

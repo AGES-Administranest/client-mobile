@@ -5,6 +5,7 @@ export const EXPENSE_GROUPS = [
   'SUPPLIES',
   'TRAVEL',
   'FIXED_COSTS',
+  'DEPRECIATION',
   'TAXES_AND_FEES',
   'OTHER',
 ] as const;
@@ -27,7 +28,6 @@ export type BalanceEntry = {
 
 export type LocalFixedCosts = {
   depreciation: number | null;
-  transport: number | null;
 };
 
 export type MonthlyBalance = {
@@ -86,7 +86,7 @@ function expenseGroup(categoryName: string): ExpenseGroup {
 export function calculateMonthlyBalance(
   entries: readonly BalanceEntry[],
   period: StatementPeriod,
-  fixedCosts: LocalFixedCosts = { depreciation: null, transport: null },
+  fixedCosts: LocalFixedCosts = { depreciation: null },
 ): MonthlyBalance {
   let revenue = 0;
   let professional = 0;
@@ -111,13 +111,11 @@ export function calculateMonthlyBalance(
     groups.set(group, (groups.get(group) ?? 0) + amount);
   }
 
-  const known = [fixedCosts.depreciation, fixedCosts.transport].filter(
-    (value): value is number => value !== null,
-  );
-  const extra = known.reduce((sum, value) => sum + cents(value), 0);
-  if (extra !== 0) {
-    professional += extra;
-    groups.set('FIXED_COSTS', (groups.get('FIXED_COSTS') ?? 0) + extra);
+  // Trips are already entries (US14), so only the depreciation is added.
+  if (fixedCosts.depreciation !== null) {
+    const depreciation = cents(fixedCosts.depreciation);
+    professional += depreciation;
+    groups.set('DEPRECIATION', depreciation);
   }
 
   const totalExpenses = professional + personal;
@@ -131,7 +129,6 @@ export function calculateMonthlyBalance(
       category,
       subtotal: fromCents(groups.get(category) ?? 0),
     })),
-    incomplete:
-      fixedCosts.depreciation === null || fixedCosts.transport === null,
+    incomplete: fixedCosts.depreciation === null,
   };
 }
