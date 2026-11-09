@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
@@ -25,6 +26,12 @@ jest.mock('features/appointments/services/appointmentService', () => ({
 jest.mock('features/materials/services/itemService', () => ({
   ...jest.requireActual('features/materials/services/itemService'),
   fetchItems: jest.fn(async () => []),
+}));
+
+const mockFetchProfile = jest.fn();
+
+jest.mock('features/profile/services/profileService', () => ({
+  fetchProfile: (...args: unknown[]) => mockFetchProfile(...args),
 }));
 
 const METRICS = {
@@ -110,6 +117,74 @@ it('signs out from the account menu', async () => {
   });
 
   expect(mockSignOut).toHaveBeenCalledWith(SESSION);
+});
+
+function pressMenuOption(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  label: string,
+) {
+  return act(async () => {
+    renderer.root
+      .findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          JSON.stringify(
+            node.findAllByType('Text' as never).map(t => t.props.children),
+          ).includes(label),
+      )
+      .at(-1)!
+      .props.onPress();
+  });
+}
+
+describe('profile', () => {
+  const CACHE_KEY = '@administranest:profile:user-1';
+
+  async function openAccountMenu(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+  ) {
+    await act(async () => {
+      renderer.root
+        .findAll(node => node.props.accessibilityLabel === 'Conta')[0]
+        .props.onPress();
+    });
+  }
+
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    mockFetchProfile.mockReset();
+    mockFetchProfile.mockResolvedValue({
+      id: 'user-1',
+      name: 'Bruna Senha',
+      email: 'bruna@example.com',
+      crmv: null,
+      birthDate: null,
+      sex: null,
+      city: null,
+      state: null,
+    });
+  });
+
+  it('opens from the account menu', async () => {
+    const renderer = await renderHome();
+    expect(texts(renderer)).not.toContain('Editar perfil');
+
+    await openAccountMenu(renderer);
+    await pressMenuOption(renderer, 'Meu perfil');
+
+    expect(mockFetchProfile).toHaveBeenCalledWith('id');
+    expect(texts(renderer)).toContain('Editar perfil');
+  });
+
+  it('forgets the saved profile on sign out', async () => {
+    await AsyncStorage.setItem(CACHE_KEY, '{"id":"user-1"}');
+    const renderer = await renderHome();
+
+    await openAccountMenu(renderer);
+    await pressMenuOption(renderer, 'Sair da conta');
+
+    await expect(AsyncStorage.getItem(CACHE_KEY)).resolves.toBeNull();
+  });
 });
 
 function press(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
