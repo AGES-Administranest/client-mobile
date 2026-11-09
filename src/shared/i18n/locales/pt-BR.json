@@ -1598,6 +1598,101 @@
       "discard": "Descartar nota",
       "keep": "Manter na fila",
       "sendAnyway": "Enviar mesmo assim"
+    },
+    "records": {
+      "fileAvailable": "PDF original disponível",
+      "status": {
+        "SYNCED": "Sincronizado",
+        "PENDING": "Não sincronizado",
+        "ERROR": "Erro no envio"
+      },
+      "list": {
+        "title": "Notas fiscais",
+        "back": "Voltar",
+        "searchPlaceholder": "Buscar por tomador ou data",
+        "filters": {
+          "ALL": "Todas",
+          "SYNCED": "Sincronizadas",
+          "PENDING": "Não sincronizadas",
+          "ERROR": "Com erro"
+        },
+        "noteTitle": "Nota Fiscal {{number}}",
+        "noteTitleNoNumber": "Nota fiscal",
+        "clientLine": "Tomador: {{name}}",
+        "loadFailed": "Não foi possível carregar as notas fiscais.",
+        "offline": "Sem conexão: mostrando as notas salvas neste aparelho.",
+        "emptyTitle": "Nenhuma nota fiscal",
+        "emptyMessage": "Registre uma nota pelo botão Adicionar nota, na aba Relatórios.",
+        "noResultsTitle": "Nada encontrado",
+        "noResultsMessage": "Não há notas para essa busca. Tente outro tomador ou outra data.",
+        "add": "Adicionar nota"
+      },
+      "detail": {
+        "title": "Detalhes da nota",
+        "back": "Voltar",
+        "download": "Baixar PDF",
+        "downloading": "Baixando PDF…",
+        "downloadFailed": "Não foi possível baixar o PDF. Tente novamente.",
+        "unavailable": {
+          "needsConnection": "O download exige conexão com a internet.",
+          "notSentYet": "O PDF ainda não foi enviado. Ele fica disponível para baixar depois que a nota sincronizar.",
+          "noFile": "Esta nota não tem PDF original."
+        },
+        "fileFallbackName": "PDF da nota fiscal",
+        "dataTitle": "Dados extraídos da nota",
+        "fields": {
+          "issueDate": "Data de emissão",
+          "number": "Número da nota",
+          "client": "Tomador",
+          "clientTaxId": "CNPJ do tomador",
+          "location": "Local",
+          "amount": "Valor total"
+        },
+        "checkData": "Confira os dados antes de enviar à contabilidade.",
+        "correct": "Corrigir",
+        "delete": "Excluir",
+        "correctNeedsConnection": "Corrigir os dados exige conexão com a internet.",
+        "correctNotSentYet": "A nota ainda não foi enviada. Ela só pode ser corrigida depois de sincronizar.",
+        "notFound": "Esta nota não existe mais.",
+        "loadFailed": "Não foi possível carregar a nota. Verifique a conexão e tente novamente.",
+        "saved": "PDF salvo na pasta escolhida."
+      },
+      "correction": {
+        "title": "Corrigir nota",
+        "back": "Voltar",
+        "checkPdf": "Confira os dados com o PDF original antes de confirmar.",
+        "location": {
+          "label": "Local",
+          "placeholder": "Cidade, UF"
+        },
+        "confirm": "Confirmar correção",
+        "confirming": "Salvando…",
+        "cancel": "Cancelar",
+        "failure": {
+          "network": "Sem conexão. Conecte-se à internet para salvar a correção.",
+          "notFound": "Esta nota não existe mais.",
+          "generic": "Não foi possível salvar a correção. Tente novamente.",
+          "clientNotFound": "Esse tomador não foi encontrado. Escolha outro."
+        },
+        "leaveTitle": "Sair da correção?",
+        "leaveMessage": "As alterações não foram salvas e vão se perder.",
+        "leaveConfirm": "Sair sem salvar",
+        "leaveCancel": "Continuar editando"
+      },
+      "delete": {
+        "title": "Excluir nota fiscal?",
+        "message": "Esta ação é permanente. O arquivo PDF original e o lançamento financeiro vinculado também serão excluídos.",
+        "messagePending": "Esta ação é permanente. O PDF guardado neste aparelho também será excluído.",
+        "pdfItem": "Arquivo PDF original",
+        "entryItem": "Lançamento financeiro vinculado",
+        "confirm": "Excluir permanentemente",
+        "deleting": "Excluindo…",
+        "cancel": "Cancelar",
+        "failed": "Não foi possível excluir a nota. Tente novamente.",
+        "doneTitle": "Nota fiscal excluída com sucesso",
+        "doneQueued": "Sem conexão: a exclusão será enviada quando a conexão voltar.",
+        "understood": "Entendi"
+      }
     }
   },
   "trips": {
@@ -1734,5 +1829,9 @@
       "issuedAt": "Data de emissão",
       "status": "Situação"
     }
+  },
+  "reports": {
+    "title": "Relatórios",
+    "openInvoices": "Abrir notas fiscais"
   }
 }
