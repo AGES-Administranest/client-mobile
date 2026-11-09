@@ -976,7 +976,8 @@
     },
     "account": {
       "menu": "Conta",
-      "signOut": "Sair da conta"
+      "signOut": "Sair da conta",
+      "profile": "Meu perfil"
     },
     "forgot": {
       "link": "Esqueci minha senha",
@@ -1869,5 +1870,31 @@
       "title": "Histórico de relatórios",
       "empty": "Nenhum relatório gerado ainda."
     }
+  },
+  "profile": {
+    "title": "Perfil",
+    "back": "Voltar",
+    "notInformed": "Não informado",
+    "edit": "Editar perfil",
+    "ageValue": "{{age}} anos",
+    "fields": {
+      "name": "Nome",
+      "crmv": "CRMV",
+      "email": "Email",
+      "age": "Idade",
+      "sex": "Sexo",
+      "city": "Cidade",
+      "state": "Estado"
+    },
+    "sex": {
+      "FEMALE": "Feminino",
+      "MALE": "Masculino",
+      "OTHER": "Outro",
+      "NOT_INFORMED": "Prefiro não informar"
+    },
+    "crmvNotice": "O CRMV é necessário para emitir relatórios com identificação profissional.",
+    "staleNotice": "Mostrando os últimos dados salvos. Eles podem estar desatualizados.",
+    "loadError": "Não foi possível carregar o perfil.",
+    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente."
   }
 }

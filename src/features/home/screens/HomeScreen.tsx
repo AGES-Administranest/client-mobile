@@ -5,6 +5,7 @@ import {
   Maximize2,
   Minimize2,
   Plus,
+  UserRound,
 } from 'lucide-react-native';
 import {
   useCallback,
@@ -43,8 +44,10 @@ import { useAuth } from 'features/auth';
 import { useClientNames } from 'features/clients';
 import { InventoryNotificationsScreen, useInventory } from 'features/inventory';
 import { AppointmentDetailScreen, DiaDiaScreen } from 'features/procedures';
+import { ProfileScreen } from 'features/profile';
 import { useTranslation } from 'shared/i18n';
 import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
+import { initials } from 'shared/utils/initials';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -53,6 +56,8 @@ export function HomeScreen() {
   const { account, signOut } = useAuth();
   const { status, items, lots, refresh } = useInventory();
   const [accountVisible, setAccountVisible] = useState(false);
+  const [profileVisible, setProfileVisible] = useState(false);
+  const opensProfileAfterMenu = useRef(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
   const notificationsTranslateX = useRef(
     new Animated.Value(SCREEN_WIDTH),
@@ -373,7 +378,21 @@ export function HomeScreen() {
       <OptionsModal
         visible={accountVisible}
         onClose={() => setAccountVisible(false)}
+        onClosed={() => {
+          if (opensProfileAfterMenu.current) {
+            opensProfileAfterMenu.current = false;
+            setProfileVisible(true);
+          }
+        }}
         options={[
+          {
+            label: t('auth.account.profile'),
+            icon: UserRound,
+            onPress: () => {
+              opensProfileAfterMenu.current = true;
+              setAccountVisible(false);
+            },
+          },
           {
             label: t('auth.account.signOut'),
             icon: LogOut,
@@ -384,6 +403,10 @@ export function HomeScreen() {
             },
           },
         ]}
+      />
+      <ProfileScreen
+        visible={profileVisible}
+        onClose={() => setProfileVisible(false)}
       />
       <DiaDiaScreen
         visible={newProcedureVisible}
@@ -461,13 +484,6 @@ function AnimatedSwap({
 }
 
 // "Bruna Senha" → "BS"
-function initials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  const letters =
-    words.length > 1 ? words[0][0] + words[words.length - 1][0] : words[0]?.[0];
-  return (letters ?? '').toUpperCase();
-}
-
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

@@ -976,7 +976,8 @@
     },
     "account": {
       "menu": "Account",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "profile": "My profile"
     },
     "forgot": {
       "link": "Forgot my password",
@@ -1869,5 +1870,31 @@
       "title": "Report history",
       "empty": "No report generated yet."
     }
+  },
+  "profile": {
+    "title": "Profile",
+    "back": "Back",
+    "notInformed": "Not informed",
+    "edit": "Edit profile",
+    "ageValue": "{{age}} years old",
+    "fields": {
+      "name": "Name",
+      "crmv": "CRMV",
+      "email": "Email",
+      "age": "Age",
+      "sex": "Sex",
+      "city": "City",
+      "state": "State"
+    },
+    "sex": {
+      "FEMALE": "Female",
+      "MALE": "Male",
+      "OTHER": "Other",
+      "NOT_INFORMED": "Prefer not to say"
+    },
+    "crmvNotice": "Your CRMV is required to issue reports with professional identification.",
+    "staleNotice": "Showing the last saved data. It may be out of date.",
+    "loadError": "The profile could not be loaded.",
+    "sessionExpired": "Your session has expired. Sign out and sign in again."
   }
 }
