@@ -106,7 +106,7 @@ export function ProcedureFormSheet({
     option => option.value === values.species,
   );
 
-const sheet = useSheetAnimation(visible, onClose, onClosed);
+  const sheet = useSheetAnimation(visible, onClose, onClosed);
 
   return (
     <Modal

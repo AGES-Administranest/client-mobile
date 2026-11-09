@@ -671,7 +671,7 @@ export function AppointmentDetailScreen({
           !form.registration.isHidingForm
         }
         registerClientLabel={t('procedures.form.registerClient')}
-        onClosed={form.registration.onFormClosed} 
+        onClosed={form.registration.onFormClosed}
         values={form.values}
         submitting={form.submitting}
         submitFailed={form.submitFailed}

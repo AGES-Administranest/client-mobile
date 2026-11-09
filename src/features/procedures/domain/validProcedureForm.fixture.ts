@@ -13,5 +13,5 @@ export const validProcedureForm: ProcedureFormValues = {
   startTime: '09:00',
   endTime: '10:00',
   notes: '',
-  location: ''
+  location: '',
 };

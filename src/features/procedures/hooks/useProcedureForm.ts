@@ -68,7 +68,7 @@ export function useProcedureForm(
   const [conflict, setConflict] = useState<ConflictingAppointment | null>(null);
   const [suggestedLocation, setSuggestedLocation] = useState('');
   const [registerStage, setRegisterStage] = useState<RegisterStage>('none');
-  const [registerName, setRegisterName] = useState(''); 
+  const [registerName, setRegisterName] = useState('');
 
   useEffect(() => {
     if (!visible || !editing) {
