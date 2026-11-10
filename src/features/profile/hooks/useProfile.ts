@@ -17,6 +17,7 @@ export type ProfileState =
 export type UseProfileResult = {
   state: ProfileState;
   reload: () => void;
+  replace: (profile: Profile) => void;
 };
 
 export function useProfile(): UseProfileResult {
@@ -84,6 +85,11 @@ export function useProfile(): UseProfileResult {
   }, [idToken, userId, attempt]);
 
   const reload = useCallback(() => setAttempt(current => current + 1), []);
+  const replace = useCallback(
+    (profile: Profile) =>
+      setState({ status: 'ready', profile, isStale: false }),
+    [],
+  );
 
-  return { state, reload };
+  return { state, reload, replace };
 }
