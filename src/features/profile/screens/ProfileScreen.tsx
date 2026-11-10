@@ -80,7 +80,8 @@ export function ProfileScreen({ visible, onClose }: ProfileScreenProps) {
 // Lives inside the Modal, so each opening reads the profile again.
 function ProfileContent({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
-  const { state, reload, replace } = useProfile();
+  const { state, reload, replace, wasRejected, dismissRejection } =
+    useProfile();
 
   return (
     <>
@@ -123,6 +124,9 @@ function ProfileContent({ onClose }: { onClose: () => void }) {
         <ProfileDetails
           profile={state.profile}
           isStale={state.isStale}
+          hasPendingEdit={state.hasPendingEdit}
+          wasRejected={wasRejected}
+          onDismissRejection={dismissRejection}
           onSaved={replace}
         />
       )}
@@ -133,21 +137,33 @@ function ProfileContent({ onClose }: { onClose: () => void }) {
 type ProfileDetailsProps = {
   profile: Profile;
   isStale: boolean;
-  onSaved: (profile: Profile) => void;
+  hasPendingEdit: boolean;
+  wasRejected: boolean;
+  onDismissRejection: () => void;
+  onSaved: (profile: Profile, hasPendingEdit: boolean) => void;
 };
 
-function ProfileDetails({ profile, isStale, onSaved }: ProfileDetailsProps) {
+function ProfileDetails({
+  profile,
+  isStale,
+  hasPendingEdit,
+  wasRejected,
+  onDismissRejection,
+  onSaved,
+}: ProfileDetailsProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const form = useEditProfileForm({
     profile,
     visible: isEditing,
-    onSaved: saved => {
-      onSaved(saved);
+    onSaved: (saved, savedOffline) => {
+      onSaved(saved, savedOffline);
       setIsEditing(false);
-      setShowSaved(true);
-      AccessibilityInfo.announceForAccessibility(t('profile.editForm.saved'));
+      setShowSaved(!savedOffline);
+      AccessibilityInfo.announceForAccessibility(
+        t(savedOffline ? 'profile.pendingNotice' : 'profile.editForm.saved'),
+      );
     },
   });
 
@@ -203,6 +219,18 @@ function ProfileDetails({ profile, isStale, onSaved }: ProfileDetailsProps) {
         <ProfileAvatar initials={initials(profile.name)} />
         {showSaved ? (
           <NoticeBanner tone="success" message={t('profile.editForm.saved')} />
+        ) : null}
+        {hasPendingEdit ? (
+          <NoticeBanner tone="info" message={t('profile.pendingNotice')} />
+        ) : null}
+        {wasRejected ? (
+          <NoticeBanner
+            tone="alert"
+            message={t('profile.rejectedNotice')}
+            actionLabel={t('profile.rejectedDismiss')}
+            actionPlacement="inline"
+            onAction={onDismissRejection}
+          />
         ) : null}
         {isStale ? (
           <NoticeBanner tone="info" message={t('profile.staleNotice')} />

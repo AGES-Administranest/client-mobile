@@ -1992,6 +1992,9 @@
       },
       "saved": "Profile updated.",
       "saveError": "The profile could not be saved. Try again."
-    }
+    },
+    "pendingNotice": "No connection. Your profile changes were saved on this device and will be sent when you are back online.",
+    "rejectedNotice": "The profile change made offline was refused. Your data went back to the last saved.",
+    "rejectedDismiss": "Got it"
   }
 }

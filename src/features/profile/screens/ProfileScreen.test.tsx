@@ -9,7 +9,11 @@ import { isOnline } from 'shared/services/network';
 
 import { ProfileScreen } from './ProfileScreen';
 import type { Profile } from '../domain/profile';
-import { saveCachedProfile } from '../services/profileCache';
+import {
+  loadPendingProfileEdit,
+  saveCachedProfile,
+  saveProfileRejected,
+} from '../services/profileCache';
 import { fetchProfile, updateProfile } from '../services/profileService';
 
 jest.mock('../services/profileService', () => ({
@@ -334,6 +338,36 @@ it('drops the changes on cancel, back to the previous values', async () => {
 
   await act(async () => pressable(renderer, 'Editar perfil').props.onPress());
   expect(input(renderer, 'Cidade').props.value).toBe('Porto Alegre');
+});
+
+const PENDING_NOTICE =
+  'Sem conexão. As alterações do perfil foram salvas no aparelho e serão enviadas quando houver internet.';
+const REJECTED_NOTICE =
+  'A alteração do perfil feita sem conexão foi recusada. Os dados voltaram aos últimos salvos.';
+
+it('saves on the device without a connection and says it is waiting to be sent', async () => {
+  const renderer = await openEditing();
+  isOnlineMock.mockResolvedValue(false);
+
+  await type(renderer, 'Cidade', 'Canoas');
+  await act(async () => pressable(renderer, 'Salvar').props.onPress());
+
+  expect(updateMock).not.toHaveBeenCalled();
+  expect(field(renderer, 'Cidade')).toBe('Canoas');
+  expect(texts(renderer)).toContain(PENDING_NOTICE);
+  expect(texts(renderer)).not.toContain('Perfil atualizado.');
+  expect((await loadPendingProfileEdit('user-1'))?.update.city).toBe('Canoas');
+});
+
+it('tells that an offline edit was refused until it is dismissed', async () => {
+  await saveProfileRejected('user-1', true);
+  fetchMock.mockResolvedValue(FILLED_IN);
+
+  const renderer = await renderScreen();
+  expect(texts(renderer)).toContain(REJECTED_NOTICE);
+
+  await act(async () => pressable(renderer, 'Entendi').props.onPress());
+  expect(texts(renderer)).not.toContain(REJECTED_NOTICE);
 });
 
 it('goes back', async () => {

@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import { ApiError } from 'shared/services/apiClient';
+import { isOnline } from 'shared/services/network';
 import { toCalendarDate } from 'shared/utils/calendar';
 import { formatDateInput } from 'shared/utils/inputMasks';
+import { isNetworkError } from 'shared/utils/network';
 
 import type { Profile, Sex } from '../domain/profile';
 import {
@@ -14,7 +16,11 @@ import {
   type ProfileFormErrors,
   type ProfileFormValues,
 } from '../domain/validateProfileForm';
-import { saveCachedProfile } from '../services/profileCache';
+import {
+  clearPendingProfileEdit,
+  queueProfileEdit,
+  saveCachedProfile,
+} from '../services/profileCache';
 import { updateProfile } from '../services/profileService';
 
 export type EditProfileTextField = Exclude<keyof ProfileFormValues, 'sex'>;
@@ -24,7 +30,7 @@ export type EditProfileSubmitError = 'session' | 'generic';
 type UseEditProfileFormOptions = {
   profile: Profile;
   visible: boolean;
-  onSaved: (profile: Profile) => void;
+  onSaved: (profile: Profile, savedOffline: boolean) => void;
 };
 
 export type EditProfileFormState = {
@@ -100,11 +106,23 @@ export function useEditProfileForm({
 
     setIsSaving(true);
     setSubmitError(null);
+    const update = toProfileUpdate(values);
+    const saveOffline = async () =>
+      onSaved(await queueProfileEdit(userId, update, profile), true);
     try {
-      const saved = await updateProfile(idToken, toProfileUpdate(values));
+      if (!(await isOnline())) {
+        await saveOffline();
+        return;
+      }
+      const saved = await updateProfile(idToken, update);
       await saveCachedProfile(userId, saved);
-      onSaved(saved);
+      await clearPendingProfileEdit(userId);
+      onSaved(saved, false);
     } catch (error) {
+      if (isNetworkError(error)) {
+        await saveOffline();
+        return;
+      }
       setSubmitError(
         error instanceof ApiError && error.status === 401
           ? 'session'
@@ -113,7 +131,7 @@ export function useEditProfileForm({
     } finally {
       setIsSaving(false);
     }
-  }, [canSave, idToken, userId, values, onSaved]);
+  }, [canSave, idToken, userId, values, profile, onSaved]);
 
   return {
     values,
