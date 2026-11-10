@@ -340,6 +340,29 @@ it('drops the changes on cancel, back to the previous values', async () => {
   expect(input(renderer, 'Cidade').props.value).toBe('Porto Alegre');
 });
 
+it('shows the backend validation error on its field until it is edited', async () => {
+  updateMock.mockRejectedValue(
+    new ApiError('Invalid request', 'VALIDATION_ERROR', 400, {
+      fields: ['crmv must be the UF and the number, e.g. RS-12345'],
+    }),
+  );
+  const renderer = await openEditing();
+
+  await type(renderer, 'Cidade', 'Canoas');
+  await act(async () => pressable(renderer, 'Salvar').props.onPress());
+
+  const crmvError = 'Use o formato UF-número, como RS-12345.';
+  expect(texts(renderer)).toContain(crmvError);
+  expect(texts(renderer)).not.toContain(
+    'Não foi possível salvar o perfil. Tente de novo.',
+  );
+  expect(isSaveEnabled(renderer)).toBe(false);
+
+  await type(renderer, 'CRMV', 'RS-54321');
+  expect(texts(renderer)).not.toContain(crmvError);
+  expect(isSaveEnabled(renderer)).toBe(true);
+});
+
 const PENDING_NOTICE =
   'Sem conexão. As alterações do perfil foram salvas no aparelho e serão enviadas quando houver internet.';
 const REJECTED_NOTICE =

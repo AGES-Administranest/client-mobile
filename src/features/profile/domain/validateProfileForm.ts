@@ -158,3 +158,30 @@ export function toProfileUpdate(values: ProfileFormValues): ProfileUpdate {
     state: orNull(values.state.toUpperCase()),
   };
 }
+
+const SERVER_ERROR_CODES: Record<
+  Exclude<ProfileFormField, 'sex'>,
+  (message: string) => ProfileFormErrorCode
+> = {
+  name: message =>
+    message.includes('shorter than') ? 'nameTooLong' : 'nameTooShort',
+  crmv: () => 'crmvInvalid',
+  birthDate: message =>
+    message.includes('1900') ? 'birthDateOutOfRange' : 'birthDateInvalid',
+  city: () => 'cityTooLong',
+  state: () => 'stateInvalid',
+};
+
+export function serverFieldErrors(fields: unknown): ProfileFormErrors {
+  const errors: ProfileFormErrors = {};
+  if (!Array.isArray(fields)) return errors;
+
+  for (const message of fields) {
+    if (typeof message !== 'string') continue;
+    const field = message.split(' ')[0] as keyof typeof SERVER_ERROR_CODES;
+    if (field in SERVER_ERROR_CODES && !errors[field]) {
+      errors[field] = SERVER_ERROR_CODES[field](message);
+    }
+  }
+  return errors;
+}

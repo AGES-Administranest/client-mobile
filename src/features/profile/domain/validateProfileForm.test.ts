@@ -2,6 +2,7 @@ import type { Profile } from './profile';
 import {
   formatCrmvInput,
   profileToFormValues,
+  serverFieldErrors,
   toProfileUpdate,
   validateProfileForm,
   type ProfileFormValues,
@@ -134,4 +135,45 @@ describe('profileToFormValues and toProfileUpdate', () => {
       state: null,
     });
   });
+});
+
+describe('serverFieldErrors', () => {
+  it.each([
+    [
+      'name must be longer than or equal to 2 characters',
+      { name: 'nameTooShort' },
+    ],
+    [
+      'name must be shorter than or equal to 120 characters',
+      { name: 'nameTooLong' },
+    ],
+    [
+      'crmv must be the UF and the number, e.g. RS-12345',
+      { crmv: 'crmvInvalid' },
+    ],
+    [
+      'birthDate must be after 1900 and at least 18 years ago',
+      { birthDate: 'birthDateOutOfRange' },
+    ],
+    ['birthDate must be a valid ISO date', { birthDate: 'birthDateInvalid' }],
+    [
+      'city must be shorter than or equal to 120 characters',
+      { city: 'cityTooLong' },
+    ],
+    [
+      'state must be one of the following values: AC, AL',
+      { state: 'stateInvalid' },
+    ],
+    ['property email should not exist', {}],
+    ['sex must be one of the following values: FEMALE, MALE', {}],
+  ])('%j → %j', (message, errors) => {
+    expect(serverFieldErrors([message])).toEqual(errors);
+  });
+
+  it.each([[undefined], [null], ['crmv is wrong'], [[42]]])(
+    'ignores details it cannot read: %j',
+    fields => {
+      expect(serverFieldErrors(fields)).toEqual({});
+    },
+  );
 });

@@ -11,6 +11,7 @@ import type { Profile, Sex } from '../domain/profile';
 import {
   formatCrmvInput,
   profileToFormValues,
+  serverFieldErrors,
   toProfileUpdate,
   validateProfileForm,
   type ProfileFormErrors,
@@ -45,6 +46,15 @@ export type EditProfileFormState = {
   reset: () => void;
 };
 
+function withoutField(
+  errors: ProfileFormErrors,
+  field: keyof ProfileFormValues,
+): ProfileFormErrors {
+  const rest = { ...errors };
+  delete rest[field];
+  return rest;
+}
+
 function masked(field: EditProfileTextField, text: string): string {
   switch (field) {
     case 'crmv':
@@ -70,10 +80,12 @@ export function useEditProfileForm({
   const [submitError, setSubmitError] = useState<EditProfileSubmitError | null>(
     null,
   );
+  const [serverErrors, setServerErrors] = useState<ProfileFormErrors>({});
 
   const reset = useCallback(() => {
     setValues(initial);
     setSubmitError(null);
+    setServerErrors({});
   }, [initial]);
 
   useEffect(() => {
@@ -84,22 +96,28 @@ export function useEditProfileForm({
     field => values[field] !== initial[field],
   );
   const errors = useMemo(
-    () =>
-      isDirty ? validateProfileForm(values, toCalendarDate(new Date())) : {},
-    [isDirty, values],
+    () => ({
+      ...(isDirty
+        ? validateProfileForm(values, toCalendarDate(new Date()))
+        : {}),
+      ...serverErrors,
+    }),
+    [isDirty, values, serverErrors],
   );
   const canSave = isDirty && Object.keys(errors).length === 0 && !isSaving;
 
   const onChangeText = useCallback(
-    (field: EditProfileTextField, text: string) =>
-      setValues(current => ({ ...current, [field]: masked(field, text) })),
+    (field: EditProfileTextField, text: string) => {
+      setValues(current => ({ ...current, [field]: masked(field, text) }));
+      setServerErrors(current => withoutField(current, field));
+    },
     [],
   );
 
-  const onChangeSex = useCallback(
-    (sex: Sex) => setValues(current => ({ ...current, sex })),
-    [],
-  );
+  const onChangeSex = useCallback((sex: Sex) => {
+    setValues(current => ({ ...current, sex }));
+    setServerErrors(current => withoutField(current, 'sex'));
+  }, []);
 
   const save = useCallback(async () => {
     if (!canSave || !idToken || !userId) return;
@@ -121,6 +139,14 @@ export function useEditProfileForm({
     } catch (error) {
       if (isNetworkError(error)) {
         await saveOffline();
+        return;
+      }
+      const fieldErrors =
+        error instanceof ApiError && error.status === 400
+          ? serverFieldErrors(error.details?.fields)
+          : {};
+      if (Object.keys(fieldErrors).length > 0) {
+        setServerErrors(fieldErrors);
         return;
       }
       setSubmitError(
