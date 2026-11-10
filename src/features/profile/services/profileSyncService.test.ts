@@ -100,6 +100,44 @@ it.each([
   expect(await loadProfileRejected(USER)).toBe(false);
 });
 
+describe('with a newer edit queued while sending', () => {
+  const NEWER = { ...UPDATE, city: 'Gravataí' };
+
+  async function queueNewerDuringSend() {
+    const edited = await loadCachedProfile(USER);
+    await queueProfileEdit(USER, NEWER, edited!);
+  }
+
+  it('keeps the newer edit, now rolling back to what the server accepted', async () => {
+    const accepted = { ...CONFIRMED, city: 'Canoas' };
+    updateMock.mockImplementation(async () => {
+      await queueNewerDuringSend();
+      return accepted;
+    });
+
+    await expect(syncPendingProfile('token', USER)).resolves.toBe('synced');
+
+    expect(await loadPendingProfileEdit(USER)).toEqual({
+      update: NEWER,
+      confirmed: accepted,
+    });
+    expect((await loadCachedProfile(USER))?.city).toBe('Gravataí');
+  });
+
+  it('does not let the refused one drop the newer edit', async () => {
+    updateMock.mockImplementation(async () => {
+      await queueNewerDuringSend();
+      throw new ApiError('invalid', 'VALIDATION_ERROR', 400);
+    });
+
+    await expect(syncPendingProfile('token', USER)).resolves.toBe('pending');
+
+    expect((await loadPendingProfileEdit(USER))?.update).toEqual(NEWER);
+    expect((await loadCachedProfile(USER))?.city).toBe('Gravataí');
+    expect(await loadProfileRejected(USER)).toBe(false);
+  });
+});
+
 it('does nothing when there is no pending edit', async () => {
   await AsyncStorage.clear();
 

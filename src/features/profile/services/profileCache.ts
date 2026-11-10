@@ -71,13 +71,20 @@ export async function queueProfileEdit(
 ): Promise<Profile> {
   const pending = await loadPendingProfileEdit(userId);
   const edited = { ...current, ...update };
-  await AsyncStorage.setItem(
-    pendingKey(userId),
-    JSON.stringify({ update, confirmed: pending?.confirmed ?? current }),
-  );
+  await savePendingProfileEdit(userId, {
+    update,
+    confirmed: pending?.confirmed ?? current,
+  });
   await saveCachedProfile(userId, edited);
   notifyProfileChanged();
   return edited;
+}
+
+export async function savePendingProfileEdit(
+  userId: string,
+  pending: PendingProfileEdit,
+): Promise<void> {
+  await AsyncStorage.setItem(pendingKey(userId), JSON.stringify(pending));
 }
 
 export async function clearPendingProfileEdit(userId: string): Promise<void> {

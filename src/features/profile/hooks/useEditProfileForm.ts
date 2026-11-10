@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import { ApiError } from 'shared/services/apiClient';
@@ -30,7 +30,6 @@ export type EditProfileSubmitError = 'session' | 'generic';
 
 type UseEditProfileFormOptions = {
   profile: Profile;
-  visible: boolean;
   onSaved: (profile: Profile, savedOffline: boolean) => void;
 };
 
@@ -68,7 +67,6 @@ function masked(field: EditProfileTextField, text: string): string {
 
 export function useEditProfileForm({
   profile,
-  visible,
   onSaved,
 }: UseEditProfileFormOptions): EditProfileFormState {
   const { session, account } = useAuth();
@@ -87,10 +85,6 @@ export function useEditProfileForm({
     setSubmitError(null);
     setServerErrors({});
   }, [initial]);
-
-  useEffect(() => {
-    if (visible) reset();
-  }, [visible, reset]);
 
   const isDirty = (Object.keys(values) as (keyof ProfileFormValues)[]).some(
     field => values[field] !== initial[field],

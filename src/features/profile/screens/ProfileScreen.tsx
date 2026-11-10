@@ -156,7 +156,6 @@ function ProfileDetails({
   const [showSaved, setShowSaved] = useState(false);
   const form = useEditProfileForm({
     profile,
-    visible: isEditing,
     onSaved: (saved, savedOffline) => {
       onSaved(saved, savedOffline);
       setIsEditing(false);
@@ -274,7 +273,10 @@ function ProfileDetails({
           icon={Pencil}
           shape="pill"
           className="h-[49px] w-full"
-          onPress={() => setIsEditing(true)}
+          onPress={() => {
+            form.reset();
+            setIsEditing(true);
+          }}
         >
           <Text className="font-medium">{t('profile.edit')}</Text>
         </Button>

@@ -1993,7 +1993,7 @@
       "saved": "Perfil atualizado.",
       "saveError": "Não foi possível salvar o perfil. Tente de novo."
     },
-    "pendingNotice": "Sem conexão. As alterações do perfil foram salvas no aparelho e serão enviadas quando houver internet.",
+    "pendingNotice": "As alterações do perfil estão salvas no aparelho e serão enviadas quando houver internet.",
     "rejectedNotice": "A alteração do perfil feita sem conexão foi recusada. Os dados voltaram aos últimos salvos.",
     "rejectedDismiss": "Entendi"
   }

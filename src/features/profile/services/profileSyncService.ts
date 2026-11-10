@@ -4,8 +4,10 @@ import {
   clearPendingProfileEdit,
   loadPendingProfileEdit,
   notifyProfileChanged,
+  savePendingProfileEdit,
   saveCachedProfile,
   saveProfileRejected,
+  type PendingProfileEdit,
 } from './profileCache';
 import { updateProfile } from './profileService';
 
@@ -20,9 +22,12 @@ function isPermanentRejection(error: unknown): boolean {
   );
 }
 
-async function isStillPending(userId: string, sent: unknown) {
+async function newerEdit(
+  userId: string,
+  sent: PendingProfileEdit,
+): Promise<PendingProfileEdit | null> {
   const pending = await loadPendingProfileEdit(userId);
-  return JSON.stringify(pending) === JSON.stringify(sent);
+  return JSON.stringify(pending) === JSON.stringify(sent) ? null : pending;
 }
 
 async function run(
@@ -34,7 +39,10 @@ async function run(
 
   try {
     const saved = await updateProfile(idToken, pending.update);
-    if (await isStillPending(userId, pending)) {
+    const newer = await newerEdit(userId, pending);
+    if (newer) {
+      await savePendingProfileEdit(userId, { ...newer, confirmed: saved });
+    } else {
       await saveCachedProfile(userId, saved);
       await clearPendingProfileEdit(userId);
     }
@@ -42,6 +50,7 @@ async function run(
     return 'synced';
   } catch (error) {
     if (!isPermanentRejection(error)) return 'pending';
+    if (await newerEdit(userId, pending)) return 'pending';
     await saveCachedProfile(userId, pending.confirmed);
     await clearPendingProfileEdit(userId);
     await saveProfileRejected(userId, true);

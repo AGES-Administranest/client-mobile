@@ -109,16 +109,17 @@ export function useProfile(): UseProfileResult {
     };
   }, [idToken, userId, attempt]);
 
-  const reload = useCallback(() => setAttempt(current => current + 1), []);
   useEffect(() => {
     if (!userId) return;
 
-    return subscribeProfileChanges(async () => {
+    let isMounted = true;
+    const unsubscribe = subscribeProfileChanges(async () => {
       const [cached, pending, rejected] = await Promise.all([
         loadCachedProfile(userId),
         loadPendingProfileEdit(userId),
         loadProfileRejected(userId),
       ]);
+      if (!isMounted) return;
       setWasRejected(rejected);
       if (!cached) return;
       setState(current =>
@@ -127,7 +128,14 @@ export function useProfile(): UseProfileResult {
           : current,
       );
     });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [userId]);
+
+  const reload = useCallback(() => setAttempt(current => current + 1), []);
 
   const replace = useCallback(
     (profile: Profile, hasPendingEdit: boolean) =>

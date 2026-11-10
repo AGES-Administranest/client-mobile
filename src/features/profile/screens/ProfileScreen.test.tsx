@@ -11,6 +11,7 @@ import { ProfileScreen } from './ProfileScreen';
 import type { Profile } from '../domain/profile';
 import {
   loadPendingProfileEdit,
+  notifyProfileChanged,
   saveCachedProfile,
   saveProfileRejected,
 } from '../services/profileCache';
@@ -314,6 +315,18 @@ it('saves, confirms and shows the new data', async () => {
   expect(texts(renderer)).not.toContain('Perfil atualizado.');
 });
 
+it('keeps what is being typed when the profile changes in the background', async () => {
+  const renderer = await openEditing();
+
+  await type(renderer, 'Cidade', 'Canoas');
+  await act(async () => {
+    await saveCachedProfile('user-1', { ...FILLED_IN, name: 'Eduardo F.' });
+    notifyProfileChanged();
+  });
+
+  expect(input(renderer, 'Cidade').props.value).toBe('Canoas');
+});
+
 it('keeps the form and says so when saving fails', async () => {
   updateMock.mockRejectedValue(new ApiError('boom', 'INTERNAL', 500));
   const renderer = await openEditing();
@@ -364,7 +377,7 @@ it('shows the backend validation error on its field until it is edited', async (
 });
 
 const PENDING_NOTICE =
-  'Sem conexão. As alterações do perfil foram salvas no aparelho e serão enviadas quando houver internet.';
+  'As alterações do perfil estão salvas no aparelho e serão enviadas quando houver internet.';
 const REJECTED_NOTICE =
   'A alteração do perfil feita sem conexão foi recusada. Os dados voltaram aos últimos salvos.';
 
