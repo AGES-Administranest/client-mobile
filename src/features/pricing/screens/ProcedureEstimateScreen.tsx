@@ -191,7 +191,9 @@ function ProcedureEstimateBody({
     suppliesSupportText: t('pricing.procedureEstimate.supplies.supportText'),
     addSupplyLabel: t('pricing.procedureEstimate.supplies.add'),
     suppliesHelperText: t('pricing.procedureEstimate.supplies.helperText'),
-    suppliesSubtotalLabel: t('pricing.procedureEstimate.supplies.subtotalLabel'),
+    suppliesSubtotalLabel: t(
+      'pricing.procedureEstimate.supplies.subtotalLabel',
+    ),
     noSuppliesMessage: t('pricing.procedureEstimate.supplies.empty'),
     editSupplyLabel: t('pricing.procedureEstimate.supplies.edit'),
     removeSupplyLabel: t('pricing.procedureEstimate.supplies.remove'),

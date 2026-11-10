@@ -98,15 +98,9 @@ describe('procedureEstimate domain', () => {
 
   describe('formatLaborCalculation', () => {
     it('formats labor calculation line with duration and hourly rate', () => {
-      expect(formatLaborCalculation(150, 'R$ 60,00')).toBe(
-        '2h30 × R$ 60,00/h',
-      );
-      expect(formatLaborCalculation(60, 'R$ 120,00')).toBe(
-        '1h × R$ 120,00/h',
-      );
-      expect(formatLaborCalculation(45, 'R$ 80,00')).toBe(
-        '45min × R$ 80,00/h',
-      );
+      expect(formatLaborCalculation(150, 'R$ 60,00')).toBe('2h30 × R$ 60,00/h');
+      expect(formatLaborCalculation(60, 'R$ 120,00')).toBe('1h × R$ 120,00/h');
+      expect(formatLaborCalculation(45, 'R$ 80,00')).toBe('45min × R$ 80,00/h');
     });
   });
 

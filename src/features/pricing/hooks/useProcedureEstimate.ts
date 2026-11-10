@@ -255,9 +255,7 @@ export function useProcedureEstimate(
   }, []);
 
   const canSave =
-    durationValidation.isValid &&
-    estimate !== null &&
-    status === 'success';
+    durationValidation.isValid && estimate !== null && status === 'success';
 
   return {
     hours,

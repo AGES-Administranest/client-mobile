@@ -1,9 +1,4 @@
-import {
-  AlertCircle,
-  Calculator,
-  Clock,
-  RefreshCw,
-} from 'lucide-react-native';
+import { AlertCircle, Calculator, Clock, RefreshCw } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { Card } from 'app/components/ui/card';
@@ -189,7 +184,9 @@ export function EstimateResultCard({
         </View>
 
         <View className="flex-row items-center justify-between border-t border-border-warm/40 pt-2.5">
-          <Text className="text-xs font-bold text-label-body">{totalTitle}</Text>
+          <Text className="text-xs font-bold text-label-body">
+            {totalTitle}
+          </Text>
           <Text className="text-xs font-bold text-label-body">
             {formattedMinimumPrice}
           </Text>
@@ -197,9 +194,7 @@ export function EstimateResultCard({
       </View>
 
       <View className="mt-2 rounded-xl bg-details-warm p-3">
-        <Text className="text-xs leading-4 text-label-muted">
-          {infoText}
-        </Text>
+        <Text className="text-xs leading-4 text-label-muted">{infoText}</Text>
       </View>
     </Card>
   );

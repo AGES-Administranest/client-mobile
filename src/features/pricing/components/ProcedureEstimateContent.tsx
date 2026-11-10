@@ -312,7 +312,11 @@ export function ProcedureEstimateContent({
                       hitSlop={8}
                       className="p-1"
                     >
-                      <Icon as={Pencil} size={14} className="text-label-muted" />
+                      <Icon
+                        as={Pencil}
+                        size={14}
+                        className="text-label-muted"
+                      />
                     </Pressable>
                     <Pressable
                       accessibilityRole="button"
@@ -321,7 +325,11 @@ export function ProcedureEstimateContent({
                       hitSlop={8}
                       className="p-1"
                     >
-                      <Icon as={Trash2} size={14} className="text-label-muted" />
+                      <Icon
+                        as={Trash2}
+                        size={14}
+                        className="text-label-muted"
+                      />
                     </Pressable>
                   </View>
                 </View>
