@@ -6,3 +6,8 @@ export type { ClinicDraftErrors, ClinicField } from './domain/clinicForm';
 export { useNewClinicForm } from './hooks/useNewClinicForm';
 export { NewClientSheet } from './components/NewClientSheet';
 export type { Client } from './domain/client';
+export {
+  useClientRegistration,
+  type ClientRegistrationState,
+} from './hooks/useClientRegistration';
+export { useNewClinicSheetTexts } from './hooks/useNewClinicSheetTexts';

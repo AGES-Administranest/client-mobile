@@ -9,3 +9,4 @@ export {
   InvoicesScreen,
   type InvoicesScreenProps,
 } from './screens/InvoicesScreen';
+export { InvoicesSection } from './screens/InvoicesSection';

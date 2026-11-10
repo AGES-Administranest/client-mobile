@@ -129,6 +129,9 @@ export function TripFormSheet({
       empty: t('trips.form.clientEmpty'),
       error: t('trips.form.clientError'),
     },
+    next: t('trips.form.next'),
+    back: t('trips.form.back'),
+    stepLabels: [t('trips.form.step1'), t('trips.form.step2')],
     save: t('trips.form.save'),
     saving: t('trips.form.saving'),
     delete: t('trips.form.delete'),
@@ -150,6 +153,9 @@ export function TripFormSheet({
         onClose={onClose}
         texts={texts}
         isEditing={Boolean(trip)}
+        step={form.step}
+        onNext={form.nextStep}
+        onBack={form.previousStep}
         values={form.values}
         errors={form.errors}
         mode={form.mode}

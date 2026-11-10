@@ -180,7 +180,7 @@ test('editing keeps the same sheet open instead of swapping modals', async () =>
   expect(editable.map(n => String(n.props.value ?? ''))).toContain(
     'Dipirona 500mg',
   );
-  expect(texts(renderer)).toContain('Confirmar');
+  expect(texts(renderer)).toContain('Próximo');
 });
 
 test('only one item sheet exists in the tree at a time', async () => {

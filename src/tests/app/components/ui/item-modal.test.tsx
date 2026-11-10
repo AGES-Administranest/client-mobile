@@ -66,6 +66,26 @@ function texts(renderer: ReactTestRenderer.ReactTestRenderer) {
     .join(' | ');
 }
 
+function pressWithText(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  text: string,
+) {
+  return renderer.root
+    .findAll(node => typeof node.props?.onPress === 'function')
+    .filter(node =>
+      JSON.stringify(
+        node.findAllByType('Text' as never).map(t => t.props.children),
+      ).includes(text),
+    )
+    .pop()!;
+}
+
+async function goToNextStep(renderer: ReactTestRenderer.ReactTestRenderer) {
+  await act(async () => {
+    pressWithText(renderer, 'Próximo').props.onPress();
+  });
+}
+
 test('detail modal shows the item values', async () => {
   const renderer = await mountThenOpen({ mode: 'detail' });
 
@@ -84,6 +104,7 @@ test('detail modal shows the minimum stock', async () => {
 
 test('edit modal keeps the minimum stock field', async () => {
   const renderer = await mountThenOpen({ mode: 'create' });
+  await goToNextStep(renderer);
 
   expect(texts(renderer)).toContain('QUANTIDADE MÍNIMA NO ESTOQUE');
   expect(inputValues(renderer)).toContain('10');
@@ -95,13 +116,10 @@ test('edit modal submits the minimum stock it shows', async () => {
     mode: 'create',
     onConfirm: draft => drafts.push(draft),
   });
-
-  const confirm = renderer.root
-    .findAll(node => typeof node.props.onPress === 'function')
-    .pop()!;
+  await goToNextStep(renderer);
 
   await act(async () => {
-    confirm.props.onPress();
+    pressWithText(renderer, 'Confirmar').props.onPress();
   });
 
   expect(drafts[0]).toMatchObject({
@@ -112,6 +130,7 @@ test('edit modal submits the minimum stock it shows', async () => {
 
 test('edit modal does not let the current stock quantity be edited', async () => {
   const renderer = await mountThenOpen({ mode: 'create' });
+  await goToNextStep(renderer);
 
   const quantityInput = renderer.root
     .findAll(node => typeof node.props.onChangeText === 'function')
@@ -203,6 +222,7 @@ test('picking an item that already exists hides the expiration, keeps quantity',
   await act(async () => {
     match.props.onPress();
   });
+  await goToNextStep(renderer);
 
   const shown = texts(renderer);
   expect(shown).toContain('QUANTIDADE');
@@ -228,6 +248,18 @@ test('a brand new item still asks for the expiration', async () => {
   await act(async () => {
     addOption.props.onPress();
   });
+  await act(async () => {
+    renderer.root
+      .findAll(n => n.props.placeholder === 'Digite o custo')[0]
+      .props.onChangeText('1000');
+  });
+  await act(async () => {
+    pressWithText(renderer, 'UNIDADE').props.onPress();
+  });
+  await act(async () => {
+    pressWithText(renderer, 'ampola').props.onPress();
+  });
+  await goToNextStep(renderer);
 
   expect(texts(renderer)).toContain('VALIDADE');
 });
@@ -269,12 +301,14 @@ describe('expiration coming from the API', () => {
 
   test('a future expiration is not flagged as past', async () => {
     const renderer = await openWith('create');
+    await goToNextStep(renderer);
 
     expect(texts(renderer)).not.toContain('não pode ser uma data passada');
   });
 
   test('the confirm button stays enabled for a future expiration', async () => {
     const renderer = await openWith('create');
+    await goToNextStep(renderer);
 
     const confirm = renderer.root
       .findAll(node => typeof node.props?.onPress === 'function')
@@ -295,6 +329,7 @@ test('a past expiration typed by hand still blocks the submit', async () => {
     mode: 'create',
     onConfirm: draft => drafts.push(draft),
   });
+  await goToNextStep(renderer);
 
   const expirationField = renderer.root
     .findAll(node => typeof node.props?.onChangeText === 'function')
@@ -325,6 +360,7 @@ test('a past expiration typed by hand still blocks the submit', async () => {
 
 test('the confirm button waits while the item is being sent', async () => {
   const renderer = await mountThenOpen({ mode: 'create', isSubmitting: true });
+  await goToNextStep(renderer);
 
   const confirm = renderer.root
     .findAll(node => typeof node.props?.onPress === 'function')
@@ -358,20 +394,6 @@ describe('form validation', () => {
     return renderer!;
   }
 
-  function pressWithText(
-    renderer: ReactTestRenderer.ReactTestRenderer,
-    text: string,
-  ) {
-    return renderer.root
-      .findAll(node => typeof node.props?.onPress === 'function')
-      .filter(node =>
-        JSON.stringify(
-          node.findAllByType('Text' as never).map(t => t.props.children),
-        ).includes(text),
-      )
-      .pop()!;
-  }
-
   async function typeName(
     renderer: ReactTestRenderer.ReactTestRenderer,
     name: string,
@@ -389,16 +411,37 @@ describe('form validation', () => {
     });
   }
 
-  test('an empty form shows what is missing and is not submitted', async () => {
-    const drafts: unknown[] = [];
-    const renderer = await openWithConfirm(draft => drafts.push(draft));
+  async function addNewItem(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    name: string,
+  ) {
+    await typeName(renderer, name);
+    await act(async () => {
+      pressWithText(renderer, '+ Adicionar').props.onPress();
+    });
+  }
 
-    await confirm(renderer);
+  test('an empty first step asks for the name and does not advance', async () => {
+    const renderer = await openWithConfirm(() => {});
+
+    await goToNextStep(renderer);
 
     const shown = texts(renderer);
     expect(shown).toContain('Informe o nome do item.');
+    expect(shown).toContain('Passo 1 de 2');
+  });
+
+  test('the first step asks for cost and unit before advancing', async () => {
+    const drafts: unknown[] = [];
+    const renderer = await openWithConfirm(draft => drafts.push(draft));
+    await addNewItem(renderer, 'Novo item inexistente');
+
+    await goToNextStep(renderer);
+
+    const shown = texts(renderer);
     expect(shown).toContain('Informe o custo unitário.');
     expect(shown).toContain('Selecione a unidade.');
+    expect(shown).toContain('Passo 1 de 2');
     expect(drafts).toHaveLength(0);
   });
 
@@ -406,11 +449,12 @@ describe('form validation', () => {
     const renderer = await openWithConfirm(() => {});
     await typeName(renderer, 'Novo item inexistente');
 
-    await confirm(renderer);
+    await goToNextStep(renderer);
 
     expect(texts(renderer)).toContain(
       'Selecione um item da lista ou adicione um novo.',
     );
+    expect(texts(renderer)).toContain('Passo 1 de 2');
   });
 
   test('stock entry for an existing item needs a quantity above zero', async () => {
@@ -420,6 +464,7 @@ describe('form validation', () => {
     await act(async () => {
       pressWithText(renderer, 'Dipirona 500mg').props.onPress();
     });
+    await goToNextStep(renderer);
 
     await confirm(renderer);
     expect(texts(renderer)).toContain('Informe a quantidade.');
@@ -483,21 +528,21 @@ describe('opened already filled in', () => {
   test('shows the values it was given as a new item', async () => {
     const renderer = await openPrefilled(() => {});
 
-    const values = inputValues(renderer);
-    expect(values).toContain('Sevoflurano 250 mL');
-    expect(values).toContain('189,00');
-    expect(values).toContain('2');
+    const first = inputValues(renderer);
+    expect(first).toContain('Sevoflurano 250 mL');
+    expect(first).toContain('189,00');
+
+    await goToNextStep(renderer);
+    expect(inputValues(renderer)).toContain('2');
   });
 
   test('submits them without asking to pick from the list', async () => {
     const drafts: unknown[] = [];
     const renderer = await openPrefilled(draft => drafts.push(draft));
 
+    await goToNextStep(renderer);
     await act(async () => {
-      renderer.root
-        .findAll(node => typeof node.props.onPress === 'function')
-        .pop()!
-        .props.onPress();
+      pressWithText(renderer, 'Confirmar').props.onPress();
     });
 
     expect(drafts[0]).toMatchObject({

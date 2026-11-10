@@ -42,6 +42,10 @@ export function useProcedureFormTexts(
     title: title ?? t('procedures.form.title'),
     confirm: t('procedures.form.confirm'),
     close: t('procedures.form.close'),
+    registerClient: t('procedures.form.registerClient'),
+    next: t('procedures.form.next'),
+    back: t('procedures.form.back'),
+    stepLabels: [t('procedures.form.step1'), t('procedures.form.step2')],
     labels,
     placeholders: {
       patientName: t('procedures.placeholders.patientName'),

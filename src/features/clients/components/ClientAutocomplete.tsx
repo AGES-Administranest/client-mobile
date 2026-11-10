@@ -20,6 +20,8 @@ type ClientAutocompleteProps<T extends ClientOption> = {
   status: ClientSearchStatus;
   options: T[];
   messages: ClientAutocompleteMessages;
+  /** The "+ Adicionar" row: replaces the empty message when nothing matches. */
+  addOption?: SearchSelectAddOption;
   trailingIcon?: LucideIcon;
   compact?: boolean;
   className?: string;
@@ -36,6 +38,7 @@ export function ClientAutocomplete<T extends ClientOption>({
   status,
   options,
   messages,
+  addOption,
   trailingIcon,
   compact,
   className,
@@ -57,6 +60,7 @@ export function ClientAutocomplete<T extends ClientOption>({
       status={status}
       options={options.map(toSearchSelectOption)}
       messages={messages}
+      addOption={addOption}
       trailingIcon={trailingIcon}
       compact={compact}
       className={className}

@@ -18,6 +18,7 @@ export type InvoicesState = {
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
+  total: number;
   hasError: boolean;
   loadMoreFailed: boolean;
   loadMore: () => void;
@@ -34,6 +35,7 @@ export function useInvoices(
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
   const [hasError, setHasError] = useState(false);
   const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -81,11 +83,13 @@ export function useInvoices(
         if (current !== generation.current) return;
         setInvoices(page.items);
         setHasMore(page.hasMore);
+        setTotal(page.total);
       })
       .catch(() => {
         if (current !== generation.current) return;
         setInvoices([]);
         setHasMore(false);
+        setTotal(0);
         setHasError(true);
       })
       .finally(() => {
@@ -143,6 +147,7 @@ export function useInvoices(
     isLoading,
     isLoadingMore,
     hasMore,
+    total,
     hasError,
     loadMoreFailed,
     loadMore,

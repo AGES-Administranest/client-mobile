@@ -25,6 +25,7 @@ import {
 } from '../domain/procedure.types';
 import { applyFieldMask } from '../domain/procedureMasks';
 import { resolveLocationSuggestion } from '../domain/resolveLocationSuggestion';
+import { errorsOfStep, type ProcedureStep } from '../domain/procedureSteps';
 import { toCreateAppointmentPayload } from '../domain/toCreateAppointmentPayload';
 import { toProcedureFormValues } from '../domain/toProcedureFormValues';
 import { validateProcedureForm } from '../domain/validateProcedureForm';
@@ -57,6 +58,7 @@ export function useProcedureForm(
   const [errors, setErrors] = useState<ProcedureErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitFailed, setSubmitFailed] = useState(false);
+  const [step, setStep] = useState<ProcedureStep>(0);
   const [selectedClient, setSelectedClient] = useState<ClientOption | null>(
     null,
   );
@@ -75,6 +77,7 @@ export function useProcedureForm(
       return;
     }
     setValues(toProcedureFormValues(editing));
+    setStep(0);
     if (editing.clientId && editing.ownerName) {
       setSelectedClient({ id: editing.clientId, name: editing.ownerName });
       clientSearch.onTermChange(editing.ownerName);
@@ -166,6 +169,21 @@ export function useProcedureForm(
   // iOS: o formulário só reaparece quando o cadastro terminou de sair.
   function onRegisterClosed(): void {
     setRegisterStage(prev => (prev === 'returning' ? 'none' : prev));
+    setStep(0);
+  }
+
+  // Só avança com a primeira etapa válida: o resto é opcional e se confere
+  // no envio.
+  function nextStep(): void {
+    const stepErrors = errorsOfStep(validateProcedureForm(values), 0);
+    setErrors(stepErrors);
+    if (Object.keys(stepErrors).length === 0) {
+      setStep(1);
+    }
+  }
+
+  function previousStep(): void {
+    setStep(0);
   }
 
   // Volta ao formulário com o que foi digitado, para trocar o horário.
@@ -220,6 +238,9 @@ export function useProcedureForm(
     const validation = validateProcedureForm(values);
     setErrors(validation);
     if (Object.keys(validation).length > 0) {
+      if (Object.keys(errorsOfStep(validation, 0)).length > 0) {
+        setStep(0);
+      }
       return;
     }
     if (!session) {
@@ -294,6 +315,9 @@ export function useProcedureForm(
     errors,
     submitting,
     submitFailed,
+    step,
+    nextStep,
+    previousStep,
     client: {
       term: clientSearch.term,
       status: clientSearch.status,
