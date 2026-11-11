@@ -1128,10 +1128,7 @@
       "location": "Local do atendimento",
       "locationHint": "Sugerido pelo endereço do tomador. Você pode alterar.",
       "submitError": "Não foi possível salvar. Tente novamente.",
-      "registerClient": "Cadastrar novo tomador"
-      "location": "Local",
-      "submitError": "Não foi possível salvar. Tente novamente.",
-      "registerClient": "Adicionar clínica",
+      "registerClient": "Cadastrar novo tomador",
       "next": "Próximo",
       "back": "Voltar",
       "step1": "Passo 1 de 2",

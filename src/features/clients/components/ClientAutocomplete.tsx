@@ -12,25 +12,24 @@ import type { ClientSearchStatus } from '../domain/clientSearch';
 
 export type ClientAutocompleteMessages = SearchSelectMessages;
 
-type ClientAutocompleteProps<T extends ClientOption> = {
+type ClientAutocompleteProps = {
   label: string;
   placeholder?: string;
   value: string;
   error?: string;
   status: ClientSearchStatus;
-  options: T[];
+  options: ClientOption[];
   messages: ClientAutocompleteMessages;
   /** The "+ Adicionar" row: replaces the empty message when nothing matches. */
   addOption?: SearchSelectAddOption;
   trailingIcon?: LucideIcon;
   compact?: boolean;
   className?: string;
-  addOption?: SearchSelectAddOption;
   onChangeText: (value: string) => void;
-  onSelect: (option: T) => void;
+  onSelect: (option: ClientOption) => void;
 };
 
-export function ClientAutocomplete<T extends ClientOption>({
+export function ClientAutocomplete({
   label,
   placeholder,
   value,
@@ -42,10 +41,9 @@ export function ClientAutocomplete<T extends ClientOption>({
   trailingIcon,
   compact,
   className,
-  addOption,
   onChangeText,
   onSelect,
-}: ClientAutocompleteProps<T>) {
+}: ClientAutocompleteProps) {
   function selectPickedClient({ id }: SearchSelectOption): void {
     const client = options.find(option => option.id === id);
     if (client) onSelect(client);
@@ -64,7 +62,6 @@ export function ClientAutocomplete<T extends ClientOption>({
       trailingIcon={trailingIcon}
       compact={compact}
       className={className}
-      addOption={addOption}
       onChangeText={onChangeText}
       onSelect={selectPickedClient}
     />

@@ -26,7 +26,7 @@ export function useProcedureFormTexts(
     patientName: t('procedures.fields.patientName'),
     procedureName: t('procedures.fields.procedureName'),
     clientId: t('procedures.form.client'),
-    location: t('procedures.form.location'),
+    location: t('procedures.form.location'),      
     patientAgeYears: t('procedures.fields.patientAgeYears'),
     weightKg: t('procedures.fields.weightKg'),
     startTime: t('procedures.fields.startTime'),
@@ -77,9 +77,9 @@ export function useProcedureFormTexts(
       error: t('procedures.clientSearch.error'),
       empty: t('procedures.clientSearch.empty'),
     },
+    locationHint: t('procedures.form.locationHint'),
     nameMaxLength: APPOINTMENT_NAME_MAX_LENGTH,
     notesMaxLength: CANCELLATION_REASON_MAX_LENGTH,
-    locationHint: t('procedures.form.locationHint'),
   };
 
   return texts;

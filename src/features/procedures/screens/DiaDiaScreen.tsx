@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { ConflictAlertSheet } from 'features/appointments';
 import { useAuth } from 'features/auth';
-import { NewClientSheet } from 'features/clinics';
 import {
   NewClinicSheet,
   useClientRegistration,
@@ -42,7 +41,6 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     previousStep,
     supplyPrompt,
     conflict,
-    registration,
     dismissConflict,
     setField,
     setTextField,
@@ -95,10 +93,6 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
           visible &&
           supplyPrompt === null &&
           conflict === null &&
-          !registration.isHidingForm
-        }
-        registerClientLabel={t('procedures.form.registerClient')}
-        onClosed={registration.onFormClosed}
           registration.isReviewShown
         }
         values={values}
@@ -139,13 +133,6 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onSubmit={registration.submit}
         onClose={registration.cancel}
         onClosed={registration.onRegisterLeft}
-      />
-      <NewClientSheet
-        visible={registration.isOpen}
-        initialName={registration.initialName}
-        onCreated={registration.onCreated}
-        onClose={registration.cancel}
-        onClosed={registration.onClosed}
       />
       <ConflictAlertSheet
         visible={visible && conflictAlert.visible}

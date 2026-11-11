@@ -19,7 +19,7 @@ import { Text } from 'app/components/ui/text';
 import {
   ClientAutocomplete,
   type ClientAutocompleteMessages,
-  type ClientOptionWithAddress,
+  type ClientOption,
   type ClientSearchStatus,
 } from 'features/clients';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
@@ -35,10 +35,6 @@ import type { ProcedureStep } from '../domain/procedureSteps';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-// Altura de um campo multilinha: linhas de texto (20px) + padding e borda.
-// Com 4 linhas dá 96px, o mesmo do antigo `h-24`.
-const LINE_HEIGHT = 20;
-const MULTILINE_CHROME = 16;
 const REQUIRED_FIELDS: readonly (keyof ProcedureFormValues)[] = [
   'patientName',
   'procedureName',
@@ -71,15 +67,11 @@ export type ProcedureFormTexts = {
 export type ProcedureClientField = {
   term: string;
   status: ClientSearchStatus;
-  options: ClientOptionWithAddress[];
-  canRegister: boolean;
-  onRegister: () => void;
+  options: ClientOption[];
 };
 
 type ProcedureFormSheetProps = {
   visible: boolean;
-  onClosed?: () => void;
-  registerClientLabel: string;
   values: ProcedureFormValues;
   submitting: boolean;
   submitFailed: boolean;
@@ -92,7 +84,7 @@ type ProcedureFormSheetProps = {
   onBack: () => void;
   onChangeText: (key: ProcedureTextField, value: string) => void;
   onChangeClientTerm: (term: string) => void;
-  onSelectClient: (client: ClientOptionWithAddress) => void;
+  onSelectClient: (client: ClientOption) => void;
   onChangeSpecies: (value: Species) => void;
   onChangeAsa: (value: AsaClassification) => void;
   onSubmit: () => void;
@@ -104,8 +96,6 @@ type ProcedureFormSheetProps = {
 
 export function ProcedureFormSheet({
   visible,
-  onClosed,
-  registerClientLabel,
   values,
   submitting,
   submitFailed,
@@ -187,52 +177,6 @@ export function ProcedureFormSheet({
               keyboardShouldPersistTaps="handled"
               contentContainerClassName="pb-1"
             >
-              <Field
-                label={texts.labels.patientName}
-                placeholder={texts.placeholders.patientName}
-                value={values.patientName}
-                error={texts.errors.patientName}
-                maxLength={texts.nameMaxLength}
-                onChangeText={v => onChangeText('patientName', v)}
-              />
-              <Field
-                label={texts.labels.procedureName}
-                placeholder={texts.placeholders.procedureName}
-                value={values.procedureName}
-                error={texts.errors.procedureName}
-                maxLength={texts.nameMaxLength}
-                onChangeText={v => onChangeText('procedureName', v)}
-              />
-              <ClientAutocomplete
-                label={texts.labels.clientId}
-                placeholder={texts.placeholders.clientId}
-                value={client.term}
-                error={texts.errors.clientId}
-                status={client.status}
-                options={client.options}
-                messages={texts.clientSearchMessages}
-                addOption={
-                  client.canRegister
-                    ? { label: registerClientLabel, onPress: client.onRegister }
-                    : undefined
-                }
-                onChangeText={onChangeClientTerm}
-                onSelect={onSelectClient}
-              />
-
-              <Field
-                label={texts.labels.location}
-                placeholder={texts.placeholders.location}
-                value={values.location}
-                error={texts.errors.location}
-                multiline
-                numberOfLines={3}
-                hint={showLocationHint ? texts.locationHint : undefined}
-                onChangeText={v => onChangeText('location', v)}
-              />
-
-              <View className="flex-row gap-3">
-                <View className="flex-1">
               {step === 0 ? (
                 <>
                   <Field
@@ -273,6 +217,16 @@ export function ProcedureFormSheet({
                         : undefined
                     }
                     onSelect={onSelectClient}
+                  />
+
+                  <Field
+                    label={labelOf('location')}
+                    placeholder={texts.placeholders.location}
+                    value={values.location}
+                    error={texts.errors.location}
+                    multiline
+                    hint={showLocationHint ? texts.locationHint : undefined}
+                    onChangeText={v => onChangeText('location', v)}
                   />
 
                   <View className="flex-row gap-3">
@@ -476,7 +430,6 @@ type FieldProps = {
   hint?: string;
   keyboardType?: 'default' | 'number-pad' | 'decimal-pad';
   multiline?: boolean;
-  numberOfLines?: number;
   maxLength?: number;
 };
 
@@ -489,7 +442,6 @@ function Field({
   hint,
   keyboardType = 'default',
   multiline = false,
-  numberOfLines = 4,
   maxLength,
 }: FieldProps) {
   return (
@@ -498,11 +450,10 @@ function Field({
         {label}
       </Text>
       <TextInput
-        className="rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary"
-        style={
+        className={
           multiline
-            ? { height: numberOfLines * LINE_HEIGHT + MULTILINE_CHROME }
-            : undefined
+            ? 'h-24 rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
+            : 'rounded-xl border border-border-primary bg-white px-4 py-2.5 text-[15px] text-label-primary'
         }
         placeholder={placeholder}
         placeholderTextColor={LabelPlaceholder}
@@ -511,7 +462,7 @@ function Field({
         keyboardType={keyboardType}
         maxLength={maxLength}
         multiline={multiline}
-        numberOfLines={multiline ? numberOfLines : undefined}
+        numberOfLines={multiline ? 4 : undefined}
         textAlignVertical={multiline ? 'top' : undefined}
       />
       {error ? (

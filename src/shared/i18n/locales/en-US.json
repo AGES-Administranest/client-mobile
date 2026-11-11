@@ -1128,10 +1128,7 @@
       "location": "Appointment location",
       "locationHint": "Suggested from the client's address. You can change it.",
       "submitError": "Couldn't save. Please try again.",
-      "registerClient": "Register new client"
-      "location": "Location",
-      "submitError": "Couldn't save. Please try again.",
-      "registerClient": "Add clinic",
+      "registerClient": "Register new client",
       "next": "Next",
       "back": "Back",
       "step1": "Step 1 of 2",
