@@ -12,8 +12,10 @@ import {
   isLocalClientId,
   useClientSearch,
   type ClientOption,
+  type ClientOptionWithAddress,
 } from 'features/clients';
 
+import { formatClientAddress } from '../domain/formatClientAddress';
 import {
   EMPTY_PROCEDURE_FORM,
   type CreateAppointmentPayload,
@@ -23,6 +25,7 @@ import {
 } from '../domain/procedure.types';
 import { applyFieldMask } from '../domain/procedureMasks';
 import { errorsOfStep, type ProcedureStep } from '../domain/procedureSteps';
+import { resolveLocationSuggestion } from '../domain/resolveLocationSuggestion';
 import { toCreateAppointmentPayload } from '../domain/toCreateAppointmentPayload';
 import { toProcedureFormValues } from '../domain/toProcedureFormValues';
 import { validateProcedureForm } from '../domain/validateProcedureForm';
@@ -63,6 +66,7 @@ export function useProcedureForm(
   });
   const [supplyPrompt, setSupplyPrompt] = useState<SupplyPrompt | null>(null);
   const [conflict, setConflict] = useState<ConflictingAppointment | null>(null);
+  const [suggestedLocation, setSuggestedLocation] = useState('');
 
   useEffect(() => {
     if (!visible || !editing) {
@@ -88,9 +92,21 @@ export function useProcedureForm(
     setValues(prev => ({ ...prev, [key]: applyFieldMask(key, value) }));
   }
 
-  function selectClient(client: ClientOption): void {
+  function selectClient(client: ClientOptionWithAddress): void {
     setSelectedClient({ id: client.id, name: client.name });
     setField('clientId', client.id);
+
+    const nextSuggestion = formatClientAddress(client);
+    setValues(prev => ({
+      ...prev,
+      location: resolveLocationSuggestion({
+        current: prev.location,
+        previousSuggestion: suggestedLocation,
+        nextSuggestion,
+      }),
+    }));
+    setSuggestedLocation(nextSuggestion);
+
     setErrors(prev => {
       const next = { ...prev };
       delete next.clientId;
@@ -117,6 +133,7 @@ export function useProcedureForm(
     setSubmitFailed(false);
     setConflict(null);
     setStep(0);
+    setSuggestedLocation('');
   }
 
   // Só avança com a primeira etapa válida: o resto é opcional e se confere
@@ -281,5 +298,7 @@ export function useProcedureForm(
     reset,
     acceptSupplyPrompt,
     finishSupplyPrompt,
+    showLocationHint:
+      suggestedLocation !== '' && values.location === suggestedLocation,
   };
 }

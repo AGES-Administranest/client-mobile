@@ -15,6 +15,7 @@ const TEXTS: ProcedureFormTexts = {
   title: 'Novo atendimento',
   confirm: 'Confirmar',
   close: 'Fechar',
+  locationHint: 'Sugerido pelo endereço do tomador.',
   registerClient: 'Adicionar clínica',
   next: 'Próximo',
   back: 'Voltar',
@@ -45,6 +46,7 @@ async function renderSheet(
         submitErrorText=""
         texts={TEXTS}
         client={client}
+        showLocationHint={false}
         step={step}
         onNext={jest.fn()}
         onBack={jest.fn()}

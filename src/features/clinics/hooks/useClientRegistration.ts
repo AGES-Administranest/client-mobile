@@ -5,7 +5,13 @@ import { useNewClinicForm } from './useNewClinicForm';
 
 type Stage = 'review' | 'register';
 
-type CreatedClient = { id: string; name: string };
+type CreatedClient = {
+  id: string;
+  name: string;
+  addressLine?: string | null;
+  city?: string | null;
+  state?: string | null;
+};
 
 type ClientPrefill = { name: string; taxId: string };
 
