@@ -93,27 +93,27 @@ export function useProcedureForm(
   }
 
   function selectClient(client: ClientOptionWithAddress): void {
-  setSelectedClient({ id: client.id, name: client.name });
-  setField('clientId', client.id);
+    setSelectedClient({ id: client.id, name: client.name });
+    setField('clientId', client.id);
 
-  const nextSuggestion = formatClientAddress(client);
-  setValues(prev => ({
-    ...prev,
-    location: resolveLocationSuggestion({
-      current: prev.location,
-      previousSuggestion: suggestedLocation,
-      nextSuggestion,
-    }),
-  }));
-  setSuggestedLocation(nextSuggestion);
+    const nextSuggestion = formatClientAddress(client);
+    setValues(prev => ({
+      ...prev,
+      location: resolveLocationSuggestion({
+        current: prev.location,
+        previousSuggestion: suggestedLocation,
+        nextSuggestion,
+      }),
+    }));
+    setSuggestedLocation(nextSuggestion);
 
-  setErrors(prev => {
-    const next = { ...prev };
-    delete next.clientId;
-    return next;
-  });
-  clientSearch.onTermChange(client.name);
-}
+    setErrors(prev => {
+      const next = { ...prev };
+      delete next.clientId;
+      return next;
+    });
+    clientSearch.onTermChange(client.name);
+  }
 
   // Digitar de novo desfaz a escolha: o clientId não pode continuar
   // apontando para um tomador que o campo já não mostra.
