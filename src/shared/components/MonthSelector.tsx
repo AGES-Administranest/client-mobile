@@ -13,7 +13,36 @@ type MonthSelectorProps = {
   onNext: () => void;
   /** The next month cannot be reached (e.g. the future): dims the button. */
   nextDisabled?: boolean;
+  /** The previous month cannot be reached (e.g. the oldest on record): dims the button. */
+  previousDisabled?: boolean;
 };
+
+type MonthSelectorPeriodProps = Pick<MonthSelectorProps, 'label' | 'caption'>;
+
+// The month in the middle of the selector, for where the month is shown but
+// cannot be changed.
+export function MonthSelectorPeriod({
+  label,
+  caption,
+}: MonthSelectorPeriodProps) {
+  return (
+    <View
+      accessible
+      accessibilityLiveRegion="polite"
+      accessibilityLabel={caption ? `${label}, ${caption}` : label}
+      className="items-center"
+    >
+      <Text className="text-sm leading-[22.5px] tracking-[-0.15px] text-label-primary">
+        {label}
+      </Text>
+      {caption ? (
+        <Text className="text-[10px] font-semibold uppercase leading-[15px] tracking-[0.6px] text-label-primary">
+          {caption}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
 
 // The Figma "Seletor de mês" row. Finance draws it at the top of the net
 // balance card and the hourly calculator on a card of its own, so the card
@@ -26,33 +55,26 @@ export function MonthSelector({
   onPrevious,
   onNext,
   nextDisabled = false,
+  previousDisabled = false,
 }: MonthSelectorProps) {
   return (
     <View className="flex-row items-center justify-between">
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={previousLabel}
+        accessibilityState={{ disabled: previousDisabled }}
+        disabled={previousDisabled}
         onPress={onPrevious}
         hitSlop={6}
-        className="size-8 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+        className={
+          previousDisabled
+            ? 'size-8 items-center justify-center rounded-full bg-button-primary opacity-35'
+            : 'size-8 items-center justify-center rounded-full bg-button-primary active:opacity-80'
+        }
       >
         <Icon as={ChevronLeft} size={16} className="text-label-secondary" />
       </Pressable>
-      <View
-        accessible
-        accessibilityLiveRegion="polite"
-        accessibilityLabel={caption ? `${label}, ${caption}` : label}
-        className="items-center"
-      >
-        <Text className="text-sm leading-[22.5px] tracking-[-0.15px] text-label-primary">
-          {label}
-        </Text>
-        {caption ? (
-          <Text className="text-[10px] font-semibold uppercase leading-[15px] tracking-[0.6px] text-label-primary">
-            {caption}
-          </Text>
-        ) : null}
-      </View>
+      <MonthSelectorPeriod label={label} caption={caption} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={nextLabel}

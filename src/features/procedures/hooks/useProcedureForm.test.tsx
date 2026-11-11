@@ -457,3 +457,66 @@ describe('sem conexão', () => {
     expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('etapas do formulário', () => {
+  test('começa na primeira etapa', async () => {
+    const { result } = await mountHook();
+
+    expect(result.current.step).toBe(0);
+  });
+
+  test('não avança com a primeira etapa incompleta e mostra só os erros dela', async () => {
+    const { result } = await mountHook();
+
+    await act(async () => result.current.nextStep());
+
+    expect(result.current.step).toBe(0);
+    expect(result.current.errors.patientName).toBe('REQUIRED');
+    expect(result.current.errors.procedureName).toBe('REQUIRED');
+    expect(result.current.errors.clientId).toBe('SELECT_CLIENT');
+    expect(result.current.errors.amount).toBeUndefined();
+  });
+
+  test('avança com a primeira etapa válida, mesmo com a segunda vazia', async () => {
+    const { result } = await mountWithFilledForm();
+
+    await act(async () => result.current.nextStep());
+
+    expect(result.current.step).toBe(1);
+    expect(result.current.errors).toEqual({});
+  });
+
+  test('volta para a primeira etapa sem perder o que foi digitado', async () => {
+    const { result } = await mountWithFilledForm();
+
+    await act(async () => result.current.nextStep());
+    await act(async () => result.current.previousStep());
+
+    expect(result.current.step).toBe(0);
+    expect(result.current.values.patientName).toBe(
+      validProcedureForm.patientName,
+    );
+  });
+
+  test('um erro da primeira etapa no envio leva de volta a ela', async () => {
+    const { result } = await mountWithFilledForm();
+
+    await act(async () => result.current.nextStep());
+    await act(async () => result.current.setTextField('patientName', ''));
+    await act(async () => result.current.submit());
+
+    expect(result.current.step).toBe(0);
+    expect(result.current.errors.patientName).toBe('REQUIRED');
+  });
+
+  test('um erro só da segunda etapa fica nela', async () => {
+    const { result } = await mountWithFilledForm();
+
+    await act(async () => result.current.nextStep());
+    await act(async () => result.current.setTextField('amount', 'abc'));
+    await act(async () => result.current.submit());
+
+    expect(result.current.step).toBe(1);
+    expect(result.current.errors.amount).toBeDefined();
+  });
+});

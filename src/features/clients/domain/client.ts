@@ -30,3 +30,7 @@ export type Client = {
 
 // O que um campo de seleção precisa de um tomador: qualquer Client serve.
 export type ClientOption = Pick<Client, 'id' | 'name'>;
+
+// Opção que também carrega o endereço, para quem sugere o local do atendimento.
+export type ClientOptionWithAddress = ClientOption &
+  Partial<Pick<Client, 'addressLine' | 'city' | 'state'>>;

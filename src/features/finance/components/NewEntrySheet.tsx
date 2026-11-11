@@ -91,12 +91,11 @@ export function NewEntrySheet({
       </Text>
       <View className="flex-row gap-3">
         <Button
-          variant="outline"
           shape="pill"
-          className="h-[49px] flex-1 border-border-primary bg-white"
+          className="h-[49px] flex-1"
           onPress={editActions.onKeepEditing}
         >
-          <Text className="text-sm font-medium text-label-primary">
+          <Text className="text-sm font-medium text-label-secondary">
             {editActions.discard.keep}
           </Text>
         </Button>
@@ -112,14 +111,13 @@ export function NewEntrySheet({
   ) : (
     <View className="flex-row gap-3">
       <Button
-        variant="outline"
         shape="pill"
         icon={X}
         disabled={isSaving}
-        className="h-[49px] flex-1 border-border-primary bg-white"
+        className="h-[49px] flex-1"
         onPress={editActions.onCancel}
       >
-        <Text className="text-sm font-medium text-label-primary">
+        <Text className="text-sm font-medium text-label-secondary">
           {editActions.cancel}
         </Text>
       </Button>

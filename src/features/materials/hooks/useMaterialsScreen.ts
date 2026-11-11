@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { StockItem } from 'app/components/ui/item-modal/domain/itemModal';
 import type { ItemDraft } from 'app/components/ui/item-modal/item-modal';
 import { useAuth } from 'features/auth';
+import { isLocalSupplierId } from 'features/suppliers';
 import type { TranslationKey } from 'shared/i18n';
 import { ApiError } from 'shared/services/apiClient';
 
@@ -179,16 +180,18 @@ export function useMaterialsScreen(): MaterialsScreenState {
       let targetItemId = draft.selectedItemId;
 
       if (!targetItemId) {
-        // `draft.supplierName` é campo livre e ainda NÃO é enviado: o item só
-        // aceita `supplierId` (FK), e o cadastro de fornecedor ainda não existe
-        // na tela. O service de fornecedor já está pronto no backend — quando o
-        // cadastro entrar, é aqui que o id passa a ser resolvido.
+        // Um fornecedor cadastrado offline ainda não existe no backend (id
+        // local): o item é criado sem ele, em vez de falhar com 400.
         const newItem = await createItem(token, {
           category: draft.category as BackendItemCategory,
           unit: toBackendUnit(draft.unit),
           name: draft.name,
           defaultUnitCost: unitCost || undefined,
           minimumStock,
+          supplierId:
+            draft.supplierId && !isLocalSupplierId(draft.supplierId)
+              ? draft.supplierId
+              : undefined,
         });
 
         targetItemId = newItem.id;

@@ -143,9 +143,25 @@ export function AppointmentDayList({
                     ) : null}
                     {item.status !== 'SCHEDULED' &&
                     statusLabels?.[item.status] ? (
-                      <Text className="text-[10px] font-semibold uppercase text-label-tertiary">
-                        {statusLabels[item.status]}
-                      </Text>
+                      <View
+                        className={cn(
+                          'mt-1 rounded-full px-2 py-0.5',
+                          item.status === 'COMPLETED'
+                            ? 'bg-details-finish'
+                            : 'border border-alert-primary bg-white',
+                        )}
+                      >
+                        <Text
+                          className={cn(
+                            'text-[10px] font-semibold uppercase',
+                            item.status === 'COMPLETED'
+                              ? 'text-label-primary'
+                              : 'text-alert-primary',
+                          )}
+                        >
+                          {statusLabels[item.status]}
+                        </Text>
+                      </View>
                     ) : null}
                     {item.pendingSync && pendingLabel ? (
                       <Text className="text-[10px] font-semibold uppercase text-label-tertiary">

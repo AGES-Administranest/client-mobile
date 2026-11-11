@@ -22,6 +22,7 @@ type AppointmentSnapshot = {
   startsAt: string;
   endsAt: string | null;
   notes: string | null;
+  location?: string | null;
 };
 
 export function toProcedureFormValues(
@@ -43,5 +44,6 @@ export function toProcedureFormValues(
     startTime: toTime(start),
     endTime: a.endsAt ? toTime(new Date(a.endsAt)) : '',
     notes: a.notes ?? '',
+    location: a.location ?? '',
   };
 }

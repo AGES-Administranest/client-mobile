@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react-native';
 
 import {
   SearchSelect,
+  type SearchSelectAddOption,
   type SearchSelectMessages,
   type SearchSelectOption,
 } from 'app/components/ui/search-select';
@@ -19,6 +20,8 @@ type ClientAutocompleteProps = {
   status: ClientSearchStatus;
   options: ClientOption[];
   messages: ClientAutocompleteMessages;
+  /** The "+ Adicionar" row: replaces the empty message when nothing matches. */
+  addOption?: SearchSelectAddOption;
   trailingIcon?: LucideIcon;
   compact?: boolean;
   className?: string;
@@ -34,6 +37,7 @@ export function ClientAutocomplete({
   status,
   options,
   messages,
+  addOption,
   trailingIcon,
   compact,
   className,
@@ -54,6 +58,7 @@ export function ClientAutocomplete({
       status={status}
       options={options.map(toSearchSelectOption)}
       messages={messages}
+      addOption={addOption}
       trailingIcon={trailingIcon}
       compact={compact}
       className={className}

@@ -26,6 +26,8 @@ type StockEntryFlowProps = {
   children?: (flow: {
     openList: () => void;
     pendingCount: number;
+    scanNote: () => void;
+    attachPdf: () => void;
   }) => ReactNode;
 };
 
@@ -67,16 +69,48 @@ export function StockEntryFlow({
     openEntry(invoiceId);
   }
 
-  function closeReview() {
-    review.close();
-    entries.refresh();
-  }
-
+  // Leaving the review keeps nothing: the entry is filled in on the spot, so
+  // the draft the reading created goes too.
   function discardOpenEntry() {
     const invoiceId = review.entry?.invoiceId;
     review.close();
     if (invoiceId) entries.discard(invoiceId);
   }
+
+  const flowScreens = (
+    <>
+      {/* New entry: menu, camera, file and reading */}
+      <UploadFlowScreens
+        upload={upload}
+        onTypeItem={handleTypeItem}
+        onOpenExisting={openExisting}
+      />
+
+      {/* Review of the open entry */}
+      {review.entry ? (
+        <ReviewScreen
+          key={review.entry.session}
+          visible={review.isVisible}
+          entry={review.entry}
+          onClose={discardOpenEntry}
+          onDiscard={discardOpenEntry}
+        />
+      ) : null}
+
+      {/* Opening a saved entry */}
+      <LoadingOverlay
+        visible={review.isOpening}
+        label={t('stockEntry.entries.opening')}
+      />
+      {/* Entry could not be opened */}
+      <MessageOverlay
+        visible={review.openFailed}
+        message={t('stockEntry.entries.openFailed')}
+        actionLabel={t('stockEntry.errors.dismiss')}
+        onDismiss={review.dismissOpenFailure}
+      />
+    </>
+  );
 
   return (
     <View>
@@ -92,9 +126,14 @@ export function StockEntryFlow({
           onPress={openList}
         />
       ) : null}
-      {children?.({ openList, pendingCount })}
+      {children?.({
+        openList,
+        pendingCount,
+        scanNote: upload.startScan,
+        attachPdf: upload.attachPdf,
+      })}
 
-      {/* Pending list; everything else opens over it */}
+      {/* Pending list; with it open, everything else opens over it */}
       <EntriesScreen
         visible={isListOpen}
         onClose={() => setIsListOpen(false)}
@@ -103,37 +142,14 @@ export function StockEntryFlow({
         onReplace={upload.replaceDocument}
         onNewEntry={upload.openMenu}
       >
-        {/* New entry: menu, camera, file and reading */}
-        <UploadFlowScreens
-          upload={upload}
-          onTypeItem={handleTypeItem}
-          onOpenExisting={openExisting}
-        />
-
-        {/* Review of the open entry */}
-        {review.entry ? (
-          <ReviewScreen
-            key={review.entry.session}
-            visible={review.isVisible}
-            entry={review.entry}
-            onClose={closeReview}
-            onDiscard={discardOpenEntry}
-          />
-        ) : null}
-
-        {/* Opening a saved entry */}
-        <LoadingOverlay
-          visible={review.isOpening}
-          label={t('stockEntry.entries.opening')}
-        />
-        {/* Entry could not be opened */}
-        <MessageOverlay
-          visible={review.openFailed}
-          message={t('stockEntry.entries.openFailed')}
-          actionLabel={t('stockEntry.errors.dismiss')}
-          onDismiss={review.dismissOpenFailure}
-        />
+        {isListOpen ? flowScreens : null}
       </EntriesScreen>
+
+      {/* An iOS Modal cannot open over another that is leaving, and one over
+          the list needs to live inside it: the same screens sit here instead
+          while the list is closed, so a photo or a PDF can start from the
+          caller's own menu. */}
+      {isListOpen ? null : flowScreens}
     </View>
   );
 }
