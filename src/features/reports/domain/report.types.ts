@@ -1,10 +1,15 @@
-export type ReportCategory = 'financial' | 'appointments' | 'inventory';
-
-export const REPORT_CATEGORIES: readonly ReportCategory[] = [
+export const REPORT_CATEGORIES = [
   'financial',
   'appointments',
+  'clinics',
   'inventory',
-];
+  'suppliers',
+  'travel',
+  'depreciation',
+  'workedHour',
+] as const;
+
+export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
 
 export type ReportHistoryItem = {
   id: string;

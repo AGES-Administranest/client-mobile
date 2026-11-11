@@ -1,4 +1,9 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
 
@@ -23,6 +28,11 @@ type DateRangePickerProps = {
   locale: string;
   previousMonthLabel: string;
   nextMonthLabel: string;
+  /** Com os dois rótulos, aparecem setas que pulam 12 meses. */
+  previousYearLabel?: string;
+  nextYearLabel?: string;
+  /** Último dia selecionável (YYYY-MM-DD); depois dele os dias ficam bloqueados. */
+  maxDate?: string;
   className?: string;
 };
 
@@ -41,6 +51,9 @@ function DateRangePicker({
   locale,
   previousMonthLabel,
   nextMonthLabel,
+  previousYearLabel,
+  nextYearLabel,
+  maxDate,
   className,
 }: DateRangePickerProps) {
   const [visible, setVisible] = useVisibleMonth(value);
@@ -65,29 +78,71 @@ function DateRangePicker({
     days.slice(index * WEEK_LENGTH, (index + 1) * WEEK_LENGTH),
   );
 
+  const lastVisibleMonth = maxDate ? fromCalendarDate(maxDate) : null;
+  const monthsUntilMax =
+    lastVisibleMonth === null
+      ? Infinity
+      : lastVisibleMonth.getFullYear() * 12 +
+        lastVisibleMonth.getMonth() -
+        (visible.year * 12 + visible.monthIndex);
+  const isAtLastMonth = monthsUntilMax <= 0;
+  const canGoNextYear = monthsUntilMax >= 12;
+
   const goToMonth = (amount: number) =>
     setVisible(current => addMonths(current.year, current.monthIndex, amount));
 
   return (
     <View className={cn('gap-2 rounded-2xl bg-white p-3', className)}>
       <View className="flex-row items-center justify-between">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={previousMonthLabel}
-          onPress={() => goToMonth(-1)}
-          className="size-8 items-center justify-center rounded-full bg-details-primary"
-        >
-          <Icon as={ChevronLeft} className="size-4 text-label-primary" />
-        </Pressable>
+        <View className="flex-row items-center gap-1">
+          {previousYearLabel ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={previousYearLabel}
+              onPress={() => goToMonth(-12)}
+              className="size-8 items-center justify-center rounded-full bg-details-primary"
+            >
+              <Icon as={ChevronsLeft} className="size-4 text-label-primary" />
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={previousMonthLabel}
+            onPress={() => goToMonth(-1)}
+            className="size-8 items-center justify-center rounded-full bg-details-primary"
+          >
+            <Icon as={ChevronLeft} className="size-4 text-label-primary" />
+          </Pressable>
+        </View>
         <Text className="font-semibold capitalize">{monthLabel}</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={nextMonthLabel}
-          onPress={() => goToMonth(1)}
-          className="size-8 items-center justify-center rounded-full bg-details-primary"
-        >
-          <Icon as={ChevronRight} className="size-4 text-label-primary" />
-        </Pressable>
+        <View className="flex-row items-center gap-1">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={nextMonthLabel}
+            disabled={isAtLastMonth}
+            onPress={() => goToMonth(1)}
+            className={cn(
+              'size-8 items-center justify-center rounded-full bg-details-primary',
+              isAtLastMonth && 'opacity-40',
+            )}
+          >
+            <Icon as={ChevronRight} className="size-4 text-label-primary" />
+          </Pressable>
+          {nextYearLabel ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={nextYearLabel}
+              disabled={!canGoNextYear}
+              onPress={() => goToMonth(12)}
+              className={cn(
+                'size-8 items-center justify-center rounded-full bg-details-primary',
+                !canGoNextYear && 'opacity-40',
+              )}
+            >
+              <Icon as={ChevronsRight} className="size-4 text-label-primary" />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <View className="flex-row">
@@ -111,20 +166,27 @@ function DateRangePicker({
               value.to !== null &&
               isWithinCalendarRange(day.date, value);
 
+            const isBlocked = maxDate !== undefined && day.date > maxDate;
+
             return (
               <Pressable
                 key={day.date}
+                disabled={isBlocked}
                 testID={day.date}
                 accessibilityRole="button"
                 accessibilityLabel={new Intl.DateTimeFormat(locale, {
                   dateStyle: 'long',
                 }).format(fromCalendarDate(day.date))}
-                accessibilityState={{ selected: isEdge || isInside }}
+                accessibilityState={{
+                  selected: isEdge || isInside,
+                  disabled: isBlocked,
+                }}
                 onPress={() => onChange(selectRangeDay(value, day.date))}
                 className={cn(
                   'h-9 flex-1 items-center justify-center rounded-lg',
                   isInside && 'bg-details-primary',
                   isEdge && 'bg-button-primary',
+                  isBlocked && 'opacity-30',
                 )}
               >
                 <Text

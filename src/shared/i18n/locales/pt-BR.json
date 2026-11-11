@@ -2013,18 +2013,29 @@
     "addInvoice": "Adicionar nota",
     "generate": {
       "title": "Gerar novo relatório",
-      "categoryPlaceholder": "Selecione categoria",
+      "categoriesTitle": "Selecione as categorias",
+      "selectAll": "Selecionar tudo",
+      "clearAll": "Limpar tudo",
+      "confirm": "Gerar",
+      "close": "Fechar",
       "startDate": "Data de início",
       "endDate": "Data de fim",
       "selectDate": "Selecione a data",
       "button": "Gerar Relatório",
       "previousMonth": "Mês anterior",
-      "nextMonth": "Próximo mês"
+      "nextMonth": "Próximo mês",
+      "previousYear": "Ano anterior",
+      "nextYear": "Próximo ano"
     },
     "categories": {
       "financial": "Financeiro",
       "appointments": "Atendimentos",
-      "inventory": "Estoque"
+      "clinics": "Clínicas",
+      "inventory": "Estoque e Insumos",
+      "suppliers": "Fornecedores",
+      "travel": "Deslocamento",
+      "depreciation": "Depreciação",
+      "workedHour": "Hora Trabalhada"
     },
     "history": {
       "title": "Histórico de relatórios",

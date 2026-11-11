@@ -2013,18 +2013,29 @@
     "addInvoice": "Add invoice",
     "generate": {
       "title": "Generate new report",
-      "categoryPlaceholder": "Select category",
+      "categoriesTitle": "Select categories",
+      "selectAll": "Select all",
+      "clearAll": "Clear all",
+      "confirm": "Generate",
+      "close": "Close",
       "startDate": "Start date",
       "endDate": "End date",
       "selectDate": "Select the date",
       "button": "Generate report",
       "previousMonth": "Previous month",
-      "nextMonth": "Next month"
+      "nextMonth": "Next month",
+      "previousYear": "Previous year",
+      "nextYear": "Next year"
     },
     "categories": {
       "financial": "Financial",
       "appointments": "Appointments",
-      "inventory": "Inventory"
+      "clinics": "Clinics",
+      "inventory": "Inventory and Supplies",
+      "suppliers": "Suppliers",
+      "travel": "Travel",
+      "depreciation": "Depreciation",
+      "workedHour": "Worked Hour"
     },
     "history": {
       "title": "Report history",
