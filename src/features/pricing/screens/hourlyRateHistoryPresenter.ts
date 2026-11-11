@@ -1,4 +1,3 @@
-import type { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
 import {
   formatMonthLabel,
@@ -6,6 +5,7 @@ import {
   type MonthPeriod,
 } from 'shared/utils/monthPeriod';
 
+import { formatNumber, longMonthName, type Format } from './presenterCommon';
 import type { HourlyRateEvolutionCardProps } from '../components/HourlyRateEvolutionCard';
 import type { HourlyRateHistoryHighlightProps } from '../components/HourlyRateHistoryHighlight';
 import type { HourlyRateMonthRowProps } from '../components/HourlyRateMonthsCard';
@@ -17,10 +17,6 @@ import {
   summarizeSinceStart,
   type HourlyRateHistoryRow,
 } from '../domain/hourlyRateHistory';
-
-type Translate = ReturnType<typeof useTranslation>['t'];
-
-type Format = { t: Translate; locale: string };
 
 const MINUS = '−';
 
@@ -63,12 +59,6 @@ function shortMonthTitle(period: MonthPeriod, locale: string): string {
 function sentenceMonth(period: MonthPeriod, locale: string): string {
   const label = formatMonthLabel(period, locale);
   return `${label.charAt(0).toLowerCase()}${label.slice(1)}`;
-}
-
-function number(value: number, locale: string, fractionDigits: number) {
-  return value.toLocaleString(locale, {
-    maximumFractionDigits: fractionDigits,
-  });
 }
 
 // "Mai – Out 2026", or "Nov 2025 – Abr 2026" when the window crosses a year.
@@ -116,7 +106,7 @@ export function monthRowView(
 ): HourlyRateMonthRowProps {
   const label = formatMonthLabel(rate.month, locale);
   const value = formatCurrency(rate.hourlyRate, locale);
-  const hours = number(rate.productiveHours, locale, 0);
+  const hours = formatNumber(rate.productiveHours, locale, 0);
   const minimum = formatCurrency(rate.minimumHourlyRate, locale);
   const trend = variation === null ? null : formatChange(variation, locale);
   const caption = isOldest ? t('pricing.history.months.oldest') : null;
@@ -172,7 +162,7 @@ export function currentValueView(
       safetyMarginPct === null
         ? undefined
         : t('pricing.hourlyRate.marginChip', {
-            margin: number(safetyMarginPct, locale, 2),
+            margin: formatNumber(safetyMarginPct, locale, 2),
           }),
     value: formatCurrency(latest.rate.hourlyRate, locale),
     trend:
@@ -274,13 +264,6 @@ export function monthLabelsHaveYear(
 // "set", "mai": the short name as a sentence has it, no capital and no dot.
 function shortMonthName(period: MonthPeriod, locale: string): string {
   return shortMonth(period, locale).replace('.', '').toLowerCase();
-}
-
-// "outubro", "maio".
-function longMonthName(period: MonthPeriod, locale: string): string {
-  return new Date(period.year, period.month - 1, 1)
-    .toLocaleDateString(locale, { month: 'long' })
-    .toLowerCase();
 }
 
 // "+2,4% vs set": the change of a month against the one before it on record.

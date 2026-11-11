@@ -78,6 +78,15 @@ export function monthKey({ month, year }: MonthPeriod): string {
   return `${year}-${month}`;
 }
 
+// The month of a row given its `monthKey`: what a row of a list hands back
+// when it is tapped. `null` when no row has that key.
+export function monthOfKey(
+  rows: readonly HourlyRateHistoryRow[],
+  key: string,
+): MonthPeriod | null {
+  return rows.find(row => monthKey(row.rate.month) === key)?.rate.month ?? null;
+}
+
 function monthIndex({ month, year }: MonthPeriod): number {
   return year * 12 + month;
 }

@@ -1,3 +1,4 @@
+import { Modal, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
@@ -5,7 +6,10 @@ import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
 import { I18nProvider } from 'shared/i18n';
 
 import { HourlyRateHistoryScreen } from './HourlyRateHistoryScreen';
-import { OCTOBER_HOURLY_RATE } from '../domain/hourlyRate.fixture';
+import {
+  OCTOBER_HOURLY_RATE,
+  SEPTEMBER_HOURLY_RATE,
+} from '../domain/hourlyRate.fixture';
 import { newestPeriods } from '../domain/hourlyRateHistory.fixture';
 import { pricingService } from '../services/pricingService';
 
@@ -43,6 +47,15 @@ const ACCOUNT: Account = {
 };
 
 const NOW = new Date(2026, 9, 19, 17, 42);
+// October 2025 on top of the twelve months, so there are 13.
+const THIRTEEN = [
+  ...newestPeriods(12),
+  {
+    ...newestPeriods(1)[0],
+    month: { month: 10, year: 2025 },
+    hourlyRate: 79.5,
+  },
+];
 // Currency comes with a no-break space after "R$".
 const nbsp = (value: string) => value.replace(/R\$ /g, 'R$\u00a0');
 
@@ -332,12 +345,12 @@ describe('three months', () => {
     expect(hasDivider('Agosto 2026')).toBe(false);
   });
 
-  test('starts with the newest month selected and follows a tap', async () => {
-    const { row, selectedRows } = await renderScreen();
+  test('starts with the newest month selected and follows a tap on the chart', async () => {
+    const { point, selectedRows } = await renderScreen();
 
     expect(selectedRows()).toEqual(['Outubro 2026']);
 
-    await act(async () => row('Agosto 2026').props.onPress());
+    await act(async () => point('Agosto 2026').props.onPress());
 
     expect(selectedRows()).toEqual(['Agosto 2026']);
   });
@@ -500,19 +513,26 @@ describe('twelve months', () => {
     expect(control('Meses mais recentes').props.disabled).toBe(true);
   });
 
-  test('selecting a month only highlights it, it does not open anything', async () => {
-    const { row, selectedRows, texts } = await renderScreen();
+  test('tapping a row opens that month and does not move the selection', async () => {
+    const { row, selectedRows, texts, press } = await renderScreen();
 
     await act(async () => row('Agosto 2026').props.onPress());
 
-    expect(selectedRows()).toEqual(['Agosto 2026']);
-    expect(texts()).toContain('Histórico do valor da hora');
+    expect(texts()).toEqual(
+      expect.arrayContaining(['Agosto 2026', 'Valores de agosto/2026']),
+    );
+    expect(texts()).not.toContain('Registro mensal');
     expect(getHistory).toHaveBeenCalledTimes(1);
+
+    await press('Voltar');
+
+    expect(selectedRows()).toEqual(['Outubro 2026']);
   });
 
   test('changing the window clears the selection', async () => {
-    const { row, selectedRows, press } = await renderScreen();
-    await act(async () => row('Agosto 2026').props.onPress());
+    const { point, selectedRows, press } = await renderScreen();
+    await act(async () => point('Agosto 2026').props.onPress());
+    expect(selectedRows()).toEqual(['Agosto 2026']);
 
     await press('Meses mais antigos');
     expect(selectedRows()).toEqual(['Abril 2026']);
@@ -547,7 +567,9 @@ describe('twelve months', () => {
       ]),
     );
     expect(texts()).not.toContain('Registro mensal');
-    expect(texts().join(' ')).not.toContain('Toque em um mês');
+    expect(texts()).toContain(
+      'Toque em um mês para ver os valores daquele mês.',
+    );
     expect(getHistory).toHaveBeenCalledTimes(1);
   });
 
@@ -562,19 +584,28 @@ describe('twelve months', () => {
     expect(hasDivider('Novembro 2025')).toBe(false);
   });
 
-  test('the rows of "Todos os meses" have no action yet', async () => {
-    const { press, rowTexts, renderer } = await renderScreen();
+  test('the rows of "Todos os meses" are buttons that read the whole month', async () => {
+    const { press, renderer } = await renderScreen();
 
     await press('Ver todos os meses (12)');
 
-    expect(rowTexts()).toEqual([]);
+    const rows = renderer.root.findAll(
+      node =>
+        typeof node.props.onPress === 'function' &&
+        String(node.props.testID).startsWith('month-row-'),
+    );
+    expect(rows).toHaveLength(12);
+    expect(rows.every(node => node.props.accessibilityRole === 'button')).toBe(
+      true,
+    );
     expect(
-      renderer.root.findAll(
-        node =>
-          typeof node.props.onPress === 'function' &&
-          String(node.props.accessibilityLabel ?? '').includes('2026,'),
+      nbsp(
+        'Setembro 2026, R$ 95,81, 130 horas produtivas, mínimo R$ 79,84, +3,8%',
       ),
-    ).toEqual([]);
+    ).toBe(
+      rows.find(node => node.props.testID === 'month-row-2026-9')?.props
+        .accessibilityLabel,
+    );
   });
 
   test('back from "Todos os meses" returns to the history without closing', async () => {
@@ -593,6 +624,415 @@ describe('twelve months', () => {
     await press('Voltar');
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('month detail', () => {
+  // September as it was stored: other goals than October's.
+  const STORED_SEPTEMBER = {
+    ...SEPTEMBER_HOURLY_RATE,
+    // A local time, so "Atualizado em" shows the same date in any time zone.
+    calculatedAt: new Date(2026, 9, 19, 17, 42).toISOString(),
+    settings: {
+      monthlyIncomeGoal: 7500,
+      weeklyHours: 25,
+      safetyMarginPct: 15,
+    },
+  };
+  const STORED_DECEMBER_2025 = {
+    ...OCTOBER_HOURLY_RATE,
+    month: { month: 12, year: 2025 },
+    hourlyRate: 81.9,
+    minimumHourlyRate: 68.25,
+  };
+
+  beforeEach(() => {
+    getMonth.mockImplementation(async (_token, { month, year }) => {
+      if (year === 2025 && month === 12) return STORED_DECEMBER_2025;
+      return month === 9 ? STORED_SEPTEMBER : OCTOBER_HOURLY_RATE;
+    });
+  });
+
+  async function openAllMonths() {
+    const screen = await renderScreen();
+    await screen.press('Ver todos os meses (12)');
+    getMonth.mockClear();
+    return screen;
+  }
+
+  const openRow = async (
+    screen: Awaited<ReturnType<typeof renderScreen>>,
+    month: string,
+  ) => {
+    await act(async () => screen.row(month).props.onPress());
+  };
+
+  test('tapping a month of "Todos os meses" opens that month, asking for it once', async () => {
+    const screen = await openAllMonths();
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(getMonth).toHaveBeenCalledTimes(1);
+    expect(getMonth).toHaveBeenCalledWith('id-token', { month: 9, year: 2026 });
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining(['Setembro 2026', 'Valores de setembro/2026']),
+    );
+  });
+
+  test.each([
+    ['October 2026', new Date(2026, 9, 19)],
+    ['the current month itself', new Date(2026, 8, 15)],
+    ['a year later', new Date(2027, 2, 10)],
+  ])('the caption does not depend on today (%s)', async (_name, today) => {
+    jest.setSystemTime(today);
+    const screen = await openAllMonths();
+
+    await openRow(screen, 'Setembro 2026');
+    expect(screen.texts()).toContain('Valores de setembro/2026');
+    expect(screen.texts()).not.toContain('Mês anterior');
+    expect(screen.texts()).not.toContain('Mês atual');
+
+    await screen.press('Voltar');
+    await openRow(screen, 'Dezembro 2025');
+    expect(screen.texts()).toContain('Valores de dezembro/2025');
+  });
+
+  test('keeps the history header, not a title of its own', async () => {
+    const screen = await openAllMonths();
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining([
+        'Histórico do valor da hora',
+        'Acompanhe como o valor mínimo da sua hora mudou mês a mês',
+      ]),
+    );
+    expect(screen.texts()).not.toContain('Todos os meses');
+  });
+
+  test('shows the month in a card with no arrows and no action', async () => {
+    const screen = await openAllMonths();
+
+    await openRow(screen, 'Setembro 2026');
+
+    const labels = screen.renderer.root
+      .findAll(node => typeof node.props.accessibilityLabel === 'string')
+      .map(node => node.props.accessibilityLabel);
+    expect(labels).toContain('Setembro 2026, Valores de setembro/2026');
+    expect(labels).not.toContain('Mês anterior');
+    expect(labels).not.toContain('Próximo mês');
+    const card = screen.renderer.root.find(
+      node =>
+        node.props.accessibilityLabel ===
+        'Setembro 2026, Valores de setembro/2026',
+    );
+    expect(
+      card.parent?.findAll(node => typeof node.props.onPress === 'function'),
+    ).toEqual([]);
+  });
+
+  test('opens a month of another year', async () => {
+    const screen = await openAllMonths();
+
+    await openRow(screen, 'Dezembro 2025');
+
+    expect(getMonth).toHaveBeenCalledWith('id-token', {
+      month: 12,
+      year: 2025,
+    });
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining([
+        'Dezembro 2025',
+        nbsp('R$ 81,90'),
+        nbsp('R$ 68,25'),
+      ]),
+    );
+    expect(screen.texts()).toContain('Valores de dezembro/2025');
+  });
+
+  test('shows the four parts of the composition, already expanded', async () => {
+    const screen = await openAllMonths();
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining([
+        nbsp('R$ 95,81'),
+        'Composição do total mensal',
+        'Custos fixos',
+        'Custos variáveis',
+        'Pró-labore',
+        'Margem de segurança',
+        'Ocultar detalhamento',
+        '15% de margem',
+        '15% sobre custos + pró-labore',
+        '130 h',
+        'Atualizado em 19/10/2026 às 17:42',
+      ]),
+    );
+    expect(
+      screen.renderer.root.findAll(node =>
+        String(node.props.testID).startsWith('breakdown-bar-'),
+      ).length,
+    ).toBeGreaterThanOrEqual(4);
+  });
+
+  test('shows the three goals the month used, as text', async () => {
+    const screen = await openAllMonths();
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining([
+        'Metas',
+        'Meta de renda líquida mensal (R$)',
+        '7500',
+        'Horas disponíveis por semana',
+        '25',
+        'Margem de segurança (%)',
+        '15',
+      ]),
+    );
+  });
+
+  test('is read-only: no input, no save button, no month selector and no history shortcut', async () => {
+    const screen = await openAllMonths();
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(screen.renderer.root.findAllByType(TextInput)).toEqual([]);
+    expect(
+      screen.renderer.root.findAll(
+        node => typeof node.props.onChangeText === 'function',
+      ),
+    ).toEqual([]);
+    const texts = screen.texts();
+    expect(texts).not.toContain('Salvar');
+    expect(texts).not.toContain('Salvar e calcular');
+    expect(texts).not.toContain('Ver histórico');
+    expect(texts).not.toContain('Registro mensal');
+    const labels = screen.renderer.root
+      .findAll(node => typeof node.props.accessibilityLabel === 'string')
+      .map(node => node.props.accessibilityLabel);
+    expect(labels).not.toContain('Mês anterior');
+    expect(labels).not.toContain('Próximo mês');
+  });
+
+  test('back returns to "Todos os meses" and the next back to the history', async () => {
+    const screen = await openAllMonths();
+    await openRow(screen, 'Setembro 2026');
+
+    await screen.press('Voltar');
+
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining([
+        'Todos os meses',
+        'Toque em um mês para ver os valores daquele mês.',
+      ]),
+    );
+    expect(screen.texts()).not.toContain('Metas');
+    expect(screen.onClose).not.toHaveBeenCalled();
+
+    await screen.press('Voltar');
+
+    expect(screen.texts()).toContain('Registro mensal');
+    expect(screen.onClose).not.toHaveBeenCalled();
+  });
+
+  test('the Android back button steps back the same way', async () => {
+    const screen = await openAllMonths();
+    await openRow(screen, 'Setembro 2026');
+    const hardwareBack = () =>
+      act(async () =>
+        screen.renderer.root.findByType(Modal).props.onRequestClose(),
+      );
+
+    await hardwareBack();
+
+    expect(screen.texts()).toContain('Todos os meses');
+    expect(screen.onClose).not.toHaveBeenCalled();
+
+    await hardwareBack();
+    await hardwareBack();
+
+    expect(screen.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  test('shows a spinner while the month loads, under the month title', async () => {
+    const screen = await openAllMonths();
+    getMonth.mockReturnValue(new Promise(() => {}));
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(
+      screen.renderer.root.findAll(
+        node =>
+          node.props.accessibilityLabel ===
+          'Carregando o histórico do valor da hora',
+      ).length,
+    ).toBeGreaterThan(0);
+    // The month is named while it loads.
+    expect(screen.texts()).toContain('Setembro 2026');
+    expect(screen.texts()).not.toContain('Metas');
+  });
+
+  test('offers a retry when the month cannot load', async () => {
+    const screen = await openAllMonths();
+    getMonth.mockRejectedValueOnce(new Error('offline'));
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(screen.texts()).toContain(
+      'Não foi possível carregar o histórico do valor da hora.',
+    );
+    expect(screen.texts()).toContain('Setembro 2026');
+    expect(screen.texts()).not.toContain('Metas');
+
+    await screen.press('Tentar novamente');
+
+    expect(getMonth).toHaveBeenCalledTimes(2);
+    expect(screen.texts()).toContain('Metas');
+  });
+
+  test("a month with no stored calculation shows the history's empty state, with no retry", async () => {
+    const screen = await openAllMonths();
+    getMonth.mockResolvedValueOnce(null);
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining([
+        'Setembro 2026',
+        'Nenhum cálculo registrado',
+        'O valor da sua hora de cada mês passa a aparecer aqui depois do primeiro cálculo.',
+      ]),
+    );
+    expect(screen.texts()).not.toContain(
+      'Não foi possível carregar o histórico do valor da hora.',
+    );
+    expect(screen.texts()).not.toContain('Tentar novamente');
+  });
+
+  test('tapping a row of the main list opens that month, asking for it once', async () => {
+    const screen = await renderScreen();
+    getMonth.mockClear();
+
+    await openRow(screen, 'Setembro 2026');
+
+    expect(getMonth).toHaveBeenCalledTimes(1);
+    expect(getMonth).toHaveBeenCalledWith('id-token', { month: 9, year: 2026 });
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining([
+        'Histórico do valor da hora',
+        'Setembro 2026',
+        'Valores de setembro/2026',
+        'Metas',
+      ]),
+    );
+    expect(screen.texts()).not.toContain('Registro mensal');
+    expect(screen.texts()).not.toContain('Todos os meses');
+  });
+
+  test('the rows of the main list are buttons that read the whole month', async () => {
+    const screen = await renderScreen();
+
+    const row = screen.row('Setembro 2026');
+
+    expect(row.props.accessibilityRole).toBe('button');
+    expect(row.props.accessibilityLabel).toBe(
+      nbsp(
+        'Setembro 2026, R$ 95,81, 130 horas produtivas, mínimo R$ 79,84, +3,8%',
+      ),
+    );
+  });
+
+  test('opens the right month from an old window', async () => {
+    getHistory.mockResolvedValue(THIRTEEN);
+    const screen = await renderScreen();
+    await screen.press('Meses mais antigos');
+    await screen.press('Meses mais antigos');
+    getMonth.mockClear();
+
+    await openRow(screen, 'Outubro 2025');
+
+    expect(getMonth).toHaveBeenCalledWith('id-token', {
+      month: 10,
+      year: 2025,
+    });
+    expect(screen.texts()).toEqual(
+      expect.arrayContaining(['Outubro 2025', 'Valores de outubro/2025']),
+    );
+  });
+
+  test('the rows of the main list say whether they are the selected month, and those of "Todos os meses" do not, as there is no selection', async () => {
+    const screen = await renderScreen();
+    const stateOf = (row: ReactTestRenderer.ReactTestInstance) =>
+      row.props.accessibilityState;
+
+    expect(stateOf(screen.row('Outubro 2026'))).toEqual({ selected: true });
+    expect(stateOf(screen.row('Setembro 2026'))).toEqual({ selected: false });
+
+    await screen.press('Ver todos os meses (12)');
+
+    const rows = screen.renderer.root.findAll(
+      node =>
+        typeof node.props.onPress === 'function' &&
+        String(node.props.testID).startsWith('month-row-'),
+    );
+    expect(rows).toHaveLength(12);
+    expect(rows.map(stateOf)).toEqual(rows.map(() => undefined));
+  });
+
+  test('back from the detail leaves the history as it was: same window, same selected month', async () => {
+    getHistory.mockResolvedValue(THIRTEEN);
+    const screen = await renderScreen();
+    await screen.press('Meses mais antigos');
+    await act(async () => screen.point('Fevereiro 2026').props.onPress());
+    const before = {
+      rows: screen.rowTexts(),
+      selected: screen.selectedRows(),
+      range: screen.texts().includes('Nov 2025 – Abr 2026'),
+    };
+    expect(before.selected).toEqual(['Fevereiro 2026']);
+    expect(before.range).toBe(true);
+
+    await openRow(screen, 'Janeiro 2026');
+    expect(screen.texts()).toContain('Valores de janeiro/2026');
+    await screen.press('Voltar');
+
+    expect(screen.rowTexts()).toEqual(before.rows);
+    expect(screen.selectedRows()).toEqual(['Fevereiro 2026']);
+    expect(screen.selectedPoints()).toEqual(['Fevereiro 2026']);
+    expect(screen.texts()).toContain('Nov 2025 – Abr 2026');
+    expect(screen.onClose).not.toHaveBeenCalled();
+    expect(getHistory).toHaveBeenCalledTimes(1);
+  });
+
+  test('back from the detail opened in "Todos os meses" returns to it, and the history keeps its window', async () => {
+    getHistory.mockResolvedValue(THIRTEEN);
+    const screen = await renderScreen();
+    await screen.press('Meses mais antigos');
+    await screen.press('Ver todos os meses (13)');
+    await openRow(screen, 'Setembro 2026');
+
+    await screen.press('Voltar');
+    expect(screen.texts()).toContain('Todos os meses');
+
+    await screen.press('Voltar');
+    expect(screen.texts()).toContain('Registro mensal');
+    expect(screen.texts()).toContain('6 meses anteriores');
+  });
+
+  test('opening the detail again later starts from the history', async () => {
+    const screen = await openAllMonths();
+    await openRow(screen, 'Setembro 2026');
+
+    await screen.press('Voltar');
+    await screen.press('Voltar');
+
+    expect(screen.texts()).toContain('Histórico do valor da hora');
+    expect(screen.texts()).not.toContain('Metas');
   });
 });
 
@@ -851,20 +1291,18 @@ describe('evolution chart', () => {
     expect(texts()).not.toContain('+2,4% vs set');
   });
 
-  it('moves the selection of the chart when a list row is tapped', async () => {
+  it('does not move the selection of the chart when a list row is tapped, it opens the month', async () => {
     getHistory.mockResolvedValue(newestPeriods(6));
-    const { texts, row, selectedPoints } = await renderScreen();
+    const { texts, row, selectedPoints, press } = await renderScreen();
 
     await act(async () => row('Junho 2026').props.onPress());
 
-    expect(selectedPoints()).toEqual(['Junho 2026']);
-    expect(texts()).toEqual(
-      expect.arrayContaining([
-        'Junho 2026',
-        nbsp('R$ 90,15/h'),
-        '+2,0% vs mai',
-      ]),
-    );
+    expect(texts()).toContain('Valores de junho/2026');
+
+    await press('Voltar');
+
+    expect(selectedPoints()).toEqual(['Outubro 2026']);
+    expect(texts()).not.toContain('+2,0% vs mai');
   });
 
   it('goes back to the newest month of the window when the window changes', async () => {
@@ -898,16 +1336,6 @@ describe('evolution chart', () => {
 });
 
 describe('the oldest window', () => {
-  // October 2025 on top of the twelve months, so there are 13.
-  const THIRTEEN = [
-    ...newestPeriods(12),
-    {
-      ...newestPeriods(1)[0],
-      month: { month: 10, year: 2025 },
-      hourlyRate: 79.5,
-    },
-  ];
-
   it('holds the six oldest months, overlapping the previous window', async () => {
     getHistory.mockResolvedValue(THIRTEEN);
     const { texts, press, rowTexts, pointTexts, selectedRows } =
