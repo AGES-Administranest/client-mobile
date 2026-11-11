@@ -2039,7 +2039,8 @@
     },
     "history": {
       "title": "Report history",
-      "empty": "No report generated yet."
+      "empty": "No report generated yet.",
+      "shareFailed": "Could not share the report."
     }
   },
   "profile": {

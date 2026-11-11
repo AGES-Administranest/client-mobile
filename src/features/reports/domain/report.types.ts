@@ -15,4 +15,6 @@ export type ReportHistoryItem = {
   id: string;
   fileName: string;
   generatedAt: string;
+  /** Ausente quando o arquivo não pôde ser salvo no aparelho (web). */
+  fileUri?: string;
 };

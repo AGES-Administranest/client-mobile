@@ -14,6 +14,7 @@ type ReportHistoryScreenProps = {
   visible: boolean;
   items: readonly ReportHistoryItem[];
   onClose: () => void;
+  onSelect: (report: ReportHistoryItem) => void;
 };
 
 function Separator() {
@@ -24,6 +25,7 @@ export function ReportHistoryScreen({
   visible,
   items,
   onClose,
+  onSelect,
 }: ReportHistoryScreenProps) {
   const { t, locale } = useTranslation();
 
@@ -53,6 +55,7 @@ export function ReportHistoryScreen({
             className="w-full"
             date={formatDayAndMonth(new Date(item.generatedAt), locale, true)}
             fileName={item.fileName}
+            onPress={() => onSelect(item)}
           />
         )}
         ItemSeparatorComponent={Separator}

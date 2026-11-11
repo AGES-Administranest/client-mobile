@@ -2039,7 +2039,8 @@
     },
     "history": {
       "title": "Histórico de relatórios",
-      "empty": "Nenhum relatório gerado ainda."
+      "empty": "Nenhum relatório gerado ainda.",
+      "shareFailed": "Não foi possível compartilhar o relatório."
     }
   },
   "profile": {

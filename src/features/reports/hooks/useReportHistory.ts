@@ -6,6 +6,7 @@ import type { ReportHistoryItem } from '../domain/report.types';
 import {
   fetchReportHistory,
   generateReport,
+  shareReport,
   type GenerateReportInput,
 } from '../services/reportHistoryService';
 
@@ -13,6 +14,7 @@ export type ReportHistoryState = {
   items: ReportHistoryItem[];
   isGenerating: boolean;
   generate: (input: GenerateReportInput) => Promise<boolean>;
+  share: (report: ReportHistoryItem) => Promise<boolean>;
 };
 
 export function useReportHistory(): ReportHistoryState {
@@ -58,5 +60,17 @@ export function useReportHistory(): ReportHistoryState {
     [idToken],
   );
 
-  return { items, isGenerating, generate };
+  const share = useCallback(async (report: ReportHistoryItem) => {
+    if (!report.fileUri) {
+      return false;
+    }
+
+    try {
+      return await shareReport(report.fileUri);
+    } catch {
+      return false;
+    }
+  }, []);
+
+  return { items, isGenerating, generate, share };
 }

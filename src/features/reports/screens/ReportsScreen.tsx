@@ -24,7 +24,11 @@ import { ReportHistoryScreen } from './ReportHistoryScreen';
 import { ReportCard } from '../components/ReportCard';
 import { ReportCategoriesSheet } from '../components/ReportCategoriesSheet';
 import { ReportField } from '../components/ReportField';
-import { REPORT_CATEGORIES, type ReportCategory } from '../domain/report.types';
+import {
+  REPORT_CATEGORIES,
+  type ReportCategory,
+  type ReportHistoryItem,
+} from '../domain/report.types';
 import { useReportHistory } from '../hooks/useReportHistory';
 
 const HISTORY_PREVIEW_COUNT = 5;
@@ -41,10 +45,16 @@ export function ReportsScreen() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [range, setRange] = useState<CalendarRange>(EMPTY_CALENDAR_RANGE);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [shareFailed, setShareFailed] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
+
+  const shareReport = (report: ReportHistoryItem) => {
+    setShareFailed(false);
+    reports.share(report).then(ok => setShareFailed(!ok));
+  };
 
   const dateLabel = (calendarDate: string | null) =>
     calendarDate
@@ -172,10 +182,16 @@ export function ReportsScreen() {
                     true,
                   )}
                   fileName={report.fileName}
+                  onPress={() => shareReport(report)}
                 />
               ))}
             </ScrollView>
           )}
+          {shareFailed ? (
+            <Text className="text-sm text-label-tertiary">
+              {t('reports.history.shareFailed')}
+            </Text>
+          ) : null}
         </View>
 
         <InvoicesSection onSeeAll={() => setIsInvoiceListOpen(true)} />
@@ -229,6 +245,7 @@ export function ReportsScreen() {
         visible={isHistoryOpen}
         items={reports.items}
         onClose={() => setIsHistoryOpen(false)}
+        onSelect={shareReport}
       />
 
       <InvoicesScreen

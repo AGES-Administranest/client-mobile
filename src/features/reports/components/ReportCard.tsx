@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Pressable } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
@@ -7,11 +7,20 @@ type ReportCardProps = {
   date: string;
   fileName: string;
   className?: string;
+  onPress?: () => void;
 };
 
-export function ReportCard({ date, fileName, className }: ReportCardProps) {
+export function ReportCard({
+  date,
+  fileName,
+  className,
+  onPress,
+}: ReportCardProps) {
   return (
-    <View
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={fileName}
+      onPress={onPress}
       className={cn(
         'w-[215px] gap-3 rounded-[9px] bg-white p-[10px] shadow-md shadow-black/10',
         className,
@@ -21,6 +30,6 @@ export function ReportCard({ date, fileName, className }: ReportCardProps) {
       <Text className="text-sm text-label-primary" numberOfLines={2}>
         {fileName}
       </Text>
-    </View>
+    </Pressable>
   );
 }
