@@ -1647,7 +1647,24 @@
       "chart": {
         "title": "Trend",
         "placeholderTitle": "The chart shows up next month",
-        "placeholderMessage": "We need at least {{count}} calculated months to show how your hourly rate evolves."
+        "placeholderMessage": "We need at least {{count}} calculated months to show how your hourly rate evolves.",
+        "titleWithCount": "Trend · {{count}} months",
+        "periodChange": "{{change}} in the period",
+        "legendRate": "Hourly rate",
+        "legendMinimum": "Minimum (no margin)",
+        "legendRateEqualsMinimum": "Hourly rate (equal to the minimum, no margin)",
+        "tooltipEqualsMinimum": "Equal to the minimum (no margin)",
+        "tooltipValue": "{{value}}/h",
+        "tooltipChange": "{{change}} vs {{month}}",
+        "pointLabel": "{{month}}, {{value}} per hour, minimum {{minimum}}",
+        "pointLabelWithChange": "{{month}}, {{value}} per hour, minimum {{minimum}}, {{change}} vs {{previous}}",
+        "summary": {
+          "average": "Average",
+          "highest": "Highest",
+          "lowest": "Lowest",
+          "averageRange": "{{from}} – {{to}}",
+          "averageCount": "{{count}} months"
+        }
       },
       "months": {
         "title": "Monthly record",
