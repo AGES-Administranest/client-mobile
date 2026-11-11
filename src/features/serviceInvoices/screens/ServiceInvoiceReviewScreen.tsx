@@ -9,11 +9,9 @@ import { Icon } from 'app/components/ui/icon';
 import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { ScreenHeader } from 'app/components/ui/screen-header';
 import {
-  CLINIC_FIELDS,
   NewClinicSheet,
-  type ClinicDraftErrors,
-  type ClinicField,
-  type ClinicFieldTexts,
+  useClientRegistration,
+  useNewClinicSheetTexts,
 } from 'features/clinics';
 import { useTranslation, type TranslationKey } from 'shared/i18n';
 import type { PickedPdf } from 'shared/services/pdfPicker';
@@ -23,53 +21,7 @@ import { ServiceInvoiceFormCard } from '../components/ServiceInvoiceFormCard';
 import { toDuplicateSummary } from '../domain/duplicateSummary';
 import type { InitialReview } from '../domain/extractionToFormValues';
 import type { ServiceInvoiceField } from '../domain/serviceInvoice.types';
-import { useClientRegistration } from '../hooks/useClientRegistration';
 import { useServiceInvoiceReview } from '../hooks/useServiceInvoiceReview';
-
-type ClinicErrorKeys = {
-  [Field in ClinicField]: Record<
-    NonNullable<ClinicDraftErrors[Field]>,
-    TranslationKey
-  >;
-};
-
-const CLINIC_ERROR_KEYS: ClinicErrorKeys = {
-  name: {
-    required: 'clinics.newClinic.errors.name.required',
-    tooShort: 'clinics.newClinic.errors.name.tooShort',
-  },
-  cnpj: {
-    required: 'clinics.newClinic.errors.cnpj.required',
-    invalid: 'clinics.newClinic.errors.cnpj.invalid',
-    duplicated: 'clinics.newClinic.errors.cnpj.duplicated',
-  },
-  addressLine: {
-    required: 'clinics.newClinic.errors.addressLine.required',
-    tooShort: 'clinics.newClinic.errors.addressLine.tooShort',
-  },
-  city: {
-    required: 'clinics.newClinic.errors.city.required',
-    tooShort: 'clinics.newClinic.errors.city.tooShort',
-    invalid: 'clinics.newClinic.errors.city.invalid',
-  },
-  state: {
-    required: 'clinics.newClinic.errors.state.required',
-    invalid: 'clinics.newClinic.errors.state.invalid',
-  },
-  phone: {
-    required: 'clinics.newClinic.errors.phone.required',
-    invalid: 'clinics.newClinic.errors.phone.invalid',
-  },
-  email: {
-    required: 'clinics.newClinic.errors.email.required',
-    invalid: 'clinics.newClinic.errors.email.invalid',
-  },
-  contactName: {
-    required: 'clinics.newClinic.errors.contactName.required',
-    tooShort: 'clinics.newClinic.errors.contactName.tooShort',
-    invalid: 'clinics.newClinic.errors.contactName.invalid',
-  },
-};
 
 type ServiceInvoiceReviewScreenProps = {
   visible: boolean;
@@ -118,33 +70,8 @@ export function ServiceInvoiceReviewScreen({
       : undefined;
   };
 
-  const fieldTexts = (field: ClinicField): ClinicFieldTexts => ({
-    label: t(`clinics.newClinic.fields.${field}.label`),
-    placeholder: t(`clinics.newClinic.fields.${field}.placeholder`),
-  });
-  const clinicFieldTexts: Record<ClinicField, ClinicFieldTexts> = {
-    name: fieldTexts('name'),
-    cnpj: fieldTexts('cnpj'),
-    addressLine: fieldTexts('addressLine'),
-    city: fieldTexts('city'),
-    state: fieldTexts('state'),
-    phone: fieldTexts('phone'),
-    email: fieldTexts('email'),
-    contactName: fieldTexts('contactName'),
-  };
-
-  const toClinicFieldErrors = (errors: ClinicDraftErrors) => {
-    const messages: Partial<Record<ClinicField, string>> = {};
-    for (const field of CLINIC_FIELDS) {
-      const code = errors[field];
-      if (!code) continue;
-      const keys: Record<string, TranslationKey> = CLINIC_ERROR_KEYS[field];
-      messages[field] = t(keys[code]);
-    }
-    return messages;
-  };
-
   const newClinic = registration.form;
+  const clinicSheet = useNewClinicSheetTexts(newClinic);
 
   const banner = (): { tone: 'warning' | 'info'; message: string } => {
     if (initial.readFailed) {
@@ -243,7 +170,7 @@ export function ServiceInvoiceReviewScreen({
               }}
               registerClient={{
                 label: t('serviceInvoices.review.registerClient'),
-                onPress: registration.open,
+                onPress: () => registration.open(),
               }}
               onChangeIssueDate={review.changeIssueDate}
               onChangeAmount={review.changeAmount}
@@ -320,14 +247,14 @@ export function ServiceInvoiceReviewScreen({
       <NewClinicSheet
         visible={visible && registration.isRegisterShown}
         draft={newClinic.draft}
-        fieldErrors={toClinicFieldErrors(newClinic.errors)}
-        failureMessage={newClinic.failure && t(newClinic.failure)}
+        fieldErrors={clinicSheet.fieldErrors}
+        failureMessage={clinicSheet.failureMessage}
         isSaving={newClinic.isSaving}
         title={t('serviceInvoices.review.registerClient')}
-        fieldTexts={clinicFieldTexts}
-        confirmLabel={t('clinics.newClinic.confirm')}
-        savingLabel={t('clinics.newClinic.saving')}
-        closeLabel={t('clinics.newClinic.close')}
+        fieldTexts={clinicSheet.fieldTexts}
+        confirmLabel={clinicSheet.confirmLabel}
+        savingLabel={clinicSheet.savingLabel}
+        closeLabel={clinicSheet.closeLabel}
         onChangeField={newClinic.setField}
         onSubmit={registration.submit}
         onClose={registration.cancel}

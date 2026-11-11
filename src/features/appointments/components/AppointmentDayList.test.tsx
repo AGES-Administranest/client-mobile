@@ -110,4 +110,25 @@ describe('AppointmentDayList', () => {
     const json = JSON.stringify(renderer!.toJSON());
     expect(json).toContain('30 set · 15:00 – 16:00');
   });
+
+  it('colors the status badge: green when done, red when canceled', async () => {
+    const render = async (status: Appointment['status']) => {
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await act(async () => {
+        renderer = ReactTestRenderer.create(
+          <AppointmentDayList
+            date="2026-09-30"
+            formattedDate=""
+            appointments={[{ ...scheduled, status }]}
+            statusLabels={{ COMPLETED: 'Realizado', CANCELED: 'Cancelado' }}
+          />,
+        );
+      });
+      return JSON.stringify(renderer.toJSON());
+    };
+
+    expect(await render('COMPLETED')).toContain('bg-details-finish');
+    expect(await render('CANCELED')).toContain('border-alert-primary');
+    expect(await render('SCHEDULED')).not.toContain('bg-details-finish');
+  });
 });

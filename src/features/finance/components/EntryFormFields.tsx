@@ -38,7 +38,6 @@ export type EntryFormTexts = {
     label: string;
     professional: string;
     personal: string;
-    hint: string;
   };
 };
 
@@ -280,7 +279,6 @@ export function EntryFormFields({
             onPress={() => onChangeScope('PERSONAL')}
           />
         </View>
-        <Text className="text-xs text-label-tertiary">{texts.scope.hint}</Text>
       </View>
     </>
   );

@@ -266,7 +266,6 @@ export function NewEntryForm({
             label: t('financialEntries.form.scope.label'),
             professional: t('financialEntries.form.scope.professional'),
             personal: t('financialEntries.form.scope.personal'),
-            hint: t('financialEntries.form.scope.hint'),
           },
         },
       }}

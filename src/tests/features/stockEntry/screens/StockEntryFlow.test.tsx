@@ -376,7 +376,7 @@ describe('the pending list', () => {
     const shown = texts(flow);
     expect(shown).toContain('PF8821');
     expect(shown).toContain('31/05/2027');
-    expect(shown).toContain('7 frasco');
+    expect(shown).toContain('7 Fr');
   });
 
   it('discards an entry after asking', async () => {

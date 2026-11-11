@@ -1,4 +1,10 @@
-import { applyFieldMask, maskDateInput, maskTimeInput } from './procedureMasks';
+import {
+  applyFieldMask,
+  maskDateInput,
+  maskDecimalInput,
+  maskIntegerInput,
+  maskTimeInput,
+} from './procedureMasks';
 
 describe('maskTimeInput', () => {
   it.each([
@@ -63,14 +69,44 @@ describe('applyFieldMask', () => {
     },
   );
 
+  it.each(['patientName', 'procedureName', 'amount', 'notes'] as const)(
+    'não altera o texto do campo %s',
+    field => {
+      expect(applyFieldMask(field, '12,5 abc')).toBe('12,5 abc');
+    },
+  );
+});
+
+describe('maskIntegerInput', () => {
   it.each([
-    'patientName',
-    'procedureName',
-    'weightKg',
-    'patientAgeYears',
-    'amount',
-    'notes',
-  ] as const)('não altera o texto do campo %s', field => {
-    expect(applyFieldMask(field, '12,5 abc')).toBe('12,5 abc');
+    ['', ''],
+    ['12', '12'],
+    ['1a2', '12'],
+    ['3,5', '35'],
+    ['-4', '4'],
+  ])('transforma "%s" em "%s"', (input, expected) => {
+    expect(maskIntegerInput(input)).toBe(expected);
+  });
+});
+
+describe('maskDecimalInput', () => {
+  it.each([
+    ['', ''],
+    ['12', '12'],
+    ['12,5', '12,5'],
+    ['12.5', '12.5'],
+    ['1a2,5kg', '12,5'],
+    ['1,2,3', '1,23'],
+    ['1.2,3', '1.23'],
+    ['-4', '4'],
+  ])('transforma "%s" em "%s"', (input, expected) => {
+    expect(maskDecimalInput(input)).toBe(expected);
+  });
+});
+
+describe('numeric patient fields', () => {
+  it('só deixa números na idade e no peso', () => {
+    expect(applyFieldMask('patientAgeYears', '3 anos')).toBe('3');
+    expect(applyFieldMask('weightKg', '10,5 kg')).toBe('10,5');
   });
 });

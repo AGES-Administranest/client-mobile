@@ -1,11 +1,11 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { AuthProvider, TERMS_VERSION, type Account } from 'features/auth';
-import { createClient } from 'features/clinics/services/clientService';
 import {
   useClientRegistration,
   type ClientRegistrationState,
-} from 'features/serviceInvoices/hooks/useClientRegistration';
+} from 'features/clinics';
+import { createClient } from 'features/clinics/services/clientService';
 
 jest.mock('features/clinics/services/clientService', () => ({
   createClient: jest.fn(),
@@ -109,5 +109,16 @@ describe('useClientRegistration', () => {
     });
 
     expect(onCreated).not.toHaveBeenCalled();
+  });
+
+  it('opens the registration with the name that was searched for', async () => {
+    const { seen } = mount();
+
+    act(() => seen.current.open({ name: 'Vet Nova', taxId: '' }));
+
+    expect(seen.current.form.draft.name).toBe('Vet Nova');
+    expect(seen.current.isRegisterShown || !seen.current.isReviewShown).toBe(
+      true,
+    );
   });
 });

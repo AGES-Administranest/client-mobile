@@ -28,6 +28,7 @@ import { Button } from 'app/components/ui/button';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { DeleteOriginDialog } from 'app/components/ui/delete-origin-dialog';
 import { Icon } from 'app/components/ui/icon';
+import { StatCard } from 'app/components/ui/stat-card';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 import {
@@ -49,7 +50,6 @@ import {
   AppointmentActions,
   type AppointmentActionsTexts,
 } from '../components/AppointmentActions';
-import { DetailStatCard } from '../components/DetailStatCard';
 import { EditAmountSheet } from '../components/EditAmountSheet';
 import { ProcedureFormSheet } from '../components/ProcedureFormSheet';
 import { SupplyCostSummary } from '../components/SupplyCostSummary';
@@ -66,6 +66,7 @@ import {
   calculateSupplyTotalCost,
   getSupplyLineCost,
 } from '../domain/supplyItem';
+import { calculateTravelTotalCost } from '../domain/travelCost';
 import {
   useAppointmentActions,
   type ActionableAppointment,
@@ -106,7 +107,8 @@ export function AppointmentDetailScreen({
       ? toCalendarDate(appointment.startsAt)
       : null,
     defaultOrigin: t('procedures.detail.travel.defaultOrigin'),
-    defaultDestination: appointment?.location ?? '',
+    // O formulário só grava clientId: o nome da clínica vem em ownerName.
+    defaultDestination: appointment?.location ?? appointment?.ownerName ?? '',
   });
   const tripVehicleNames = useMemo(
     () =>
@@ -190,8 +192,9 @@ export function AppointmentDetailScreen({
     hasFinancialEntry: appointment?.status === 'COMPLETED',
     hasSupplies: detail.supplies.length > 0,
   }).map(effect => t(`deleteOrigin.effects.${effect}`));
+  const travelCost = calculateTravelTotalCost(appointmentTrips.trips);
   const margin = appointment
-    ? grossMargin(appointment.amount, totalCost)
+    ? grossMargin(appointment.amount, totalCost + travelCost)
     : null;
   const hoursWorked =
     appointment && appointment.endsAt
@@ -392,7 +395,7 @@ export function AppointmentDetailScreen({
               ) : null}
 
               <View className="flex-row gap-2">
-                <DetailStatCard
+                <StatCard
                   label={t('procedures.fields.patientAgeYears')}
                   value={
                     appointment.patientAgeYears !== null
@@ -402,7 +405,7 @@ export function AppointmentDetailScreen({
                       : t('procedures.detail.notInformed')
                   }
                 />
-                <DetailStatCard
+                <StatCard
                   label={t('procedures.detail.weightLabel')}
                   value={
                     appointment.weightKg !== null
@@ -415,7 +418,7 @@ export function AppointmentDetailScreen({
               </View>
 
               <View className="flex-row gap-2">
-                <DetailStatCard
+                <StatCard
                   label={t('procedures.fields.amount')}
                   value={
                     appointment.amount === null
@@ -426,7 +429,7 @@ export function AppointmentDetailScreen({
                         )
                   }
                 />
-                <DetailStatCard
+                <StatCard
                   label={t('procedures.detail.time')}
                   value={
                     appointment.endsAt
@@ -629,6 +632,27 @@ export function AppointmentDetailScreen({
                   totalLabel={t('procedures.supplies.totalCost')}
                   totalValue={formatSupplyTotalCost(totalCost, locale)}
                   isDeduction={totalCost > 0}
+                  travel={
+                    travelCost > 0
+                      ? {
+                          label: t('procedures.supplies.travelCost'),
+                          value: formatSupplyTotalCost(travelCost, locale),
+                          isDeduction: true,
+                        }
+                      : undefined
+                  }
+                  costsTotal={
+                    totalCost > 0 && travelCost > 0
+                      ? {
+                          label: t('procedures.supplies.costsTotal'),
+                          value: formatSupplyTotalCost(
+                            totalCost + travelCost,
+                            locale,
+                          ),
+                          isDeduction: true,
+                        }
+                      : undefined
+                  }
                   grossMargin={
                     margin === null
                       ? undefined
@@ -671,6 +695,10 @@ export function AppointmentDetailScreen({
         submitErrorText={t('procedures.form.submitError')}
         texts={formTexts}
         client={form.client}
+        showLocationHint={form.showLocationHint}
+        step={form.step}
+        onNext={form.nextStep}
+        onBack={form.previousStep}
         onChangeText={form.setTextField}
         onChangeClientTerm={form.client.onTermChange}
         onSelectClient={form.client.onSelect}

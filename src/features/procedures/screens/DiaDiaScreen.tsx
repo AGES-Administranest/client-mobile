@@ -4,6 +4,11 @@ import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { ConflictAlertSheet } from 'features/appointments';
 import { useAuth } from 'features/auth';
 import {
+  NewClinicSheet,
+  useClientRegistration,
+  useNewClinicSheetTexts,
+} from 'features/clinics';
+import {
   formatSupplyPrice,
   SupplySelectorSheet,
   useSupplySelector,
@@ -30,6 +35,10 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     submitting,
     submitFailed,
     client,
+    showLocationHint,
+    step,
+    nextStep,
+    previousStep,
     supplyPrompt,
     conflict,
     dismissConflict,
@@ -40,6 +49,8 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     finishSupplyPrompt,
   } = useProcedureForm(onClose, visible);
   const supplySelector = useSupplySelector();
+  const registration = useClientRegistration({ onCreated: client.onSelect });
+  const clinicSheet = useNewClinicSheetTexts(registration.form);
 
   function closeSupplySelector(): void {
     supplySelector.reset();
@@ -78,13 +89,22 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
       <ProcedureFormSheet
         // Um Modal sobre outro não abre no iOS: o formulário sai de cena
         // enquanto a pergunta ou o alerta de conflito estão abertos.
-        visible={visible && supplyPrompt === null && conflict === null}
+        visible={
+          visible &&
+          supplyPrompt === null &&
+          conflict === null &&
+          registration.isReviewShown
+        }
         values={values}
         submitting={submitting}
         submitFailed={submitFailed}
         submitErrorText={t('procedures.form.submitError')}
         texts={texts}
         client={client}
+        showLocationHint={showLocationHint}
+        step={step}
+        onNext={nextStep}
+        onBack={previousStep}
         onChangeText={setTextField}
         onChangeClientTerm={client.onTermChange}
         onSelectClient={client.onSelect}
@@ -93,6 +113,26 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         onSubmit={submit}
         // O ItemModal passa o evento do toque; fechar sem criar não leva dado.
         onClose={() => onClose()}
+        onClosed={registration.onReviewLeft}
+        onRegisterClient={() =>
+          registration.open({ name: client.term, taxId: '' })
+        }
+      />
+      <NewClinicSheet
+        visible={visible && registration.isRegisterShown}
+        draft={registration.form.draft}
+        fieldErrors={clinicSheet.fieldErrors}
+        failureMessage={clinicSheet.failureMessage}
+        isSaving={registration.form.isSaving}
+        title={t('clinics.newClinic.title')}
+        fieldTexts={clinicSheet.fieldTexts}
+        confirmLabel={clinicSheet.confirmLabel}
+        savingLabel={clinicSheet.savingLabel}
+        closeLabel={clinicSheet.closeLabel}
+        onChangeField={registration.form.setField}
+        onSubmit={registration.submit}
+        onClose={registration.cancel}
+        onClosed={registration.onRegisterLeft}
       />
       <ConflictAlertSheet
         visible={visible && conflictAlert.visible}

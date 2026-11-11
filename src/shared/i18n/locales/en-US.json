@@ -287,7 +287,7 @@
       "confirm": "Add to stock",
       "confirmUnavailable": "Adding to stock comes in the next step. The review stays saved as a draft.",
       "leaveTitle": "Leave the review?",
-      "leaveMessage": "Some changes were not saved and will be lost.",
+      "leaveMessage": "What you filled in is not kept and will be lost.",
       "leaveConfirm": "Leave without saving",
       "leaveCancel": "Keep reviewing",
       "line": {
@@ -474,6 +474,22 @@
         "other": {
           "one": "un",
           "other": "un"
+        },
+        "liter": {
+          "one": "L",
+          "other": "L"
+        },
+        "microgram": {
+          "one": "µg",
+          "other": "µg"
+        },
+        "mgPerMl": {
+          "one": "mg/mL",
+          "other": "mg/mL"
+        },
+        "mcgPerMl": {
+          "one": "µg/mL",
+          "other": "µg/mL"
         }
       },
       "quantity": "{{quantity}} {{unit}}",
@@ -613,9 +629,47 @@
       "edit": "Edit clinic",
       "editTitle": "Edit",
       "confirm": "Confirm",
-      "delete": "Delete"
+      "delete": "Delete",
+      "tabs": {
+        "history": "History",
+        "data": "Details"
+      }
     },
-    "loadFailure": "Could not load the clinics."
+    "loadFailure": "Could not load the clinics.",
+    "history": {
+      "period": "Period",
+      "periodRange": "{{from}} – {{to}}",
+      "choosePeriod": "Choose period",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "currentMonth": "This month",
+      "apply": "Apply",
+      "billed": "Billed",
+      "appointments": "Appointments",
+      "trips": "Travel",
+      "tripCountZero": "No trips in the period",
+      "tripCountOne": "1 trip in the period",
+      "tripCountOther": "{{count}} trips in the period",
+      "listTitle": "Appointments in the period",
+      "noProcedure": "Procedure not provided",
+      "noAmount": "No amount",
+      "appointmentDetail": "{{patient}} · {{date}}",
+      "showMoreOne": "Show 1 more appointment",
+      "showMoreOther": "Show {{count}} more appointments",
+      "showMoreUncounted": "Show more appointments",
+      "showMoreFailed": "Could not load more appointments. Try again",
+      "loading": "Loading the history",
+      "loadingMore": "Loading more appointments…",
+      "empty": {
+        "title": "No appointments in this period",
+        "message": "Appointments linked to this clinic show up here. Try another period."
+      },
+      "failures": {
+        "network": "Could not load the history. Check your connection and try again.",
+        "session": "Your session has expired. Sign out and sign in again.",
+        "unknown": "Could not load the history. Please try again."
+      }
+    }
   },
   "financialEntries": {
     "newEntry": "New entry",
@@ -662,8 +716,7 @@
       "scope": {
         "label": "Scope",
         "professional": "Professional",
-        "personal": "Personal",
-        "hint": "Suggested by the category. You can change it."
+        "personal": "Personal"
       },
       "save": "Save",
       "saving": "Saving…",
@@ -806,6 +859,10 @@
     "typeSupply": "Type supply"
   },
   "itemModal": {
+    "next": "Next",
+    "back": "Back",
+    "step1": "Step 1 of 2",
+    "step2": "Step 2 of 2",
     "title": "New supply or medication",
     "categoryLabel": "CATEGORY",
     "nameLabel": "NAME",
@@ -855,9 +912,14 @@
         "past": "The expiration date cannot be in the past"
       },
       "supplierName": {
-        "tooShort": "The supplier name needs at least 2 characters."
+        "tooShort": "The supplier name needs at least 2 characters.",
+        "pickOrAdd": "Pick a supplier from the list or add a new one"
       }
-    }
+    },
+    "supplierLoading": "Loading suppliers…",
+    "supplierEmpty": "No supplier found",
+    "supplierError": "Could not load the suppliers",
+    "supplierAdd": "Add supplier"
   },
   "auth": {
     "back": "Back",
@@ -930,7 +992,8 @@
     },
     "account": {
       "menu": "Account",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "profile": "My profile"
     },
     "forgot": {
       "link": "Forgot my password",
@@ -986,8 +1049,74 @@
     "segments": {
       "clinics": "Clinics",
       "suppliers": "Suppliers"
+    }
+  },
+  "suppliers": {
+    "empty": "No suppliers registered.",
+    "loadFailure": "Could not load the suppliers.",
+    "countOne": "{{count}} supplier",
+    "countOther": "{{count}} suppliers",
+    "add": "Add supplier",
+    "newTitle": "New supplier",
+    "confirm": "Confirm",
+    "close": "Close",
+    "fields": {
+      "name": {
+        "label": "Supplier name",
+        "placeholder": "Enter the supplier name"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Enter the supplier email"
+      },
+      "taxId": {
+        "label": "CNPJ",
+        "placeholder": "Enter the supplier CNPJ"
+      },
+      "phone": {
+        "label": "Phone",
+        "placeholder": "(00) 00000-0000"
+      }
     },
-    "suppliersEmpty": "Suppliers are not available here yet."
+    "errors": {
+      "name": {
+        "required": "Enter the supplier name.",
+        "tooShort": "The name needs at least 2 characters."
+      },
+      "email": {
+        "invalid": "Enter a valid email."
+      },
+      "taxId": {
+        "required": "Enter the supplier CNPJ.",
+        "invalid": "Enter a CNPJ that is valid.",
+        "duplicated": "A supplier with this CNPJ already exists."
+      },
+      "phone": {
+        "invalid": "Enter the phone number with area code."
+      }
+    },
+    "statusConfirm": {
+      "deactivate": {
+        "title": "Deactivate supplier?",
+        "message": "The supplier leaves the active ones and moves to the end of the list. Records linked to it are kept.",
+        "confirm": "Deactivate"
+      },
+      "activate": {
+        "title": "Activate supplier?",
+        "message": "The supplier goes back to the active ones.",
+        "confirm": "Activate"
+      },
+      "cancel": "Cancel"
+    },
+    "detail": {
+      "title": "Supplier",
+      "editTitle": "Edit",
+      "edit": "Edit supplier",
+      "delete": "Delete",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
   },
   "procedures": {
     "newProcedure": "New appointment",
@@ -995,8 +1124,15 @@
       "title": "New appointment",
       "confirm": "Confirm",
       "close": "Close",
-      "location": "Location",
-      "submitError": "Couldn't save. Please try again."
+      "client": "Client",
+      "location": "Appointment location",
+      "locationHint": "Suggested from the client's address. You can change it.",
+      "submitError": "Couldn't save. Please try again.",
+      "registerClient": "Register new client",
+      "next": "Next",
+      "back": "Back",
+      "step1": "Step 1 of 2",
+      "step2": "Step 2 of 2"
     },
     "supplyPrompt": {
       "title": "Do you want to record the supplies used in this procedure?",
@@ -1019,7 +1155,8 @@
     "placeholders": {
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "location": "Clinic name",
+      "client": "Client name",
+      "location": "Appointment address",
       "notes": "Notes about the procedure",
       "number": "0",
       "time": "HH:MM",
@@ -1049,14 +1186,14 @@
       "INVALID_TIME": "Invalid time",
       "IN_THE_PAST": "Pick a future date and time",
       "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
-      "SELECT_CLIENT": "Pick a clinic from the list",
+      "SELECT_CLIENT": "Pick a client from the list",
       "NAME_TOO_LONG": "At most 160 characters",
       "TOO_LONG": "At most 2000 characters"
     },
     "clientSearch": {
       "loading": "Searching…",
       "error": "Couldn't search. Please try again.",
-      "empty": "No clinics found. Add one under Partners → Clinics."
+      "empty": "No clinic found."
     },
     "completion": {
       "action": "Complete procedure",
@@ -1084,7 +1221,9 @@
       "lineDetail": "{{quantity}} u. × {{unitCost}}",
       "remove": "Remove {{name}}",
       "totalCost": "Supplies total",
-      "grossMargin": "Gross margin"
+      "grossMargin": "Gross margin",
+      "travelCost": "Total travel",
+      "costsTotal": "Total costs"
     },
     "status": {
       "SCHEDULED": "Scheduled",
@@ -1207,7 +1346,7 @@
     "revenue": "REVENUE",
     "estimated": "estimated",
     "agenda": "SCHEDULE",
-    "addAttendance": "+ Add appointment",
+    "addAttendance": "Add appointment",
     "sectionTitle": "PROCEDURES FOR MONTH OR DAY",
     "emptyDay": "No appointments for this day.",
     "emptyDaySub": "Tap the button below to schedule an appointment.",
@@ -1411,6 +1550,147 @@
         },
         "explanationTitle": "How is the hourly rate calculated?",
         "explanation": "We add the fixed costs, the month's variable costs and the owner's draw, and apply the safety margin to that total. The result is divided by the month's productive hours: available hours per week × 52 weeks ÷ 12 months. The minimum is the same math without the margin."
+      }
+    },
+    "procedureEstimate": {
+      "title": "Estimate procedure value",
+      "subtitle": "Find out how much to charge for the procedure",
+      "back": "Back",
+      "optionalBadge": "Optional",
+      "duration": {
+        "title": "Procedure duration",
+        "supportText": "Enter the estimated time dedicated to the service",
+        "hours": "HOURS",
+        "minutes": "MINUTES",
+        "hoursPlaceholder": "0",
+        "minutesPlaceholder": "00"
+      },
+      "client": {
+        "title": "Service location",
+        "supportText": "Select the client or clinic to calculate travel cost",
+        "placeholder": "Select client or clinic...",
+        "helperText": "Can be left blank, without travel cost.",
+        "clear": "Clear client",
+        "tripEstimateLabel": "Estimated travel cost:",
+        "tripNotIncluded": "Travel not included: this client has no trips recorded yet.",
+        "loading": "Searching clients…",
+        "error": "Could not load clients.",
+        "empty": "No clients found."
+      },
+      "supplies": {
+        "title": "Expected supplies",
+        "supportText": "Add materials that will be used in the procedure",
+        "add": "+ Add supply",
+        "helperText": "No planned materials? The list can remain empty.",
+        "subtotalLabel": "Supplies subtotal",
+        "empty": "No supplies added",
+        "edit": "Edit quantity",
+        "remove": "Remove supply",
+        "units": "units"
+      },
+      "unconfigured": {
+        "title": "Configure your hourly rate",
+        "message": "To calculate the minimum value of your procedures, we first need to know your costs and define your hourly rate.",
+        "footnote": "This configuration will be used in all your procedure simulations.",
+        "action": "Configure hourly rate"
+      },
+      "result": {
+        "title": "Suggested minimum price",
+        "laborLabel": "Labor",
+        "tripLabel": "Travel",
+        "suppliesLabel": "Supplies",
+        "totalLabel": "Total minimum suggested",
+        "infoText": "The value is calculated based on your hourly rate, travel, and expected supplies",
+        "idle": "Enter the estimated duration of the procedure to see the minimum price suggestion.",
+        "loading": "Calculating suggested value…",
+        "error": "Could not calculate the suggested value.",
+        "retry": "Try again",
+        "breakEven": "Break-even price"
+      },
+      "actions": {
+        "save": "Save simulation",
+        "savedSuccess": "Simulation saved successfully!",
+        "clear": "Clear fields"
+      },
+      "editQuantity": {
+        "title": "Edit quantity",
+        "confirm": "Confirm",
+        "cancel": "Cancel"
+      },
+      "entryButton": "Estimate procedure value"
+    },
+    "history": {
+      "title": "Hourly rate history",
+      "subtitle": "Follow how your minimum hourly rate changed month by month",
+      "openShortcut": "View history",
+      "loading": "Loading the hourly rate history",
+      "loadFailure": "Could not load the hourly rate history.",
+      "empty": {
+        "title": "No calculations yet",
+        "message": "Your hourly rate for each month will show up here after the first calculation."
+      },
+      "period": {
+        "previousButton": "Older months",
+        "nextButton": "Newer months",
+        "single": "{{month}} {{year}}",
+        "sameYear": "{{from}} – {{to}} {{year}}",
+        "crossYear": "{{from}} {{fromYear}} – {{to}} {{toYear}}",
+        "latest": "Last {{count}} months",
+        "earlier": "Previous {{count}} months"
+      },
+      "current": {
+        "title": "Current hourly rate",
+        "variationChip": "{{variation}} vs {{month}}",
+        "firstMonth": "First month calculated: {{month}}.",
+        "sinceStart": "Since the history began ({{month}}): **{{difference}}** ({{percent}})."
+      },
+      "chart": {
+        "title": "Trend",
+        "placeholderTitle": "The chart shows up next month",
+        "placeholderMessage": "We need at least {{count}} calculated months to show how your hourly rate evolves.",
+        "titleWithCount": "Trend · {{count}} months",
+        "periodChange": "{{change}} in the period",
+        "legendRate": "Hourly rate",
+        "legendMinimum": "Minimum (no margin)",
+        "legendRateEqualsMinimum": "Hourly rate (equal to the minimum, no margin)",
+        "tooltipEqualsMinimum": "Equal to the minimum (no margin)",
+        "tooltipValue": "{{value}}/h",
+        "tooltipChange": "{{change}} vs {{month}}",
+        "pointLabel": "{{month}}, {{value}} per hour, minimum {{minimum}}",
+        "pointLabelWithChange": "{{month}}, {{value}} per hour, minimum {{minimum}}, {{change}} vs {{previous}}",
+        "summary": {
+          "average": "Average",
+          "highest": "Highest",
+          "lowest": "Lowest",
+          "averageRange": "{{from}} – {{to}}",
+          "averageCount": "{{count}} months"
+        }
+      },
+      "months": {
+        "title": "Monthly record",
+        "currentChip": "Current month",
+        "oldest": "start of history",
+        "detail": "{{hours}} productive h · min. {{minimum}}",
+        "rowLabel": "{{month}}, {{value}}, {{hours}} productive hours, minimum {{minimum}}",
+        "viewAll": "View all months ({{count}})"
+      },
+      "notes": {
+        "underWindow": "With fewer than {{count}} months, the chart shows every calculated month. New months are added here when the month closes.",
+        "overWindow": "The chart shows up to {{count}} months at a time. Use the arrows above to see earlier periods."
+      },
+      "all": {
+        "title": "All months",
+        "subtitle": "{{count}} months calculated since {{month}}",
+        "note": "Tap a month to see the values of that month.",
+        "sinceStartTitle": "Since the history began",
+        "sinceStartText": "From {{from}} in {{fromMonth}} to {{to}} in {{toMonth}}.",
+        "monthCount": {
+          "one": "{{count}} month",
+          "other": "{{count}} months"
+        }
+      },
+      "detail": {
+        "monthLabel": "Values for {{month}}/{{year}}"
       }
     }
   },
@@ -1719,6 +1999,10 @@
       "delete": "Delete trip"
     },
     "form": {
+      "next": "Next",
+      "back": "Back",
+      "step1": "Step 1 of 2",
+      "step2": "Step 2 of 2",
       "newTitle": "New trip",
       "editTitle": "Edit trip",
       "close": "Close",
@@ -1743,11 +2027,11 @@
       "previewPickVehicle": "Select a vehicle to calculate",
       "previewInformed": "Amount entered",
       "previewInformCost": "Enter the amount paid",
-      "client": "CLINIC (OPTIONAL)",
-      "clientPlaceholder": "Select the clinic",
-      "clientLoading": "Searching clinics...",
-      "clientEmpty": "No clinic found",
-      "clientError": "Unable to search clinics",
+      "client": "CLIENT (OPTIONAL)",
+      "clientPlaceholder": "Select the client",
+      "clientLoading": "Searching clients...",
+      "clientEmpty": "No client found",
+      "clientError": "Unable to search clients",
       "save": "Save",
       "saving": "Saving...",
       "delete": "Delete",
@@ -1784,31 +2068,13 @@
     "loadFailed": "Could not load the trips."
   },
   "invoices": {
-    "trigger": "Invoices",
     "title": "Invoices",
     "back": "Back",
-    "filters": {
-      "searchPlaceholder": "Name, CNPJ or invoice number",
-      "period": "Period",
-      "periodRange": "{{from}} to {{to}}",
-      "periodSingle": "{{day}}",
-      "periodFrom": "From {{from}}",
-      "clear": "Clear",
-      "previousMonth": "Previous month",
-      "nextMonth": "Next month",
-      "invalidRange": "The start date cannot be after the end date."
-    },
     "loading": "Loading invoices...",
     "loadingMore": "Loading more invoices",
     "loadMoreError": "Could not load more invoices.",
     "error": "Could not load the invoices.",
     "empty": "No invoices registered.",
-    "emptyFiltered": "No invoices found for the filter.",
-    "card": {
-      "title": "Invoice {{number}}",
-      "issuer": "Issuer: {{name}}",
-      "taker": "Customer: {{name}}"
-    },
     "status": {
       "SYNCED": "Synced",
       "NOT_SYNCED": "Not synced",
@@ -1827,11 +2093,64 @@
       "takerCnpj": "Customer CNPJ",
       "value": "Amount",
       "issuedAt": "Issue date",
-      "status": "Status"
-    }
+      "status": "Status",
+      "download": "Download invoice",
+      "downloading": "Downloading the invoice...",
+      "downloaded": "Invoice downloaded.",
+      "downloadFailed": "Couldn't download the invoice. Try again."
+    },
+    "countSingular": "{{count}} invoice",
+    "countPlural": "{{count}} invoices",
+    "addInvoice": "Add invoice"
   },
   "reports": {
-    "title": "Reports",
+    "seeAll": "See all",
+    "addInvoice": "Add invoice",
+    "generate": {
+      "title": "Generate new report",
+      "categoryPlaceholder": "Select category",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "selectDate": "Select the date",
+      "button": "Generate report",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "categories": {
+      "financial": "Financial",
+      "appointments": "Appointments",
+      "inventory": "Inventory"
+    },
+    "history": {
+      "title": "Report history",
+      "empty": "No report generated yet."
+    },
     "openInvoices": "Open invoices"
+  },
+  "profile": {
+    "title": "Profile",
+    "back": "Back",
+    "notInformed": "Not informed",
+    "edit": "Edit profile",
+    "ageValue": "{{age}} years old",
+    "fields": {
+      "name": "Name",
+      "crmv": "CRMV",
+      "email": "Email",
+      "age": "Age",
+      "sex": "Sex",
+      "city": "City",
+      "state": "State"
+    },
+    "sex": {
+      "FEMALE": "Female",
+      "MALE": "Male",
+      "OTHER": "Other",
+      "NOT_INFORMED": "Prefer not to say"
+    },
+    "crmvNotice": "Your CRMV is required to issue reports with professional identification.",
+    "staleNotice": "Showing the last saved data. It may be out of date.",
+    "loadError": "The profile could not be loaded.",
+    "sessionExpired": "Your session has expired. Sign out and sign in again."
   }
 }

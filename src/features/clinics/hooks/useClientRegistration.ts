@@ -1,21 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
-import { useNewClinicForm } from 'features/clinics';
-
-import type { NewClientPrefill } from '../domain/initialClient';
+import { useNewClinicForm } from './useNewClinicForm';
 
 type Stage = 'review' | 'register';
 
-type CreatedClient = { id: string; name: string };
+type CreatedClient = {
+  id: string;
+  name: string;
+  addressLine?: string | null;
+  city?: string | null;
+  state?: string | null;
+};
+
+type ClientPrefill = { name: string; taxId: string };
+
+const EMPTY_PREFILL: ClientPrefill = { name: '', taxId: '' };
 
 type UseClientRegistrationOptions = {
-  prefill: NewClientPrefill;
+  prefill?: ClientPrefill;
   onCreated: (client: CreatedClient) => void;
 };
 
 /**
- * Swaps the review and the taker registration without ever stacking two
+ * Swaps a screen and the clinic registration without ever stacking two
  * modals. `shown` is what is on screen: it goes through 'none' in between, and
  * the next one only opens once the previous one reports it has left. iOS drops
  * a Modal presented while another is still leaving, without an error.
@@ -24,7 +32,8 @@ export type ClientRegistrationState = {
   form: ReturnType<typeof useNewClinicForm>;
   isReviewShown: boolean;
   isRegisterShown: boolean;
-  open: () => void;
+  /** Without `prefill`, the one the hook was created with. */
+  open: (prefill?: ClientPrefill) => void;
   cancel: () => void;
   submit: () => Promise<void>;
   onReviewLeft: () => void;
@@ -32,7 +41,7 @@ export type ClientRegistrationState = {
 };
 
 export function useClientRegistration({
-  prefill,
+  prefill = EMPTY_PREFILL,
   onCreated,
 }: UseClientRegistrationOptions): ClientRegistrationState {
   const form = useNewClinicForm();
@@ -60,10 +69,14 @@ export function useClientRegistration({
     setShown('none');
   }, []);
 
-  const open = useCallback(() => {
-    form.reset({ name: prefill.name, cnpj: prefill.taxId });
-    goTo('register');
-  }, [form, goTo, prefill]);
+  const open = useCallback(
+    (override?: ClientPrefill) => {
+      const { name, taxId } = override ?? prefill;
+      form.reset({ name, cnpj: taxId });
+      goTo('register');
+    },
+    [form, goTo, prefill],
+  );
 
   const cancel = useCallback(() => goTo('review'), [goTo]);
 

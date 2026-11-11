@@ -1,4 +1,6 @@
 import {
+  ArrowLeft,
+  ArrowRight,
   Calendar,
   Car,
   CarTaxiFront,
@@ -21,7 +23,7 @@ import {
   type ClientOption,
   type ClientSearchStatus,
 } from 'features/clients';
-import { formatDateInput } from 'shared/utils/inputMasks';
+import { decimalOnly, formatDateInput } from 'shared/utils/inputMasks';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type { TripMode } from '../domain/trip.types';
@@ -30,6 +32,7 @@ import type {
   TripFormErrors,
   TripFormValues,
 } from '../domain/validateTripForm';
+import type { TripFormStep } from '../hooks/useTripForm';
 
 const FIELD_LABEL =
   'pb-1.5 text-xs font-semibold uppercase leading-[18px] tracking-[0.48px] text-label-primary';
@@ -70,6 +73,10 @@ export type TripFormTexts = {
   client: string;
   clientPlaceholder: string;
   clientMessages: ClientAutocompleteMessages;
+  next: string;
+  back: string;
+  /** One per step, e.g. "Passo 1 de 2". */
+  stepLabels: [string, string];
   save: string;
   saving: string;
   delete: string;
@@ -86,6 +93,9 @@ export type TripFormSheetPresentationProps = {
   onClose: () => void;
   texts: TripFormTexts;
   isEditing: boolean;
+  step: TripFormStep;
+  onNext: () => void;
+  onBack: () => void;
   values: TripFormValues;
   errors: TripFormErrors;
   mode: TripMode;
@@ -149,6 +159,9 @@ export function TripFormSheetPresentation({
   onClose,
   texts,
   isEditing,
+  step,
+  onNext,
+  onBack,
   values,
   errors,
   mode,
@@ -210,271 +223,320 @@ export function TripFormSheetPresentation({
       title={texts.title}
       closeLabel={texts.close}
       onClose={onClose}
+      header={
+        <View className="gap-0.5">
+          <Text
+            accessibilityRole="header"
+            className="text-base font-bold text-label-primary"
+          >
+            {texts.title}
+          </Text>
+          <Text className="text-xs font-semibold text-label-tertiary">
+            {texts.stepLabels[step]}
+          </Text>
+        </View>
+      }
       footer={
         <View className="gap-2.5">
-          <Button
-            shape="pill"
-            icon={Check}
-            accessibilityLabel={texts.save}
-            className="h-[49px] w-full"
-            disabled={submitting || hasFieldErrors}
-            onPress={onSubmit}
-          >
-            <Text>{submitting ? texts.saving : texts.save}</Text>
-          </Button>
-
-          {isEditing && onDelete ? (
+          {step === 0 ? (
             <Button
               shape="pill"
-              variant="secondary"
-              icon={Trash2}
-              accessibilityLabel={texts.delete}
-              className="h-[49px] w-full bg-button-secondary"
-              disabled={submitting}
-              onPress={onDelete}
+              icon={ArrowRight}
+              accessibilityLabel={texts.next}
+              className="h-[49px] w-full"
+              onPress={onNext}
             >
-              <Text className="text-label-secondary">{texts.delete}</Text>
+              <Text>{texts.next}</Text>
             </Button>
-          ) : null}
+          ) : (
+            <>
+              <Button
+                shape="pill"
+                icon={Check}
+                accessibilityLabel={texts.save}
+                className="h-[49px] w-full"
+                disabled={submitting || hasFieldErrors}
+                onPress={onSubmit}
+              >
+                <Text>{submitting ? texts.saving : texts.save}</Text>
+              </Button>
+
+              {isEditing && onDelete ? (
+                <Button
+                  shape="pill"
+                  variant="secondary"
+                  icon={Trash2}
+                  accessibilityLabel={texts.delete}
+                  className="h-[49px] w-full bg-button-secondary"
+                  disabled={submitting}
+                  onPress={onDelete}
+                >
+                  <Text className="text-label-secondary">{texts.delete}</Text>
+                </Button>
+              ) : null}
+
+              <Button
+                shape="pill"
+                variant="secondary"
+                icon={ArrowLeft}
+                accessibilityLabel={texts.back}
+                className="h-[49px] w-full bg-button-secondary"
+                disabled={submitting}
+                onPress={onBack}
+              >
+                <Text className="text-label-secondary">{texts.back}</Text>
+              </Button>
+            </>
+          )}
         </View>
       }
     >
-      <View>
-        <Text className="text-xs font-semibold uppercase leading-[18px] tracking-[0.48px] text-label-primary">
-          {texts.modeLabel}
-        </Text>
-        <View className="flex-row gap-2 pt-2">
-          <ModeButton
-            label={texts.ownVehicle}
-            icon={Car}
-            selected={mode === 'OWN_VEHICLE'}
-            onPress={() => onModeChange('OWN_VEHICLE')}
-          />
-          <ModeButton
-            label={texts.ride}
-            icon={CarTaxiFront}
-            selected={mode === 'RIDE'}
-            onPress={() => onModeChange('RIDE')}
-          />
-        </View>
-      </View>
-
-      <View>
-        <Text className={FIELD_LABEL}>{texts.origin}</Text>
-        <TextInput
-          accessibilityLabel={texts.origin}
-          placeholder={texts.originPlaceholder}
-          placeholderTextColor={LabelPlaceholder}
-          value={values.origin}
-          maxLength={200}
-          onChangeText={v => onFieldValueChange('origin', v)}
-          className={cn(FIELD_INPUT, borderOf(errors.origin))}
-        />
-        {errors.origin ? (
-          <Text className={FIELD_ERROR}>{texts.errors.origin}</Text>
-        ) : null}
-      </View>
-
-      <View>
-        <Text className={FIELD_LABEL}>{texts.destination}</Text>
-        <TextInput
-          accessibilityLabel={texts.destination}
-          placeholder={texts.destinationPlaceholder}
-          placeholderTextColor={LabelPlaceholder}
-          value={values.destination}
-          maxLength={200}
-          onChangeText={v => onFieldValueChange('destination', v)}
-          className={cn(FIELD_INPUT, borderOf(errors.destination))}
-        />
-        {errors.destination ? (
-          <Text className={FIELD_ERROR}>{texts.errors.destination}</Text>
-        ) : null}
-      </View>
-
-      {mode === 'OWN_VEHICLE' ? (
-        <View>
-          <Text className={FIELD_LABEL}>{texts.vehicle}</Text>
-          {isLoadingVehicles ? (
-            <ActivityIndicator size="small" />
-          ) : vehicleOptions.length === 0 ? (
-            <View
-              accessibilityRole="text"
-              className="h-9 flex-row items-center rounded-lg border border-border-primary bg-white pl-3 pr-2"
-            >
-              <Text
-                numberOfLines={1}
-                className="flex-1 text-sm text-label-placeholder"
-              >
-                {texts.noVehicles}
-              </Text>
-              <Icon
-                as={ChevronDown}
-                size={16}
-                className="ml-2 text-label-tertiary"
+      {step === 0 ? (
+        <>
+          <View>
+            <Text className="text-xs font-semibold uppercase leading-[18px] tracking-[0.48px] text-label-primary">
+              {texts.modeLabel}
+            </Text>
+            <View className="flex-row gap-2 pt-2">
+              <ModeButton
+                label={texts.ownVehicle}
+                icon={Car}
+                selected={mode === 'OWN_VEHICLE'}
+                onPress={() => onModeChange('OWN_VEHICLE')}
               />
+              <ModeButton
+                label={texts.ride}
+                icon={CarTaxiFront}
+                selected={mode === 'RIDE'}
+                onPress={() => onModeChange('RIDE')}
+              />
+            </View>
+          </View>
+
+          <View>
+            <Text className={FIELD_LABEL}>{texts.origin}</Text>
+            <TextInput
+              accessibilityLabel={texts.origin}
+              placeholder={texts.originPlaceholder}
+              placeholderTextColor={LabelPlaceholder}
+              value={values.origin}
+              maxLength={200}
+              onChangeText={v => onFieldValueChange('origin', v)}
+              className={cn(FIELD_INPUT, borderOf(errors.origin))}
+            />
+            {errors.origin ? (
+              <Text className={FIELD_ERROR}>{texts.errors.origin}</Text>
+            ) : null}
+          </View>
+
+          <View>
+            <Text className={FIELD_LABEL}>{texts.destination}</Text>
+            <TextInput
+              accessibilityLabel={texts.destination}
+              placeholder={texts.destinationPlaceholder}
+              placeholderTextColor={LabelPlaceholder}
+              value={values.destination}
+              maxLength={200}
+              onChangeText={v => onFieldValueChange('destination', v)}
+              className={cn(FIELD_INPUT, borderOf(errors.destination))}
+            />
+            {errors.destination ? (
+              <Text className={FIELD_ERROR}>{texts.errors.destination}</Text>
+            ) : null}
+          </View>
+
+          <ClientAutocomplete
+            compact
+            label={texts.client}
+            placeholder={texts.clientPlaceholder}
+            trailingIcon={ChevronDown}
+            value={clientSearchTerm}
+            status={clientSearchStatus}
+            options={clientSearchOptions}
+            messages={texts.clientMessages}
+            onChangeText={onClientSearchTermChange}
+            onSelect={onSelectClient}
+          />
+        </>
+      ) : (
+        <>
+          {mode === 'OWN_VEHICLE' ? (
+            <View>
+              <Text className={FIELD_LABEL}>{texts.vehicle}</Text>
+              {isLoadingVehicles ? (
+                <ActivityIndicator size="small" />
+              ) : vehicleOptions.length === 0 ? (
+                <View
+                  accessibilityRole="text"
+                  className="h-9 flex-row items-center rounded-lg border border-border-primary bg-white pl-3 pr-2"
+                >
+                  <Text
+                    numberOfLines={1}
+                    className="flex-1 text-sm text-label-placeholder"
+                  >
+                    {texts.noVehicles}
+                  </Text>
+                  <Icon
+                    as={ChevronDown}
+                    size={16}
+                    className="ml-2 text-label-tertiary"
+                  />
+                </View>
+              ) : (
+                <View>
+                  <Pressable
+                    onPress={() => setVehicleDropdownOpen(open => !open)}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      selectedVehicleLabel ?? texts.vehiclePlaceholder
+                    }
+                    className={cn(
+                      'h-9 flex-row items-center rounded-lg border bg-white pl-3 pr-2',
+                      borderOf(errors.vehicleId),
+                    )}
+                  >
+                    <Text
+                      numberOfLines={1}
+                      className={cn(
+                        'flex-1 text-sm',
+                        selectedVehicleLabel
+                          ? 'text-label-primary'
+                          : 'text-label-placeholder',
+                      )}
+                    >
+                      {selectedVehicleLabel ?? texts.vehiclePlaceholder}
+                    </Text>
+                    <Icon
+                      as={ChevronDown}
+                      size={16}
+                      className="ml-2 text-label-tertiary"
+                    />
+                  </Pressable>
+
+                  {vehicleDropdownOpen ? (
+                    <View className="mt-1 overflow-hidden rounded-lg border border-border-primary bg-white">
+                      {vehicleOptions.map((option, index) => (
+                        <Pressable
+                          key={option.id}
+                          accessibilityRole="button"
+                          onPress={() => {
+                            onFieldValueChange('vehicleId', option.id);
+                            setVehicleDropdownOpen(false);
+                          }}
+                          className={
+                            index === 0
+                              ? 'px-3 py-2.5'
+                              : 'border-t border-border-primary px-3 py-2.5'
+                          }
+                        >
+                          <Text className="text-sm text-label-primary">
+                            {option.label}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+              )}
+              {errors.vehicleId ? (
+                <Text className={FIELD_ERROR}>{texts.errors.vehicleId}</Text>
+              ) : null}
             </View>
           ) : (
             <View>
-              <Pressable
-                onPress={() => setVehicleDropdownOpen(open => !open)}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  selectedVehicleLabel ?? texts.vehiclePlaceholder
-                }
-                className={cn(
-                  'h-9 flex-row items-center rounded-lg border bg-white pl-3 pr-2',
-                  borderOf(errors.vehicleId),
-                )}
-              >
-                <Text
-                  numberOfLines={1}
-                  className={cn(
-                    'flex-1 text-sm',
-                    selectedVehicleLabel
-                      ? 'text-label-primary'
-                      : 'text-label-placeholder',
-                  )}
-                >
-                  {selectedVehicleLabel ?? texts.vehiclePlaceholder}
-                </Text>
-                <Icon
-                  as={ChevronDown}
-                  size={16}
-                  className="ml-2 text-label-tertiary"
-                />
-              </Pressable>
-
-              {vehicleDropdownOpen ? (
-                <View className="mt-1 overflow-hidden rounded-lg border border-border-primary bg-white">
-                  {vehicleOptions.map((option, index) => (
-                    <Pressable
-                      key={option.id}
-                      accessibilityRole="button"
-                      onPress={() => {
-                        onFieldValueChange('vehicleId', option.id);
-                        setVehicleDropdownOpen(false);
-                      }}
-                      className={
-                        index === 0
-                          ? 'px-3 py-2.5'
-                          : 'border-t border-border-primary px-3 py-2.5'
-                      }
-                    >
-                      <Text className="text-sm text-label-primary">
-                        {option.label}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
+              <Text className={FIELD_LABEL}>{texts.cost}</Text>
+              <TextInput
+                accessibilityLabel={texts.cost}
+                placeholder={texts.costPlaceholder}
+                placeholderTextColor={LabelPlaceholder}
+                value={values.cost}
+                keyboardType="decimal-pad"
+                onChangeText={v => onFieldValueChange('cost', v)}
+                className={cn(FIELD_INPUT, borderOf(errors.cost))}
+              />
+              {errors.cost ? (
+                <Text className={FIELD_ERROR}>{texts.errors.cost}</Text>
               ) : null}
             </View>
           )}
-          {errors.vehicleId ? (
-            <Text className={FIELD_ERROR}>{texts.errors.vehicleId}</Text>
-          ) : null}
-        </View>
-      ) : (
-        <View>
-          <Text className={FIELD_LABEL}>{texts.cost}</Text>
-          <TextInput
-            accessibilityLabel={texts.cost}
-            placeholder={texts.costPlaceholder}
-            placeholderTextColor={LabelPlaceholder}
-            value={values.cost}
-            keyboardType="decimal-pad"
-            onChangeText={v => onFieldValueChange('cost', v)}
-            className={cn(FIELD_INPUT, borderOf(errors.cost))}
-          />
-          {errors.cost ? (
-            <Text className={FIELD_ERROR}>{texts.errors.cost}</Text>
-          ) : null}
-        </View>
-      )}
 
-      <View>
-        <View className="flex-row gap-2.5">
-          <View className="min-w-0 flex-1">
-            <Text numberOfLines={1} className={FIELD_LABEL}>
-              {texts.distance}
-            </Text>
-            <TextInput
-              accessibilityLabel={texts.distance}
-              placeholder={texts.distancePlaceholder}
-              placeholderTextColor={LabelPlaceholder}
-              value={values.distanceKm}
-              keyboardType="decimal-pad"
-              onChangeText={v => onFieldValueChange('distanceKm', v)}
-              className={cn(FIELD_INPUT, borderOf(errors.distanceKm))}
-            />
+          <View>
+            <View className="flex-row gap-2.5">
+              <View className="min-w-0 flex-1">
+                <Text numberOfLines={1} className={FIELD_LABEL}>
+                  {texts.distance}
+                </Text>
+                <TextInput
+                  accessibilityLabel={texts.distance}
+                  placeholder={texts.distancePlaceholder}
+                  placeholderTextColor={LabelPlaceholder}
+                  value={values.distanceKm}
+                  keyboardType="decimal-pad"
+                  onChangeText={v =>
+                    onFieldValueChange('distanceKm', decimalOnly(v))
+                  }
+                  className={cn(FIELD_INPUT, borderOf(errors.distanceKm))}
+                />
+              </View>
+
+              <View className="min-w-0 flex-1">
+                <Text numberOfLines={1} className={FIELD_LABEL}>
+                  {texts.date}
+                </Text>
+                <View
+                  className={cn(
+                    'h-[43px] flex-row items-center justify-between rounded-[10px] border bg-white px-3',
+                    borderOf(errors.occurredOn),
+                  )}
+                >
+                  <TextInput
+                    accessibilityLabel={texts.date}
+                    placeholder={texts.datePlaceholder}
+                    placeholderTextColor={LabelPlaceholder}
+                    value={displayDate}
+                    keyboardType="number-pad"
+                    maxLength={10}
+                    onChangeText={handleDateChange}
+                    className="min-w-0 flex-1 text-sm text-label-primary"
+                  />
+                  <Icon
+                    as={Calendar}
+                    size={16}
+                    className="ml-1 text-label-tertiary"
+                  />
+                </View>
+              </View>
+            </View>
+            {errors.distanceKm ? (
+              <Text className={FIELD_ERROR}>{texts.errors.distanceKm}</Text>
+            ) : null}
+            {errors.occurredOn ? (
+              <Text className={FIELD_ERROR}>{texts.errors.occurredOn}</Text>
+            ) : null}
           </View>
 
-          <View className="min-w-0 flex-1">
-            <Text numberOfLines={1} className={FIELD_LABEL}>
-              {texts.date}
-            </Text>
-            <View
+          <View className="flex-row items-center justify-between rounded-[10px] bg-details-primary px-3 py-[9px]">
+            <View className="flex-1 gap-px pr-2">
+              <Text className="text-xs font-medium text-label-primary">
+                {texts.previewTitle}
+              </Text>
+              <Text className="text-[11px] text-label-tertiary">
+                {previewSubtitle}
+              </Text>
+            </View>
+            <Text
               className={cn(
-                'h-[43px] flex-row items-center justify-between rounded-[10px] border bg-white px-3',
-                borderOf(errors.occurredOn),
+                'text-base font-bold',
+                texts.previewCost
+                  ? 'text-label-primary'
+                  : 'text-label-tertiary',
               )}
             >
-              <TextInput
-                accessibilityLabel={texts.date}
-                placeholder={texts.datePlaceholder}
-                placeholderTextColor={LabelPlaceholder}
-                value={displayDate}
-                keyboardType="number-pad"
-                maxLength={10}
-                onChangeText={handleDateChange}
-                className="min-w-0 flex-1 text-sm text-label-primary"
-              />
-              <Icon
-                as={Calendar}
-                size={16}
-                className="ml-1 text-label-tertiary"
-              />
-            </View>
+              {texts.previewCost ?? '—'}
+            </Text>
           </View>
-        </View>
-        {errors.distanceKm ? (
-          <Text className={FIELD_ERROR}>{texts.errors.distanceKm}</Text>
-        ) : null}
-        {errors.occurredOn ? (
-          <Text className={FIELD_ERROR}>{texts.errors.occurredOn}</Text>
-        ) : null}
-      </View>
-
-      <View className="flex-row items-center justify-between rounded-[10px] bg-details-primary px-3 py-[9px]">
-        <View className="flex-1 gap-px pr-2">
-          <Text className="text-xs font-medium text-label-primary">
-            {texts.previewTitle}
-          </Text>
-          <Text className="text-[11px] text-label-tertiary">
-            {previewSubtitle}
-          </Text>
-        </View>
-        <Text
-          className={cn(
-            'text-base font-bold',
-            texts.previewCost ? 'text-label-primary' : 'text-label-tertiary',
-          )}
-        >
-          {texts.previewCost ?? '—'}
-        </Text>
-      </View>
-
-      <ClientAutocomplete
-        compact
-        label={texts.client}
-        placeholder={texts.clientPlaceholder}
-        trailingIcon={ChevronDown}
-        value={clientSearchTerm}
-        status={clientSearchStatus}
-        options={clientSearchOptions}
-        messages={texts.clientMessages}
-        onChangeText={onClientSearchTermChange}
-        onSelect={onSelectClient}
-      />
+        </>
+      )}
 
       {errors.general ? (
         <Text className="text-sm text-alert-primary">
