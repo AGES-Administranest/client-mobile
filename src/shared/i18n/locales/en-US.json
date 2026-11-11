@@ -1552,6 +1552,73 @@
         "explanation": "We add the fixed costs, the month's variable costs and the owner's draw, and apply the safety margin to that total. The result is divided by the month's productive hours: available hours per week × 52 weeks ÷ 12 months. The minimum is the same math without the margin."
       }
     },
+    "procedureEstimate": {
+      "title": "Estimate procedure value",
+      "subtitle": "Find out how much to charge for the procedure",
+      "back": "Back",
+      "optionalBadge": "Optional",
+      "duration": {
+        "title": "Procedure duration",
+        "supportText": "Enter the estimated time dedicated to the service",
+        "hours": "HOURS",
+        "minutes": "MINUTES",
+        "hoursPlaceholder": "0",
+        "minutesPlaceholder": "00"
+      },
+      "client": {
+        "title": "Service location",
+        "supportText": "Select the client or clinic to calculate travel cost",
+        "placeholder": "Select client or clinic...",
+        "helperText": "Can be left blank, without travel cost.",
+        "clear": "Clear client",
+        "tripEstimateLabel": "Estimated travel cost:",
+        "tripNotIncluded": "Travel not included: this client has no trips recorded yet.",
+        "loading": "Searching clients…",
+        "error": "Could not load clients.",
+        "empty": "No clients found."
+      },
+      "supplies": {
+        "title": "Expected supplies",
+        "supportText": "Add materials that will be used in the procedure",
+        "add": "+ Add supply",
+        "helperText": "No planned materials? The list can remain empty.",
+        "subtotalLabel": "Supplies subtotal",
+        "empty": "No supplies added",
+        "edit": "Edit quantity",
+        "remove": "Remove supply",
+        "units": "units"
+      },
+      "unconfigured": {
+        "title": "Configure your hourly rate",
+        "message": "To calculate the minimum value of your procedures, we first need to know your costs and define your hourly rate.",
+        "footnote": "This configuration will be used in all your procedure simulations.",
+        "action": "Configure hourly rate"
+      },
+      "result": {
+        "title": "Suggested minimum price",
+        "laborLabel": "Labor",
+        "tripLabel": "Travel",
+        "suppliesLabel": "Supplies",
+        "totalLabel": "Total minimum suggested",
+        "infoText": "The value is calculated based on your hourly rate, travel, and expected supplies",
+        "idle": "Enter the estimated duration of the procedure to see the minimum price suggestion.",
+        "loading": "Calculating suggested value…",
+        "error": "Could not calculate the suggested value.",
+        "retry": "Try again",
+        "breakEven": "Break-even price"
+      },
+      "actions": {
+        "save": "Save simulation",
+        "savedSuccess": "Simulation saved successfully!",
+        "clear": "Clear fields"
+      },
+      "editQuantity": {
+        "title": "Edit quantity",
+        "confirm": "Confirm",
+        "cancel": "Cancel"
+      },
+      "entryButton": "Estimate procedure value"
+    },
     "history": {
       "title": "Hourly rate history",
       "subtitle": "Follow how your minimum hourly rate changed month by month",
