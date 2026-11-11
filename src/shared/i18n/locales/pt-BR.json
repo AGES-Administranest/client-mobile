@@ -1124,9 +1124,11 @@
       "title": "Novo atendimento",
       "confirm": "Confirmar",
       "close": "Fechar",
-      "location": "Local",
+      "client": "Tomador",
+      "location": "Local do atendimento",
+      "locationHint": "Sugerido pelo endereço do tomador. Você pode alterar.",
       "submitError": "Não foi possível salvar. Tente novamente.",
-      "registerClient": "Adicionar clínica",
+      "registerClient": "Cadastrar novo tomador",
       "next": "Próximo",
       "back": "Voltar",
       "step1": "Passo 1 de 2",
@@ -1153,7 +1155,8 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Nome da clínica",
+      "client": "Nome do tomador",
+      "location": "Endereço do atendimento",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
@@ -1183,7 +1186,7 @@
       "INVALID_TIME": "Hora inválida",
       "IN_THE_PAST": "Escolha uma data e horário futuros",
       "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
-      "SELECT_CLIENT": "Escolha uma clínica da lista",
+      "SELECT_CLIENT": "Escolha um tomador da lista",
       "NAME_TOO_LONG": "Máximo de 160 caracteres",
       "TOO_LONG": "Máximo de 2000 caracteres"
     },
@@ -1549,6 +1552,73 @@
         "explanation": "Somamos os custos fixos, os custos variáveis do mês e o pró-labore e aplicamos a margem de segurança sobre esse total. O resultado é dividido pelas horas produtivas do mês: horas disponíveis por semana × 52 semanas ÷ 12 meses. O mínimo é a mesma conta sem a margem."
       }
     },
+    "procedureEstimate": {
+      "title": "Simular valor",
+      "subtitle": "Descubra quanto cobrar pelo procedimento",
+      "back": "Voltar",
+      "optionalBadge": "Opcional",
+      "duration": {
+        "title": "Duração do procedimento",
+        "supportText": "Informe quanto tempo você estima dedicar ao atendimento",
+        "hours": "HORAS",
+        "minutes": "MINUTOS",
+        "hoursPlaceholder": "0",
+        "minutesPlaceholder": "00"
+      },
+      "client": {
+        "title": "Local do atendimento",
+        "supportText": "Selecione o tomador ou clínica para calcular o deslocamento",
+        "placeholder": "Selecione o tomador ou clínica...",
+        "helperText": "Pode deixar em branco, sem custo de deslocamento.",
+        "clear": "Remover tomador",
+        "tripEstimateLabel": "Custo de deslocamento estimado:",
+        "tripNotIncluded": "Deslocamento não incluído: este tomador ainda não tem viagens registradas.",
+        "loading": "Buscando tomadores…",
+        "error": "Não foi possível buscar tomadores.",
+        "empty": "Nenhum tomador ou clínica encontrado."
+      },
+      "supplies": {
+        "title": "Insumos previstos",
+        "supportText": "Adicione os materiais que serão utilizados no procedimento",
+        "add": "+ Adicionar insumo",
+        "helperText": "Sem materiais previstos? A lista pode ficar vazia.",
+        "subtotalLabel": "Subtotal dos insumos",
+        "empty": "Nenhum insumo adicionado",
+        "edit": "Editar quantidade",
+        "remove": "Remover insumo",
+        "units": "unidades"
+      },
+      "unconfigured": {
+        "title": "Configure seu valor por hora",
+        "message": "Para calcular o valor mínimo dos seus procedimentos, primeiro precisamos conhecer seus custos e definir seu valor de hora de trabalho.",
+        "footnote": "Essa configuração será utilizada em todas as suas simulações de procedimentos.",
+        "action": "Configurar honorários"
+      },
+      "result": {
+        "title": "Valor mínimo sugerido",
+        "laborLabel": "Mão de obra",
+        "tripLabel": "Deslocamento",
+        "suppliesLabel": "Insumos",
+        "totalLabel": "Total mínimo sugerido",
+        "infoText": "O valor é calculado com base no seu custo por hora, deslocamento e insumos previstos",
+        "idle": "Preencha a duração estimada do procedimento para ver a sugestão de valor mínimo.",
+        "loading": "Calculando sugestão de valor…",
+        "error": "Não foi possível calcular o valor sugerido.",
+        "retry": "Tentar novamente",
+        "breakEven": "Preço de custo"
+      },
+      "actions": {
+        "save": "Salvar simulação",
+        "savedSuccess": "Simulação salva com sucesso!",
+        "clear": "Limpar campos"
+      },
+      "editQuantity": {
+        "title": "Editar quantidade",
+        "confirm": "Confirmar",
+        "cancel": "Cancelar"
+      },
+      "entryButton": "Simular valor por procedimento"
+    },
     "history": {
       "title": "Histórico do valor da hora",
       "subtitle": "Acompanhe como o valor mínimo da sua hora mudou mês a mês",
@@ -1577,7 +1647,24 @@
       "chart": {
         "title": "Evolução",
         "placeholderTitle": "O gráfico aparece no próximo mês",
-        "placeholderMessage": "Precisamos de pelo menos {{count}} meses calculados para mostrar a evolução do valor da sua hora."
+        "placeholderMessage": "Precisamos de pelo menos {{count}} meses calculados para mostrar a evolução do valor da sua hora.",
+        "titleWithCount": "Evolução · {{count}} meses",
+        "periodChange": "{{change}} no período",
+        "legendRate": "Valor da hora",
+        "legendMinimum": "Mínimo (sem margem)",
+        "legendRateEqualsMinimum": "Valor da hora (igual ao mínimo, sem margem)",
+        "tooltipEqualsMinimum": "Igual ao mínimo (sem margem)",
+        "tooltipValue": "{{value}}/h",
+        "tooltipChange": "{{change}} vs {{month}}",
+        "pointLabel": "{{month}}, {{value}} por hora, mínimo {{minimum}}",
+        "pointLabelWithChange": "{{month}}, {{value}} por hora, mínimo {{minimum}}, {{change}} vs {{previous}}",
+        "summary": {
+          "average": "Média",
+          "highest": "Maior",
+          "lowest": "Menor",
+          "averageRange": "{{from}} – {{to}}",
+          "averageCount": "{{count}} meses"
+        }
       },
       "months": {
         "title": "Registro mensal",
@@ -1594,12 +1681,16 @@
       "all": {
         "title": "Todos os meses",
         "subtitle": "{{count}} meses calculados desde {{month}}",
+        "note": "Toque em um mês para ver os valores daquele mês.",
         "sinceStartTitle": "Desde o início do histórico",
         "sinceStartText": "De {{from}} em {{fromMonth}} para {{to}} em {{toMonth}}.",
         "monthCount": {
           "one": "{{count}} mês",
           "other": "{{count}} meses"
         }
+      },
+      "detail": {
+        "monthLabel": "Valores de {{month}}/{{year}}"
       }
     }
   },

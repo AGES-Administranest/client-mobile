@@ -1,4 +1,3 @@
-import type { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
 import {
   formatMonthLabel,
@@ -6,19 +5,18 @@ import {
   type MonthPeriod,
 } from 'shared/utils/monthPeriod';
 
+import { formatNumber, longMonthName, type Format } from './presenterCommon';
+import type { HourlyRateEvolutionCardProps } from '../components/HourlyRateEvolutionCard';
 import type { HourlyRateHistoryHighlightProps } from '../components/HourlyRateHistoryHighlight';
 import type { HourlyRateMonthRowProps } from '../components/HourlyRateMonthsCard';
 import type { TrendChipProps } from '../components/TrendChip';
+import { buildHourlyRateChart } from '../domain/hourlyRateChart';
 import {
   HISTORY_WINDOW_SIZE,
   monthKey,
   summarizeSinceStart,
   type HourlyRateHistoryRow,
 } from '../domain/hourlyRateHistory';
-
-type Translate = ReturnType<typeof useTranslation>['t'];
-
-type Format = { t: Translate; locale: string };
 
 const MINUS = '−';
 
@@ -61,12 +59,6 @@ function shortMonthTitle(period: MonthPeriod, locale: string): string {
 function sentenceMonth(period: MonthPeriod, locale: string): string {
   const label = formatMonthLabel(period, locale);
   return `${label.charAt(0).toLowerCase()}${label.slice(1)}`;
-}
-
-function number(value: number, locale: string, fractionDigits: number) {
-  return value.toLocaleString(locale, {
-    maximumFractionDigits: fractionDigits,
-  });
 }
 
 // "Mai – Out 2026", or "Nov 2025 – Abr 2026" when the window crosses a year.
@@ -114,7 +106,7 @@ export function monthRowView(
 ): HourlyRateMonthRowProps {
   const label = formatMonthLabel(rate.month, locale);
   const value = formatCurrency(rate.hourlyRate, locale);
-  const hours = number(rate.productiveHours, locale, 0);
+  const hours = formatNumber(rate.productiveHours, locale, 0);
   const minimum = formatCurrency(rate.minimumHourlyRate, locale);
   const trend = variation === null ? null : formatChange(variation, locale);
   const caption = isOldest ? t('pricing.history.months.oldest') : null;
@@ -170,7 +162,7 @@ export function currentValueView(
       safetyMarginPct === null
         ? undefined
         : t('pricing.hourlyRate.marginChip', {
-            margin: number(safetyMarginPct, locale, 2),
+            margin: formatNumber(safetyMarginPct, locale, 2),
           }),
     value: formatCurrency(latest.rate.hourlyRate, locale),
     trend:
@@ -241,4 +233,199 @@ export function monthCountLabel(count: number, { t }: Format): string {
       : 'pricing.history.all.monthCount.other',
     { count },
   );
+}
+
+// The labels under the points of the chart: "Out", "Nov". The history counts
+// records and not calendar months, so one window can hold two Novembers a
+// year apart (a gap in the history). When two labels would read the same, the
+// whole window shows its year ("Nov/25", "Nov/26"), so that the labels keep
+// one format; with no repetition they stay as they are.
+export function axisMonthLabels(
+  months: readonly MonthPeriod[],
+  locale: string,
+): string[] {
+  const names = months.map(month => shortMonthTitle(month, locale));
+  if (!monthLabelsHaveYear(months, locale)) return names;
+
+  return months.map(
+    (month, i) => `${names[i]}/${String(month.year % 100).padStart(2, '0')}`,
+  );
+}
+
+// Whether `axisMonthLabels` adds the year: two labels would read the same.
+export function monthLabelsHaveYear(
+  months: readonly MonthPeriod[],
+  locale: string,
+): boolean {
+  const names = months.map(month => shortMonthTitle(month, locale));
+  return new Set(names).size !== names.length;
+}
+
+// "set", "mai": the short name as a sentence has it, no capital and no dot.
+function shortMonthName(period: MonthPeriod, locale: string): string {
+  return shortMonth(period, locale).replace('.', '').toLowerCase();
+}
+
+// "+2,4% vs set": the change of a month against the one before it on record.
+function tooltipChange(
+  { variation, previousMonth }: HourlyRateHistoryRow,
+  { t, locale }: Format,
+): { label: string; tone: TrendChipProps['tone'] } | null {
+  if (variation === null || previousMonth === null) return null;
+
+  const change = formatChange(variation, locale);
+  return {
+    tone: change.tone,
+    label: t('pricing.history.chart.tooltipChange', {
+      change: change.label,
+      month: shortMonthName(previousMonth, locale),
+    }),
+  };
+}
+
+function pointAccessibilityLabel(
+  row: HourlyRateHistoryRow,
+  { t, locale }: Format,
+): string {
+  const month = formatMonthLabel(row.rate.month, locale);
+  const value = formatCurrency(row.rate.hourlyRate, locale);
+  const minimum = formatCurrency(row.rate.minimumHourlyRate, locale);
+  if (row.variation === null || row.previousMonth === null) {
+    return t('pricing.history.chart.pointLabel', { month, value, minimum });
+  }
+
+  return t('pricing.history.chart.pointLabelWithChange', {
+    month,
+    value,
+    minimum,
+    change: formatChange(row.variation, locale).label,
+    previous: longMonthName(row.previousMonth, locale),
+  });
+}
+
+// The evolution card of a window of the history. `windowRows` come newest
+// first and have at least two months.
+export function evolutionCardView(
+  windowRows: readonly HourlyRateHistoryRow[],
+  selectedId: string | null,
+  onSelect: (id: string) => void,
+  format: Format,
+): HourlyRateEvolutionCardProps {
+  const { t, locale } = format;
+  const chart = buildHourlyRateChart(windowRows);
+  const rowById = new Map(
+    windowRows.map(row => [monthKey(row.rate.month), row]),
+  );
+  const selectedRow = selectedId ? rowById.get(selectedId) : undefined;
+  const oldest = windowRows[windowRows.length - 1].rate.month;
+  const newest = windowRows[0].rate.month;
+  const isShortWindow = windowRows.length < HISTORY_WINDOW_SIZE;
+  // Margin 0%: the rate is its own minimum, and the two lines are one.
+  const rateIsMinimum = chart.minimumCoverage === 'all';
+  const someAtMinimum = chart.minimumCoverage === 'some';
+  const atMinimumById = new Map(
+    chart.points.map(point => [point.id, point.atMinimum]),
+  );
+  const months = chart.points.map(
+    point => (rowById.get(point.id) as HourlyRateHistoryRow).rate.month,
+  );
+  const labels = axisMonthLabels(months, locale);
+  const labelsHaveYear = monthLabelsHaveYear(months, locale);
+
+  const stat = (
+    label: 'average' | 'highest' | 'lowest',
+    value: number,
+    caption: string,
+  ) => ({
+    label: t(`pricing.history.chart.summary.${label}`),
+    value: formatCurrency(value, locale),
+    caption,
+  });
+
+  return {
+    title: isShortWindow
+      ? t('pricing.history.chart.titleWithCount', { count: windowRows.length })
+      : t('pricing.history.chart.title'),
+    periodChange:
+      chart.change === null
+        ? null
+        : (() => {
+            const change = formatChange(chart.change, locale);
+            return {
+              tone: change.tone,
+              label: t('pricing.history.chart.periodChange', {
+                change: change.label,
+              }),
+            };
+          })(),
+    legend: t(
+      rateIsMinimum
+        ? 'pricing.history.chart.legendRateEqualsMinimum'
+        : 'pricing.history.chart.legendRate',
+    ),
+    minimumLegend: rateIsMinimum
+      ? null
+      : t('pricing.history.chart.legendMinimum'),
+    chart: {
+      showMinimum: !rateIsMinimum,
+      monthLabelsHaveYear: labelsHaveYear,
+      points: chart.points.map((point, index) => {
+        const row = rowById.get(point.id) as HourlyRateHistoryRow;
+        return {
+          id: point.id,
+          x: point.x,
+          y: point.y,
+          minimumY: point.minimumY,
+          label: labels[index],
+          accessibilityLabel: pointAccessibilityLabel(row, format),
+        };
+      }),
+      ticks: chart.ticks.map(tick => ({
+        y: tick.y,
+        label: formatCurrency(tick.value, locale, { showCents: false }),
+      })),
+      selectedId,
+      tooltip: selectedRow
+        ? {
+            month: formatMonthLabel(selectedRow.rate.month, locale),
+            value: t('pricing.history.chart.tooltipValue', {
+              value: formatCurrency(selectedRow.rate.hourlyRate, locale),
+            }),
+            change: tooltipChange(selectedRow, format),
+            note:
+              someAtMinimum && selectedId && atMinimumById.get(selectedId)
+                ? t('pricing.history.chart.tooltipEqualsMinimum')
+                : null,
+          }
+        : null,
+      // Room for the extra tooltip line in every month of the window, so that
+      // the chart does not move when a month that has it is selected.
+      tooltipHasNote: someAtMinimum,
+      onSelect,
+    },
+    stats: [
+      stat(
+        'average',
+        chart.average,
+        isShortWindow
+          ? t('pricing.history.chart.summary.averageCount', {
+              count: windowRows.length,
+            })
+          : t('pricing.history.chart.summary.averageRange', {
+              from: shortMonthName(oldest, locale),
+              to: shortMonthName(newest, locale),
+            }),
+      ),
+      stat(
+        'highest',
+        chart.highest.rate.hourlyRate,
+        longMonthName(chart.highest.rate.month, locale),
+      ),
+      stat(
+        'lowest',
+        chart.lowest.rate.hourlyRate,
+        longMonthName(chart.lowest.rate.month, locale),
+      ),
+    ],
+  };
 }

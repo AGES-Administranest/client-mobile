@@ -2,6 +2,8 @@ import { locales, type Locale } from 'shared/i18n/locales';
 import { translate } from 'shared/i18n/translate';
 
 import {
+  axisMonthLabels,
+  evolutionCardView,
   formatChange,
   formatSignedCurrency,
   monthRowView,
@@ -11,7 +13,10 @@ import {
   buildHistoryRows,
   type HourlyRateHistoryRow,
 } from '../domain/hourlyRateHistory';
-import { HISTORY_PERIODS } from '../domain/hourlyRateHistory.fixture';
+import {
+  HISTORY_PERIODS,
+  newestPeriods,
+} from '../domain/hourlyRateHistory.fixture';
 
 const formatFor = (locale: Locale) => ({
   locale,
@@ -209,6 +214,203 @@ describe('windowRange', () => {
   );
 });
 
+describe('evolutionCardView', () => {
+  const view = (
+    count: number,
+    selectedId: string | null,
+    locale: Locale = 'pt-BR',
+  ) =>
+    evolutionCardView(
+      buildHistoryRows(newestPeriods(count)),
+      selectedId,
+      jest.fn(),
+      formatFor(locale),
+    );
+
+  it.each([
+    ['pt-BR', '+10,9% no período', 'Evolução', 'Valor da hora'],
+    ['en-US', '+10.9% in the period', 'Trend', 'Hourly rate'],
+  ] as [Locale, string, string, string][])(
+    'writes the header in %s',
+    (locale, chip, title, legend) => {
+      const card = view(6, '2026-10', locale);
+
+      expect(card.title).toBe(title);
+      expect(card.periodChange).toEqual({ tone: 'up', label: chip });
+      expect(card.legend).toBe(legend);
+    },
+  );
+
+  it('counts the months in the title of a short window', () => {
+    expect(view(3, '2026-10').title).toBe('Evolução · 3 meses');
+    expect(view(2, '2026-10').title).toBe('Evolução · 2 meses');
+  });
+
+  it('gives a fall in the period the down tone', () => {
+    const rows = buildHistoryRows([
+      {
+        ...HISTORY_PERIODS[0],
+        month: { month: 9, year: 2026 },
+        hourlyRate: 100,
+      },
+      {
+        ...HISTORY_PERIODS[0],
+        month: { month: 10, year: 2026 },
+        hourlyRate: 90,
+      },
+    ]);
+
+    const card = evolutionCardView(rows, null, jest.fn(), formatFor('pt-BR'));
+
+    expect(card.periodChange).toEqual({
+      tone: 'down',
+      label: '−10,0% no período',
+    });
+  });
+
+  it.each([
+    [
+      'pt-BR',
+      [
+        ['Média', 'R$ 93,06', 'mai – out'],
+        ['Maior', 'R$ 98,07', 'outubro'],
+        ['Menor', 'R$ 88,40', 'maio'],
+      ],
+    ],
+    [
+      'en-US',
+      [
+        ['Average', 'R$93.06', 'may – oct'],
+        ['Highest', 'R$98.07', 'october'],
+        ['Lowest', 'R$88.40', 'may'],
+      ],
+    ],
+  ] as [Locale, string[][]][])(
+    'summarises the period in %s',
+    (locale, expected) => {
+      expect(
+        view(6, '2026-10', locale).stats.map(stat => [
+          stat.label,
+          plain(stat.value),
+          stat.caption,
+        ]),
+      ).toEqual(expected);
+    },
+  );
+
+  it('names the months of the summary in lower case, whole for the extremes', () => {
+    const { stats } = view(3, '2026-10');
+
+    expect(stats.map(stat => stat.caption)).toEqual([
+      '3 meses',
+      'outubro',
+      'agosto',
+    ]);
+  });
+
+  it('labels the Y axis with whole reais, and the X axis with short months', () => {
+    const { chart } = view(6, '2026-10');
+
+    expect(chart.ticks.map(tick => plain(tick.label))).toEqual([
+      'R$ 70',
+      'R$ 80',
+      'R$ 90',
+      'R$ 100',
+    ]);
+    expect(chart.points.map(point => point.label)).toEqual([
+      'Mai',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Set',
+      'Out',
+    ]);
+  });
+
+  it.each([
+    ['pt-BR', 'Outubro 2026', 'R$ 98,07/h', '+2,4% vs set'],
+    ['en-US', 'October 2026', 'R$98.07/h', '+2.4% vs sep'],
+  ] as [Locale, string, string, string][])(
+    'writes the tooltip in %s',
+    (locale, month, value, change) => {
+      const { tooltip } = view(6, '2026-10', locale).chart;
+
+      expect(tooltip).toMatchObject({
+        month,
+        change: { tone: 'up', label: change },
+      });
+      expect(plain(tooltip?.value ?? '')).toBe(value);
+    },
+  );
+
+  it('compares a tooltip with the month before it on record, not the calendar one', () => {
+    const rows = buildHistoryRows([
+      {
+        ...HISTORY_PERIODS[0],
+        month: { month: 10, year: 2026 },
+        hourlyRate: 110,
+      },
+      {
+        ...HISTORY_PERIODS[0],
+        month: { month: 7, year: 2026 },
+        hourlyRate: 100,
+      },
+    ]);
+
+    const { chart } = evolutionCardView(
+      rows,
+      '2026-10',
+      jest.fn(),
+      formatFor('pt-BR'),
+    );
+
+    expect(chart.tooltip?.change).toEqual({
+      tone: 'up',
+      label: '+10,0% vs jul',
+    });
+  });
+
+  it('leaves the change out for the oldest month of the history', () => {
+    const { chart } = view(6, '2026-5');
+
+    expect(chart.tooltip).toMatchObject({ month: 'Maio 2026' });
+    expect(chart.tooltip?.change).toBeNull();
+  });
+
+  it('keeps the change of the oldest month of a window when older months exist', () => {
+    const rows = buildHistoryRows(newestPeriods(12));
+
+    const { chart } = evolutionCardView(
+      rows.slice(0, 6),
+      '2026-5',
+      jest.fn(),
+      formatFor('pt-BR'),
+    );
+
+    expect(chart.tooltip?.change).toEqual({
+      tone: 'up',
+      label: '+1,7% vs abr',
+    });
+  });
+
+  it('has no tooltip without a selection', () => {
+    expect(view(6, null).chart.tooltip).toBeNull();
+  });
+
+  it('reads each column aloud with the month, the value and the change', () => {
+    const { chart } = view(6, '2026-10');
+
+    expect(chart.points.map(point => plain(point.accessibilityLabel))).toEqual([
+      'Maio 2026, R$ 88,40 por hora, mínimo R$ 73,67',
+      'Junho 2026, R$ 90,15 por hora, mínimo R$ 75,13, +2,0% vs maio',
+      'Julho 2026, R$ 93,60 por hora, mínimo R$ 78,00, +3,8% vs junho',
+      'Agosto 2026, R$ 92,30 por hora, mínimo R$ 76,92, −1,4% vs julho',
+      'Setembro 2026, R$ 95,81 por hora, mínimo R$ 79,84, +3,8% vs agosto',
+      'Outubro 2026, R$ 98,07 por hora, mínimo R$ 81,72, +2,4% vs setembro',
+    ]);
+  });
+});
+
 describe('monthRowView', () => {
   const TODAY = new Date(2026, 9, 19);
   const rowOf = (overrides: Partial<(typeof HISTORY_PERIODS)[number]>) =>
@@ -250,4 +452,135 @@ describe('monthRowView', () => {
       expect(plain(view.accessibilityLabel)).toBe(plain(label));
     },
   );
+});
+
+describe('axisMonthLabels', () => {
+  const months = (...entries: [number, number][]) =>
+    entries.map(([year, month]) => ({ year, month }));
+
+  it('keeps the plain month names when none repeats', () => {
+    expect(
+      axisMonthLabels(months([2026, 5], [2026, 6], [2026, 7]), 'pt-BR'),
+    ).toEqual(['Mai', 'Jun', 'Jul']);
+  });
+
+  it('keeps them across a year change when no name repeats', () => {
+    expect(
+      axisMonthLabels(months([2025, 11], [2025, 12], [2026, 1]), 'pt-BR'),
+    ).toEqual(['Nov', 'Dez', 'Jan']);
+  });
+
+  it('shows the year on every label when a month repeats in another year', () => {
+    expect(
+      axisMonthLabels(months([2025, 11], [2026, 3], [2026, 11]), 'pt-BR'),
+    ).toEqual(['Nov/25', 'Mar/26', 'Nov/26']);
+    expect(axisMonthLabels(months([2025, 11], [2026, 11]), 'en-US')).toEqual([
+      'Nov/25',
+      'Nov/26',
+    ]);
+  });
+});
+
+describe('evolutionCardView: same month in two years', () => {
+  it('labels the points with the year when the window has a gap of a year', () => {
+    const rows = buildHistoryRows([
+      { ...HISTORY_PERIODS[0], month: { month: 11, year: 2026 } },
+      { ...HISTORY_PERIODS[1], month: { month: 5, year: 2026 } },
+      { ...HISTORY_PERIODS[2], month: { month: 11, year: 2025 } },
+    ]);
+
+    const card = evolutionCardView(rows, null, jest.fn(), formatFor('pt-BR'));
+
+    expect(card.chart.monthLabelsHaveYear).toBe(true);
+    expect(card.chart.points.map(point => point.label)).toEqual([
+      'Nov/25',
+      'Mai/26',
+      'Nov/26',
+    ]);
+  });
+});
+
+describe('evolutionCardView: rate equal to the minimum', () => {
+  const rowsWith = (pairs: [number, number][]) =>
+    buildHistoryRows(
+      pairs.map(([hourlyRate, minimumHourlyRate], i) => ({
+        ...HISTORY_PERIODS[i],
+        hourlyRate,
+        minimumHourlyRate,
+      })),
+    );
+  const card = (pairs: [number, number][], selectedId: string | null) =>
+    evolutionCardView(
+      rowsWith(pairs),
+      selectedId,
+      jest.fn(),
+      formatFor('pt-BR'),
+    );
+
+  it('all months: one legend entry, no minimum line', () => {
+    const view = card(
+      [
+        [90, 90],
+        [80, 80],
+      ],
+      '2026-10',
+    );
+
+    expect(view.legend).toBe('Valor da hora (igual ao mínimo, sem margem)');
+    expect(view.minimumLegend).toBeNull();
+    expect(view.chart.showMinimum).toBe(false);
+    expect(view.chart.tooltip?.note).toBeNull();
+  });
+
+  it('some months: two legend entries and a note only on those months', () => {
+    const pairs: [number, number][] = [
+      [90, 90],
+      [80, 70],
+    ];
+    // Newest first: 2026-10 is equal to its minimum, 2026-9 is not.
+    expect(card(pairs, '2026-10').chart.tooltip?.note).toBe(
+      'Igual ao mínimo (sem margem)',
+    );
+    expect(card(pairs, '2026-9').chart.tooltip?.note).toBeNull();
+    const view = card(pairs, '2026-10');
+    expect(view.legend).toBe('Valor da hora');
+    expect(view.minimumLegend).toBe('Mínimo (sem margem)');
+    expect(view.chart.showMinimum).toBe(true);
+    expect(view.chart.tooltipHasNote).toBe(true);
+  });
+
+  it('no month: nothing changes', () => {
+    expect(
+      evolutionCardView(
+        buildHistoryRows(newestPeriods(6)),
+        null,
+        jest.fn(),
+        formatFor('pt-BR'),
+      ).chart.monthLabelsHaveYear,
+    ).toBe(false);
+    const view = card(
+      [
+        [90, 80],
+        [80, 70],
+      ],
+      '2026-10',
+    );
+
+    expect(view.legend).toBe('Valor da hora');
+    expect(view.chart.tooltip?.note).toBeNull();
+    expect(view.chart.tooltipHasNote).toBe(false);
+  });
+
+  it('writes the texts in en-US', () => {
+    const view = evolutionCardView(
+      rowsWith([
+        [90, 90],
+        [80, 80],
+      ]),
+      null,
+      jest.fn(),
+      formatFor('en-US'),
+    );
+    expect(view.legend).toBe('Hourly rate (equal to the minimum, no margin)');
+  });
 });

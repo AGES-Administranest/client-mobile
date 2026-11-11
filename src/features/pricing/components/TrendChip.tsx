@@ -10,9 +10,11 @@ export type TrendTone = 'up' | 'down' | 'flat';
 export type TrendChipProps = {
   tone: TrendTone;
   label: string;
+  // The arrow of a rise or a fall; the chip of the evolution card goes without.
+  showIcon?: boolean;
 };
 
-export function TrendChip({ tone, label }: TrendChipProps) {
+export function TrendChip({ tone, label, showIcon = true }: TrendChipProps) {
   return (
     <View
       className={cn(
@@ -20,7 +22,7 @@ export function TrendChip({ tone, label }: TrendChipProps) {
         tone === 'up' ? 'bg-trend-up-fill' : 'bg-details-warm',
       )}
     >
-      {tone === 'flat' ? null : (
+      {tone === 'flat' || !showIcon ? null : (
         <Icon
           as={tone === 'up' ? ArrowUpRight : ArrowDownRight}
           size={11}

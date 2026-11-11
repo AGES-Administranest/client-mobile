@@ -59,6 +59,7 @@ export type ProcedureFormTexts = {
   asaOptions: AsaClassification[];
   errors: Partial<Record<keyof ProcedureFormValues, string>>;
   clientSearchMessages: ClientAutocompleteMessages;
+  locationHint: string;
   nameMaxLength: number;
   notesMaxLength: number;
 };
@@ -77,6 +78,7 @@ type ProcedureFormSheetProps = {
   submitErrorText: string;
   texts: ProcedureFormTexts;
   client: ProcedureClientField;
+  showLocationHint: boolean;
   step: ProcedureStep;
   onNext: () => void;
   onBack: () => void;
@@ -100,6 +102,7 @@ export function ProcedureFormSheet({
   submitErrorText,
   texts,
   client,
+  showLocationHint,
   step,
   onNext,
   onBack,
@@ -214,6 +217,16 @@ export function ProcedureFormSheet({
                         : undefined
                     }
                     onSelect={onSelectClient}
+                  />
+
+                  <Field
+                    label={labelOf('location')}
+                    placeholder={texts.placeholders.location}
+                    value={values.location}
+                    error={texts.errors.location}
+                    multiline
+                    hint={showLocationHint ? texts.locationHint : undefined}
+                    onChangeText={v => onChangeText('location', v)}
                   />
 
                   <View className="flex-row gap-3">
@@ -414,6 +427,7 @@ type FieldProps = {
   onChangeText: (value: string) => void;
   placeholder?: string;
   error?: string;
+  hint?: string;
   keyboardType?: 'default' | 'number-pad' | 'decimal-pad';
   multiline?: boolean;
   maxLength?: number;
@@ -425,6 +439,7 @@ function Field({
   onChangeText,
   placeholder,
   error,
+  hint,
   keyboardType = 'default',
   multiline = false,
   maxLength,
@@ -452,6 +467,9 @@ function Field({
       />
       {error ? (
         <Text className="mt-1 text-xs text-alert-primary">{error}</Text>
+      ) : null}
+      {hint && !error ? (
+        <Text className="mt-1 text-xs text-label-tertiary">{hint}</Text>
       ) : null}
     </View>
   );

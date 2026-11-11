@@ -15,8 +15,21 @@ import {
 } from '../domain/hourlyRateHistory';
 import type {
   PricingSettings,
+  ProcedureEstimateDto,
+  ProcedureEstimateResponse,
   SavePricingSettingsDto,
 } from '../domain/pricing.types';
+
+export function isPricingUnconfiguredError(error: unknown): boolean {
+  if (error instanceof ApiError) {
+    return (
+      error.status === 409 ||
+      error.code === 'PRICING_SETTINGS_NOT_FOUND' ||
+      (error.status === 404 && error.code === 'PRICING_SETTINGS_NOT_FOUND')
+    );
+  }
+  return false;
+}
 
 // Like `fetchPricingSettings`, the 404 PRICING_SETTINGS_NOT_FOUND is the
 // calculator's initial state, not a failure.
@@ -32,12 +45,23 @@ async function fetchHourlyRate(
   } catch (error) {
     if (
       error instanceof ApiError &&
-      error.code === 'PRICING_SETTINGS_NOT_FOUND'
+      (error.code === 'PRICING_SETTINGS_NOT_FOUND' || error.status === 409)
     ) {
       return null;
     }
     throw error;
   }
+}
+
+async function fetchProcedureEstimate(
+  idToken: string,
+  dto: ProcedureEstimateDto,
+): Promise<ProcedureEstimateResponse> {
+  return apiClient.post<ProcedureEstimateResponse>(
+    '/pricing/procedure-estimate',
+    dto,
+    { token: idToken },
+  );
 }
 
 // A month without a stored calculation is an empty month in the history, not
@@ -90,6 +114,13 @@ export const pricingService = {
     }
 
     return toHourlyRate(response, settings);
+  },
+
+  estimateProcedure(
+    idToken: string,
+    dto: ProcedureEstimateDto,
+  ): Promise<ProcedureEstimateResponse> {
+    return fetchProcedureEstimate(idToken, dto);
   },
 
   // One entry per month with a stored calculation: the hour value, the

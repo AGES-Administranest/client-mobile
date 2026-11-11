@@ -41,11 +41,22 @@ export const ChartFixedCosts = '#A07E62';
 export const ChartVariableCosts = '#D2BBA0';
 export const ChartSafetyMargin = '#8C9A5B';
 
+// Hourly rate history (US22): the dashed minimum line of the evolution chart
+// and its legend. Same hex as ChartFixedCosts, but not the same meaning.
+export const ChartMinimum = '#A07E62';
+
 // Hourly rate history (US22): the rise and fall of the rate from one month to
 // the next. The fill sits behind the rise chip.
 export const TrendUp = '#5D6B2F';
 export const TrendUpFill = '#EEF1E2';
 export const TrendDown = '#A34A25';
+
+// Tooltip of the hourly rate evolution chart (US22): a dark card with the
+// month, the value and the change in lighter tones.
+export const TooltipSurface = '#1A100A';
+export const TooltipMonth = '#CFC8C2';
+export const TooltipRise = '#D7E0B4';
+export const TooltipFall = '#F3B9A0';
 
 export const Colors = {
   button: {
@@ -84,10 +95,17 @@ export const Colors = {
     fixedCosts: ChartFixedCosts,
     variableCosts: ChartVariableCosts,
     safetyMargin: ChartSafetyMargin,
+    minimum: ChartMinimum,
   },
   trend: {
     up: TrendUp,
     upFill: TrendUpFill,
     down: TrendDown,
+  },
+  tooltip: {
+    surface: TooltipSurface,
+    month: TooltipMonth,
+    rise: TooltipRise,
+    fall: TooltipFall,
   },
 } as const;

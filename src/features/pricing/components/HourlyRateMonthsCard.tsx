@@ -33,6 +33,8 @@ export type HourlyRateMonthsCardProps = {
   rows: HourlyRateMonthRowProps[];
   // With no `onSelect` the rows are plain, not pressable. The last row keeps
   // its divider only when the footer action sits right under it.
+  // `selectedId` is left out where the card has no selection (the rows are
+  // then not announced as selected or not); `null` is a selection of nothing.
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   footerAction?: { label: string; onPress: () => void };
@@ -41,11 +43,13 @@ export type HourlyRateMonthsCardProps = {
 function MonthRow({
   row,
   hasDivider,
+  hasSelection,
   isSelected,
   onSelect,
 }: {
   row: HourlyRateMonthRowProps;
   hasDivider: boolean;
+  hasSelection: boolean;
   isSelected: boolean;
   onSelect?: (id: string) => void;
 }) {
@@ -115,6 +119,7 @@ function MonthRow({
     return (
       <View
         accessible
+        testID={`month-row-${row.id}`}
         accessibilityLabel={row.accessibilityLabel}
         className={className}
       >
@@ -125,9 +130,10 @@ function MonthRow({
 
   return (
     <Pressable
+      testID={`month-row-${row.id}`}
       accessibilityRole="button"
       accessibilityLabel={row.accessibilityLabel}
-      accessibilityState={{ selected: isSelected }}
+      accessibilityState={hasSelection ? { selected: isSelected } : undefined}
       onPress={() => onSelect(row.id)}
       className={className}
     >
@@ -141,7 +147,7 @@ export function HourlyRateMonthsCard({
   titleCaption,
   titleVariant = 'eyebrow',
   rows,
-  selectedId = null,
+  selectedId,
   onSelect,
   footerAction,
 }: HourlyRateMonthsCardProps) {
@@ -171,6 +177,7 @@ export function HourlyRateMonthsCard({
             key={row.id}
             row={row}
             hasDivider={index < rows.length - 1 || Boolean(footerAction)}
+            hasSelection={selectedId !== undefined}
             isSelected={row.id === selectedId}
             onSelect={onSelect}
           />

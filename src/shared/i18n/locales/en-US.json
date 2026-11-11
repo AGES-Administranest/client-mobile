@@ -1124,9 +1124,11 @@
       "title": "New appointment",
       "confirm": "Confirm",
       "close": "Close",
-      "location": "Location",
+      "client": "Client",
+      "location": "Appointment location",
+      "locationHint": "Suggested from the client's address. You can change it.",
       "submitError": "Couldn't save. Please try again.",
-      "registerClient": "Add clinic",
+      "registerClient": "Register new client",
       "next": "Next",
       "back": "Back",
       "step1": "Step 1 of 2",
@@ -1153,7 +1155,8 @@
     "placeholders": {
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "location": "Clinic name",
+      "client": "Client name",
+      "location": "Appointment address",
       "notes": "Notes about the procedure",
       "number": "0",
       "time": "HH:MM",
@@ -1183,7 +1186,7 @@
       "INVALID_TIME": "Invalid time",
       "IN_THE_PAST": "Pick a future date and time",
       "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
-      "SELECT_CLIENT": "Pick a clinic from the list",
+      "SELECT_CLIENT": "Pick a client from the list",
       "NAME_TOO_LONG": "At most 160 characters",
       "TOO_LONG": "At most 2000 characters"
     },
@@ -1549,6 +1552,73 @@
         "explanation": "We add the fixed costs, the month's variable costs and the owner's draw, and apply the safety margin to that total. The result is divided by the month's productive hours: available hours per week × 52 weeks ÷ 12 months. The minimum is the same math without the margin."
       }
     },
+    "procedureEstimate": {
+      "title": "Estimate procedure value",
+      "subtitle": "Find out how much to charge for the procedure",
+      "back": "Back",
+      "optionalBadge": "Optional",
+      "duration": {
+        "title": "Procedure duration",
+        "supportText": "Enter the estimated time dedicated to the service",
+        "hours": "HOURS",
+        "minutes": "MINUTES",
+        "hoursPlaceholder": "0",
+        "minutesPlaceholder": "00"
+      },
+      "client": {
+        "title": "Service location",
+        "supportText": "Select the client or clinic to calculate travel cost",
+        "placeholder": "Select client or clinic...",
+        "helperText": "Can be left blank, without travel cost.",
+        "clear": "Clear client",
+        "tripEstimateLabel": "Estimated travel cost:",
+        "tripNotIncluded": "Travel not included: this client has no trips recorded yet.",
+        "loading": "Searching clients…",
+        "error": "Could not load clients.",
+        "empty": "No clients found."
+      },
+      "supplies": {
+        "title": "Expected supplies",
+        "supportText": "Add materials that will be used in the procedure",
+        "add": "+ Add supply",
+        "helperText": "No planned materials? The list can remain empty.",
+        "subtotalLabel": "Supplies subtotal",
+        "empty": "No supplies added",
+        "edit": "Edit quantity",
+        "remove": "Remove supply",
+        "units": "units"
+      },
+      "unconfigured": {
+        "title": "Configure your hourly rate",
+        "message": "To calculate the minimum value of your procedures, we first need to know your costs and define your hourly rate.",
+        "footnote": "This configuration will be used in all your procedure simulations.",
+        "action": "Configure hourly rate"
+      },
+      "result": {
+        "title": "Suggested minimum price",
+        "laborLabel": "Labor",
+        "tripLabel": "Travel",
+        "suppliesLabel": "Supplies",
+        "totalLabel": "Total minimum suggested",
+        "infoText": "The value is calculated based on your hourly rate, travel, and expected supplies",
+        "idle": "Enter the estimated duration of the procedure to see the minimum price suggestion.",
+        "loading": "Calculating suggested value…",
+        "error": "Could not calculate the suggested value.",
+        "retry": "Try again",
+        "breakEven": "Break-even price"
+      },
+      "actions": {
+        "save": "Save simulation",
+        "savedSuccess": "Simulation saved successfully!",
+        "clear": "Clear fields"
+      },
+      "editQuantity": {
+        "title": "Edit quantity",
+        "confirm": "Confirm",
+        "cancel": "Cancel"
+      },
+      "entryButton": "Estimate procedure value"
+    },
     "history": {
       "title": "Hourly rate history",
       "subtitle": "Follow how your minimum hourly rate changed month by month",
@@ -1577,7 +1647,24 @@
       "chart": {
         "title": "Trend",
         "placeholderTitle": "The chart shows up next month",
-        "placeholderMessage": "We need at least {{count}} calculated months to show how your hourly rate evolves."
+        "placeholderMessage": "We need at least {{count}} calculated months to show how your hourly rate evolves.",
+        "titleWithCount": "Trend · {{count}} months",
+        "periodChange": "{{change}} in the period",
+        "legendRate": "Hourly rate",
+        "legendMinimum": "Minimum (no margin)",
+        "legendRateEqualsMinimum": "Hourly rate (equal to the minimum, no margin)",
+        "tooltipEqualsMinimum": "Equal to the minimum (no margin)",
+        "tooltipValue": "{{value}}/h",
+        "tooltipChange": "{{change}} vs {{month}}",
+        "pointLabel": "{{month}}, {{value}} per hour, minimum {{minimum}}",
+        "pointLabelWithChange": "{{month}}, {{value}} per hour, minimum {{minimum}}, {{change}} vs {{previous}}",
+        "summary": {
+          "average": "Average",
+          "highest": "Highest",
+          "lowest": "Lowest",
+          "averageRange": "{{from}} – {{to}}",
+          "averageCount": "{{count}} months"
+        }
       },
       "months": {
         "title": "Monthly record",
@@ -1594,12 +1681,16 @@
       "all": {
         "title": "All months",
         "subtitle": "{{count}} months calculated since {{month}}",
+        "note": "Tap a month to see the values of that month.",
         "sinceStartTitle": "Since the history began",
         "sinceStartText": "From {{from}} in {{fromMonth}} to {{to}} in {{toMonth}}.",
         "monthCount": {
           "one": "{{count}} month",
           "other": "{{count}} months"
         }
+      },
+      "detail": {
+        "monthLabel": "Values for {{month}}/{{year}}"
       }
     }
   },
@@ -1841,11 +1932,11 @@
       "previewPickVehicle": "Select a vehicle to calculate",
       "previewInformed": "Amount entered",
       "previewInformCost": "Enter the amount paid",
-      "client": "CLINIC (OPTIONAL)",
-      "clientPlaceholder": "Select the clinic",
-      "clientLoading": "Searching clinics...",
-      "clientEmpty": "No clinic found",
-      "clientError": "Unable to search clinics",
+      "client": "CLIENT (OPTIONAL)",
+      "clientPlaceholder": "Select the client",
+      "clientLoading": "Searching clients...",
+      "clientEmpty": "No client found",
+      "clientError": "Unable to search clients",
       "save": "Save",
       "saving": "Saving...",
       "delete": "Delete",
