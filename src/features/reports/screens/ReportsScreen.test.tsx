@@ -9,17 +9,6 @@ jest.mock('features/auth', () => ({
   useAuth: () => ({ session: { idToken: 'tok' } }),
 }));
 
-jest.mock('features/invoices/services/reportInvoiceService', () => ({
-  fetchReportInvoices: jest.fn(async () => [
-    {
-      id: 'invoice-1',
-      issueDate: '2026-04-22',
-      takerName: 'HospVet Sul',
-      hasOriginalFile: true,
-    },
-  ]),
-}));
-
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
@@ -150,13 +139,16 @@ describe('ReportsScreen', () => {
     expect(output).toContain('Histórico de relatórios');
   });
 
-  it('shows the recent invoices section below the report history', async () => {
+  it('shows the invoices section and the add-note button below the report history', async () => {
     const output = textsOf(await render());
 
     expect(output).toContain('Notas fiscais');
-    expect(output).toContain('HospVet Sul');
+    expect(output).toContain('Adicionar nota');
     expect(output.indexOf('Histórico de relatórios')).toBeLessThan(
-      output.indexOf('HospVet Sul'),
+      output.lastIndexOf('Notas fiscais'),
+    );
+    expect(output.lastIndexOf('Notas fiscais')).toBeLessThan(
+      output.indexOf('Adicionar nota'),
     );
   });
 
@@ -268,7 +260,7 @@ describe('ReportsScreen', () => {
     ]);
   });
 
-  it('disables the report cards and hides the history while nothing is wired', async () => {
+  it('disables the report cards and drops the history link while nothing is wired', async () => {
     const renderer = await render({
       onGenerateReport: undefined,
       onOpenHistory: undefined,
@@ -281,7 +273,10 @@ describe('ReportsScreen', () => {
       pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR')
         .props.disabled,
     ).toBe(true);
-    expect(textsOf(renderer)).not.toContain('Histórico de relatórios');
+    expect(textsOf(renderer)).toContain('Histórico de relatórios');
+    expect(
+      pressable(renderer, label => label.includes('Histórico de relatórios')),
+    ).toBeUndefined();
   });
 
   it('opens the history', async () => {

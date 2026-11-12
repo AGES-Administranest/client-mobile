@@ -46,6 +46,7 @@ export function useSupplySelector(): SupplySelectorState {
   const [hasError, setHasError] = useState(false);
   const [selected, setSelected] = useState<SupplyOption | null>(null);
   const [quantity, setQuantity] = useState(DEFAULT_QUANTITY);
+  const [searchVersion, setSearchVersion] = useState(0);
 
   const idToken = session?.idToken ?? null;
   const isTermTooShort = term.length > 0 && !isSearchable(term);
@@ -88,7 +89,7 @@ export function useSupplySelector(): SupplySelectorState {
       isCurrent = false;
       clearTimeout(timer);
     };
-  }, [idToken, term, isTermTooShort]);
+  }, [idToken, term, isTermTooShort, searchVersion]);
 
   const onTermChange = useCallback((next: string) => {
     setTerm(next);
@@ -122,6 +123,7 @@ export function useSupplySelector(): SupplySelectorState {
     setQuantity(DEFAULT_QUANTITY);
     setHasError(false);
     setIsLoading(false);
+    setSearchVersion(version => version + 1);
   }, []);
 
   const submit = useCallback(() => {

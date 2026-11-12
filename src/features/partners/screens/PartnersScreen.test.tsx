@@ -13,6 +13,10 @@ jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
 
+jest.mock('features/suppliers/services/supplierService', () => ({
+  fetchSuppliers: async () => [],
+}));
+
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
@@ -78,5 +82,8 @@ test('switching to suppliers hides the clinics content', async () => {
     suppliersTab.props.onPress();
   });
 
-  expect(textsOf(renderer)).not.toContain('Adicionar clínica');
+  const texts = textsOf(renderer);
+  expect(texts).not.toContain('Adicionar clínica');
+  expect(texts).toContain('Nenhum fornecedor cadastrado.');
+  expect(texts).toContain('Adicionar fornecedor');
 });

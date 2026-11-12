@@ -153,3 +153,41 @@ test('a scheduled appointment without supplies only leaves the schedule', async 
     'Os materiais usados voltam para o estoque.',
   );
 });
+
+test('the travel form opens with the appointment clinic as the destination', async () => {
+  detailMock.mockReturnValue(
+    detailState({ appointment: { ...APPOINTMENT, ownerName: 'HospVet Sul' } }),
+  );
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <SafeAreaProvider initialMetrics={METRICS}>
+        <I18nProvider>
+          <AuthProvider initialSession={SESSION} initialAccount={ACCOUNT}>
+            <AppointmentDetailScreen
+              appointmentId="apt-1"
+              onClose={jest.fn()}
+              onChanged={jest.fn()}
+            />
+          </AuthProvider>
+        </I18nProvider>
+      </SafeAreaProvider>,
+    );
+  });
+
+  const register = renderer.root.find(
+    node =>
+      node.props.accessibilityLabel === '+ Registrar' &&
+      typeof node.props.onPress === 'function' &&
+      typeof node.type !== 'string',
+  );
+  await act(async () => register.props.onPress());
+
+  const destination = renderer.root.find(
+    node =>
+      node.props.accessibilityLabel === 'Destino' &&
+      node.props.value !== undefined,
+  );
+
+  expect(destination.props.value).toBe('HospVet Sul');
+});

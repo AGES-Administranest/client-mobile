@@ -11,13 +11,19 @@ import {
   OCTOBER_HOURLY_RATE,
   SEPTEMBER_HOURLY_RATE,
 } from '../domain/hourlyRate.fixture';
+import { newestPeriods } from '../domain/hourlyRateHistory.fixture';
 import { pricingService } from '../services/pricingService';
 
 jest.mock('features/auth/services/authService', () => ({}));
 jest.mock('features/auth/services/socialAuthService', () => ({}));
 jest.mock('features/auth/services/accountApi', () => ({}));
 jest.mock('../services/pricingService', () => ({
-  pricingService: { getHourlyRate: jest.fn(), saveSettings: jest.fn() },
+  pricingService: {
+    getHourlyRate: jest.fn(),
+    saveSettings: jest.fn(),
+    getHourlyRateHistory: jest.fn(),
+    getHourlyRateHistoryMonth: jest.fn(),
+  },
 }));
 // The fixed costs card reads its service from inside the calculator
 // feature, so the mock replaces that module, not the public index.
@@ -31,6 +37,9 @@ const fixedCostsService = jest.requireMock(
 
 const getHourlyRate = pricingService.getHourlyRate as jest.Mock;
 const saveSettings = pricingService.saveSettings as jest.Mock;
+const getHourlyRateHistory = pricingService.getHourlyRateHistory as jest.Mock;
+const getHourlyRateHistoryMonth =
+  pricingService.getHourlyRateHistoryMonth as jest.Mock;
 const fetchSummary = fixedCostsService.fetchFixedCostsSummary;
 
 const METRICS = {
@@ -124,7 +133,7 @@ async function renderScreen(onClose = jest.fn()) {
   return { renderer, onClose, texts, press, input, typeAndBlur };
 }
 
-beforeAll(() => {
+beforeEach(() => {
   jest.useFakeTimers({
     now: NOW,
     doNotFake: [
@@ -144,7 +153,7 @@ beforeAll(() => {
   });
 });
 
-afterAll(() => {
+afterEach(() => {
   jest.useRealTimers();
 });
 
@@ -160,6 +169,8 @@ beforeEach(() => {
   saveSettings
     .mockReset()
     .mockImplementation((_token, dto) => Promise.resolve(dto));
+  getHourlyRateHistory.mockReset().mockResolvedValue([]);
+  getHourlyRateHistoryMonth.mockReset().mockResolvedValue(null);
   fetchSummary.mockReset().mockResolvedValue(SUMMARY);
 });
 
@@ -321,6 +332,112 @@ describe('configured', () => {
     await press('Tentar novamente');
 
     expect(texts()).toContain(nbsp('R$ 98,07'));
+  });
+});
+
+describe('history shortcut', () => {
+  test('shows "Ver histórico" in the rate card, without fetching anything yet', async () => {
+    const { texts } = await renderScreen();
+
+    expect(texts()).toContain('Ver histórico');
+    expect(getHourlyRateHistory).not.toHaveBeenCalled();
+  });
+
+  test('opens the history over the calculator and comes back to it', async () => {
+    const { renderer, texts, press } = await renderScreen();
+
+    await press('Ver histórico');
+
+    expect(getHourlyRateHistory).toHaveBeenCalledWith('id-token');
+    expect(texts()).toEqual(
+      expect.arrayContaining([
+        'Histórico do valor da hora',
+        'Calculadora de hora',
+      ]),
+    );
+
+    const backButtons = renderer.root.findAll(
+      node =>
+        node.props.accessibilityLabel === 'Voltar' &&
+        typeof node.props.onPress === 'function',
+    );
+    await act(async () => backButtons[backButtons.length - 1].props.onPress());
+
+    expect(texts()).toContain(nbsp('R$ 98,07'));
+    expect(
+      renderer.root.findAll(
+        node =>
+          node.props.accessibilityLabel === 'Voltar' &&
+          typeof node.props.onPress === 'function',
+      ),
+    ).toHaveLength(1);
+  });
+});
+
+describe('opening a month of the history', () => {
+  const GOAL_LABELS = [
+    'Meta de renda líquida mensal (R$)',
+    'Horas disponíveis por semana',
+    'Margem de segurança (%)',
+  ];
+  // September as it was stored, with goals unlike the current ones.
+  const STORED_SEPTEMBER = {
+    ...SEPTEMBER_HOURLY_RATE,
+    settings: { monthlyIncomeGoal: 5000, weeklyHours: 20, safetyMarginPct: 10 },
+  };
+
+  beforeEach(() => {
+    getHourlyRateHistory.mockResolvedValue(newestPeriods(12));
+    getHourlyRateHistoryMonth.mockImplementation(async (_token, month) =>
+      month.month === 9 ? STORED_SEPTEMBER : OCTOBER_HOURLY_RATE,
+    );
+  });
+
+  test('neither saves nor changes the configuration, before or after coming back', async () => {
+    const { renderer, texts, press, input } = await renderScreen();
+    const goals = () => GOAL_LABELS.map(label => input(label).props.value);
+    const before = goals();
+    const callsBefore = getHourlyRate.mock.calls.length;
+    expect(before).toEqual(['8000', '30', '20']);
+
+    await press('Ver histórico');
+    await press('Ver todos os meses (12)');
+    await act(async () =>
+      renderer.root
+        .find(node => node.props.testID === 'month-row-2026-9')
+        .props.onPress(),
+    );
+
+    expect(texts()).toContain('Setembro 2026');
+    // The month's own goals are on screen, and the calculator's did not move.
+    expect(texts()).toContain('5000');
+    expect(goals()).toEqual(before);
+
+    // The calculator's own back button stays mounted under the history's.
+    const back = () => {
+      const buttons = renderer.root.findAll(
+        node =>
+          node.props.accessibilityLabel === 'Voltar' &&
+          typeof node.props.onPress === 'function',
+      );
+      return act(async () => buttons[buttons.length - 1].props.onPress());
+    };
+    await back();
+    await back();
+    await back();
+
+    // Back at the calculator: only its own back button is left.
+    expect(
+      renderer.root.findAll(
+        node =>
+          node.props.accessibilityLabel === 'Voltar' &&
+          typeof node.props.onPress === 'function',
+      ),
+    ).toHaveLength(1);
+    expect(goals()).toEqual(before);
+    expect(saveSettings).not.toHaveBeenCalled();
+    expect(getHourlyRate).toHaveBeenCalledTimes(callsBefore);
+    expect(getHourlyRate).not.toHaveBeenCalledWith('id-token', SEPTEMBER);
   });
 });
 
