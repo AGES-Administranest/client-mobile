@@ -47,6 +47,20 @@ const textOf = (tree: ReactTestRenderer.ReactTestRenderer) =>
   JSON.stringify(tree.toJSON());
 
 describe('ReportCategoriesSheet', () => {
+  it('exposes selected and unselected categories to assistive technology', () => {
+    const tree = render({ selectedIds: ['financial'] });
+    const categories = tree.root.findAll(
+      node =>
+        node.props.accessibilityRole === 'checkbox' &&
+        typeof node.props.onPress === 'function',
+    );
+
+    expect(categories.map(node => node.props['aria-checked'])).toEqual([
+      true,
+      false,
+    ]);
+  });
+
   it('shows the warning and the error it is given', () => {
     const text = textOf(
       render({

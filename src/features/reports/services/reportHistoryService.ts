@@ -1,6 +1,7 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { Linking, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
 
 import { apiClient } from 'shared/services/apiClient';
 
@@ -50,8 +51,11 @@ export async function generateReport(
   };
 
   if (Platform.OS === 'web') {
-    // No file system on the web: the browser downloads it instead.
-    await Linking.openURL(report.downloadUrl);
+    // The signed URL sends an attachment; using this tab avoids popup blocking
+    // after a slow generation and keeps the app open while the file downloads.
+    await WebBrowser.openBrowserAsync(report.downloadUrl, {
+      windowName: '_self',
+    });
     return item;
   }
 

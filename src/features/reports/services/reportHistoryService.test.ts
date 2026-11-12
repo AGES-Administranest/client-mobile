@@ -1,6 +1,7 @@
 import { File as ExpoFile } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { Linking, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
 
 import { apiClient } from 'shared/services/apiClient';
 
@@ -18,6 +19,10 @@ jest.mock('shared/services/apiClient', () => ({
 jest.mock('expo-sharing', () => ({
   isAvailableAsync: jest.fn(),
   shareAsync: jest.fn(),
+}));
+
+jest.mock('expo-web-browser', () => ({
+  openBrowserAsync: jest.fn().mockResolvedValue({ type: 'opened' }),
 }));
 
 jest.mock('expo-file-system', () => {
@@ -115,9 +120,8 @@ describe('generateReport', () => {
     });
   });
 
-  it('lets the browser download it on the web', async () => {
+  it('downloads in the current tab so a slow generation needs no popup', async () => {
     Platform.OS = 'web';
-    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
     const item = await generateReport('id-token', {
       categories: ['financial'],
@@ -125,7 +129,10 @@ describe('generateReport', () => {
       to: '2026-11-14',
     });
 
-    expect(openURL).toHaveBeenCalledWith(GENERATED.downloadUrl);
+    expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
+      GENERATED.downloadUrl,
+      { windowName: '_self' },
+    );
     expect(download).not.toHaveBeenCalled();
     expect(item.fileUri).toBeUndefined();
   });

@@ -99,7 +99,7 @@ export function ReportCategoriesSheet({
           <Pressable
             key={option.id}
             accessibilityRole="checkbox"
-            accessibilityState={{ checked: isSelected }}
+            aria-checked={isSelected}
             onPress={() => onToggle(option.id)}
             className="flex-row items-center gap-3 rounded-lg border border-border-primary bg-white px-3 py-3"
           >
