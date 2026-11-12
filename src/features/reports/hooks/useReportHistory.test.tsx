@@ -90,6 +90,11 @@ describe('useReportHistory', () => {
   it.each([
     ['no connection', new NetworkError('down'), 'offline'],
     [
+      'a period longer than a year',
+      new ApiError('too long', 'REPORT_PERIOD_TOO_LONG', 400),
+      'periodTooLong',
+    ],
+    [
       'a refusal of the API',
       new ApiError('no', 'REPORT_SECTIONS_EMPTY', 400),
       'failed',

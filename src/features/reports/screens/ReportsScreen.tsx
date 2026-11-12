@@ -11,7 +11,7 @@ import {
   ServiceInvoiceUploadFlow,
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
-import { useTranslation } from 'shared/i18n';
+import { type TranslationKey, useTranslation } from 'shared/i18n';
 import {
   EMPTY_CALENDAR_RANGE,
   fromCalendarDate,
@@ -36,6 +36,12 @@ import {
 } from '../hooks/useReportHistory';
 
 const HISTORY_PREVIEW_COUNT = 5;
+
+const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
+  offline: 'reports.generate.offline',
+  periodTooLong: 'reports.generate.periodTooLong',
+  failed: 'reports.generate.failed',
+};
 
 const SECTION_TITLE =
   'text-sm font-semibold uppercase tracking-wide text-label-primary';
@@ -234,13 +240,7 @@ export function ReportsScreen() {
         isGenerating={reports.isGenerating}
         warning={isCrmvMissing ? t('reports.generate.crmvMissing') : null}
         error={
-          generateFailure
-            ? t(
-                generateFailure === 'offline'
-                  ? 'reports.generate.offline'
-                  : 'reports.generate.failed',
-              )
-            : null
+          generateFailure ? t(GENERATE_FAILURE_MESSAGES[generateFailure]) : null
         }
         onToggle={id =>
           setCategories(current =>

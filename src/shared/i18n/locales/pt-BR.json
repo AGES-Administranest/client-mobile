@@ -2028,6 +2028,7 @@
       "nextYear": "Próximo ano",
       "crmvMissing": "Seu CRMV não está preenchido no perfil. O relatório sairá sem a identificação profissional completa.",
       "offline": "Sem conexão. É preciso estar online para gerar o relatório.",
+      "periodTooLong": "O relatório cobre no máximo um ano. Escolha um período menor.",
       "failed": "Não foi possível gerar o relatório. Tente novamente."
     },
     "categories": {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useAuth } from 'features/auth';
 import { NetworkError } from 'shared/api';
+import { ApiError } from 'shared/services/apiClient';
 import { RequestTimeoutError } from 'shared/services/apiClient';
 
 import type { ReportCategory, ReportHistoryItem } from '../domain/report.types';
@@ -17,7 +18,7 @@ import {
 } from '../services/reportSelectionStore';
 
 /** Why a report could not be generated, for the screen to say so. */
-export type GenerateFailure = 'offline' | 'failed';
+export type GenerateFailure = 'offline' | 'periodTooLong' | 'failed';
 
 export type GenerateResult =
   | { ok: true }
@@ -35,9 +36,15 @@ export type ReportHistoryState = {
 function failureOf(error: unknown): GenerateFailure {
   // The PDF is made on the server (ADR-04): without a connection there is
   // nothing to generate, and the screen says that instead of "try again".
-  return error instanceof NetworkError || error instanceof RequestTimeoutError
-    ? 'offline'
-    : 'failed';
+  if (error instanceof NetworkError || error instanceof RequestTimeoutError) {
+    return 'offline';
+  }
+  // A report covers at most a year (366 days); trying again would not help,
+  // the user has to pick a shorter period.
+  if (error instanceof ApiError && error.code === 'REPORT_PERIOD_TOO_LONG') {
+    return 'periodTooLong';
+  }
+  return 'failed';
 }
 
 export function useReportHistory(): ReportHistoryState {
