@@ -1,10 +1,21 @@
-import { File, Paths } from 'expo-file-system';
+import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { Linking, Platform } from 'react-native';
 
-import type { ReportCategory, ReportHistoryItem } from '../domain/report.types';
+import { apiClient } from 'shared/services/apiClient';
 
-// Stand-in until the report endpoints exist: no report at all, never made-up
-// ones. Keeps the signature the real call will have, GET /reports.
+import {
+  sectionsOf,
+  type GeneratedReport,
+  type ReportCategory,
+  type ReportHistoryItem,
+} from '../domain/report.types';
+
+/** Generating a long period draws many pages on the server. */
+export const GENERATE_TIMEOUT_MS = 60_000;
+
+// Stand-in until the history endpoint exists (US32): no report at all, never
+// made-up ones. Keeps the signature the real call will have, GET /reports.
 export function fetchReportHistory(
   _idToken: string,
 ): Promise<ReportHistoryItem[]> {
@@ -17,31 +28,43 @@ export type GenerateReportInput = {
   to: string;
 };
 
-// Stand-in until POST /reports exists: it should return the generated file.
-// Until then a placeholder text file (no real data) is saved on the device so
-// the share flow can be exercised end to end.
-export function generateReport(
-  _idToken: string,
+/**
+ * Generates the PDF of the general report (POST /reports, US28) and saves it
+ * on the device, so it can be shared later without a connection (US31).
+ *
+ * The download link is already signed: it needs no token.
+ */
+export async function generateReport(
+  idToken: string,
   input: GenerateReportInput,
 ): Promise<ReportHistoryItem> {
-  const generatedAt = new Date().toISOString();
-  const fileName = `relatorio_${input.from}_${input.to}.txt`;
-  const item: ReportHistoryItem = { id: generatedAt, fileName, generatedAt };
+  const report = await apiClient.post<GeneratedReport>(
+    '/reports',
+    { from: input.from, to: input.to, sections: sectionsOf(input.categories) },
+    { token: idToken, timeoutMs: GENERATE_TIMEOUT_MS },
+  );
+  const item: ReportHistoryItem = {
+    id: report.id,
+    fileName: report.fileName,
+    generatedAt: report.generatedAt,
+  };
 
-  try {
-    const file = new File(Paths.document, fileName);
-    file.create({ overwrite: true });
-    file.write(
-      `Relatório provisório\nPeríodo: ${input.from} a ${
-        input.to
-      }\nCategorias: ${input.categories.join(', ')}\n`,
-    );
-    item.fileUri = file.uri;
-  } catch {
-    // No file system (web): the entry still goes to the history, just unshareable.
+  if (Platform.OS === 'web') {
+    // No file system on the web: the browser downloads it instead.
+    await Linking.openURL(report.downloadUrl);
+    return item;
   }
 
-  return Promise.resolve(item);
+  const directory = new Directory(Paths.document, 'reports');
+  directory.create({ intermediates: true, idempotent: true });
+  const file = await File.downloadFileAsync(
+    report.downloadUrl,
+    new File(directory, report.fileName),
+    // The same period generated again replaces the older file.
+    { idempotent: true },
+  );
+
+  return { ...item, fileUri: file.uri };
 }
 
 export async function shareReport(fileUri: string): Promise<boolean> {
@@ -50,8 +73,8 @@ export async function shareReport(fileUri: string): Promise<boolean> {
   }
 
   await Sharing.shareAsync(fileUri, {
-    mimeType: 'text/plain',
-    UTI: 'public.plain-text',
+    mimeType: 'application/pdf',
+    UTI: 'com.adobe.pdf',
   });
 
   return true;

@@ -6,6 +6,7 @@ import { Button } from 'app/components/ui/button';
 import { DateRangePicker } from 'app/components/ui/date-range-picker';
 import { Text } from 'app/components/ui/text';
 import { InvoicesScreen, InvoicesSection } from 'features/invoices';
+import { isMissingCrmv, useProfile } from 'features/profile';
 import {
   ServiceInvoiceUploadFlow,
   useServiceInvoiceUpload,
@@ -29,7 +30,10 @@ import {
   type ReportCategory,
   type ReportHistoryItem,
 } from '../domain/report.types';
-import { useReportHistory } from '../hooks/useReportHistory';
+import {
+  useReportHistory,
+  type GenerateFailure,
+} from '../hooks/useReportHistory';
 
 const HISTORY_PREVIEW_COUNT = 5;
 
@@ -40,9 +44,14 @@ export function ReportsScreen() {
   const { t, locale } = useTranslation();
   const reports = useReportHistory();
   const invoiceUpload = useServiceInvoiceUpload();
+  const { state: profile } = useProfile();
+  const isCrmvMissing =
+    profile.status === 'ready' && isMissingCrmv(profile.profile);
 
   const [categories, setCategories] = useState<ReportCategory[]>([]);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [generateFailure, setGenerateFailure] =
+    useState<GenerateFailure | null>(null);
   const [range, setRange] = useState<CalendarRange>(EMPTY_CALENDAR_RANGE);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [shareFailed, setShareFailed] = useState(false);
@@ -141,7 +150,8 @@ export function ReportsScreen() {
             className="h-[49px] w-full"
             disabled={!isRangeComplete(range)}
             onPress={() => {
-              setCategories([]);
+              setCategories(reports.lastSelection);
+              setGenerateFailure(null);
               setIsCategoryOpen(true);
             }}
           >
@@ -222,6 +232,16 @@ export function ReportsScreen() {
         }))}
         selectedIds={categories}
         isGenerating={reports.isGenerating}
+        warning={isCrmvMissing ? t('reports.generate.crmvMissing') : null}
+        error={
+          generateFailure
+            ? t(
+                generateFailure === 'offline'
+                  ? 'reports.generate.offline'
+                  : 'reports.generate.failed',
+              )
+            : null
+        }
         onToggle={id =>
           setCategories(current =>
             current.includes(id as ReportCategory)
@@ -233,9 +253,16 @@ export function ReportsScreen() {
         onClearAll={() => setCategories([])}
         onGenerate={() => {
           if (range.from && range.to) {
+            setGenerateFailure(null);
             reports
               .generate({ categories, from: range.from, to: range.to })
-              .then(ok => ok && setIsCategoryOpen(false));
+              .then(result => {
+                if (result.ok) {
+                  setIsCategoryOpen(false);
+                } else {
+                  setGenerateFailure(result.reason);
+                }
+              });
           }
         }}
         onClose={() => setIsCategoryOpen(false)}

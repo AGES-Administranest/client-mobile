@@ -2025,7 +2025,10 @@
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
       "previousYear": "Previous year",
-      "nextYear": "Next year"
+      "nextYear": "Next year",
+      "crmvMissing": "Your CRMV is not filled in on your profile. The report will not have your full professional identification.",
+      "offline": "No connection. You need to be online to generate the report.",
+      "failed": "The report could not be generated. Please try again."
     },
     "categories": {
       "financial": "Financial",

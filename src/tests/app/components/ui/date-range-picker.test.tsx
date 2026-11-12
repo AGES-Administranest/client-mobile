@@ -116,15 +116,19 @@ test('marks every day of the selected range as selected', async () => {
 
   expect(dayCell(renderer, '2026-09-08').props.accessibilityState).toEqual({
     selected: true,
+    disabled: false,
   });
   expect(dayCell(renderer, '2026-09-09').props.accessibilityState).toEqual({
     selected: true,
+    disabled: false,
   });
   expect(dayCell(renderer, '2026-09-10').props.accessibilityState).toEqual({
     selected: true,
+    disabled: false,
   });
   expect(dayCell(renderer, '2026-09-11').props.accessibilityState).toEqual({
     selected: false,
+    disabled: false,
   });
 });
 

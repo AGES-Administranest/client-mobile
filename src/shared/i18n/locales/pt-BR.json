@@ -2025,7 +2025,10 @@
       "previousMonth": "Mês anterior",
       "nextMonth": "Próximo mês",
       "previousYear": "Ano anterior",
-      "nextYear": "Próximo ano"
+      "nextYear": "Próximo ano",
+      "crmvMissing": "Seu CRMV não está preenchido no perfil. O relatório sairá sem a identificação profissional completa.",
+      "offline": "Sem conexão. É preciso estar online para gerar o relatório.",
+      "failed": "Não foi possível gerar o relatório. Tente novamente."
     },
     "categories": {
       "financial": "Financeiro",

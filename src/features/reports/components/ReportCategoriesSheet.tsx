@@ -19,6 +19,10 @@ type ReportCategoriesSheetProps = {
   options: readonly CategoryOption[];
   selectedIds: readonly string[];
   isGenerating: boolean;
+  /** Shown above the sections: something to know before generating. */
+  warning?: string | null;
+  /** Shown above the button when the last attempt failed. */
+  error?: string | null;
   onToggle: (id: string) => void;
   onSelectAll: () => void;
   onClearAll: () => void;
@@ -36,6 +40,8 @@ export function ReportCategoriesSheet({
   options,
   selectedIds,
   isGenerating,
+  warning,
+  error,
   onToggle,
   onSelectAll,
   onClearAll,
@@ -49,16 +55,31 @@ export function ReportCategoriesSheet({
       closeLabel={closeLabel}
       onClose={onClose}
       footer={
-        <Button
-          shape="pill"
-          className="h-[49px] w-full"
-          disabled={selectedIds.length === 0 || isGenerating}
-          onPress={onGenerate}
-        >
-          <Text>{generateLabel}</Text>
-        </Button>
+        <View className="gap-2">
+          {error ? (
+            <Text
+              accessibilityRole="alert"
+              className="text-sm text-destructive"
+            >
+              {error}
+            </Text>
+          ) : null}
+          <Button
+            shape="pill"
+            className="h-[49px] w-full"
+            disabled={selectedIds.length === 0 || isGenerating}
+            onPress={onGenerate}
+          >
+            <Text>{generateLabel}</Text>
+          </Button>
+        </View>
       }
     >
+      {warning ? (
+        <View className="rounded-lg bg-details-secondary px-3 py-2">
+          <Text className="text-sm text-label-primary">{warning}</Text>
+        </View>
+      ) : null}
       <View className="flex-row justify-between">
         <Pressable accessibilityRole="button" onPress={onSelectAll}>
           <Text className="text-sm font-medium text-label-primary">
