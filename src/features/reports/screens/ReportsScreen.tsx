@@ -29,7 +29,8 @@ import {
 } from 'shared/utils/calendar';
 import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
-import { ReportCard } from '../components/ReportCard';
+import { ReportHistoryScreen } from './ReportHistoryScreen';
+import { ReportHistorySection } from './ReportHistorySection';
 import { ReportField } from '../components/ReportField';
 import { REPORT_CATEGORIES, type ReportCategory } from '../domain/report.types';
 import { useReportHistory } from '../hooks/useReportHistory';
@@ -53,6 +54,7 @@ export function ReportsScreen() {
   const [range, setRange] = useState<CalendarRange>(EMPTY_CALENDAR_RANGE);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
 
@@ -154,29 +156,10 @@ export function ReportsScreen() {
           </Button>
         </View>
 
-        <View className="gap-3">
-          <Text className={SECTION_TITLE}>{t('reports.history.title')}</Text>
-          {history.length === 0 ? (
-            <Text className="text-sm text-label-tertiary">
-              {t('reports.history.empty')}
-            </Text>
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="-mx-4"
-              contentContainerClassName="gap-3 px-4 pb-3"
-            >
-              {history.map(report => (
-                <ReportCard
-                  key={report.id}
-                  date={formatDayAndMonth(new Date(report.generatedAt), locale)}
-                  fileName={report.fileName}
-                />
-              ))}
-            </ScrollView>
-          )}
-        </View>
+        <ReportHistorySection
+          history={history}
+          onSeeAll={() => setIsHistoryOpen(true)}
+        />
 
         <InvoicesSection onSeeAll={() => setIsInvoiceListOpen(true)} />
 
@@ -205,6 +188,12 @@ export function ReportsScreen() {
             setIsCategoryOpen(false);
           },
         }))}
+      />
+
+      <ReportHistoryScreen
+        visible={isHistoryOpen}
+        history={history}
+        onClose={() => setIsHistoryOpen(false)}
       />
 
       <InvoicesScreen
