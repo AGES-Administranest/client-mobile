@@ -877,6 +877,9 @@
         "previousMonth": "Last month",
         "currentYear": "This year",
         "custom": "Custom"
+      },
+      "errors": {
+        "endBeforeStart": "The end date cannot be before the start date."
       }
     },
     "kinds": {
@@ -888,6 +891,11 @@
         "title": "Invoice Package for Income Tax",
         "description": "The period's invoices gathered for income tax"
       }
+    },
+    "availability": {
+      "offline": "Generating reports requires an internet connection. Connect and try again.",
+      "empty": "There are no records in this period. Choose another period to generate the report.",
+      "failed": "We couldn't check the period right now. Please try again."
     },
     "history": {
       "title": "Report history",

@@ -2,12 +2,31 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { I18nProvider } from 'shared/i18n';
+import { isOnline } from 'shared/services/network';
 
 import { ReportsScreen } from './ReportsScreen';
+import { fetchReportAvailability } from '../services/reportAvailabilityService';
 
 jest.mock('features/auth', () => ({
   useAuth: () => ({ session: { idToken: 'tok' } }),
 }));
+jest.mock('../services/reportAvailabilityService', () => ({
+  fetchReportAvailability: jest.fn(),
+}));
+jest.mock('shared/services/network', () => ({
+  isOnline: jest.fn(),
+  onConnectionRestored: jest.fn(() => () => undefined),
+}));
+
+const fetchAvailability = jest.mocked(fetchReportAvailability);
+const isOnlineMock = jest.mocked(isOnline);
+
+beforeEach(() => {
+  isOnlineMock.mockReset();
+  isOnlineMock.mockResolvedValue(true);
+  fetchAvailability.mockReset();
+  fetchAvailability.mockResolvedValue({ total: 1 });
+});
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -89,8 +108,8 @@ function tab(renderer: ReactTestRenderer.ReactTestRenderer, name: string) {
 }
 
 async function press(instance: ReactTestRenderer.ReactTestInstance) {
-  await act(() => {
-    instance.props.onPress();
+  await act(async () => {
+    await instance.props.onPress();
   });
 }
 
@@ -277,6 +296,41 @@ describe('ReportsScreen', () => {
     expect(
       pressable(renderer, label => label.includes('Histórico de relatórios')),
     ).toBeUndefined();
+  });
+
+  it('warns that the period has no records instead of generating', async () => {
+    fetchAvailability.mockResolvedValue({ total: 0 });
+    const onGenerateReport = jest.fn();
+    const renderer = await render({ onGenerateReport });
+
+    await press(pressable(renderer, label => label === 'Relatório Geral'));
+
+    expect(fetchAvailability).toHaveBeenCalledWith('tok', {
+      from: '2026-11-01',
+      to: '2026-11-02',
+    });
+    expect(onGenerateReport).not.toHaveBeenCalled();
+    expect(textsOf(renderer)).toContain('Não há registros neste período');
+
+    await press(tab(renderer, 'Mês anterior'));
+
+    expect(textsOf(renderer)).not.toContain('Não há registros neste período');
+  });
+
+  it('warns that generating reports needs internet when offline', async () => {
+    isOnlineMock.mockResolvedValue(false);
+    const onGenerateReport = jest.fn();
+    const renderer = await render({ onGenerateReport });
+
+    await press(
+      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR'),
+    );
+
+    expect(fetchAvailability).not.toHaveBeenCalled();
+    expect(onGenerateReport).not.toHaveBeenCalled();
+    expect(textsOf(renderer)).toContain(
+      'Gerar relatórios exige conexão com a internet',
+    );
   });
 
   it('opens the history', async () => {
