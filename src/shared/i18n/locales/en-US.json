@@ -2101,7 +2101,17 @@
     },
     "countSingular": "{{count}} invoice",
     "countPlural": "{{count}} invoices",
-    "addInvoice": "Add invoice"
+    "addInvoice": "Add invoice",
+    "downloadAll": {
+      "button": "Download all (ZIP)",
+      "downloading": "Preparing the ZIP file...",
+      "done": "Download started.",
+      "empty": "No invoice with a file to download.",
+      "tooLarge": "There are too many invoices for a single ZIP (limit of 500 invoices or 200 MB). Download them one by one for now.",
+      "offline": "No connection. Check your internet and try again.",
+      "rateLimited": "Too many attempts in a row. Wait a minute and try again.",
+      "failed": "Could not download the invoices. Try again."
+    }
   },
   "reports": {
     "seeAll": "See all",

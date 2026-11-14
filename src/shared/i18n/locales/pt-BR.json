@@ -2101,7 +2101,17 @@
     },
     "countSingular": "{{count}} nota fiscal",
     "countPlural": "{{count}} notas fiscais",
-    "addInvoice": "Adicionar nota fiscal"
+    "addInvoice": "Adicionar nota fiscal",
+    "downloadAll": {
+      "button": "Baixar tudo (ZIP)",
+      "downloading": "Preparando o arquivo ZIP...",
+      "done": "Download iniciado.",
+      "empty": "Nenhuma nota fiscal com arquivo para baixar.",
+      "tooLarge": "Há notas demais para um único ZIP (limite de 500 notas ou 200 MB). Baixe as notas uma a uma por enquanto.",
+      "offline": "Sem conexão. Verifique sua internet e tente de novo.",
+      "rateLimited": "Muitas tentativas seguidas. Aguarde um minuto e tente de novo.",
+      "failed": "Não foi possível baixar as notas. Tente novamente."
+    }
   },
   "reports": {
     "seeAll": "Ver todos",
