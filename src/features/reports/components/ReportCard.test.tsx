@@ -2,7 +2,7 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { ReportCard } from './ReportCard';
 
-function renderCard(downloadedLabel: string | null) {
+function renderCard(downloadedLabel: string | null, onPress = jest.fn()) {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
 
   act(() => {
@@ -13,6 +13,7 @@ function renderCard(downloadedLabel: string | null) {
         generatedAt="Gerado em 12/11/2026"
         fileName="relatorio.pdf"
         downloadedLabel={downloadedLabel}
+        onPress={onPress}
       />,
     );
   });
@@ -41,5 +42,18 @@ describe('ReportCard', () => {
   it('marks a report kept on the device', () => {
     expect(textsOf(renderCard('No aparelho'))).toContain('No aparelho');
     expect(textsOf(renderCard(null))).not.toContain('No aparelho');
+  });
+
+  it('opens the report when pressed', () => {
+    const onPress = jest.fn();
+    const button = renderCard(null, onPress).root.find(
+      node =>
+        node.props.accessibilityRole === 'button' &&
+        typeof node.props.onPress === 'function',
+    );
+
+    act(() => button.props.onPress());
+
+    expect(onPress).toHaveBeenCalled();
   });
 });

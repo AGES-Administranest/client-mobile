@@ -8,7 +8,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -21,6 +21,7 @@ import {
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
 import { useTranslation } from 'shared/i18n';
+import { onConnectionRestored } from 'shared/services/network';
 import {
   EMPTY_CALENDAR_RANGE,
   fromCalendarDate,
@@ -57,6 +58,9 @@ export function ReportsScreen() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
+
+  const { retry: retryHistory } = history;
+  useEffect(() => onConnectionRestored(retryHistory), [retryHistory]);
 
   const dateLabel = (calendarDate: string | null) =>
     calendarDate

@@ -41,3 +41,29 @@ export function findLocalReport(
     return null;
   }
 }
+
+export async function saveReportFile(
+  userId: string,
+  report: Pick<ReportHistoryItem, 'id' | 'fileName'>,
+  url: string,
+): Promise<LocalReportFile> {
+  const directory = directoryOf(userId, report.id);
+  directory.create({ idempotent: true, intermediates: true });
+  const destination = new File(directory, fileNameOf(report));
+  const file = await File.downloadFileAsync(url, destination, {
+    idempotent: true,
+  });
+
+  return toLocal(file);
+}
+
+export function removeReportFile(userId: string, reportId: string): void {
+  if (!canKeepReportFiles) {
+    return;
+  }
+
+  const directory = directoryOf(userId, reportId);
+  if (directory.exists) {
+    directory.delete();
+  }
+}

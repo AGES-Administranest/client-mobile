@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
+import { ReportDetailModal } from './ReportDetailModal';
 import { reportCardView } from './reportPresenter';
 import { ReportCard } from '../components/ReportCard';
+import type { ReportHistoryItem } from '../domain/report.types';
 import type { ReportHistoryState } from '../hooks/useReportHistory';
 
 const PREVIEW_COUNT = 5;
@@ -19,6 +22,8 @@ export function ReportHistorySection({
   onSeeAll,
 }: ReportHistorySectionProps) {
   const { t, locale } = useTranslation();
+  const [selected, setSelected] = useState<ReportHistoryItem | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const { reports, downloadedIds, isLoading, hasError, retry } = history;
 
   return (
@@ -77,10 +82,23 @@ export function ReportHistorySection({
                 locale,
               )}
               className="w-[215px]"
+              onPress={() => {
+                setSelected(report);
+                setIsDetailOpen(true);
+              }}
             />
           ))}
         </ScrollView>
       ) : null}
+
+      <ReportDetailModal
+        report={selected}
+        visible={isDetailOpen}
+        isDownloaded={selected ? downloadedIds.has(selected.id) : false}
+        onClose={() => setIsDetailOpen(false)}
+        onDownloaded={history.markDownloaded}
+        onDeleted={history.forget}
+      />
     </View>
   );
 }

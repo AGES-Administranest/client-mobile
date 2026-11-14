@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from 'features/auth';
 
 import type { ReportHistoryItem } from '../domain/report.types';
-import { mergeReportPages } from '../domain/reportHistory';
+import { mergeReportPages, withoutReport } from '../domain/reportHistory';
 import { findLocalReport } from '../services/reportFileStore';
 import { fetchReportHistory } from '../services/reportHistoryService';
 
@@ -19,6 +19,8 @@ export type ReportHistoryState = {
   loadMoreFailed: boolean;
   loadMore: () => void;
   retry: () => void;
+  markDownloaded: (reportId: string) => void;
+  forget: (reportId: string) => void;
 };
 
 export function useReportHistory(): ReportHistoryState {
@@ -121,6 +123,15 @@ export function useReportHistory(): ReportHistoryState {
   }, [reports, userId]);
 
   const retry = useCallback(() => setAttempt(count => count + 1), []);
+  const markDownloaded = useCallback(
+    (reportId: string) =>
+      setDownloadedIds(known => new Set(known).add(reportId)),
+    [],
+  );
+  const forget = useCallback(
+    (reportId: string) => setReports(known => withoutReport(known, reportId)),
+    [],
+  );
 
   return {
     reports,
@@ -132,5 +143,7 @@ export function useReportHistory(): ReportHistoryState {
     loadMoreFailed,
     loadMore,
     retry,
+    markDownloaded,
+    forget,
   };
 }

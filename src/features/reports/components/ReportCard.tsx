@@ -1,5 +1,5 @@
 import { CalendarDays, CircleCheck } from 'lucide-react-native';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
@@ -11,6 +11,7 @@ type ReportCardProps = {
   generatedAt: string;
   fileName: string;
   downloadedLabel: string | null;
+  onPress: () => void;
   className?: string;
 };
 
@@ -20,11 +21,13 @@ export function ReportCard({
   generatedAt,
   fileName,
   downloadedLabel,
+  onPress,
   className,
 }: ReportCardProps) {
   return (
-    <View
-      accessible
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
       accessibilityLabel={[kind, period, generatedAt, downloadedLabel]
         .filter(Boolean)
         .join(', ')}
@@ -61,6 +64,6 @@ export function ReportCard({
       <Text className="text-xs text-label-tertiary" numberOfLines={1}>
         {fileName}
       </Text>
-    </View>
+    </Pressable>
   );
 }

@@ -164,5 +164,20 @@ describe('useReportHistory', () => {
     await flush();
 
     expect([...result.current.downloadedIds]).toEqual(['kept']);
+
+    act(() => result.current.markDownloaded('remote'));
+    expect(result.current.downloadedIds.has('remote')).toBe(true);
+  });
+
+  it('drops a deleted report from the list', async () => {
+    fetchMock.mockResolvedValue(
+      pageOf([report('a', 2), report('b', 1)], false),
+    );
+
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.forget('a'));
+
+    expect(ids(result.current.reports)).toEqual(['b']);
   });
 });

@@ -31,3 +31,8 @@ export type ReportHistoryPage = {
   items: ReportHistoryItem[];
   hasMore: boolean;
 };
+
+export type ReportDownloadLink = {
+  url: string;
+  expiresAt: number;
+};

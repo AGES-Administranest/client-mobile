@@ -1,4 +1,5 @@
 import { ArrowLeft, FileText } from 'lucide-react-native';
+import { useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 
 import { EmptyState } from 'app/components/ui/empty-state';
@@ -7,9 +8,11 @@ import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 
+import { ReportDetailModal } from './ReportDetailModal';
 import { reportCardView } from './reportPresenter';
 import { ReportCard } from '../components/ReportCard';
 import { ReportListFooter } from '../components/ReportListFooter';
+import type { ReportHistoryItem } from '../domain/report.types';
 import type { ReportHistoryState } from '../hooks/useReportHistory';
 
 const END_REACHED_THRESHOLD = 0.5;
@@ -30,6 +33,8 @@ export function ReportHistoryScreen({
   onClose,
 }: ReportHistoryScreenProps) {
   const { t, locale } = useTranslation();
+  const [selected, setSelected] = useState<ReportHistoryItem | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const {
     reports,
     downloadedIds,
@@ -95,6 +100,10 @@ export function ReportHistoryScreen({
           renderItem={({ item }) => (
             <ReportCard
               {...reportCardView(item, downloadedIds.has(item.id), t, locale)}
+              onPress={() => {
+                setSelected(item);
+                setIsDetailOpen(true);
+              }}
             />
           )}
           ItemSeparatorComponent={ReportSeparator}
@@ -113,6 +122,15 @@ export function ReportHistoryScreen({
           }
         />
       </View>
+
+      <ReportDetailModal
+        report={selected}
+        visible={isDetailOpen}
+        isDownloaded={selected ? downloadedIds.has(selected.id) : false}
+        onClose={() => setIsDetailOpen(false)}
+        onDownloaded={history.markDownloaded}
+        onDeleted={history.forget}
+      />
     </FullScreenModal>
   );
 }
