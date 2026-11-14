@@ -8,7 +8,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -22,6 +22,7 @@ import {
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
 import { useTranslation } from 'shared/i18n';
+import { onConnectionRestored } from 'shared/services/network';
 import {
   EMPTY_CALENDAR_RANGE,
   fromCalendarDate,
@@ -30,7 +31,8 @@ import {
 } from 'shared/utils/calendar';
 import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
-import { ReportCard } from '../components/ReportCard';
+import { ReportHistoryScreen } from './ReportHistoryScreen';
+import { ReportHistorySection } from './ReportHistorySection';
 import { ReportField } from '../components/ReportField';
 import { ReportsHeader } from '../components/ReportsHeader';
 import { REPORT_CATEGORIES, type ReportCategory } from '../domain/report.types';
@@ -55,9 +57,13 @@ export function ReportsScreen() {
   const [range, setRange] = useState<CalendarRange>(EMPTY_CALENDAR_RANGE);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isServiceInvoicesOpen, setIsServiceInvoicesOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
+
+  const { retry: retryHistory } = history;
+  useEffect(() => onConnectionRestored(retryHistory), [retryHistory]);
 
   const dateLabel = (calendarDate: string | null) =>
     calendarDate
@@ -158,29 +164,10 @@ export function ReportsScreen() {
           </Button>
         </View>
 
-        <View className="gap-3">
-          <Text className={SECTION_TITLE}>{t('reports.history.title')}</Text>
-          {history.length === 0 ? (
-            <Text className="text-sm text-label-tertiary">
-              {t('reports.history.empty')}
-            </Text>
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="-mx-4"
-              contentContainerClassName="gap-3 px-4 pb-3"
-            >
-              {history.map(report => (
-                <ReportCard
-                  key={report.id}
-                  date={formatDayAndMonth(new Date(report.generatedAt), locale)}
-                  fileName={report.fileName}
-                />
-              ))}
-            </ScrollView>
-          )}
-        </View>
+        <ReportHistorySection
+          history={history}
+          onSeeAll={() => setIsHistoryOpen(true)}
+        />
 
         <InvoicesSection onSeeAll={() => setIsInvoiceListOpen(true)} />
 
@@ -211,6 +198,12 @@ export function ReportsScreen() {
             setIsCategoryOpen(false);
           },
         }))}
+      />
+
+      <ReportHistoryScreen
+        visible={isHistoryOpen}
+        history={history}
+        onClose={() => setIsHistoryOpen(false)}
       />
 
       <ServiceInvoicesFlow
