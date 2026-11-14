@@ -11,6 +11,7 @@ import {
   fromCalendarDate,
   isWithinCalendarRange,
   selectRangeDay,
+  toCalendarDate,
   type CalendarRange,
 } from 'shared/utils/calendar';
 
@@ -23,6 +24,7 @@ type DateRangePickerProps = {
   locale: string;
   previousMonthLabel: string;
   nextMonthLabel: string;
+  maxDate?: string;
   className?: string;
 };
 
@@ -41,6 +43,7 @@ function DateRangePicker({
   locale,
   previousMonthLabel,
   nextMonthLabel,
+  maxDate,
   className,
 }: DateRangePickerProps) {
   const [visible, setVisible] = useVisibleMonth(value);
@@ -65,6 +68,10 @@ function DateRangePicker({
     days.slice(index * WEEK_LENGTH, (index + 1) * WEEK_LENGTH),
   );
 
+  const isNextMonthBlocked =
+    maxDate !== undefined &&
+    toCalendarDate(new Date(visible.year, visible.monthIndex + 1, 1)) > maxDate;
+
   const goToMonth = (amount: number) =>
     setVisible(current => addMonths(current.year, current.monthIndex, amount));
 
@@ -83,8 +90,13 @@ function DateRangePicker({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={nextMonthLabel}
+          accessibilityState={{ disabled: isNextMonthBlocked || undefined }}
+          disabled={isNextMonthBlocked}
           onPress={() => goToMonth(1)}
-          className="size-8 items-center justify-center rounded-full bg-details-primary"
+          className={cn(
+            'size-8 items-center justify-center rounded-full bg-details-primary',
+            isNextMonthBlocked && 'opacity-40',
+          )}
         >
           <Icon as={ChevronRight} className="size-4 text-label-primary" />
         </Pressable>
@@ -110,6 +122,7 @@ function DateRangePicker({
               value.from !== null &&
               value.to !== null &&
               isWithinCalendarRange(day.date, value);
+            const isDisabled = maxDate !== undefined && day.date > maxDate;
 
             return (
               <Pressable
@@ -119,12 +132,17 @@ function DateRangePicker({
                 accessibilityLabel={new Intl.DateTimeFormat(locale, {
                   dateStyle: 'long',
                 }).format(fromCalendarDate(day.date))}
-                accessibilityState={{ selected: isEdge || isInside }}
+                accessibilityState={{
+                  selected: isEdge || isInside,
+                  disabled: isDisabled || undefined,
+                }}
+                disabled={isDisabled}
                 onPress={() => onChange(selectRangeDay(value, day.date))}
                 className={cn(
                   'h-9 flex-1 items-center justify-center rounded-lg',
                   isInside && 'bg-details-primary',
                   isEdge && 'bg-button-primary',
+                  isDisabled && 'opacity-40',
                 )}
               >
                 <Text

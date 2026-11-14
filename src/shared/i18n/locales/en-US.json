@@ -854,6 +854,42 @@
     "reports": "Reports",
     "clinics": "Clinics"
   },
+  "reports": {
+    "generate": {
+      "title": "Generate new report"
+    },
+    "period": {
+      "startDate": "Start date",
+      "endDate": "End date",
+      "selectDate": "Select",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "choices": {
+        "currentMonth": "This month",
+        "previousMonth": "Last month",
+        "currentYear": "This year",
+        "custom": "Custom"
+      }
+    },
+    "kinds": {
+      "general": {
+        "title": "General Report",
+        "description": "Revenue, expenses and appointments for the period"
+      },
+      "invoicePackage": {
+        "title": "Invoice Package for Income Tax",
+        "description": "The period's invoices gathered for income tax"
+      }
+    },
+    "history": {
+      "title": "Report history",
+      "viewAll": "View all",
+      "empty": "No report generated yet."
+    },
+    "seeAll": "See all",
+    "addInvoice": "Add invoice",
+    "openInvoices": "Open invoices"
+  },
   "optionsModal": {
     "scanNote": "Scan note",
     "typeSupply": "Type supply"
@@ -2112,30 +2148,6 @@
       "rateLimited": "Too many attempts in a row. Wait a minute and try again.",
       "failed": "Could not download the invoices. Try again."
     }
-  },
-  "reports": {
-    "seeAll": "See all",
-    "addInvoice": "Add invoice",
-    "generate": {
-      "title": "Generate new report",
-      "categoryPlaceholder": "Select category",
-      "startDate": "Start date",
-      "endDate": "End date",
-      "selectDate": "Select the date",
-      "button": "Generate report",
-      "previousMonth": "Previous month",
-      "nextMonth": "Next month"
-    },
-    "categories": {
-      "financial": "Financial",
-      "appointments": "Appointments",
-      "inventory": "Inventory"
-    },
-    "history": {
-      "title": "Report history",
-      "empty": "No report generated yet."
-    },
-    "openInvoices": "Open invoices"
   },
   "profile": {
     "title": "Profile",

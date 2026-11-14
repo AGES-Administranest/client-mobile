@@ -854,6 +854,42 @@
     "reports": "Relatórios",
     "clinics": "Clínicas"
   },
+  "reports": {
+    "generate": {
+      "title": "Gerar novo relatório"
+    },
+    "period": {
+      "startDate": "Data de início",
+      "endDate": "Data de fim",
+      "selectDate": "Selecione",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "choices": {
+        "currentMonth": "Mês atual",
+        "previousMonth": "Mês anterior",
+        "currentYear": "Ano atual",
+        "custom": "Personalizado"
+      }
+    },
+    "kinds": {
+      "general": {
+        "title": "Relatório Geral",
+        "description": "Receitas, despesas e atendimentos do período"
+      },
+      "invoicePackage": {
+        "title": "Pacote de Notas Fiscais para IR",
+        "description": "Notas fiscais do período reunidas para o Imposto de Renda"
+      }
+    },
+    "history": {
+      "title": "Histórico de relatórios",
+      "viewAll": "Ver todos",
+      "empty": "Nenhum relatório gerado ainda."
+    },
+    "seeAll": "Ver todos",
+    "addInvoice": "Adicionar nota",
+    "openInvoices": "Abrir notas fiscais"
+  },
   "optionsModal": {
     "scanNote": "Escanear nota",
     "typeSupply": "Digitar insumo"
@@ -2112,30 +2148,6 @@
       "rateLimited": "Muitas tentativas seguidas. Aguarde um minuto e tente de novo.",
       "failed": "Não foi possível baixar as notas. Tente novamente."
     }
-  },
-  "reports": {
-    "seeAll": "Ver todos",
-    "addInvoice": "Adicionar nota",
-    "generate": {
-      "title": "Gerar novo relatório",
-      "categoryPlaceholder": "Selecione categoria",
-      "startDate": "Data de início",
-      "endDate": "Data de fim",
-      "selectDate": "Selecione a data",
-      "button": "Gerar Relatório",
-      "previousMonth": "Mês anterior",
-      "nextMonth": "Próximo mês"
-    },
-    "categories": {
-      "financial": "Financeiro",
-      "appointments": "Atendimentos",
-      "inventory": "Estoque"
-    },
-    "history": {
-      "title": "Histórico de relatórios",
-      "empty": "Nenhum relatório gerado ainda."
-    },
-    "openInvoices": "Abrir notas fiscais"
   },
   "profile": {
     "title": "Perfil",

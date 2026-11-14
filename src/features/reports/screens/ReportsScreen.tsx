@@ -1,19 +1,8 @@
-import {
-  CalendarDays,
-  ChevronDown,
-  FilePlus,
-  Package,
-  Plus,
-  Stethoscope,
-  Wallet,
-  type LucideIcon,
-} from 'lucide-react-native';
+import { FileText, Plus, Receipt } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
-import { DateRangePicker } from 'app/components/ui/date-range-picker';
-import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
 import { InvoicesScreen, InvoicesSection } from 'features/invoices';
 import {
@@ -22,47 +11,62 @@ import {
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
 import { useTranslation } from 'shared/i18n';
-import {
-  EMPTY_CALENDAR_RANGE,
-  fromCalendarDate,
-  isRangeComplete,
-  type CalendarRange,
-} from 'shared/utils/calendar';
+import { formatShortCalendarDate } from 'shared/utils/calendar';
 import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
 import { ReportCard } from '../components/ReportCard';
-import { ReportField } from '../components/ReportField';
+import { ReportKindCard } from '../components/ReportKindCard';
+import { ReportPeriodSelector } from '../components/ReportPeriodSelector';
 import { ReportsHeader } from '../components/ReportsHeader';
-import { REPORT_CATEGORIES, type ReportCategory } from '../domain/report.types';
+import { ReportsHistoryLink } from '../components/ReportsHistoryLink';
+import { REPORT_PERIOD_CHOICES, type ReportKind } from '../domain/reportPeriod';
 import { useReportHistory } from '../hooks/useReportHistory';
+import { useReportsScreen } from '../hooks/useReportsScreen';
 
-const CATEGORY_ICONS: Record<ReportCategory, LucideIcon> = {
-  financial: Wallet,
-  appointments: Stethoscope,
-  inventory: Package,
-};
+const KIND_ICONS = { general: FileText, invoicePackage: Receipt } as const;
+const KINDS = Object.keys(KIND_ICONS) as ReportKind[];
 
 const SECTION_TITLE =
   'text-sm font-semibold uppercase tracking-wide text-label-primary';
 
-export function ReportsScreen() {
+export type ReportsScreenProps = {
+  onGenerateReport?: (
+    kind: ReportKind,
+    period: { from: string; to: string },
+  ) => void;
+  onOpenHistory?: () => void;
+};
+
+export function ReportsScreen({
+  onGenerateReport,
+  onOpenHistory,
+}: ReportsScreenProps) {
   const { t, locale } = useTranslation();
   const history = useReportHistory();
   const invoiceUpload = useServiceInvoiceUpload();
+  const { choice, selectChoice, range, setRange, maxDate, canGenerate } =
+    useReportsScreen();
 
-  const [category, setCategory] = useState<ReportCategory | null>(null);
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [range, setRange] = useState<CalendarRange>(EMPTY_CALENDAR_RANGE);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
   const [isServiceInvoicesOpen, setIsServiceInvoicesOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
 
-  const dateLabel = (calendarDate: string | null) =>
-    calendarDate
-      ? formatDayAndMonth(fromCalendarDate(calendarDate), locale)
-      : t('reports.generate.selectDate');
+  const choiceOptions = REPORT_PERIOD_CHOICES.map(value => ({
+    value,
+    label: t(`reports.period.choices.${value}`),
+  }));
+
+  const dateLabel = (date: string | null) =>
+    date === null
+      ? t('reports.period.selectDate')
+      : formatShortCalendarDate(date, locale);
+
+  const generate = (kind: ReportKind) => {
+    if (range.from !== null && range.to !== null) {
+      onGenerateReport?.(kind, { from: range.from, to: range.to });
+    }
+  };
 
   const addFromList = () => {
     setIsInvoiceListOpen(false);
@@ -94,72 +98,44 @@ export function ReportsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="gap-3">
-          <Text className={SECTION_TITLE}>{t('reports.generate.title')}</Text>
-          <ReportField
-            value={
-              category
-                ? t(`reports.categories.${category}`)
-                : t('reports.generate.categoryPlaceholder')
-            }
-            isPlaceholder={category === null}
-            trailingIcon={ChevronDown}
-            accessibilityLabel={t('reports.generate.categoryPlaceholder')}
-            onPress={() => setIsCategoryOpen(true)}
+          <Text accessibilityRole="header" className={SECTION_TITLE}>
+            {t('reports.generate.title')}
+          </Text>
+          <ReportPeriodSelector
+            options={choiceOptions}
+            value={choice}
+            onValueChange={selectChoice}
+            startDateLabel={t('reports.period.startDate')}
+            startDateValue={dateLabel(range.from)}
+            endDateLabel={t('reports.period.endDate')}
+            endDateValue={dateLabel(range.to)}
+            onDateFieldPress={() => selectChoice('custom')}
+            isCustom={choice === 'custom'}
+            range={range}
+            onRangeChange={setRange}
+            maxDate={maxDate}
+            locale={locale}
+            previousMonthLabel={t('reports.period.previousMonth')}
+            nextMonthLabel={t('reports.period.nextMonth')}
           />
-          <View className="flex-row gap-4">
-            <View className="flex-1 gap-2">
-              <Text className="text-sm font-medium text-label-primary">
-                {t('reports.generate.startDate')}
-              </Text>
-              <ReportField
-                value={dateLabel(range.from)}
-                isPlaceholder={range.from === null}
-                leadingIcon={CalendarDays}
-                accessibilityLabel={t('reports.generate.startDate')}
-                onPress={() => setIsCalendarOpen(open => !open)}
-              />
-            </View>
-            <View className="flex-1 gap-2">
-              <Text className="text-sm font-medium text-label-primary">
-                {t('reports.generate.endDate')}
-              </Text>
-              <ReportField
-                value={dateLabel(range.to)}
-                isPlaceholder={range.to === null}
-                leadingIcon={CalendarDays}
-                accessibilityLabel={t('reports.generate.endDate')}
-                onPress={() => setIsCalendarOpen(open => !open)}
-              />
-            </View>
-          </View>
-          {isCalendarOpen ? (
-            <DateRangePicker
-              value={range}
-              onChange={next => {
-                setRange(next);
-
-                if (isRangeComplete(next)) {
-                  setIsCalendarOpen(false);
-                }
-              }}
-              locale={locale}
-              previousMonthLabel={t('reports.generate.previousMonth')}
-              nextMonthLabel={t('reports.generate.nextMonth')}
+          {KINDS.map(kind => (
+            <ReportKindCard
+              key={kind}
+              icon={KIND_ICONS[kind]}
+              title={t(`reports.kinds.${kind}.title`)}
+              description={t(`reports.kinds.${kind}.description`)}
+              disabled={!canGenerate || !onGenerateReport}
+              onPress={() => generate(kind)}
             />
-          ) : null}
-          {/* Disabled until the report endpoints exist (see the Sprint 4 tasks). */}
-          <Button
-            shape="pill"
-            icon={FilePlus}
-            className="h-[49px] w-full"
-            disabled
-          >
-            <Text>{t('reports.generate.button')}</Text>
-          </Button>
+          ))}
         </View>
 
         <View className="gap-3">
-          <Text className={SECTION_TITLE}>{t('reports.history.title')}</Text>
+          <ReportsHistoryLink
+            title={t('reports.history.title')}
+            actionLabel={t('reports.history.viewAll')}
+            onPress={onOpenHistory}
+          />
           {history.length === 0 ? (
             <Text className="text-sm text-label-tertiary">
               {t('reports.history.empty')}
@@ -198,20 +174,6 @@ export function ReportsScreen() {
           )}
         </View>
       </ScrollView>
-
-      <OptionsModal
-        visible={isCategoryOpen}
-        onClose={() => setIsCategoryOpen(false)}
-        title={t('reports.generate.categoryPlaceholder')}
-        options={REPORT_CATEGORIES.map(item => ({
-          label: t(`reports.categories.${item}`),
-          icon: CATEGORY_ICONS[item],
-          onPress: () => {
-            setCategory(item);
-            setIsCategoryOpen(false);
-          },
-        }))}
-      />
 
       <ServiceInvoicesFlow
         open={isServiceInvoicesOpen}

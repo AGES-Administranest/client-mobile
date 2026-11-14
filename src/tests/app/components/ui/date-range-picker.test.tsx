@@ -35,7 +35,11 @@ afterAll(() => {
   jest.useRealTimers();
 });
 
-async function render(value: CalendarRange, onChange = jest.fn()) {
+async function render(
+  value: CalendarRange,
+  onChange = jest.fn(),
+  maxDate?: string,
+) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(() => {
@@ -46,6 +50,7 @@ async function render(value: CalendarRange, onChange = jest.fn()) {
         locale="pt-BR"
         previousMonthLabel="Mês anterior"
         nextMonthLabel="Próximo mês"
+        maxDate={maxDate}
       />,
     );
   });
@@ -151,4 +156,52 @@ test('announces each day with its full date, not just the number', async () => {
   expect(dayCell(renderer, '2026-09-08').props.accessibilityLabel).toBe(
     '8 de setembro de 2026',
   );
+});
+
+describe('maxDate', () => {
+  function pressableDay(
+    renderer: ReactTestRenderer.ReactTestRenderer,
+    date: string,
+  ) {
+    return renderer.root.find(
+      node => node.props.testID === date && 'accessibilityState' in node.props,
+    );
+  }
+
+  test('disables the days after the limit', async () => {
+    const { renderer } = await render(EMPTY, jest.fn(), '2026-09-15');
+    const day = pressableDay(renderer, '2026-09-16');
+
+    expect(day.props.disabled).toBe(true);
+    expect(day.props.accessibilityState.disabled).toBe(true);
+  });
+
+  test('blocks the next month once it starts after the limit', async () => {
+    const { renderer } = await render(EMPTY, jest.fn(), '2026-09-15');
+
+    expect(pressLabelled(renderer, 'Próximo mês').props.disabled).toBe(true);
+
+    await act(() => {
+      pressLabelled(renderer, 'Mês anterior').props.onPress();
+    });
+
+    expect(pressLabelled(renderer, 'Próximo mês').props.disabled).toBe(false);
+  });
+
+  test('accepts the limit day itself', async () => {
+    const onChange = jest.fn();
+    const { renderer } = await render(EMPTY, onChange, '2026-09-15');
+
+    await act(() => {
+      dayCell(renderer, '2026-09-15').props.onPress();
+    });
+
+    expect(onChange).toHaveBeenCalledWith({ from: '2026-09-15', to: null });
+  });
+
+  test('leaves every day available without a limit', async () => {
+    const { renderer } = await render(EMPTY);
+
+    expect(dayCell(renderer, '2026-09-30').props.disabled).toBe(false);
+  });
 });
