@@ -80,3 +80,20 @@ export function reportPeriodFor(
 export function reportToday(now: Date): string {
   return toCalendarString(todayInReportTimeZone(now));
 }
+
+export type ReportPeriod = { from: string; to: string };
+
+export type ReportPeriodError = 'END_BEFORE_START';
+
+// The calendar swaps the ends on its own, so this only catches a period that
+// reached the screen some other way; the backend refuses it too
+// (REPORT_PERIOD_INVALID), but the check spares the request.
+export function validateReportPeriod(
+  range: CalendarRange,
+): ReportPeriodError | null {
+  if (range.from === null || range.to === null) {
+    return null;
+  }
+
+  return range.to < range.from ? 'END_BEFORE_START' : null;
+}

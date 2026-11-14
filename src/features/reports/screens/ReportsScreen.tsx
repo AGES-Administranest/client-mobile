@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
 import { InvoicesScreen, InvoicesSection } from 'features/invoices';
 import {
@@ -17,21 +18,29 @@ import { ReportCard } from '../components/ReportCard';
 import { ReportKindCard } from '../components/ReportKindCard';
 import { ReportPeriodSelector } from '../components/ReportPeriodSelector';
 import { ReportsHistoryLink } from '../components/ReportsHistoryLink';
-import { REPORT_PERIOD_CHOICES, type ReportKind } from '../domain/reportPeriod';
+import {
+  REPORT_PERIOD_CHOICES,
+  type ReportKind,
+  type ReportPeriod,
+} from '../domain/reportPeriod';
+import type { ReportAvailabilityNotice } from '../hooks/useReportAvailability';
 import { useReportHistory } from '../hooks/useReportHistory';
 import { useReportsScreen } from '../hooks/useReportsScreen';
 
 const KIND_ICONS = { general: FileText, invoicePackage: Receipt } as const;
 const KINDS = Object.keys(KIND_ICONS) as ReportKind[];
 
+const NOTICE_TONES = {
+  offline: 'warning',
+  empty: 'warning',
+  failed: 'alert',
+} as const satisfies Record<ReportAvailabilityNotice, string>;
+
 const SECTION_TITLE =
   'text-sm font-semibold uppercase tracking-wide text-label-primary';
 
 export type ReportsScreenProps = {
-  onGenerateReport?: (
-    kind: ReportKind,
-    period: { from: string; to: string },
-  ) => void;
+  onGenerateReport?: (kind: ReportKind, period: ReportPeriod) => void;
   onOpenHistory?: () => void;
 };
 
@@ -42,8 +51,17 @@ export function ReportsScreen({
   const { t, locale } = useTranslation();
   const history = useReportHistory();
   const invoiceUpload = useServiceInvoiceUpload();
-  const { choice, selectChoice, range, setRange, maxDate, canGenerate } =
-    useReportsScreen();
+  const {
+    choice,
+    selectChoice,
+    range,
+    setRange,
+    maxDate,
+    periodError,
+    notice,
+    canGenerate,
+    generate,
+  } = useReportsScreen({ onGenerateReport });
 
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
@@ -58,12 +76,6 @@ export function ReportsScreen({
     date === null
       ? t('reports.period.selectDate')
       : formatShortCalendarDate(date, locale);
-
-  const generate = (kind: ReportKind) => {
-    if (range.from !== null && range.to !== null) {
-      onGenerateReport?.(kind, { from: range.from, to: range.to });
-    }
-  };
 
   const addFromList = () => {
     setIsInvoiceListOpen(false);
@@ -117,13 +129,29 @@ export function ReportsScreen({
             previousMonthLabel={t('reports.period.previousMonth')}
             nextMonthLabel={t('reports.period.nextMonth')}
           />
+          {periodError === 'END_BEFORE_START' ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              className="text-xs text-alert-primary"
+            >
+              {t('reports.period.errors.endBeforeStart')}
+            </Text>
+          ) : null}
+          {notice !== null ? (
+            <View role="alert" accessibilityLiveRegion="polite">
+              <NoticeBanner
+                tone={NOTICE_TONES[notice]}
+                message={t(`reports.availability.${notice}`)}
+              />
+            </View>
+          ) : null}
           {KINDS.map(kind => (
             <ReportKindCard
               key={kind}
               icon={KIND_ICONS[kind]}
               title={t(`reports.kinds.${kind}.title`)}
               description={t(`reports.kinds.${kind}.description`)}
-              disabled={!canGenerate || !onGenerateReport}
+              disabled={!canGenerate}
               onPress={() => generate(kind)}
             />
           ))}

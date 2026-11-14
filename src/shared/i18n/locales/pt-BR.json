@@ -877,6 +877,9 @@
         "previousMonth": "Mês anterior",
         "currentYear": "Ano atual",
         "custom": "Personalizado"
+      },
+      "errors": {
+        "endBeforeStart": "A data de fim não pode ser anterior à data de início."
       }
     },
     "kinds": {
@@ -888,6 +891,11 @@
         "title": "Pacote de Notas Fiscais para IR",
         "description": "Notas fiscais do período reunidas para o Imposto de Renda"
       }
+    },
+    "availability": {
+      "offline": "Gerar relatórios exige conexão com a internet. Conecte-se e tente de novo.",
+      "empty": "Não há registros neste período. Escolha outro período para gerar o relatório.",
+      "failed": "Não foi possível verificar o período agora. Tente novamente."
     },
     "history": {
       "title": "Histórico de relatórios",
