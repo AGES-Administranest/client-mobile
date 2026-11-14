@@ -2055,6 +2055,37 @@
     "crmvNotice": "O CRMV é necessário para emitir relatórios com identificação profissional.",
     "staleNotice": "Mostrando os últimos dados salvos. Eles podem estar desatualizados.",
     "loadError": "Não foi possível carregar o perfil.",
-    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente."
+    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "editForm": {
+      "title": "Editar perfil",
+      "close": "Fechar a edição do perfil",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "emailHint": "O e-mail vem do seu login e não é alterado aqui.",
+      "birthDate": "Data de nascimento",
+      "state": "UF",
+      "placeholders": {
+        "name": "Seu nome completo",
+        "crmv": "Ex.: RS-12345",
+        "birthDate": "DD/MM/AAAA",
+        "sex": "Selecione",
+        "city": "Ex.: Porto Alegre",
+        "state": "UF"
+      },
+      "errors": {
+        "nameTooShort": "Informe seu nome, com pelo menos 2 letras.",
+        "nameTooLong": "Use até 120 caracteres.",
+        "crmvInvalid": "Use o formato UF-número, como RS-12345.",
+        "birthDateInvalid": "Informe uma data válida.",
+        "birthDateOutOfRange": "Informe uma data a partir de 1900, de quem tem pelo menos 18 anos.",
+        "cityTooLong": "Use até 120 caracteres.",
+        "stateInvalid": "Escolha uma UF válida."
+      },
+      "saved": "Perfil atualizado.",
+      "saveError": "Não foi possível salvar o perfil. Tente de novo."
+    },
+    "pendingNotice": "As alterações do perfil estão salvas no aparelho e serão enviadas quando houver internet.",
+    "rejectedNotice": "A alteração do perfil feita sem conexão foi recusada. Os dados voltaram aos últimos salvos.",
+    "rejectedDismiss": "Entendi"
   }
 }
