@@ -656,7 +656,6 @@
       "appointmentDetail": "{{patient}} · {{date}}",
       "showMoreOne": "Show 1 more appointment",
       "showMoreOther": "Show {{count}} more appointments",
-      "showMoreUncounted": "Show more appointments",
       "showMoreFailed": "Could not load more appointments. Try again",
       "loading": "Loading the history",
       "loadingMore": "Loading more appointments…",
@@ -667,7 +666,8 @@
       "failures": {
         "network": "Could not load the history. Check your connection and try again.",
         "session": "Your session has expired. Sign out and sign in again.",
-        "unknown": "Could not load the history. Please try again."
+        "unknown": "Could not load the history. Please try again.",
+        "notFound": "This clinic was not found. It may have been deleted."
       }
     }
   },
@@ -1878,6 +1878,101 @@
       "discard": "Discard invoice",
       "keep": "Keep in queue",
       "sendAnyway": "Send anyway"
+    },
+    "records": {
+      "fileAvailable": "Original PDF available",
+      "status": {
+        "SYNCED": "Synced",
+        "PENDING": "Not synced",
+        "ERROR": "Sending error"
+      },
+      "list": {
+        "title": "Invoices",
+        "back": "Back",
+        "searchPlaceholder": "Search by client or date",
+        "filters": {
+          "ALL": "All",
+          "SYNCED": "Synced",
+          "PENDING": "Not synced",
+          "ERROR": "With error"
+        },
+        "noteTitle": "Invoice {{number}}",
+        "noteTitleNoNumber": "Invoice",
+        "clientLine": "Client: {{name}}",
+        "loadFailed": "Could not load the invoices.",
+        "offline": "No connection: showing the invoices saved on this device.",
+        "emptyTitle": "No invoices",
+        "emptyMessage": "Register an invoice with the Add invoice button on the Reports tab.",
+        "noResultsTitle": "Nothing found",
+        "noResultsMessage": "No invoices match this search. Try another client or date.",
+        "add": "Add invoice"
+      },
+      "detail": {
+        "title": "Invoice details",
+        "back": "Back",
+        "download": "Download PDF",
+        "downloading": "Downloading PDF…",
+        "downloadFailed": "Could not download the PDF. Try again.",
+        "unavailable": {
+          "needsConnection": "Downloading requires an internet connection.",
+          "notSentYet": "The PDF has not been sent yet. It can be downloaded once the invoice syncs.",
+          "noFile": "This invoice has no original PDF."
+        },
+        "fileFallbackName": "Invoice PDF",
+        "dataTitle": "Data read from the invoice",
+        "fields": {
+          "issueDate": "Issue date",
+          "number": "Invoice number",
+          "client": "Client",
+          "clientTaxId": "Client tax ID",
+          "location": "Location",
+          "amount": "Total amount"
+        },
+        "checkData": "Check the data before sending it to your accountant.",
+        "correct": "Correct",
+        "delete": "Delete",
+        "correctNeedsConnection": "Correcting the data requires an internet connection.",
+        "correctNotSentYet": "The invoice has not been sent yet. It can only be corrected after it syncs.",
+        "notFound": "This invoice no longer exists.",
+        "loadFailed": "Could not load the invoice. Check your connection and try again.",
+        "saved": "PDF saved in the chosen folder."
+      },
+      "correction": {
+        "title": "Correct invoice",
+        "back": "Back",
+        "checkPdf": "Check the data against the original PDF before confirming.",
+        "location": {
+          "label": "Location",
+          "placeholder": "City, State"
+        },
+        "confirm": "Confirm correction",
+        "confirming": "Saving…",
+        "cancel": "Cancel",
+        "failure": {
+          "network": "No connection. Connect to the internet to save the correction.",
+          "notFound": "This invoice no longer exists.",
+          "generic": "Could not save the correction. Try again.",
+          "clientNotFound": "This client was not found. Choose another one."
+        },
+        "leaveTitle": "Leave the correction?",
+        "leaveMessage": "Your changes were not saved and will be lost.",
+        "leaveConfirm": "Leave without saving",
+        "leaveCancel": "Keep editing"
+      },
+      "delete": {
+        "title": "Delete invoice?",
+        "message": "This action is permanent. The original PDF file and the linked financial entry will also be deleted.",
+        "messagePending": "This action is permanent. The PDF kept on this device will also be deleted.",
+        "pdfItem": "Original PDF file",
+        "entryItem": "Linked financial entry",
+        "confirm": "Delete permanently",
+        "deleting": "Deleting…",
+        "cancel": "Cancel",
+        "failed": "Could not delete the invoice. Try again.",
+        "doneTitle": "Invoice deleted successfully",
+        "doneQueued": "No connection: the deletion will be sent when the connection is back.",
+        "understood": "Got it"
+      }
     }
   },
   "trips": {
@@ -2039,7 +2134,8 @@
     "history": {
       "title": "Report history",
       "empty": "No report generated yet."
-    }
+    },
+    "openInvoices": "Open invoices"
   },
   "profile": {
     "title": "Profile",
@@ -2065,6 +2161,37 @@
     "crmvNotice": "Your CRMV is required to issue reports with professional identification.",
     "staleNotice": "Showing the last saved data. It may be out of date.",
     "loadError": "The profile could not be loaded.",
-    "sessionExpired": "Your session has expired. Sign out and sign in again."
+    "sessionExpired": "Your session has expired. Sign out and sign in again.",
+    "editForm": {
+      "title": "Edit profile",
+      "close": "Close profile editing",
+      "save": "Save",
+      "cancel": "Cancel",
+      "emailHint": "Your e-mail comes from your sign-in and is not changed here.",
+      "birthDate": "Date of birth",
+      "state": "State",
+      "placeholders": {
+        "name": "Your full name",
+        "crmv": "E.g. RS-12345",
+        "birthDate": "DD/MM/YYYY",
+        "sex": "Select",
+        "city": "E.g. Porto Alegre",
+        "state": "State"
+      },
+      "errors": {
+        "nameTooShort": "Enter your name, at least 2 letters.",
+        "nameTooLong": "Use up to 120 characters.",
+        "crmvInvalid": "Use the format STATE-number, like RS-12345.",
+        "birthDateInvalid": "Enter a valid date.",
+        "birthDateOutOfRange": "Enter a date from 1900 on, of someone at least 18 years old.",
+        "cityTooLong": "Use up to 120 characters.",
+        "stateInvalid": "Choose a valid state."
+      },
+      "saved": "Profile updated.",
+      "saveError": "The profile could not be saved. Try again."
+    },
+    "pendingNotice": "Your profile changes are saved on this device and will be sent when you are back online.",
+    "rejectedNotice": "The profile change made offline was refused. Your data went back to the last saved.",
+    "rejectedDismiss": "Got it"
   }
 }

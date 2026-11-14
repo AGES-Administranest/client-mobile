@@ -9,54 +9,69 @@ import {
   type ClientSearchStatus,
 } from 'features/clients';
 
-type ServiceInvoiceReviewCardProps = {
+type ServiceInvoiceFormCardProps = {
   labels: {
     issueDate: string;
     issueDatePlaceholder: string;
     amount: string;
     amountPlaceholder: string;
-    number: string;
     client: string;
     clientPlaceholder: string;
-    suggestions: string;
-    registerClient: string;
   };
   issueDate: string;
   issueDateError?: string;
   amount: string;
   amountError?: string;
-  number: string;
   client: {
     term: string;
     status: ClientSearchStatus;
     options: ClientOption[];
-    suggestions: ClientOption[];
     messages: ClientAutocompleteMessages;
     error?: string;
   };
   onChangeIssueDate: (text: string) => void;
   onChangeAmount: (text: string) => void;
-  onChangeNumber: (text: string) => void;
   onChangeClientTerm: (term: string) => void;
   onSelectClient: (client: ClientOption) => void;
-  onRegisterClient: () => void;
+  /** Shown only with its text and handler: the correction leaves the number alone. */
+  number?: {
+    label: string;
+    value: string;
+    onChange: (text: string) => void;
+  };
+  location?: {
+    label: string;
+    placeholder: string;
+    value: string;
+    onChange: (text: string) => void;
+  };
+  suggestions?: {
+    label: string;
+    options: ClientOption[];
+  };
+  registerClient?: {
+    label: string;
+    onPress: () => void;
+  };
 };
 
-export function ServiceInvoiceReviewCard({
+/** The note's fields, shared by the review of a new note and the correction of a saved one. */
+export function ServiceInvoiceFormCard({
   labels,
   issueDate,
   issueDateError,
   amount,
   amountError,
-  number,
   client,
   onChangeIssueDate,
   onChangeAmount,
-  onChangeNumber,
   onChangeClientTerm,
   onSelectClient,
-  onRegisterClient,
-}: ServiceInvoiceReviewCardProps) {
+  number,
+  location,
+  suggestions,
+  registerClient,
+}: ServiceInvoiceFormCardProps) {
   return (
     <View className="gap-3 rounded-2xl bg-white p-4">
       <FormField
@@ -76,11 +91,13 @@ export function ServiceInvoiceReviewCard({
         error={amountError}
         onChangeText={onChangeAmount}
       />
-      <FormField
-        label={labels.number}
-        value={number}
-        onChangeText={onChangeNumber}
-      />
+      {number ? (
+        <FormField
+          label={number.label}
+          value={number.value}
+          onChangeText={number.onChange}
+        />
+      ) : null}
       <ClientAutocomplete
         label={labels.client}
         placeholder={labels.clientPlaceholder}
@@ -92,12 +109,20 @@ export function ServiceInvoiceReviewCard({
         onChangeText={onChangeClientTerm}
         onSelect={onSelectClient}
       />
-      {client.suggestions.length > 0 ? (
+      {location ? (
+        <FormField
+          label={location.label}
+          value={location.value}
+          placeholder={location.placeholder}
+          onChangeText={location.onChange}
+        />
+      ) : null}
+      {suggestions && suggestions.options.length > 0 ? (
         <View className="gap-2">
           <Text className="text-xs font-semibold uppercase text-label-primary">
-            {labels.suggestions}
+            {suggestions.label}
           </Text>
-          {client.suggestions.map(suggestion => (
+          {suggestions.options.map(suggestion => (
             <Pressable
               key={suggestion.id}
               accessibilityRole="button"
@@ -111,15 +136,17 @@ export function ServiceInvoiceReviewCard({
           ))}
         </View>
       ) : null}
-      <Pressable
-        accessibilityRole="button"
-        className="self-start"
-        onPress={onRegisterClient}
-      >
-        <Text className="text-[13px] font-semibold text-label-quartenery">
-          {labels.registerClient}
-        </Text>
-      </Pressable>
+      {registerClient ? (
+        <Pressable
+          accessibilityRole="button"
+          className="self-start"
+          onPress={registerClient.onPress}
+        >
+          <Text className="text-[13px] font-semibold text-label-quartenery">
+            {registerClient.label}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
