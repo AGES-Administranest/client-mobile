@@ -1,43 +1,47 @@
-import {
-  CalendarDays,
-  ChevronDown,
-  FilePlus,
-  Package,
-  Plus,
-  Stethoscope,
-  Wallet,
-  type LucideIcon,
-} from 'lucide-react-native';
+import { CalendarDays, FilePlus, Plus } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { DateRangePicker } from 'app/components/ui/date-range-picker';
-import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
 import { InvoicesScreen, InvoicesSection } from 'features/invoices';
+import { isMissingCrmv, useProfile } from 'features/profile';
 import {
   ServiceInvoiceUploadFlow,
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
-import { useTranslation } from 'shared/i18n';
+import { type TranslationKey, useTranslation } from 'shared/i18n';
 import {
   EMPTY_CALENDAR_RANGE,
   fromCalendarDate,
   isRangeComplete,
+  toCalendarDate,
   type CalendarRange,
 } from 'shared/utils/calendar';
 import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
+import { ReportHistoryScreen } from './ReportHistoryScreen';
 import { ReportCard } from '../components/ReportCard';
+import { ReportCategoriesSheet } from '../components/ReportCategoriesSheet';
 import { ReportField } from '../components/ReportField';
-import { REPORT_CATEGORIES, type ReportCategory } from '../domain/report.types';
-import { useReportHistory } from '../hooks/useReportHistory';
+import {
+  MAX_REPORT_DAYS,
+  REPORT_CATEGORIES,
+  type ReportCategory,
+  type ReportHistoryItem,
+} from '../domain/report.types';
+import {
+  useReportHistory,
+  type GenerateFailure,
+} from '../hooks/useReportHistory';
 
-const CATEGORY_ICONS: Record<ReportCategory, LucideIcon> = {
-  financial: Wallet,
-  appointments: Stethoscope,
-  inventory: Package,
+const HISTORY_PREVIEW_COUNT = 5;
+
+const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
+  offline: 'reports.generate.offline',
+  periodTooLong: 'reports.generate.periodTooLong',
+  failed: 'reports.generate.failed',
 };
 
 const SECTION_TITLE =
@@ -45,20 +49,32 @@ const SECTION_TITLE =
 
 export function ReportsScreen() {
   const { t, locale } = useTranslation();
-  const history = useReportHistory();
+  const reports = useReportHistory();
   const invoiceUpload = useServiceInvoiceUpload();
+  const { state: profile } = useProfile();
+  const isCrmvMissing =
+    profile.status === 'ready' && isMissingCrmv(profile.profile);
 
-  const [category, setCategory] = useState<ReportCategory | null>(null);
+  const [categories, setCategories] = useState<ReportCategory[]>([]);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [generateFailure, setGenerateFailure] =
+    useState<GenerateFailure | null>(null);
   const [range, setRange] = useState<CalendarRange>(EMPTY_CALENDAR_RANGE);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [shareFailed, setShareFailed] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
 
+  const shareReport = (report: ReportHistoryItem) => {
+    setShareFailed(false);
+    reports.share(report).then(ok => setShareFailed(!ok));
+  };
+
   const dateLabel = (calendarDate: string | null) =>
     calendarDate
-      ? formatDayAndMonth(fromCalendarDate(calendarDate), locale)
+      ? formatDayAndMonth(fromCalendarDate(calendarDate), locale, true)
       : t('reports.generate.selectDate');
 
   const addFromList = () => {
@@ -91,17 +107,6 @@ export function ReportsScreen() {
 
         <View className="gap-3">
           <Text className={SECTION_TITLE}>{t('reports.generate.title')}</Text>
-          <ReportField
-            value={
-              category
-                ? t(`reports.categories.${category}`)
-                : t('reports.generate.categoryPlaceholder')
-            }
-            isPlaceholder={category === null}
-            trailingIcon={ChevronDown}
-            accessibilityLabel={t('reports.generate.categoryPlaceholder')}
-            onPress={() => setIsCategoryOpen(true)}
-          />
           <View className="flex-row gap-4">
             <View className="flex-1 gap-2">
               <Text className="text-sm font-medium text-label-primary">
@@ -139,24 +144,43 @@ export function ReportsScreen() {
                 }
               }}
               locale={locale}
+              maxDate={toCalendarDate(new Date())}
+              maxRangeDays={MAX_REPORT_DAYS}
               previousMonthLabel={t('reports.generate.previousMonth')}
               nextMonthLabel={t('reports.generate.nextMonth')}
+              previousYearLabel={t('reports.generate.previousYear')}
+              nextYearLabel={t('reports.generate.nextYear')}
             />
           ) : null}
-          {/* Disabled until the report endpoints exist (see the Sprint 4 tasks). */}
           <Button
             shape="pill"
             icon={FilePlus}
             className="h-[49px] w-full"
-            disabled
+            disabled={!isRangeComplete(range)}
+            onPress={() => {
+              setCategories(reports.lastSelection);
+              setGenerateFailure(null);
+              setIsCategoryOpen(true);
+            }}
           >
             <Text>{t('reports.generate.button')}</Text>
           </Button>
         </View>
 
         <View className="gap-3">
-          <Text className={SECTION_TITLE}>{t('reports.history.title')}</Text>
-          {history.length === 0 ? (
+          <View className="flex-row items-center justify-between">
+            <Text className={SECTION_TITLE}>{t('reports.history.title')}</Text>
+            {reports.items.length > 0 ? (
+              <Text
+                accessibilityRole="button"
+                onPress={() => setIsHistoryOpen(true)}
+                className="text-xs text-label-quartenery"
+              >
+                {t('reports.seeAll')}
+              </Text>
+            ) : null}
+          </View>
+          {reports.items.length === 0 ? (
             <Text className="text-sm text-label-tertiary">
               {t('reports.history.empty')}
             </Text>
@@ -167,15 +191,25 @@ export function ReportsScreen() {
               className="-mx-4"
               contentContainerClassName="gap-3 px-4 pb-3"
             >
-              {history.map(report => (
+              {reports.items.slice(0, HISTORY_PREVIEW_COUNT).map(report => (
                 <ReportCard
                   key={report.id}
-                  date={formatDayAndMonth(new Date(report.generatedAt), locale)}
+                  date={formatDayAndMonth(
+                    new Date(report.generatedAt),
+                    locale,
+                    true,
+                  )}
                   fileName={report.fileName}
+                  onPress={() => shareReport(report)}
                 />
               ))}
             </ScrollView>
           )}
+          {shareFailed ? (
+            <Text className="text-sm text-label-tertiary">
+              {t('reports.history.shareFailed')}
+            </Text>
+          ) : null}
         </View>
 
         <InvoicesSection onSeeAll={() => setIsInvoiceListOpen(true)} />
@@ -193,18 +227,54 @@ export function ReportsScreen() {
         </View>
       </ScrollView>
 
-      <OptionsModal
+      <ReportCategoriesSheet
         visible={isCategoryOpen}
-        onClose={() => setIsCategoryOpen(false)}
-        title={t('reports.generate.categoryPlaceholder')}
+        title={t('reports.generate.categoriesTitle')}
+        closeLabel={t('reports.generate.close')}
+        selectAllLabel={t('reports.generate.selectAll')}
+        clearAllLabel={t('reports.generate.clearAll')}
+        generateLabel={t('reports.generate.confirm')}
         options={REPORT_CATEGORIES.map(item => ({
+          id: item,
           label: t(`reports.categories.${item}`),
-          icon: CATEGORY_ICONS[item],
-          onPress: () => {
-            setCategory(item);
-            setIsCategoryOpen(false);
-          },
         }))}
+        selectedIds={categories}
+        isGenerating={reports.isGenerating}
+        warning={isCrmvMissing ? t('reports.generate.crmvMissing') : null}
+        error={
+          generateFailure ? t(GENERATE_FAILURE_MESSAGES[generateFailure]) : null
+        }
+        onToggle={id =>
+          setCategories(current =>
+            current.includes(id as ReportCategory)
+              ? current.filter(item => item !== id)
+              : [...current, id as ReportCategory],
+          )
+        }
+        onSelectAll={() => setCategories([...REPORT_CATEGORIES])}
+        onClearAll={() => setCategories([])}
+        onGenerate={() => {
+          if (range.from && range.to) {
+            setGenerateFailure(null);
+            reports
+              .generate({ categories, from: range.from, to: range.to })
+              .then(result => {
+                if (result.ok) {
+                  setIsCategoryOpen(false);
+                } else {
+                  setGenerateFailure(result.reason);
+                }
+              });
+          }
+        }}
+        onClose={() => setIsCategoryOpen(false)}
+      />
+
+      <ReportHistoryScreen
+        visible={isHistoryOpen}
+        items={reports.items}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelect={shareReport}
       />
 
       <InvoicesScreen

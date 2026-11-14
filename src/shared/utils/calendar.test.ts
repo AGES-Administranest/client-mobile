@@ -1,9 +1,11 @@
 import {
+  addDays,
   addMonths,
   buildMonthGrid,
   fromCalendarDate,
   isRangeComplete,
   isWithinCalendarRange,
+  rangeEndBounds,
   selectRangeDay,
   toCalendarDate,
 } from './calendar';
@@ -168,5 +170,33 @@ describe('isRangeComplete', () => {
     [{ from: '2026-09-08', to: '2026-09-15' }, true],
   ])('%o -> %s', (range, expected) => {
     expect(isRangeComplete(range)).toBe(expected);
+  });
+});
+
+describe('addDays', () => {
+  it.each([
+    ['2026-09-08', 3, '2026-09-11'],
+    ['2026-09-29', 3, '2026-10-02'],
+    ['2026-12-31', 1, '2027-01-01'],
+    ['2026-03-01', -1, '2026-02-28'],
+    ['2028-03-01', -1, '2028-02-29'],
+  ])('%s %+d -> %s', (date, amount, expected) => {
+    expect(addDays(date, amount)).toBe(expected);
+  });
+});
+
+describe('rangeEndBounds', () => {
+  it('limits the next pick to maxDays counting both ends, either way', () => {
+    expect(rangeEndBounds({ from: '2026-11-13', to: null }, 366)).toEqual({
+      earliest: '2025-11-13',
+      latest: '2027-11-13',
+    });
+  });
+
+  it.each([
+    ['before the first pick', { from: null, to: null }],
+    ['once the range is complete', { from: '2026-09-08', to: '2026-09-15' }],
+  ])('limits nothing %s', (_case, range) => {
+    expect(rangeEndBounds(range, 366)).toBeNull();
   });
 });
