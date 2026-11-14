@@ -20,9 +20,13 @@ jest.mock('features/auth/services/accountApi', () => ({}));
 jest.mock('features/clients/services/clientService', () => ({
   fetchClients: jest.fn().mockResolvedValue([]),
 }));
+const mockSupplySelectorSheet = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+
 jest.mock('features/stock', () => ({
-  formatSupplyPrice: (price: number) => `R$ ${price.toFixed(2)}`,
-  SupplySelectorSheet: () => null,
+  SupplySelectorSheet: (props: Record<string, unknown>) =>
+    mockSupplySelectorSheet(props),
   useSupplySelector: () => ({
     term: '',
     onTermChange: jest.fn(),
@@ -145,6 +149,48 @@ describe('ProcedureEstimateScreen', () => {
     expect(tree).toContain('Salvar simulação');
     expect(tree).toContain('Limpar campos');
   });
+
+  it('does not show the duration error before the user types a duration', async () => {
+    const rendered = await renderScreen({ visible: true });
+
+    expect(JSON.stringify(rendered.toJSON())).not.toContain(
+      'Informe a duração estimada',
+    );
+  });
+
+  it('shows the duration error once the user clears a duration they typed', async () => {
+    const rendered = await renderScreen({ visible: true });
+    const hours = rendered.root.findByProps({ accessibilityLabel: 'HORAS' });
+
+    await act(async () => {
+      hours.props.onChangeText('1');
+    });
+    await act(async () => {
+      rendered.root
+        .findByProps({ accessibilityLabel: 'HORAS' })
+        .props.onChangeText('');
+    });
+
+    expect(JSON.stringify(rendered.toJSON())).toContain(
+      'Informe a duração estimada',
+    );
+  });
+
+  it.each([
+    [3.2, 'R$\u00a03,20'],
+    [189, 'R$\u00a0189,00'],
+    [0.85, 'R$\u00a00,85'],
+  ])(
+    'formats the supply price %p in the selector as %p',
+    async (price, expected) => {
+      await renderScreen({ visible: true });
+      const props = mockSupplySelectorSheet.mock.calls.at(-1)?.[0] as {
+        formatPrice: (option: { price: number }) => string;
+      };
+
+      expect(props.formatPrice({ price })).toBe(expected);
+    },
+  );
 
   it('renders unconfigured state when estimateProcedure rejects with PRICING_SETTINGS_NOT_FOUND', async () => {
     (pricingService.estimateProcedure as jest.Mock).mockRejectedValue(

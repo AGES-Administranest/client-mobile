@@ -8,11 +8,7 @@ import { Icon } from 'app/components/ui/icon';
 import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { Text } from 'app/components/ui/text';
 import { useClientSearch } from 'features/clients';
-import {
-  formatSupplyPrice,
-  SupplySelectorSheet,
-  useSupplySelector,
-} from 'features/stock';
+import { SupplySelectorSheet, useSupplySelector } from 'features/stock';
 import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
 import { monthOf } from 'shared/utils/monthPeriod';
@@ -81,6 +77,7 @@ function ProcedureEstimateBody({
   const [currentMonth] = useState(() => monthOf(new Date()));
   const [isConfiguringPricing, setIsConfiguringPricing] = useState(false);
   const [isSupplySheetVisible, setIsSupplySheetVisible] = useState(false);
+  const [isDurationTouched, setIsDurationTouched] = useState(false);
   const [editingSupply, setEditingSupply] =
     useState<ProcedureSelectedSupply | null>(null);
   const [isSavedToastVisible, setIsSavedToastVisible] = useState(false);
@@ -141,7 +138,24 @@ function ProcedureEstimateBody({
     }
   }, [estimate]);
 
+  const handleChangeHours = useCallback(
+    (hours: string) => {
+      setIsDurationTouched(true);
+      estimate.setHours(hours);
+    },
+    [estimate],
+  );
+
+  const handleChangeMinutes = useCallback(
+    (minutes: string) => {
+      setIsDurationTouched(true);
+      estimate.setMinutes(minutes);
+    },
+    [estimate],
+  );
+
   const handleClearFields = useCallback(() => {
+    setIsDurationTouched(false);
     estimate.clearForm();
   }, [estimate]);
 
@@ -276,9 +290,11 @@ function ProcedureEstimateBody({
           <ProcedureEstimateContent
             hours={estimate.hours}
             minutes={estimate.minutes}
-            durationError={estimate.durationValidation.error}
-            onChangeHours={estimate.setHours}
-            onChangeMinutes={estimate.setMinutes}
+            durationError={
+              isDurationTouched ? estimate.durationValidation.error : null
+            }
+            onChangeHours={handleChangeHours}
+            onChangeMinutes={handleChangeMinutes}
             selectedClient={estimate.selectedClient}
             clientTerm={clientSearch.term}
             clientSearchStatus={clientSearch.status}
@@ -367,7 +383,7 @@ function ProcedureEstimateBody({
         loadingMessage={t('stock.supplySelector.loading')}
         termTooShortMessage={t('stock.supplySelector.termTooShort')}
         insufficientStockMessage={t('stock.supplySelector.insufficientStock')}
-        formatPrice={option => formatSupplyPrice(option.price)}
+        formatPrice={option => formatCurrency(option.price, locale)}
       />
 
       <EditSupplyQuantityModal
