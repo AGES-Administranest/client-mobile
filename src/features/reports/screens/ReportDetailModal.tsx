@@ -1,5 +1,6 @@
 import { Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { useTranslation } from 'shared/i18n';
@@ -23,6 +24,11 @@ type ReportDetailModalProps = {
 // detail and the confirmation take turns: each opens when the other reports it
 // finished closing.
 type Step = 'detail' | 'toConfirm' | 'confirm' | 'backToDetail' | 'deleted';
+
+// Android saves the copy to a folder the person picks instead of opening it
+// (see openLocalReport).
+const DOWNLOADED_ACTION =
+  Platform.OS === 'android' ? 'reports.detail.save' : 'reports.detail.open';
 
 const STATUS_MESSAGE = {
   idle: null,
@@ -99,7 +105,7 @@ export function ReportDetailModal({
         closeLabel={t('reports.detail.close')}
         rows={reportDetailRows(report, t, locale)}
         openLabel={t(
-          isDownloaded ? 'reports.detail.open' : 'reports.detail.download',
+          isDownloaded ? DOWNLOADED_ACTION : 'reports.detail.download',
         )}
         statusMessage={messageKey ? t(messageKey) : null}
         isBusy={file.status === 'downloading'}

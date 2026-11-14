@@ -48,7 +48,12 @@ const REPORT: ReportHistoryItem = {
   generatedAt: '2026-11-12T10:00:00.000Z',
 };
 
-const LOCAL = { uri: 'file://relatorio.pdf', contentUri: 'content://r' };
+const LOCAL = {
+  uri: 'file://relatorio.pdf',
+  contentUri: 'content://r',
+  name: 'relatorio.pdf',
+  mimeType: 'application/pdf',
+};
 
 function renderFile(onDownloaded = jest.fn()) {
   const result = {

@@ -20,10 +20,17 @@ function fileNameOf(report: Pick<ReportHistoryItem, 'id' | 'fileName'>) {
 export type LocalReportFile = {
   uri: string;
   contentUri: string;
+  name: string;
+  mimeType: string | null;
 };
 
 function toLocal(file: File): LocalReportFile {
-  return { uri: file.uri, contentUri: file.contentUri };
+  return {
+    uri: file.uri,
+    contentUri: file.contentUri,
+    name: file.name,
+    mimeType: file.type || null,
+  };
 }
 
 export function findLocalReport(
@@ -66,4 +73,35 @@ export function removeReportFile(userId: string, reportId: string): void {
   if (directory.exists) {
     directory.delete();
   }
+}
+
+const PICKER_CANCELLED = 'ERR_PICKER_CANCELLED';
+
+function isPickerCancelled(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as { code?: unknown }).code === PICKER_CANCELLED
+  );
+}
+
+// Resolves false when the person closes the folder picker without choosing.
+export async function copyReportToPickedFolder(
+  local: LocalReportFile,
+): Promise<boolean> {
+  let folder: Directory;
+
+  try {
+    folder = await Directory.pickDirectoryAsync();
+  } catch (error) {
+    if (isPickerCancelled(error)) {
+      return false;
+    }
+    throw error;
+  }
+
+  const target = folder.createFile(local.name, local.mimeType);
+  target.write(await new File(local.uri).bytes());
+
+  return true;
 }

@@ -1,17 +1,21 @@
-import { Linking, Platform, Share } from 'react-native';
+import { Platform, Share } from 'react-native';
 
-import type { LocalReportFile } from './reportFileStore';
+import {
+  copyReportToPickedFolder,
+  type LocalReportFile,
+} from './reportFileStore';
 
 // iOS shares a file url through the system sheet (open in, save to Files).
-// Android's Share only carries text, so the copy is handed to the viewer by
-// its content uri until expo-sharing is part of the app.
+// Android's Share only carries text, and Linking.openURL hands a content uri
+// to the viewer without the read grant, so there the copy is saved to a folder
+// the person picks. expo-sharing would give Android the sheet too.
 export async function openLocalReport(file: LocalReportFile): Promise<void> {
   if (Platform.OS === 'ios') {
     await Share.share({ url: file.uri });
     return;
   }
 
-  await Linking.openURL(file.contentUri);
+  await copyReportToPickedFolder(file);
 }
 
 // The signed url answers with Content-Disposition: attachment, so the browser

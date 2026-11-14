@@ -154,7 +154,9 @@ describe('useReportHistory', () => {
 
   it('marks the reports that already have a copy on the device', async () => {
     findLocalMock.mockImplementation((_user, item) =>
-      item.id === 'kept' ? { uri: 'file://kept', contentUri: 'c' } : null,
+      item.id === 'kept'
+        ? { uri: 'file://kept', contentUri: 'c', name: 'k', mimeType: null }
+        : null,
     );
     fetchMock.mockResolvedValue(
       pageOf([report('kept', 2), report('remote', 1)], false),

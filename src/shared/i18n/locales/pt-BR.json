@@ -2054,6 +2054,7 @@
       "size": "Tamanho",
       "download": "Baixar relatório",
       "open": "Abrir relatório",
+      "save": "Salvar relatório",
       "downloading": "Baixando relatório...",
       "downloadFailed": "Não foi possível baixar o relatório. Tente novamente.",
       "offline": "Sem conexão. Conecte-se à internet para baixar este relatório.",
