@@ -18,6 +18,7 @@ import { Text } from 'app/components/ui/text';
 import { InvoicesScreen, InvoicesSection } from 'features/invoices';
 import {
   ServiceInvoiceUploadFlow,
+  ServiceInvoicesFlow,
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
 import { useTranslation } from 'shared/i18n';
@@ -31,6 +32,7 @@ import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
 import { ReportCard } from '../components/ReportCard';
 import { ReportField } from '../components/ReportField';
+import { ReportsHeader } from '../components/ReportsHeader';
 import { REPORT_CATEGORIES, type ReportCategory } from '../domain/report.types';
 import { useReportHistory } from '../hooks/useReportHistory';
 
@@ -53,6 +55,7 @@ export function ReportsScreen() {
   const [range, setRange] = useState<CalendarRange>(EMPTY_CALENDAR_RANGE);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
+  const [isServiceInvoicesOpen, setIsServiceInvoicesOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
 
@@ -80,15 +83,16 @@ export function ReportsScreen() {
 
   return (
     <>
+      <ReportsHeader
+        title={t('tabbar.reports')}
+        invoicesLabel={t('reports.openInvoices')}
+        onInvoicesPress={() => setIsServiceInvoicesOpen(true)}
+      />
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-4 pb-6 pt-4"
+        contentContainerClassName="gap-6 px-4 pb-6 pt-2"
         keyboardShouldPersistTaps="handled"
       >
-        <Text accessibilityRole="header" className="text-[40px] font-medium">
-          {t('tabbar.reports')}
-        </Text>
-
         <View className="gap-3">
           <Text className={SECTION_TITLE}>{t('reports.generate.title')}</Text>
           <ReportField
@@ -189,7 +193,9 @@ export function ReportsScreen() {
           >
             <Text>{t('reports.addInvoice')}</Text>
           </Button>
-          <ServiceInvoiceUploadFlow upload={invoiceUpload} />
+          {isServiceInvoicesOpen ? null : (
+            <ServiceInvoiceUploadFlow upload={invoiceUpload} />
+          )}
         </View>
       </ScrollView>
 
@@ -205,6 +211,12 @@ export function ReportsScreen() {
             setIsCategoryOpen(false);
           },
         }))}
+      />
+
+      <ServiceInvoicesFlow
+        open={isServiceInvoicesOpen}
+        onClose={() => setIsServiceInvoicesOpen(false)}
+        upload={invoiceUpload}
       />
 
       <InvoicesScreen
