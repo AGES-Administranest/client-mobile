@@ -4,3 +4,4 @@ export {
   useServiceInvoiceUpload,
   type ServiceInvoiceUploadState,
 } from './hooks/useServiceInvoiceUpload';
+export { ServiceInvoicesFlow } from './screens/ServiceInvoicesFlow';

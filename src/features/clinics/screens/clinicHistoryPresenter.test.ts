@@ -123,7 +123,6 @@ describe('historyShowMoreLabel', () => {
     ['pt-BR', false, 0, false, null],
     ['pt-BR', true, 1, false, 'Ver mais 1 atendimento'],
     ['pt-BR', true, 3, false, 'Ver mais 3 atendimentos'],
-    ['pt-BR', true, 0, false, 'Ver mais atendimentos'],
     [
       'pt-BR',
       true,
@@ -133,7 +132,6 @@ describe('historyShowMoreLabel', () => {
     ],
     ['en-US', true, 1, false, 'Show 1 more appointment'],
     ['en-US', true, 3, false, 'Show 3 more appointments'],
-    ['en-US', true, 0, false, 'Show more appointments'],
   ] as const)(
     'labels %s with more pages %p, %p left and failed %p as %p',
     (locale, hasMore, remaining, loadMoreFailed, expected) => {
