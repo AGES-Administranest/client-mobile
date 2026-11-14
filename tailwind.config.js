@@ -54,6 +54,7 @@ module.exports = {
         'alert-primary': 'hsl(var(--palette-alert-primary))',
         // Colors from src/theme/colors.ts with no plain-hex CSS var equivalent
         // (opacity baked in, or duplicate of an existing token).
+        'alert-soft': 'rgba(217, 87, 67, 0.2)',
         'background-shade': 'rgba(80, 78, 78, 0.33)',
         'details-secondary': 'rgba(250, 222, 132, 0.5)',
         'label-quartenery': 'hsl(var(--palette-button-primary))',

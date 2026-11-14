@@ -1,5 +1,7 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { clearLocalUserData } from 'shared/services/localData';
+
 import { AuthProvider, useAuth } from './AuthContext';
 import { Account, TERMS_VERSION } from '../domain/account';
 import { AuthError } from '../domain/authErrors';
@@ -12,6 +14,9 @@ jest.mock('../services/authService');
 jest.mock('../services/accountApi');
 jest.mock('../services/sessionStorage');
 jest.mock('../services/socialAuthService');
+jest.mock('shared/services/localData', () => ({
+  clearLocalUserData: jest.fn().mockResolvedValue(undefined),
+}));
 
 const storage = jest.mocked(sessionStorage);
 
@@ -278,4 +283,103 @@ describe('keeping the sign in across launches', () => {
 
     expect(storage.loadSession).not.toHaveBeenCalled();
   });
+});
+
+describe('deleting the account', () => {
+  const FRESH = {
+    ...SESSION,
+    idToken: 'id-fresh',
+    accessToken: 'access-fresh',
+  };
+
+  beforeEach(() => {
+    service.signIn.mockResolvedValue(FRESH);
+    service.deleteUser.mockResolvedValue(undefined);
+    api.deleteAccount.mockResolvedValue(undefined);
+    storage.clearSession.mockResolvedValue(undefined);
+    jest.mocked(clearLocalUserData).mockResolvedValue(undefined);
+  });
+
+  it('confirms the password, deletes with the new token and wipes the device', async () => {
+    const auth = await renderProvider(SESSION, ACCEPTED);
+
+    await act(async () => {
+      await auth.current!.deleteAccount('Senha@1234');
+    });
+
+    expect(service.signIn).toHaveBeenCalledWith(
+      'bruna@example.com',
+      'Senha@1234',
+    );
+    expect(api.deleteAccount).toHaveBeenCalledWith('id-fresh');
+    expect(service.deleteUser).toHaveBeenCalledWith(FRESH);
+    expect(storage.clearSession).toHaveBeenCalled();
+    expect(clearLocalUserData).toHaveBeenCalled();
+  });
+
+  it('keeps the session in memory until the deletion is finished', async () => {
+    const auth = await renderProvider(SESSION, ACCEPTED);
+
+    await act(async () => {
+      await auth.current!.deleteAccount('Senha@1234');
+    });
+    expect(auth.current!.session).toEqual(SESSION);
+
+    await act(async () => {
+      await auth.current!.finishAccountDeletion();
+    });
+    expect(auth.current!.session).toBeNull();
+    expect(auth.current!.account).toBeNull();
+  });
+
+  it('deletes nothing when the password is wrong', async () => {
+    service.signIn.mockRejectedValue(new AuthError('INVALID_CREDENTIALS'));
+    const auth = await renderProvider(SESSION, ACCEPTED);
+
+    await act(async () => {
+      await expect(auth.current!.deleteAccount('errada')).rejects.toMatchObject(
+        { code: 'INVALID_CREDENTIALS' },
+      );
+    });
+
+    expect(api.deleteAccount).not.toHaveBeenCalled();
+    expect(clearLocalUserData).not.toHaveBeenCalled();
+    expect(auth.current!.session).toEqual(SESSION);
+  });
+
+  it('keeps the data on the device when the API fails', async () => {
+    api.deleteAccount.mockRejectedValue(new AuthError('NETWORK_UNAVAILABLE'));
+    const auth = await renderProvider(SESSION, ACCEPTED);
+
+    await act(async () => {
+      await expect(
+        auth.current!.deleteAccount('Senha@1234'),
+      ).rejects.toMatchObject({ code: 'NETWORK_UNAVAILABLE' });
+    });
+
+    expect(service.deleteUser).not.toHaveBeenCalled();
+    expect(clearLocalUserData).not.toHaveBeenCalled();
+  });
+
+  it('still succeeds when removing the Cognito user fails afterwards', async () => {
+    service.deleteUser.mockRejectedValue(new AuthError('UNKNOWN'));
+    const auth = await renderProvider(SESSION, ACCEPTED);
+
+    await act(async () => {
+      await auth.current!.deleteAccount('Senha@1234');
+    });
+
+    expect(clearLocalUserData).toHaveBeenCalled();
+  });
+});
+
+it('wipes the local data on a plain sign out too', async () => {
+  service.signOut.mockResolvedValue(undefined);
+  const auth = await renderProvider(SESSION, ACCEPTED);
+
+  await act(async () => {
+    await auth.current!.signOut();
+  });
+
+  expect(clearLocalUserData).toHaveBeenCalled();
 });

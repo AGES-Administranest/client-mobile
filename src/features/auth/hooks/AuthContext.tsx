@@ -8,6 +8,8 @@ import {
   useState,
 } from 'react';
 
+import { clearLocalUserData } from 'shared/services/localData';
+
 import {
   Account,
   needsTermsAcceptance,
@@ -41,6 +43,8 @@ type AuthContextValue = {
   signInWithProvider: (provider: SocialProvider) => Promise<boolean>;
   acceptTerms: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
+  finishAccountDeletion: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -175,12 +179,35 @@ export function AuthProvider({
     setSession(null);
     setAccount(null);
     await sessionStorage.clearSession();
+    await clearLocalUserData();
 
     if (current) {
       // Revoking is best effort: the user is signed out locally either way.
       await authService.signOut(current).catch(() => undefined);
     }
   }, [session]);
+
+  const deleteAccount = useCallback(
+    async (password: string) => {
+      if (!account) {
+        return;
+      }
+
+      const tokens = await authService.signIn(account.email, password);
+      await accountApi.deleteAccount(tokens.idToken);
+      await authService.deleteUser(tokens).catch(() => undefined);
+      await sessionStorage.clearSession();
+      await clearLocalUserData();
+    },
+    [account],
+  );
+
+  const finishAccountDeletion = useCallback(async () => {
+    setSession(null);
+    setAccount(null);
+    await sessionStorage.clearSession();
+    await clearLocalUserData();
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -191,6 +218,8 @@ export function AuthProvider({
       signInWithProvider,
       acceptTerms,
       signOut,
+      deleteAccount,
+      finishAccountDeletion,
     }),
     [
       session,
@@ -200,6 +229,8 @@ export function AuthProvider({
       signInWithProvider,
       acceptTerms,
       signOut,
+      deleteAccount,
+      finishAccountDeletion,
     ],
   );
 
