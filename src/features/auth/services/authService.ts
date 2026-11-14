@@ -143,6 +143,10 @@ export async function signOut(session: AuthSession): Promise<void> {
   await callCognito('RevokeToken', { Token: session.refreshToken });
 }
 
+export async function deleteUser(session: AuthSession): Promise<void> {
+  await callCognito('DeleteUser', { AccessToken: session.accessToken });
+}
+
 function toSession(
   result: AuthenticationResult,
   refreshToken: string,

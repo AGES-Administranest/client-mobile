@@ -11,6 +11,13 @@ type TermsCheckboxProps = {
   onChange: (checked: boolean) => void;
   error?: string;
   disabled?: boolean;
+  links?: readonly TermsLink[];
+  linksError?: string;
+};
+
+type TermsLink = {
+  label: string;
+  onPress: () => void;
 };
 
 export function TermsCheckbox({
@@ -19,6 +26,8 @@ export function TermsCheckbox({
   onChange,
   error,
   disabled = false,
+  links = [],
+  linksError,
 }: TermsCheckboxProps) {
   return (
     <View className="mb-4 w-full">
@@ -48,6 +57,29 @@ export function TermsCheckbox({
           {label}
         </Text>
       </Pressable>
+      {links.length > 0 ? (
+        <View className="ml-8 mt-2 flex-row flex-wrap gap-x-4 gap-y-1">
+          {links.map(link => (
+            <Pressable
+              key={link.label}
+              accessibilityRole="link"
+              accessibilityLabel={link.label}
+              onPress={link.onPress}
+              hitSlop={8}
+              className="active:opacity-70"
+            >
+              <Text className="text-sm font-medium text-label-quartenery underline">
+                {link.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      {linksError ? (
+        <Text className="ml-8 mt-1 text-sm text-label-tertiary">
+          {linksError}
+        </Text>
+      ) : null}
       {error ? (
         <Text
           accessibilityRole="alert"

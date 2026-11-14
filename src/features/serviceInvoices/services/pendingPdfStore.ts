@@ -1,10 +1,19 @@
 import { Directory, File, Paths } from 'expo-file-system';
 
+import { registerLocalDataCleaner } from 'shared/services/localData';
+
+const ROOT_NAME = 'service-invoices';
+
 // The document directory, not the cache: the system may empty the cache, and
 // a note typed offline has no other copy of its PDF until it syncs.
 function directoryOf(userId: string): Directory {
-  return new Directory(Paths.document, 'service-invoices', userId);
+  return new Directory(Paths.document, ROOT_NAME, userId);
 }
+
+registerLocalDataCleaner(() => {
+  const root = new Directory(Paths.document, ROOT_NAME);
+  if (root.exists) root.delete();
+});
 
 function fileOf(userId: string, invoiceId: string): File {
   return new File(directoryOf(userId), `${invoiceId}.pdf`);

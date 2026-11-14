@@ -2055,6 +2055,74 @@
     "crmvNotice": "Your CRMV is required to issue reports with professional identification.",
     "staleNotice": "Showing the last saved data. It may be out of date.",
     "loadError": "The profile could not be loaded.",
-    "sessionExpired": "Your session has expired. Sign out and sign in again."
+    "sessionExpired": "Your session has expired. Sign out and sign in again.",
+    "privacy": {
+      "menu": "Privacy",
+      "title": "Privacy",
+      "acceptedVersion": "Accepted policy version",
+      "acceptedAt": "Date accepted",
+      "acceptedNote": "This is the latest acceptance recorded on your account."
+    },
+    "deleteAccount": {
+      "menu": "Delete account",
+      "title": "Delete account",
+      "heading": "This action is irreversible",
+      "description": "When you delete your account you lose access to the app and your data is removed according to our retention policy and applicable legal obligations.",
+      "removedTitle": "What will be removed?",
+      "items": {
+        "appointments": "Appointments",
+        "invoices": "Invoices and files",
+        "finance": "Financial control",
+        "stock": "Stock",
+        "vehicles": "Vehicles",
+        "equipment": "Equipment",
+        "reports": "Reports"
+      },
+      "retentionNotice": "Some data may be kept for the period required by legal or regulatory obligations, as described in our Privacy Policy.",
+      "confirmPrompt": "To confirm the deletion, enter your current password.",
+      "passwordLabel": "Current password",
+      "passwordPlaceholder": "Enter your current password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Delete my account",
+      "tryAgain": "Try again",
+      "cancel": "Cancel",
+      "deleting": {
+        "title": "Deleting your account...",
+        "message": "We are processing your request. This may take a few moments."
+      },
+      "wrongPassword": {
+        "title": "Incorrect password",
+        "message": "We could not confirm your identity. Check your password and try again."
+      },
+      "offline": {
+        "title": "No connection",
+        "message": "Deleting the account requires an internet connection. Connect and try again."
+      },
+      "failed": {
+        "title": "Could not delete",
+        "message": "Something went wrong while deleting your account. Nothing was removed. Please try again shortly."
+      },
+      "success": {
+        "title": "Account deleted successfully",
+        "message": "Your account was removed and you can no longer access the app with these credentials.",
+        "action": "Back to start"
+      }
+    }
+  },
+  "legal": {
+    "unavailable": "Document unavailable right now. Please try again later.",
+    "privacyPolicy": {
+      "link": "Privacy Policy",
+      "title": "Privacy Policy",
+      "description": "Learn how your personal data is collected, used, stored and protected.",
+      "action": "View full policy"
+    },
+    "termsOfUse": {
+      "link": "Terms of Use",
+      "title": "Terms of Use",
+      "description": "Read the conditions and responsibilities for using the app.",
+      "action": "View full terms"
+    }
   }
 }

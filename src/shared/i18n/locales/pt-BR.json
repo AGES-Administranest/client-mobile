@@ -2055,6 +2055,74 @@
     "crmvNotice": "O CRMV é necessário para emitir relatórios com identificação profissional.",
     "staleNotice": "Mostrando os últimos dados salvos. Eles podem estar desatualizados.",
     "loadError": "Não foi possível carregar o perfil.",
-    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente."
+    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "privacy": {
+      "menu": "Privacidade",
+      "title": "Privacidade",
+      "acceptedVersion": "Versão da política aceita",
+      "acceptedAt": "Data do aceite",
+      "acceptedNote": "Essas informações correspondem ao último aceite registrado na sua conta."
+    },
+    "deleteAccount": {
+      "menu": "Excluir conta",
+      "title": "Excluir conta",
+      "heading": "Esta ação é irreversível",
+      "description": "Ao excluir sua conta, você perderá o acesso ao aplicativo e seus dados serão removidos conforme nossa política de retenção e as obrigações legais aplicáveis.",
+      "removedTitle": "O que será removido?",
+      "items": {
+        "appointments": "Atendimentos",
+        "invoices": "Notas fiscais e arquivos",
+        "finance": "Controle financeiro",
+        "stock": "Estoque",
+        "vehicles": "Veículos",
+        "equipment": "Equipamentos",
+        "reports": "Relatórios"
+      },
+      "retentionNotice": "Alguns dados poderão ser mantidos pelo período exigido por obrigações legais ou regulatórias, conforme nossa Política de Privacidade.",
+      "confirmPrompt": "Para confirmar a exclusão, informe sua senha atual.",
+      "passwordLabel": "Senha atual",
+      "passwordPlaceholder": "Digite sua senha atual",
+      "showPassword": "Mostrar senha",
+      "hidePassword": "Ocultar senha",
+      "submit": "Excluir minha conta",
+      "tryAgain": "Tentar novamente",
+      "cancel": "Cancelar",
+      "deleting": {
+        "title": "Excluindo sua conta...",
+        "message": "Estamos processando sua solicitação. Isso pode levar alguns instantes."
+      },
+      "wrongPassword": {
+        "title": "Senha incorreta",
+        "message": "Não foi possível confirmar sua identidade. Verifique sua senha e tente novamente."
+      },
+      "offline": {
+        "title": "Sem conexão",
+        "message": "A exclusão da conta exige conexão com a internet. Conecte-se e tente novamente."
+      },
+      "failed": {
+        "title": "Não foi possível excluir",
+        "message": "Algo deu errado ao excluir sua conta. Nada foi removido. Tente novamente em instantes."
+      },
+      "success": {
+        "title": "Conta excluída com sucesso",
+        "message": "Sua conta foi removida e você não poderá mais acessar o aplicativo com essas credenciais.",
+        "action": "Voltar para o início"
+      }
+    }
+  },
+  "legal": {
+    "unavailable": "Documento indisponível no momento. Tente novamente mais tarde.",
+    "privacyPolicy": {
+      "link": "Política de Privacidade",
+      "title": "Política de Privacidade",
+      "description": "Saiba como seus dados pessoais são coletados, utilizados, armazenados e protegidos.",
+      "action": "Visualizar política completa"
+    },
+    "termsOfUse": {
+      "link": "Termos de Uso",
+      "title": "Termos de Uso",
+      "description": "Consulte as condições e responsabilidades para utilização do aplicativo.",
+      "action": "Visualizar termos completos"
+    }
   }
 }
