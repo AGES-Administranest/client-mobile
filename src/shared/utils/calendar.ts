@@ -62,6 +62,34 @@ export function addMonths(
   return { year: date.getFullYear(), monthIndex: date.getMonth() };
 }
 
+/** The calendar date `amount` days after `calendarDate` (before, if negative). */
+export function addDays(calendarDate: string, amount: number): string {
+  const date = fromCalendarDate(calendarDate);
+
+  return toCalendarDate(
+    new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount),
+  );
+}
+
+/**
+ * The days a range can still end on, once its first day is picked, when it may
+ * cover at most `maxDays` days counting both ends. Null while nothing limits
+ * the next pick: no day picked yet, or the range already complete.
+ */
+export function rangeEndBounds(
+  range: CalendarRange,
+  maxDays: number,
+): { earliest: string; latest: string } | null {
+  if (range.from === null || range.to !== null) {
+    return null;
+  }
+
+  return {
+    earliest: addDays(range.from, -(maxDays - 1)),
+    latest: addDays(range.from, maxDays - 1),
+  };
+}
+
 export function isWithinCalendarRange(
   date: string,
   { from, to }: CalendarRange,

@@ -15,6 +15,7 @@ import {
   buildMonthGrid,
   fromCalendarDate,
   isWithinCalendarRange,
+  rangeEndBounds,
   selectRangeDay,
   type CalendarRange,
 } from 'shared/utils/calendar';
@@ -33,6 +34,11 @@ type DateRangePickerProps = {
   nextYearLabel?: string;
   /** Último dia selecionável (YYYY-MM-DD); depois dele os dias ficam bloqueados. */
   maxDate?: string;
+  /**
+   * Maior intervalo permitido, em dias, contando o primeiro e o último. Depois
+   * de escolhido o primeiro dia, os dias que passariam disso ficam bloqueados.
+   */
+  maxRangeDays?: number;
   className?: string;
 };
 
@@ -54,6 +60,7 @@ function DateRangePicker({
   previousYearLabel,
   nextYearLabel,
   maxDate,
+  maxRangeDays,
   className,
 }: DateRangePickerProps) {
   const [visible, setVisible] = useVisibleMonth(value);
@@ -87,6 +94,9 @@ function DateRangePicker({
         (visible.year * 12 + visible.monthIndex);
   const isAtLastMonth = monthsUntilMax <= 0;
   const canGoNextYear = monthsUntilMax >= 12;
+
+  const endBounds =
+    maxRangeDays === undefined ? null : rangeEndBounds(value, maxRangeDays);
 
   const goToMonth = (amount: number) =>
     setVisible(current => addMonths(current.year, current.monthIndex, amount));
@@ -166,7 +176,10 @@ function DateRangePicker({
               value.to !== null &&
               isWithinCalendarRange(day.date, value);
 
-            const isBlocked = maxDate !== undefined && day.date > maxDate;
+            const isBlocked =
+              (maxDate !== undefined && day.date > maxDate) ||
+              (endBounds !== null &&
+                (day.date < endBounds.earliest || day.date > endBounds.latest));
 
             return (
               <Pressable

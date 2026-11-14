@@ -26,6 +26,7 @@ import { ReportCard } from '../components/ReportCard';
 import { ReportCategoriesSheet } from '../components/ReportCategoriesSheet';
 import { ReportField } from '../components/ReportField';
 import {
+  MAX_REPORT_DAYS,
   REPORT_CATEGORIES,
   type ReportCategory,
   type ReportHistoryItem,
@@ -144,6 +145,7 @@ export function ReportsScreen() {
               }}
               locale={locale}
               maxDate={toCalendarDate(new Date())}
+              maxRangeDays={MAX_REPORT_DAYS}
               previousMonthLabel={t('reports.generate.previousMonth')}
               nextMonthLabel={t('reports.generate.nextMonth')}
               previousYearLabel={t('reports.generate.previousYear')}

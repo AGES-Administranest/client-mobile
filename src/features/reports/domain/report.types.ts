@@ -11,6 +11,12 @@ export const REPORT_CATEGORIES = [
 
 export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
 
+/**
+ * The longest period a report covers, both days included: a year, leap day
+ * counted. The backend refuses more with REPORT_PERIOD_TOO_LONG.
+ */
+export const MAX_REPORT_DAYS = 366;
+
 /** How the backend names each section of the general report (US29). */
 export type ReportSection =
   | 'FINANCIAL'
