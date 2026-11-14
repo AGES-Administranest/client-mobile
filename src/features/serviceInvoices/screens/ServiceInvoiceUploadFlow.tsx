@@ -48,6 +48,7 @@ type ServiceInvoiceUploadFlowProps = {
   upload: ServiceInvoiceUploadState;
   /** For the screen behind to reload its totals. */
   onInvoiceConfirmed?: () => void;
+  showNotices?: boolean;
 };
 
 /**
@@ -59,6 +60,7 @@ type ServiceInvoiceUploadFlowProps = {
 export function ServiceInvoiceUploadFlow({
   upload,
   onInvoiceConfirmed,
+  showNotices = true,
 }: ServiceInvoiceUploadFlowProps) {
   const { t } = useTranslation();
   const pending = usePendingServiceInvoices();
@@ -77,10 +79,11 @@ export function ServiceInvoiceUploadFlow({
   // Without the trigger next to them, an empty box would still take a gap in
   // the screen's column: the notices only get one when there is something to say.
   const hasNotices =
-    waiting > 0 ||
-    rejected > 0 ||
-    pending.discardLeftFile ||
-    pending.loadFailed;
+    showNotices &&
+    (waiting > 0 ||
+      rejected > 0 ||
+      pending.discardLeftFile ||
+      pending.loadFailed);
 
   return (
     <>

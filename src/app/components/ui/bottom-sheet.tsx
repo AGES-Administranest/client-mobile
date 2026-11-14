@@ -1,3 +1,4 @@
+import { PortalHost } from '@rn-primitives/portal';
 import { type ReactNode } from 'react';
 import {
   Animated,
@@ -16,6 +17,8 @@ import { Text } from 'app/components/ui/text';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
 const TAP_OUTSIDE_TO_CLOSE_GAP = 8;
+
+const BOTTOM_SHEET_PORTAL_HOST = 'bottom-sheet';
 
 const styles = StyleSheet.create({
   shrinkAboveKeyboard: { flexShrink: 1 },
@@ -113,9 +116,13 @@ function BottomSheet({
           </View>
         </Animated.View>
       </KeyboardAvoidingView>
+
+      <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+        <PortalHost name={BOTTOM_SHEET_PORTAL_HOST} />
+      </View>
     </Modal>
   );
 }
 
-export { BottomSheet };
+export { BOTTOM_SHEET_PORTAL_HOST, BottomSheet };
 export type { BottomSheetProps };

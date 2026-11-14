@@ -38,5 +38,8 @@ export function toHistoryFailureKey(error: unknown): TranslationKey {
   if (error instanceof ApiError && error.status === 401) {
     return 'clinics.history.failures.session';
   }
+  if (error instanceof ApiError && error.code === 'CLIENT_NOT_FOUND') {
+    return 'clinics.history.failures.notFound';
+  }
   return 'clinics.history.failures.unknown';
 }

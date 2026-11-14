@@ -656,7 +656,6 @@
       "appointmentDetail": "{{patient}} · {{date}}",
       "showMoreOne": "Ver mais 1 atendimento",
       "showMoreOther": "Ver mais {{count}} atendimentos",
-      "showMoreUncounted": "Ver mais atendimentos",
       "showMoreFailed": "Não foi possível carregar mais atendimentos. Tentar novamente",
       "loading": "Carregando o histórico",
       "loadingMore": "Carregando mais atendimentos…",
@@ -667,7 +666,8 @@
       "failures": {
         "network": "Não foi possível carregar o histórico. Verifique sua conexão e tente novamente.",
         "session": "Sua sessão expirou. Saia da conta e entre novamente.",
-        "unknown": "Não foi possível carregar o histórico. Tente novamente."
+        "unknown": "Não foi possível carregar o histórico. Tente novamente.",
+        "notFound": "Esta clínica não foi encontrada. Ela pode ter sido excluída."
       }
     }
   },
@@ -855,16 +855,8 @@
     "clinics": "Clínicas"
   },
   "reports": {
-    "title": "Relatórios",
     "generate": {
-      "title": "Gerar novo relatório",
-      "categoryPlaceholder": "Selecione categoria",
-      "startDate": "Data de início",
-      "endDate": "Data de fim",
-      "selectDate": "Selecione a data",
-      "button": "Gerar Relatório",
-      "previousMonth": "Mês anterior",
-      "nextMonth": "Próximo mês"
+      "title": "Gerar novo relatório"
     },
     "period": {
       "startDate": "Data de início",
@@ -896,11 +888,7 @@
     },
     "seeAll": "Ver todos",
     "addInvoice": "Adicionar nota",
-    "categories": {
-      "financial": "Financeiro",
-      "appointments": "Atendimentos",
-      "inventory": "Estoque"
-    }
+    "openInvoices": "Abrir notas fiscais"
   },
   "optionsModal": {
     "scanNote": "Escanear nota",
@@ -1926,6 +1914,101 @@
       "discard": "Descartar nota",
       "keep": "Manter na fila",
       "sendAnyway": "Enviar mesmo assim"
+    },
+    "records": {
+      "fileAvailable": "PDF original disponível",
+      "status": {
+        "SYNCED": "Sincronizado",
+        "PENDING": "Não sincronizado",
+        "ERROR": "Erro no envio"
+      },
+      "list": {
+        "title": "Notas fiscais",
+        "back": "Voltar",
+        "searchPlaceholder": "Buscar por tomador ou data",
+        "filters": {
+          "ALL": "Todas",
+          "SYNCED": "Sincronizadas",
+          "PENDING": "Não sincronizadas",
+          "ERROR": "Com erro"
+        },
+        "noteTitle": "Nota Fiscal {{number}}",
+        "noteTitleNoNumber": "Nota fiscal",
+        "clientLine": "Tomador: {{name}}",
+        "loadFailed": "Não foi possível carregar as notas fiscais.",
+        "offline": "Sem conexão: mostrando as notas salvas neste aparelho.",
+        "emptyTitle": "Nenhuma nota fiscal",
+        "emptyMessage": "Registre uma nota pelo botão Adicionar nota, na aba Relatórios.",
+        "noResultsTitle": "Nada encontrado",
+        "noResultsMessage": "Não há notas para essa busca. Tente outro tomador ou outra data.",
+        "add": "Adicionar nota"
+      },
+      "detail": {
+        "title": "Detalhes da nota",
+        "back": "Voltar",
+        "download": "Baixar PDF",
+        "downloading": "Baixando PDF…",
+        "downloadFailed": "Não foi possível baixar o PDF. Tente novamente.",
+        "unavailable": {
+          "needsConnection": "O download exige conexão com a internet.",
+          "notSentYet": "O PDF ainda não foi enviado. Ele fica disponível para baixar depois que a nota sincronizar.",
+          "noFile": "Esta nota não tem PDF original."
+        },
+        "fileFallbackName": "PDF da nota fiscal",
+        "dataTitle": "Dados extraídos da nota",
+        "fields": {
+          "issueDate": "Data de emissão",
+          "number": "Número da nota",
+          "client": "Tomador",
+          "clientTaxId": "CNPJ do tomador",
+          "location": "Local",
+          "amount": "Valor total"
+        },
+        "checkData": "Confira os dados antes de enviar à contabilidade.",
+        "correct": "Corrigir",
+        "delete": "Excluir",
+        "correctNeedsConnection": "Corrigir os dados exige conexão com a internet.",
+        "correctNotSentYet": "A nota ainda não foi enviada. Ela só pode ser corrigida depois de sincronizar.",
+        "notFound": "Esta nota não existe mais.",
+        "loadFailed": "Não foi possível carregar a nota. Verifique a conexão e tente novamente.",
+        "saved": "PDF salvo na pasta escolhida."
+      },
+      "correction": {
+        "title": "Corrigir nota",
+        "back": "Voltar",
+        "checkPdf": "Confira os dados com o PDF original antes de confirmar.",
+        "location": {
+          "label": "Local",
+          "placeholder": "Cidade, UF"
+        },
+        "confirm": "Confirmar correção",
+        "confirming": "Salvando…",
+        "cancel": "Cancelar",
+        "failure": {
+          "network": "Sem conexão. Conecte-se à internet para salvar a correção.",
+          "notFound": "Esta nota não existe mais.",
+          "generic": "Não foi possível salvar a correção. Tente novamente.",
+          "clientNotFound": "Esse tomador não foi encontrado. Escolha outro."
+        },
+        "leaveTitle": "Sair da correção?",
+        "leaveMessage": "As alterações não foram salvas e vão se perder.",
+        "leaveConfirm": "Sair sem salvar",
+        "leaveCancel": "Continuar editando"
+      },
+      "delete": {
+        "title": "Excluir nota fiscal?",
+        "message": "Esta ação é permanente. O arquivo PDF original e o lançamento financeiro vinculado também serão excluídos.",
+        "messagePending": "Esta ação é permanente. O PDF guardado neste aparelho também será excluído.",
+        "pdfItem": "Arquivo PDF original",
+        "entryItem": "Lançamento financeiro vinculado",
+        "confirm": "Excluir permanentemente",
+        "deleting": "Excluindo…",
+        "cancel": "Cancelar",
+        "failed": "Não foi possível excluir a nota. Tente novamente.",
+        "doneTitle": "Nota fiscal excluída com sucesso",
+        "doneQueued": "Sem conexão: a exclusão será enviada quando a conexão voltar.",
+        "understood": "Entendi"
+      }
     }
   },
   "trips": {
@@ -2021,9 +2104,6 @@
     "loadFailed": "Não foi possível carregar os deslocamentos."
   },
   "invoices": {
-    "trigger": "Notas fiscais",
-    "seeAll": "Ver todos",
-    "originalFile": "Arquivo original",
     "title": "Notas fiscais",
     "back": "Voltar",
     "loading": "Carregando notas fiscais...",
@@ -2041,10 +2121,6 @@
       "SERVICE": "Serviço"
     },
     "detail": {
-      "reportTitle": "Detalhes da nota",
-      "originalFile": "Arquivo original",
-      "originalFileAvailable": "Disponível",
-      "originalFileUnavailable": "Indisponível",
       "title": "Nota Fiscal {{number}}",
       "close": "Fechar",
       "kind": "Tipo",
@@ -2061,7 +2137,17 @@
     },
     "countSingular": "{{count}} nota fiscal",
     "countPlural": "{{count}} notas fiscais",
-    "addInvoice": "Adicionar nota fiscal"
+    "addInvoice": "Adicionar nota fiscal",
+    "downloadAll": {
+      "button": "Baixar tudo (ZIP)",
+      "downloading": "Preparando o arquivo ZIP...",
+      "done": "Download iniciado.",
+      "empty": "Nenhuma nota fiscal com arquivo para baixar.",
+      "tooLarge": "Há notas demais para um único ZIP (limite de 500 notas ou 200 MB). Baixe as notas uma a uma por enquanto.",
+      "offline": "Sem conexão. Verifique sua internet e tente de novo.",
+      "rateLimited": "Muitas tentativas seguidas. Aguarde um minuto e tente de novo.",
+      "failed": "Não foi possível baixar as notas. Tente novamente."
+    }
   },
   "profile": {
     "title": "Perfil",
@@ -2087,6 +2173,37 @@
     "crmvNotice": "O CRMV é necessário para emitir relatórios com identificação profissional.",
     "staleNotice": "Mostrando os últimos dados salvos. Eles podem estar desatualizados.",
     "loadError": "Não foi possível carregar o perfil.",
-    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente."
+    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "editForm": {
+      "title": "Editar perfil",
+      "close": "Fechar a edição do perfil",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "emailHint": "O e-mail vem do seu login e não é alterado aqui.",
+      "birthDate": "Data de nascimento",
+      "state": "UF",
+      "placeholders": {
+        "name": "Seu nome completo",
+        "crmv": "Ex.: RS-12345",
+        "birthDate": "DD/MM/AAAA",
+        "sex": "Selecione",
+        "city": "Ex.: Porto Alegre",
+        "state": "UF"
+      },
+      "errors": {
+        "nameTooShort": "Informe seu nome, com pelo menos 2 letras.",
+        "nameTooLong": "Use até 120 caracteres.",
+        "crmvInvalid": "Use o formato UF-número, como RS-12345.",
+        "birthDateInvalid": "Informe uma data válida.",
+        "birthDateOutOfRange": "Informe uma data a partir de 1900, de quem tem pelo menos 18 anos.",
+        "cityTooLong": "Use até 120 caracteres.",
+        "stateInvalid": "Escolha uma UF válida."
+      },
+      "saved": "Perfil atualizado.",
+      "saveError": "Não foi possível salvar o perfil. Tente de novo."
+    },
+    "pendingNotice": "As alterações do perfil estão salvas no aparelho e serão enviadas quando houver internet.",
+    "rejectedNotice": "A alteração do perfil feita sem conexão foi recusada. Os dados voltaram aos últimos salvos.",
+    "rejectedDismiss": "Entendi"
   }
 }

@@ -8,7 +8,11 @@ import { isOnline } from 'shared/services/network';
 
 import { useProfile, type UseProfileResult } from './useProfile';
 import type { Profile } from '../domain/profile';
-import { loadCachedProfile, saveCachedProfile } from '../services/profileCache';
+import {
+  loadCachedProfile,
+  queueProfileEdit,
+  saveCachedProfile,
+} from '../services/profileCache';
 import { fetchProfile } from '../services/profileService';
 
 jest.mock('../services/profileService', () => ({ fetchProfile: jest.fn() }));
@@ -86,6 +90,7 @@ describe('online', () => {
       status: 'ready',
       profile: PROFILE,
       isStale: false,
+      hasPendingEdit: false,
     });
     await expect(loadCachedProfile('user-1')).resolves.toEqual(PROFILE);
   });
@@ -110,6 +115,7 @@ describe('online', () => {
       status: 'ready',
       profile: SAVED,
       isStale: false,
+      hasPendingEdit: false,
     });
   });
 
@@ -126,6 +132,7 @@ describe('online', () => {
       status: 'ready',
       profile: SAVED,
       isStale: true,
+      hasPendingEdit: false,
     });
   });
 
@@ -166,6 +173,31 @@ describe('online', () => {
 
     await expect(loadCachedProfile('user-1')).resolves.toBeNull();
   });
+
+  it('keeps an edit not sent yet over what the API answered', async () => {
+    await queueProfileEdit(
+      'user-1',
+      {
+        name: 'Ana Souza',
+        crmv: 'RS-12345',
+        birthDate: null,
+        sex: null,
+        city: 'Canoas',
+        state: 'RS',
+      },
+      PROFILE,
+    );
+    fetchMock.mockResolvedValue(PROFILE);
+
+    const { result } = await renderProfileHook();
+
+    expect(result.current.state).toEqual({
+      status: 'ready',
+      profile: { ...PROFILE, city: 'Canoas' },
+      isStale: false,
+      hasPendingEdit: true,
+    });
+  });
 });
 
 describe('offline', () => {
@@ -183,6 +215,7 @@ describe('offline', () => {
       status: 'ready',
       profile: SAVED,
       isStale: true,
+      hasPendingEdit: false,
     });
   });
 
@@ -205,6 +238,7 @@ describe('offline', () => {
       status: 'ready',
       profile: PROFILE,
       isStale: false,
+      hasPendingEdit: false,
     });
   });
 });
