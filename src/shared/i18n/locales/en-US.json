@@ -656,7 +656,6 @@
       "appointmentDetail": "{{patient}} · {{date}}",
       "showMoreOne": "Show 1 more appointment",
       "showMoreOther": "Show {{count}} more appointments",
-      "showMoreUncounted": "Show more appointments",
       "showMoreFailed": "Could not load more appointments. Try again",
       "loading": "Loading the history",
       "loadingMore": "Loading more appointments…",
@@ -667,7 +666,8 @@
       "failures": {
         "network": "Could not load the history. Check your connection and try again.",
         "session": "Your session has expired. Sign out and sign in again.",
-        "unknown": "Could not load the history. Please try again."
+        "unknown": "Could not load the history. Please try again.",
+        "notFound": "This clinic was not found. It may have been deleted."
       }
     }
   },

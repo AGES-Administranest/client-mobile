@@ -96,11 +96,6 @@ export function historyShowMoreLabel(
   if (!history.hasMore) {
     return null;
   }
-  // A lista ainda tem página, mas o resumo contou menos do que já veio (são
-  // duas consultas no backend): o botão fica, só que sem o número.
-  if (history.remaining === 0) {
-    return t('clinics.history.showMoreUncounted');
-  }
   return history.remaining === 1
     ? t('clinics.history.showMoreOne')
     : t('clinics.history.showMoreOther', {
