@@ -146,4 +146,14 @@ describe('mergeInvoiceCache', () => {
       'b',
     ]);
   });
+
+  it('keeps one copy of a note whose correction moved it into the page', () => {
+    const cached = [at('a', '2026-01-10'), at('b', '2026-01-05')];
+    const page = [at('a', '2026-05-01'), at('n', '2026-04-22')];
+
+    const merged = mergeInvoiceCache(cached, page, 3);
+
+    expect(merged.map(i => i.id)).toEqual(['a', 'n', 'b']);
+    expect(merged[0].issueDate).toBe('2026-05-01');
+  });
 });

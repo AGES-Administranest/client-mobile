@@ -81,9 +81,11 @@ export function mergeInvoiceCache(
   total: number,
 ): ServiceInvoiceSummary[] {
   if (total <= firstPage.length) return firstPage;
+  const inPage = new Set(firstPage.map(invoice => invoice.id));
   const oldest = firstPage[firstPage.length - 1]?.issueDate;
-  const older = oldest
-    ? cached.filter(invoice => invoice.issueDate < oldest)
-    : cached;
+  const older = cached.filter(
+    invoice =>
+      !inPage.has(invoice.id) && (!oldest || invoice.issueDate < oldest),
+  );
   return [...firstPage, ...older].slice(0, CACHE_LIMIT);
 }
