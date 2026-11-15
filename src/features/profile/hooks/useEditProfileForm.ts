@@ -23,6 +23,7 @@ import {
   saveCachedProfile,
 } from '../services/profileCache';
 import { updateProfile } from '../services/profileService';
+import { withProfileLock } from '../services/profileSyncService';
 
 export type EditProfileTextField = Exclude<keyof ProfileFormValues, 'sex'>;
 
@@ -126,9 +127,12 @@ export function useEditProfileForm({
         await saveOffline();
         return;
       }
-      const saved = await updateProfile(idToken, update);
-      await saveCachedProfile(userId, saved);
-      await clearPendingProfileEdit(userId);
+      const saved = await withProfileLock(async () => {
+        const answer = await updateProfile(idToken, update);
+        await saveCachedProfile(userId, answer);
+        await clearPendingProfileEdit(userId);
+        return answer;
+      });
       onSaved(saved, false);
     } catch (error) {
       if (isNetworkError(error)) {

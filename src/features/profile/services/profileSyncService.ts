@@ -59,6 +59,14 @@ async function run(
   }
 }
 
+let tail: Promise<unknown> = Promise.resolve();
+
+export function withProfileLock<T>(task: () => Promise<T>): Promise<T> {
+  const result = tail.then(task);
+  tail = result.catch(() => undefined);
+  return result;
+}
+
 let running: Promise<ProfileSyncResult> | null = null;
 
 export function syncPendingProfile(
@@ -66,7 +74,7 @@ export function syncPendingProfile(
   userId: string,
 ): Promise<ProfileSyncResult> {
   if (!running) {
-    running = run(idToken, userId).finally(() => {
+    running = withProfileLock(() => run(idToken, userId)).finally(() => {
       running = null;
     });
   }
