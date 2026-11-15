@@ -8,6 +8,7 @@ import { useClientHistory } from './useClientHistory';
 import {
   HISTORY_PAGE_SIZE,
   type ClientAppointment,
+  type ClientAppointmentPage,
   type ClientSummary,
 } from '../domain/clientHistory';
 import {
@@ -56,10 +57,17 @@ function appointment(id: string): ClientAppointment {
   };
 }
 
-function pageOf(size: number, prefix = 'appointment'): ClientAppointment[] {
-  return Array.from({ length: size }, (_, index) =>
-    appointment(`${prefix}-${index}`),
-  );
+function pageOf(
+  size: number,
+  prefix = 'appointment',
+  total = size,
+): ClientAppointmentPage {
+  return {
+    appointments: Array.from({ length: size }, (_, index) =>
+      appointment(`${prefix}-${index}`),
+    ),
+    total,
+  };
 }
 
 function summaryOf(appointmentsCount: number): ClientSummary {
@@ -162,11 +170,13 @@ describe('useClientHistory', () => {
     );
   });
 
-  it('counts what is left from the totals and loads the next page', async () => {
+  it('counts what is left from the list total and loads the next page', async () => {
     summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE + 3));
     appointmentsMock
-      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'first'))
-      .mockResolvedValueOnce(pageOf(3, 'second'));
+      .mockResolvedValueOnce(
+        pageOf(HISTORY_PAGE_SIZE, 'first', HISTORY_PAGE_SIZE + 3),
+      )
+      .mockResolvedValueOnce(pageOf(3, 'second', HISTORY_PAGE_SIZE + 3));
 
     const { result } = renderHistory();
     await flush();
@@ -188,9 +198,9 @@ describe('useClientHistory', () => {
     expect(result.current.isLoadingMore).toBe(false);
   });
 
-  it('stops offering more when a page comes back short', async () => {
-    summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE + 5));
-    appointmentsMock.mockResolvedValue(pageOf(HISTORY_PAGE_SIZE - 1));
+  it('offers nothing more when the period fits in one page', async () => {
+    summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE));
+    appointmentsMock.mockResolvedValue(pageOf(HISTORY_PAGE_SIZE));
 
     const { result } = renderHistory();
     await flush();
@@ -199,34 +209,28 @@ describe('useClientHistory', () => {
     expect(result.current.remaining).toBe(0);
   });
 
-  it('keeps offering more when the totals count fewer than the list', async () => {
-    summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE - 1));
+  it('counts with the total of the newest page', async () => {
+    summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE + 3));
     appointmentsMock
-      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'first'))
-      .mockResolvedValueOnce(pageOf(2, 'second'));
+      .mockResolvedValueOnce(
+        pageOf(HISTORY_PAGE_SIZE, 'first', HISTORY_PAGE_SIZE + 3),
+      )
+      .mockResolvedValueOnce(
+        pageOf(HISTORY_PAGE_SIZE, 'second', HISTORY_PAGE_SIZE * 2 + 1),
+      );
 
     const { result } = renderHistory();
     await flush();
-
-    expect(result.current.hasMore).toBe(true);
-    expect(result.current.remaining).toBe(0);
-
     act(() => result.current.loadMore());
     await flush();
 
-    expect(appointmentsMock).toHaveBeenLastCalledWith(
-      'id-token',
-      'client-1',
-      NOVEMBER,
-      2,
-    );
-    expect(result.current.appointments).toHaveLength(HISTORY_PAGE_SIZE + 2);
-    expect(result.current.hasMore).toBe(false);
+    expect(result.current.hasMore).toBe(true);
+    expect(result.current.remaining).toBe(1);
   });
 
   it('reloads for a new period and ignores the late answer of the old one', async () => {
     const lateSummary = deferred<ClientSummary>();
-    const lateList = deferred<ClientAppointment[]>();
+    const lateList = deferred<ClientAppointmentPage>();
     summaryMock
       .mockReturnValueOnce(lateSummary.promise)
       .mockResolvedValueOnce(summaryOf(1));
@@ -268,7 +272,7 @@ describe('useClientHistory', () => {
 
   it('starts over from the current month when the sheet opens again', async () => {
     summaryMock.mockResolvedValue(summaryOf(0));
-    appointmentsMock.mockResolvedValue([]);
+    appointmentsMock.mockResolvedValue(pageOf(0));
 
     const { result, rerender } = renderHistory('client-1');
     act(() => result.current.setPeriod(AUGUST));
@@ -306,7 +310,7 @@ describe('useClientHistory', () => {
 
   it('opens again on the month of that day', async () => {
     summaryMock.mockResolvedValue(summaryOf(0));
-    appointmentsMock.mockResolvedValue([]);
+    appointmentsMock.mockResolvedValue(pageOf(0));
 
     const { result, rerender } = renderHistory('client-1');
     await flush();
@@ -365,12 +369,14 @@ describe('useClientHistory', () => {
   });
 
   it('ignores a page that arrives after the period changed', async () => {
-    const latePage = deferred<ClientAppointment[]>();
+    const latePage = deferred<ClientAppointmentPage>();
     summaryMock
       .mockResolvedValueOnce(summaryOf(HISTORY_PAGE_SIZE + 3))
       .mockResolvedValueOnce(summaryOf(1));
     appointmentsMock
-      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'november'))
+      .mockResolvedValueOnce(
+        pageOf(HISTORY_PAGE_SIZE, 'november', HISTORY_PAGE_SIZE + 3),
+      )
       .mockReturnValueOnce(latePage.promise)
       .mockResolvedValueOnce(pageOf(1, 'august'));
 
@@ -392,8 +398,10 @@ describe('useClientHistory', () => {
   it('asks for the next page only once on a double tap', async () => {
     summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE + 3));
     appointmentsMock
-      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'first'))
-      .mockResolvedValue(pageOf(3, 'second'));
+      .mockResolvedValueOnce(
+        pageOf(HISTORY_PAGE_SIZE, 'first', HISTORY_PAGE_SIZE + 3),
+      )
+      .mockResolvedValue(pageOf(3, 'second', HISTORY_PAGE_SIZE + 3));
 
     const { result } = renderHistory();
     await flush();
@@ -410,7 +418,7 @@ describe('useClientHistory', () => {
 
   it('opens another clinic back on the current month', async () => {
     summaryMock.mockResolvedValue(summaryOf(0));
-    appointmentsMock.mockResolvedValue([]);
+    appointmentsMock.mockResolvedValue(pageOf(0));
 
     const { result, rerender } = renderHistory('client-1');
     act(() => result.current.setPeriod(AUGUST));
@@ -467,7 +475,7 @@ describe('useClientHistory', () => {
 
   it('tells when the session expired', async () => {
     summaryMock.mockRejectedValue(new ApiError('Unauthorized', null, 401));
-    appointmentsMock.mockResolvedValue([]);
+    appointmentsMock.mockResolvedValue(pageOf(0));
 
     const { result } = renderHistory();
     await flush();
@@ -475,12 +483,26 @@ describe('useClientHistory', () => {
     expect(result.current.failure).toBe('clinics.history.failures.session');
   });
 
+  it('tells when the clinic no longer exists', async () => {
+    summaryMock.mockRejectedValue(
+      new ApiError('Client not found', 'CLIENT_NOT_FOUND', 404),
+    );
+    appointmentsMock.mockResolvedValue(pageOf(0));
+
+    const { result } = renderHistory();
+    await flush();
+
+    expect(result.current.failure).toBe('clinics.history.failures.notFound');
+  });
+
   it('keeps the list when the next page fails and lets the person try again', async () => {
     summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE + 1));
     appointmentsMock
-      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'first'))
+      .mockResolvedValueOnce(
+        pageOf(HISTORY_PAGE_SIZE, 'first', HISTORY_PAGE_SIZE + 1),
+      )
       .mockRejectedValueOnce(new NetworkError('offline'))
-      .mockResolvedValueOnce(pageOf(1, 'second'));
+      .mockResolvedValueOnce(pageOf(1, 'second', HISTORY_PAGE_SIZE + 1));
 
     const { result } = renderHistory();
     await flush();
@@ -502,9 +524,13 @@ describe('useClientHistory', () => {
   it('keeps the loaded pages when the session token is renewed', async () => {
     summaryMock.mockResolvedValue(summaryOf(HISTORY_PAGE_SIZE * 2 + 1));
     appointmentsMock
-      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'first'))
-      .mockResolvedValueOnce(pageOf(HISTORY_PAGE_SIZE, 'second'))
-      .mockResolvedValueOnce(pageOf(1, 'third'));
+      .mockResolvedValueOnce(
+        pageOf(HISTORY_PAGE_SIZE, 'first', HISTORY_PAGE_SIZE * 2 + 1),
+      )
+      .mockResolvedValueOnce(
+        pageOf(HISTORY_PAGE_SIZE, 'second', HISTORY_PAGE_SIZE * 2 + 1),
+      )
+      .mockResolvedValueOnce(pageOf(1, 'third', HISTORY_PAGE_SIZE * 2 + 1));
 
     const { result, rerender } = renderHistory();
     await flush();

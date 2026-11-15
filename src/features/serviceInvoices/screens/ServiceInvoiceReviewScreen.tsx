@@ -17,7 +17,7 @@ import { useTranslation, type TranslationKey } from 'shared/i18n';
 import type { PickedPdf } from 'shared/services/pdfPicker';
 
 import { DuplicateInvoiceSheet } from '../components/DuplicateInvoiceSheet';
-import { ServiceInvoiceReviewCard } from '../components/ServiceInvoiceReviewCard';
+import { ServiceInvoiceFormCard } from '../components/ServiceInvoiceFormCard';
 import { toDuplicateSummary } from '../domain/duplicateSummary';
 import type { InitialReview } from '../domain/extractionToFormValues';
 import type { ServiceInvoiceField } from '../domain/serviceInvoice.types';
@@ -129,7 +129,7 @@ export function ServiceInvoiceReviewScreen({
           >
             <NoticeBanner tone={tone} message={message} />
 
-            <ServiceInvoiceReviewCard
+            <ServiceInvoiceFormCard
               labels={{
                 issueDate: t('serviceInvoices.review.fields.issueDate.label'),
                 issueDatePlaceholder: t(
@@ -139,21 +139,24 @@ export function ServiceInvoiceReviewScreen({
                 amountPlaceholder: t(
                   'serviceInvoices.review.fields.amount.placeholder',
                 ),
-                number: t('serviceInvoices.review.fields.number.label'),
                 client: t('serviceInvoices.review.fields.client.label'),
                 clientPlaceholder: t(
                   'serviceInvoices.review.fields.client.placeholder',
                 ),
-                suggestions: t('serviceInvoices.review.suggestions'),
-                registerClient: t('serviceInvoices.review.registerClient'),
               }}
               issueDate={review.values.issueDate}
               issueDateError={fieldError('issueDate')}
               amount={review.values.amount}
               amountError={fieldError('amount')}
-              number={review.values.number}
+              number={{
+                label: t('serviceInvoices.review.fields.number.label'),
+                value: review.values.number,
+                onChange: review.changeNumber,
+              }}
               client={{
-                ...review.client,
+                term: review.client.term,
+                status: review.client.status,
+                options: review.client.options,
                 error: fieldError('clientId'),
                 messages: {
                   loading: t('serviceInvoices.review.clientSearch.loading'),
@@ -161,12 +164,18 @@ export function ServiceInvoiceReviewScreen({
                   empty: t('serviceInvoices.review.clientSearch.empty'),
                 },
               }}
+              suggestions={{
+                label: t('serviceInvoices.review.suggestions'),
+                options: review.client.suggestions,
+              }}
+              registerClient={{
+                label: t('serviceInvoices.review.registerClient'),
+                onPress: () => registration.open(),
+              }}
               onChangeIssueDate={review.changeIssueDate}
               onChangeAmount={review.changeAmount}
-              onChangeNumber={review.changeNumber}
               onChangeClientTerm={review.changeClientTerm}
               onSelectClient={review.selectClient}
-              onRegisterClient={() => registration.open()}
             />
 
             {review.fileTooLarge ? (

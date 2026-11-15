@@ -29,6 +29,15 @@ export function fromCalendarDate(calendarDate: string): Date {
   return new Date(year, month - 1, day);
 }
 
+export function formatShortCalendarDate(
+  calendarDate: string,
+  locale: string,
+): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'short' }).format(
+    fromCalendarDate(calendarDate),
+  );
+}
+
 export function buildMonthGrid(
   year: number,
   monthIndex: number,

@@ -1,7 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Pencil } from 'lucide-react-native';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  AccessibilityInfo,
   ActivityIndicator,
   Pressable,
   ScrollView,
@@ -20,6 +21,7 @@ import { toCalendarDate } from 'shared/utils/calendar';
 import { initials } from 'shared/utils/initials';
 import { BackgroundPrimary, ButtonPrimary } from 'theme/colors';
 
+import { EditProfileSheet } from '../components/EditProfileSheet';
 import { ProfileAvatar } from '../components/ProfileAvatar';
 import { ProfileField } from '../components/ProfileField';
 import {
@@ -29,10 +31,17 @@ import {
   type Profile,
   type Sex,
 } from '../domain/profile';
+import {
+  BRAZILIAN_STATES,
+  type ProfileFormField,
+} from '../domain/validateProfileForm';
+import { useEditProfileForm } from '../hooks/useEditProfileForm';
 import { useProfile } from '../hooks/useProfile';
 
 // Browsers report no top inset, which left the back button on the edge.
 const MIN_TOP_PADDING = 16;
+const SAVED_NOTICE_MS = 3000;
+const SEXES: Sex[] = ['FEMALE', 'MALE', 'OTHER', 'NOT_INFORMED'];
 
 const styles = StyleSheet.create({ fill: { flex: 1 } });
 
@@ -71,7 +80,8 @@ export function ProfileScreen({ visible, onClose }: ProfileScreenProps) {
 // Lives inside the Modal, so each opening reads the profile again.
 function ProfileContent({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
-  const { state, reload } = useProfile();
+  const { state, reload, replace, wasRejected, dismissRejection } =
+    useProfile();
 
   return (
     <>
@@ -111,7 +121,14 @@ function ProfileContent({ onClose }: { onClose: () => void }) {
           />
         </View>
       ) : (
-        <ProfileDetails profile={state.profile} isStale={state.isStale} />
+        <ProfileDetails
+          profile={state.profile}
+          isStale={state.isStale}
+          hasPendingEdit={state.hasPendingEdit}
+          wasRejected={wasRejected}
+          onDismissRejection={dismissRejection}
+          onSaved={replace}
+        />
       )}
     </>
   );
@@ -120,10 +137,41 @@ function ProfileContent({ onClose }: { onClose: () => void }) {
 type ProfileDetailsProps = {
   profile: Profile;
   isStale: boolean;
+  hasPendingEdit: boolean;
+  wasRejected: boolean;
+  onDismissRejection: () => void;
+  onSaved: (profile: Profile, hasPendingEdit: boolean) => void;
 };
 
-function ProfileDetails({ profile, isStale }: ProfileDetailsProps) {
+function ProfileDetails({
+  profile,
+  isStale,
+  hasPendingEdit,
+  wasRejected,
+  onDismissRejection,
+  onSaved,
+}: ProfileDetailsProps) {
   const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+  const form = useEditProfileForm({
+    profile,
+    onSaved: (saved, savedOffline) => {
+      onSaved(saved, savedOffline);
+      setIsEditing(false);
+      setShowSaved(!savedOffline);
+      AccessibilityInfo.announceForAccessibility(
+        t(savedOffline ? 'profile.pendingNotice' : 'profile.editForm.saved'),
+      );
+    },
+  });
+
+  useEffect(() => {
+    if (!showSaved) return;
+    const timer = setTimeout(() => setShowSaved(false), SAVED_NOTICE_MS);
+    return () => clearTimeout(timer);
+  }, [showSaved]);
+
   const sexLabels: Record<Sex, string> = useMemo(
     () => ({
       FEMALE: t('profile.sex.FEMALE'),
@@ -132,6 +180,30 @@ function ProfileDetails({ profile, isStale }: ProfileDetailsProps) {
       NOT_INFORMED: t('profile.sex.NOT_INFORMED'),
     }),
     [t],
+  );
+
+  const labels: Record<ProfileFormField | 'email', string> = {
+    name: t('profile.fields.name'),
+    crmv: t('profile.fields.crmv'),
+    email: t('profile.fields.email'),
+    birthDate: t('profile.editForm.birthDate'),
+    sex: t('profile.fields.sex'),
+    city: t('profile.fields.city'),
+    state: t('profile.editForm.state'),
+  };
+  const placeholders: Record<ProfileFormField, string> = {
+    name: t('profile.editForm.placeholders.name'),
+    crmv: t('profile.editForm.placeholders.crmv'),
+    birthDate: t('profile.editForm.placeholders.birthDate'),
+    sex: t('profile.editForm.placeholders.sex'),
+    city: t('profile.editForm.placeholders.city'),
+    state: t('profile.editForm.placeholders.state'),
+  };
+  const errors = Object.fromEntries(
+    Object.entries(form.errors).map(([field, code]) => [
+      field,
+      t(`profile.editForm.errors.${code}`),
+    ]),
   );
 
   const notInformed = t('profile.notInformed');
@@ -144,6 +216,21 @@ function ProfileDetails({ profile, isStale }: ProfileDetailsProps) {
         contentContainerClassName="gap-3 px-4 pb-4 pt-2"
       >
         <ProfileAvatar initials={initials(profile.name)} />
+        {showSaved ? (
+          <NoticeBanner tone="success" message={t('profile.editForm.saved')} />
+        ) : null}
+        {hasPendingEdit ? (
+          <NoticeBanner tone="info" message={t('profile.pendingNotice')} />
+        ) : null}
+        {wasRejected ? (
+          <NoticeBanner
+            tone="alert"
+            message={t('profile.rejectedNotice')}
+            actionLabel={t('profile.rejectedDismiss')}
+            actionPlacement="inline"
+            onAction={onDismissRejection}
+          />
+        ) : null}
         {isStale ? (
           <NoticeBanner tone="info" message={t('profile.staleNotice')} />
         ) : null}
@@ -182,11 +269,51 @@ function ProfileDetails({ profile, isStale }: ProfileDetailsProps) {
         </View>
       </ScrollView>
       <View className="px-4 pb-4 pt-2">
-        {/* Editing is US24: PATCH /users/me does not exist yet. */}
-        <Button disabled icon={Pencil} shape="pill" className="h-[49px] w-full">
+        <Button
+          icon={Pencil}
+          shape="pill"
+          className="h-[49px] w-full"
+          onPress={() => {
+            form.reset();
+            setIsEditing(true);
+          }}
+        >
           <Text className="font-medium">{t('profile.edit')}</Text>
         </Button>
       </View>
+      <EditProfileSheet
+        visible={isEditing}
+        texts={{
+          title: t('profile.editForm.title'),
+          close: t('profile.editForm.close'),
+          save: t('profile.editForm.save'),
+          cancel: t('profile.editForm.cancel'),
+          emailHint: t('profile.editForm.emailHint'),
+          labels,
+          placeholders,
+        }}
+        email={profile.email}
+        values={form.values}
+        errors={errors}
+        sexOptions={SEXES.map(sex => ({ value: sex, label: sexLabels[sex] }))}
+        stateOptions={BRAZILIAN_STATES.map(uf => ({ value: uf, label: uf }))}
+        submitError={
+          form.submitError === 'session'
+            ? t('profile.sessionExpired')
+            : form.submitError
+            ? t('profile.editForm.saveError')
+            : null
+        }
+        canSave={form.canSave}
+        isSaving={form.isSaving}
+        onChangeText={form.onChangeText}
+        onChangeSex={form.onChangeSex}
+        onSave={form.save}
+        onCancel={() => {
+          form.reset();
+          setIsEditing(false);
+        }}
+      />
     </>
   );
 }

@@ -28,7 +28,6 @@ import { useClinicDetail } from '../hooks/useClinicDetail';
 import { useClinics } from '../hooks/useClinics';
 import { useHistoryPeriodPicker } from '../hooks/useHistoryPeriodPicker';
 import { useNewClinicForm } from '../hooks/useNewClinicForm';
-import { isClientHistoryAvailable } from '../services/availability';
 
 export function ClinicsScreen() {
   const { t } = useTranslation();
@@ -39,10 +38,7 @@ export function ClinicsScreen() {
   const [sheetTab, setSheetTab] = useState<ClinicDetailSheetTab>('history');
   const selected = clinics.find(clinic => clinic.id === selectedId) ?? null;
   const detail = useClinicDetail(selected);
-  const historyAvailable = isClientHistoryAvailable();
-  const history = useClientHistory(
-    historyAvailable && selected ? selected.id : null,
-  );
+  const history = useClientHistory(selected?.id ?? null);
   const periodPicker = useHistoryPeriodPicker(
     history.period,
     history.setPeriod,
@@ -185,24 +181,17 @@ export function ClinicsScreen() {
           delete: t('clinics.detail.delete'),
         }}
         closeLabel={t('clinics.newClinic.close')}
-        tabs={
-          historyAvailable
-            ? {
-                value: sheetTab,
-                labels: {
-                  history: t('clinics.detail.tabs.history'),
-                  data: t('clinics.detail.tabs.data'),
-                },
-                onChange: setSheetTab,
-                history: (
-                  <ClinicHistorySection
-                    history={history}
-                    picker={periodPicker}
-                  />
-                ),
-              }
-            : undefined
-        }
+        tabs={{
+          value: sheetTab,
+          labels: {
+            history: t('clinics.detail.tabs.history'),
+            data: t('clinics.detail.tabs.data'),
+          },
+          onChange: setSheetTab,
+          history: (
+            <ClinicHistorySection history={history} picker={periodPicker} />
+          ),
+        }}
         onChangeField={detail.setField}
         onCall={selected?.phone ? callSelected : undefined}
         onEdit={detail.startEditing}

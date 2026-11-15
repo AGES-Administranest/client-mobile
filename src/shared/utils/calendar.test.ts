@@ -2,6 +2,7 @@ import {
   addDays,
   addMonths,
   buildMonthGrid,
+  formatShortCalendarDate,
   fromCalendarDate,
   isRangeComplete,
   isWithinCalendarRange,
@@ -9,6 +10,16 @@ import {
   selectRangeDay,
   toCalendarDate,
 } from './calendar';
+
+describe('formatShortCalendarDate', () => {
+  it.each([
+    ['2026-11-02', 'pt-BR', '02/11/2026'],
+    ['2026-04-22', 'pt-BR', '22/04/2026'],
+    ['2026-11-02', 'en-US', '11/2/26'],
+  ])('%s in %s is %s', (calendarDate, locale, expected) => {
+    expect(formatShortCalendarDate(calendarDate, locale)).toBe(expected);
+  });
+});
 
 describe('toCalendarDate', () => {
   it('pads month and day to two digits', () => {

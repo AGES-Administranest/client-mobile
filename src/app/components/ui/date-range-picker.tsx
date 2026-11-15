@@ -129,6 +129,7 @@ function DateRangePicker({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={nextMonthLabel}
+            accessibilityState={{ disabled: isAtLastMonth || undefined }}
             disabled={isAtLastMonth}
             onPress={() => goToMonth(1)}
             className={cn(
@@ -142,6 +143,7 @@ function DateRangePicker({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={nextYearLabel}
+              accessibilityState={{ disabled: !canGoNextYear || undefined }}
               disabled={!canGoNextYear}
               onPress={() => goToMonth(12)}
               className={cn(
@@ -175,7 +177,6 @@ function DateRangePicker({
               value.from !== null &&
               value.to !== null &&
               isWithinCalendarRange(day.date, value);
-
             const isBlocked =
               (maxDate !== undefined && day.date > maxDate) ||
               (endBounds !== null &&
@@ -192,14 +193,14 @@ function DateRangePicker({
                 }).format(fromCalendarDate(day.date))}
                 accessibilityState={{
                   selected: isEdge || isInside,
-                  disabled: isBlocked,
+                  disabled: isBlocked || undefined,
                 }}
                 onPress={() => onChange(selectRangeDay(value, day.date))}
                 className={cn(
                   'h-9 flex-1 items-center justify-center rounded-lg',
                   isInside && 'bg-details-primary',
                   isEdge && 'bg-button-primary',
-                  isBlocked && 'opacity-30',
+                  isBlocked && 'opacity-40',
                 )}
               >
                 <Text

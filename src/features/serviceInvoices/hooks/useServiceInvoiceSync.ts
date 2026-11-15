@@ -5,6 +5,7 @@ import { useAuth } from 'features/auth';
 import { syncPendingClinics } from 'features/clients';
 import { onConnectionRestored } from 'shared/services';
 
+import { syncPendingInvoiceDeletions } from '../services/invoiceDeletionSyncService';
 import {
   loadServiceInvoiceOutbox,
   subscribeOfflineServiceInvoices,
@@ -31,6 +32,7 @@ export function useServiceInvoiceSync(): void {
     // Takers first: a note in the queue can point at one registered offline
     // and only goes after it.
     await syncPendingClinics(idToken, userId);
+    await syncPendingInvoiceDeletions(idToken, userId);
     await syncPendingServiceInvoices(idToken, userId);
   }, [idToken, userId]);
 

@@ -1,40 +1,39 @@
-import { CalendarDays, FilePlus, Plus } from 'lucide-react-native';
+import { FileText, Plus, Receipt } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
-import { DateRangePicker } from 'app/components/ui/date-range-picker';
 import { Text } from 'app/components/ui/text';
 import { InvoicesScreen, InvoicesSection } from 'features/invoices';
 import { isMissingCrmv, useProfile } from 'features/profile';
 import {
   ServiceInvoiceUploadFlow,
+  ServiceInvoicesFlow,
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
 import { type TranslationKey, useTranslation } from 'shared/i18n';
-import {
-  EMPTY_CALENDAR_RANGE,
-  fromCalendarDate,
-  isRangeComplete,
-  toCalendarDate,
-  type CalendarRange,
-} from 'shared/utils/calendar';
+import { formatShortCalendarDate } from 'shared/utils/calendar';
 import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
 import { ReportHistoryScreen } from './ReportHistoryScreen';
 import { ReportCard } from '../components/ReportCard';
 import { ReportCategoriesSheet } from '../components/ReportCategoriesSheet';
-import { ReportField } from '../components/ReportField';
+import { ReportKindCard } from '../components/ReportKindCard';
+import { ReportPeriodSelector } from '../components/ReportPeriodSelector';
+import { ReportsHeader } from '../components/ReportsHeader';
+import { ReportsHistoryLink } from '../components/ReportsHistoryLink';
 import {
   MAX_REPORT_DAYS,
   REPORT_CATEGORIES,
   type ReportCategory,
   type ReportHistoryItem,
 } from '../domain/report.types';
+import { REPORT_PERIOD_CHOICES } from '../domain/reportPeriod';
 import {
   useReportHistory,
   type GenerateFailure,
 } from '../hooks/useReportHistory';
+import { useReportsScreen } from '../hooks/useReportsScreen';
 
 const HISTORY_PREVIEW_COUNT = 5;
 
@@ -48,10 +47,18 @@ const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
 const SECTION_TITLE =
   'text-sm font-semibold uppercase tracking-wide text-label-primary';
 
-export function ReportsScreen() {
+export type ReportsScreenProps = {
+  onGenerateInvoicePackage?: (period: { from: string; to: string }) => void;
+};
+
+export function ReportsScreen({
+  onGenerateInvoicePackage,
+}: ReportsScreenProps) {
   const { t, locale } = useTranslation();
   const reports = useReportHistory();
   const invoiceUpload = useServiceInvoiceUpload();
+  const { choice, selectChoice, range, setRange, maxDate, canGenerate } =
+    useReportsScreen();
   const { state: profile, reload: reloadProfile } = useProfile();
   const isCrmvMissing =
     profile.status === 'ready' && isMissingCrmv(profile.profile);
@@ -60,23 +67,53 @@ export function ReportsScreen() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [generateFailure, setGenerateFailure] =
     useState<GenerateFailure | null>(null);
-  const [range, setRange] = useState<CalendarRange>(EMPTY_CALENDAR_RANGE);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [shareFailed, setShareFailed] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
+  const [isServiceInvoicesOpen, setIsServiceInvoicesOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
 
-  const shareReport = (report: ReportHistoryItem) => {
-    setShareFailed(false);
-    reports.share(report).then(ok => setShareFailed(!ok));
+  const choiceOptions = REPORT_PERIOD_CHOICES.map(value => ({
+    value,
+    label: t(`reports.period.choices.${value}`),
+  }));
+
+  const dateLabel = (date: string | null) =>
+    date === null
+      ? t('reports.period.selectDate')
+      : formatShortCalendarDate(date, locale);
+
+  const openCategories = () => {
+    // The CRMV may have been filled in the Profile tab meanwhile.
+    reloadProfile();
+    setCategories(reports.lastSelection);
+    setGenerateFailure(null);
+    setIsCategoryOpen(true);
   };
 
-  // On the web the PDF goes to the browser's downloads: there is no file here
-  // to share, so the card is not a button.
-  const shareActionOf = (report: ReportHistoryItem) =>
-    report.fileUri ? () => shareReport(report) : undefined;
+  const generateInvoicePackage = () => {
+    if (range.from !== null && range.to !== null) {
+      onGenerateInvoicePackage?.({ from: range.from, to: range.to });
+    }
+  };
+
+  const generateGeneralReport = () => {
+    if (range.from === null || range.to === null) {
+      return;
+    }
+
+    setGenerateFailure(null);
+    reports
+      .generate({ categories, from: range.from, to: range.to })
+      .then(result => {
+        if (result.ok) {
+          setIsCategoryOpen(false);
+        } else {
+          setGenerateFailure(result.reason);
+        }
+      });
+  };
 
   // The failure was about the sections chosen before; it no longer applies.
   const changeCategories = (
@@ -86,15 +123,20 @@ export function ReportsScreen() {
     setGenerateFailure(null);
   };
 
+  const shareReport = (report: ReportHistoryItem) => {
+    setShareFailed(false);
+    reports.share(report).then(ok => setShareFailed(!ok));
+  };
+
+  // A report listed by the server or generated on the web has no file on this
+  // device to share, so its card is not a button.
+  const shareActionOf = (report: ReportHistoryItem) =>
+    report.fileUri ? () => shareReport(report) : undefined;
+
   const toggleHistory = (open: boolean) => {
     setShareFailed(false);
     setIsHistoryOpen(open);
   };
-
-  const dateLabel = (calendarDate: string | null) =>
-    calendarDate
-      ? formatDayAndMonth(fromCalendarDate(calendarDate), locale, true)
-      : t('reports.generate.selectDate');
 
   const addFromList = () => {
     setIsInvoiceListOpen(false);
@@ -115,92 +157,64 @@ export function ReportsScreen() {
 
   return (
     <>
+      <ReportsHeader
+        title={t('tabbar.reports')}
+        invoicesLabel={t('reports.openInvoices')}
+        onInvoicesPress={() => setIsServiceInvoicesOpen(true)}
+      />
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-4 pb-6 pt-4"
+        contentContainerClassName="gap-6 px-4 pb-6 pt-2"
         keyboardShouldPersistTaps="handled"
       >
-        <Text accessibilityRole="header" className="text-[40px] font-medium">
-          {t('tabbar.reports')}
-        </Text>
-
         <View className="gap-3">
-          <Text className={SECTION_TITLE}>{t('reports.generate.title')}</Text>
-          <View className="flex-row gap-4">
-            <View className="flex-1 gap-2">
-              <Text className="text-sm font-medium text-label-primary">
-                {t('reports.generate.startDate')}
-              </Text>
-              <ReportField
-                value={dateLabel(range.from)}
-                isPlaceholder={range.from === null}
-                leadingIcon={CalendarDays}
-                accessibilityLabel={t('reports.generate.startDate')}
-                onPress={() => setIsCalendarOpen(open => !open)}
-              />
-            </View>
-            <View className="flex-1 gap-2">
-              <Text className="text-sm font-medium text-label-primary">
-                {t('reports.generate.endDate')}
-              </Text>
-              <ReportField
-                value={dateLabel(range.to)}
-                isPlaceholder={range.to === null}
-                leadingIcon={CalendarDays}
-                accessibilityLabel={t('reports.generate.endDate')}
-                onPress={() => setIsCalendarOpen(open => !open)}
-              />
-            </View>
-          </View>
-          {isCalendarOpen ? (
-            <DateRangePicker
-              value={range}
-              onChange={next => {
-                setRange(next);
-
-                if (isRangeComplete(next)) {
-                  setIsCalendarOpen(false);
-                }
-              }}
-              locale={locale}
-              maxDate={toCalendarDate(new Date())}
-              maxRangeDays={MAX_REPORT_DAYS}
-              previousMonthLabel={t('reports.generate.previousMonth')}
-              nextMonthLabel={t('reports.generate.nextMonth')}
-              previousYearLabel={t('reports.generate.previousYear')}
-              nextYearLabel={t('reports.generate.nextYear')}
-            />
-          ) : null}
-          <Button
-            shape="pill"
-            icon={FilePlus}
-            className="h-[49px] w-full"
-            disabled={!isRangeComplete(range)}
-            onPress={() => {
-              // The CRMV may have been filled in the Profile tab meanwhile.
-              reloadProfile();
-              setCategories(reports.lastSelection);
-              setGenerateFailure(null);
-              setIsCategoryOpen(true);
-            }}
-          >
-            <Text>{t('reports.generate.button')}</Text>
-          </Button>
+          <Text accessibilityRole="header" className={SECTION_TITLE}>
+            {t('reports.generate.title')}
+          </Text>
+          <ReportPeriodSelector
+            options={choiceOptions}
+            value={choice}
+            onValueChange={selectChoice}
+            startDateLabel={t('reports.period.startDate')}
+            startDateValue={dateLabel(range.from)}
+            endDateLabel={t('reports.period.endDate')}
+            endDateValue={dateLabel(range.to)}
+            onDateFieldPress={() => selectChoice('custom')}
+            isCustom={choice === 'custom'}
+            range={range}
+            onRangeChange={setRange}
+            maxDate={maxDate}
+            maxRangeDays={MAX_REPORT_DAYS}
+            locale={locale}
+            previousMonthLabel={t('reports.period.previousMonth')}
+            nextMonthLabel={t('reports.period.nextMonth')}
+            previousYearLabel={t('reports.period.previousYear')}
+            nextYearLabel={t('reports.period.nextYear')}
+          />
+          <ReportKindCard
+            icon={FileText}
+            title={t('reports.kinds.general.title')}
+            description={t('reports.kinds.general.description')}
+            disabled={!canGenerate}
+            onPress={openCategories}
+          />
+          <ReportKindCard
+            icon={Receipt}
+            title={t('reports.kinds.invoicePackage.title')}
+            description={t('reports.kinds.invoicePackage.description')}
+            disabled={!canGenerate || !onGenerateInvoicePackage}
+            onPress={generateInvoicePackage}
+          />
         </View>
 
         <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text className={SECTION_TITLE}>{t('reports.history.title')}</Text>
-            {reports.items.length > 0 ? (
-              <Text
-                accessibilityRole="button"
-                onPress={() => toggleHistory(true)}
-                className="text-xs text-label-quartenery"
-              >
-                {t('reports.seeAll')}
-              </Text>
-            ) : null}
-          </View>
+          <ReportsHistoryLink
+            title={t('reports.history.title')}
+            actionLabel={t('reports.history.viewAll')}
+            onPress={
+              reports.items.length > 0 ? () => toggleHistory(true) : undefined
+            }
+          />
           {reports.items.length === 0 ? (
             <Text className="text-sm text-label-tertiary">
               {t('reports.history.empty')}
@@ -244,7 +258,9 @@ export function ReportsScreen() {
           >
             <Text>{t('reports.addInvoice')}</Text>
           </Button>
-          <ServiceInvoiceUploadFlow upload={invoiceUpload} />
+          {isServiceInvoicesOpen ? null : (
+            <ServiceInvoiceUploadFlow upload={invoiceUpload} />
+          )}
         </View>
       </ScrollView>
 
@@ -278,20 +294,7 @@ export function ReportsScreen() {
         }
         onSelectAll={() => changeCategories(() => [...REPORT_CATEGORIES])}
         onClearAll={() => changeCategories(() => [])}
-        onGenerate={() => {
-          if (range.from && range.to) {
-            setGenerateFailure(null);
-            reports
-              .generate({ categories, from: range.from, to: range.to })
-              .then(result => {
-                if (result.ok) {
-                  setIsCategoryOpen(false);
-                } else {
-                  setGenerateFailure(result.reason);
-                }
-              });
-          }
-        }}
+        onGenerate={generateGeneralReport}
         onClose={() => setIsCategoryOpen(false)}
       />
 
@@ -301,6 +304,12 @@ export function ReportsScreen() {
         shareError={shareFailed ? t('reports.history.shareFailed') : null}
         onClose={() => toggleHistory(false)}
         shareActionOf={shareActionOf}
+      />
+
+      <ServiceInvoicesFlow
+        open={isServiceInvoicesOpen}
+        onClose={() => setIsServiceInvoicesOpen(false)}
+        upload={invoiceUpload}
       />
 
       <InvoicesScreen
