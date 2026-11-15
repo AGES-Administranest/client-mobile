@@ -29,6 +29,15 @@ export function fromCalendarDate(calendarDate: string): Date {
   return new Date(year, month - 1, day);
 }
 
+export function formatShortCalendarDate(
+  calendarDate: string,
+  locale: string,
+): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'short' }).format(
+    fromCalendarDate(calendarDate),
+  );
+}
+
 export function buildMonthGrid(
   year: number,
   monthIndex: number,
@@ -60,6 +69,33 @@ export function addMonths(
   const date = new Date(year, monthIndex + amount, 1);
 
   return { year: date.getFullYear(), monthIndex: date.getMonth() };
+}
+
+export function addDays(calendarDate: string, amount: number): string {
+  const date = fromCalendarDate(calendarDate);
+
+  return toCalendarDate(
+    new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount),
+  );
+}
+
+/**
+ * The days a range can still end on, once its first day is picked, when it may
+ * cover at most `maxDays` days counting both ends. Null while nothing limits
+ * the next pick: no day picked yet, or the range already complete.
+ */
+export function rangeEndBounds(
+  range: CalendarRange,
+  maxDays: number,
+): { earliest: string; latest: string } | null {
+  if (range.from === null || range.to !== null) {
+    return null;
+  }
+
+  return {
+    earliest: addDays(range.from, -(maxDays - 1)),
+    latest: addDays(range.from, maxDays - 1),
+  };
 }
 
 export function isWithinCalendarRange(

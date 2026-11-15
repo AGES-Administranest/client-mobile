@@ -35,7 +35,7 @@ export const BorderPrimary = '#D4D4D4';
 export const BorderWarm = '#DDD5CC';
 
 export const AlertPrimary = '#D95743';
-export const AlertSoft = withOpacity('#D95743', 20);
+export const AlertSoft = withOpacity(AlertPrimary, 15);
 
 // Hourly calculator composition bar (US20). Pró-labore uses ButtonPrimary.
 export const ChartFixedCosts = '#A07E62';

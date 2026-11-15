@@ -22,6 +22,18 @@ export type ClientAppointment = Omit<ClientAppointmentResponse, 'amount'> & {
   amount: number | null;
 };
 
+export type ClientAppointmentListResponse = {
+  items: ClientAppointmentResponse[];
+  total?: number | null;
+  page: number;
+  limit: number;
+};
+
+export type ClientAppointmentPage = {
+  appointments: ClientAppointment[];
+  total: number;
+};
+
 export type ClientSummaryResponse = {
   appointmentsCount?: number | null;
   billedTotal?: string | null;
@@ -68,6 +80,15 @@ export function toClientAppointment(
   };
 }
 
+export function toClientAppointmentPage(
+  response: ClientAppointmentListResponse,
+): ClientAppointmentPage {
+  return {
+    appointments: response.items.map(toClientAppointment),
+    total: response.total ?? 0,
+  };
+}
+
 export function toClientSummary(
   response: ClientSummaryResponse,
 ): ClientSummary {
@@ -79,13 +100,16 @@ export function toClientSummary(
   };
 }
 
+export function toPeriodQuery({ from, to }: HistoryPeriod): string {
+  return new URLSearchParams({ from, to }).toString();
+}
+
 export function toHistoryQuery(period: HistoryPeriod, page: number): string {
-  return new URLSearchParams({
-    from: period.from,
-    to: period.to,
+  const paging = new URLSearchParams({
     page: String(page),
     limit: String(HISTORY_PAGE_SIZE),
-  }).toString();
+  });
+  return `${toPeriodQuery(period)}&${paging.toString()}`;
 }
 
 export function appendAppointments(
@@ -100,17 +124,14 @@ export function appendAppointments(
   ];
 }
 
-export function isLastHistoryPage(page: ClientAppointment[]): boolean {
-  return page.length < HISTORY_PAGE_SIZE;
-}
-
-// O resumo conta os mesmos atendimentos concluídos do período que a lista
-// devolve página por página; por isso a lista não precisa trazer o total.
+// Conta pelas páginas pedidas, não pelos itens na tela: um atendimento repetido
+// entre páginas (concluído durante a rolagem) sai da lista, mas a página dele já
+// foi entregue.
 export function remainingAppointments(
-  summary: ClientSummary,
-  loadedCount: number,
+  total: number,
+  loadedPages: number,
 ): number {
-  return Math.max(summary.appointmentsCount - loadedCount, 0);
+  return Math.max(total - loadedPages * HISTORY_PAGE_SIZE, 0);
 }
 
 export function formatHistoryAmount(value: number, locale: string): string {

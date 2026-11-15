@@ -3,12 +3,13 @@ import {
   EMPTY_CLIENT_SUMMARY,
   formatHistoryAmount,
   HISTORY_PAGE_SIZE,
-  isLastHistoryPage,
   monthPeriodOf,
   remainingAppointments,
   toClientAppointment,
+  toClientAppointmentPage,
   toClientSummary,
   toHistoryQuery,
+  toPeriodQuery,
   type ClientAppointment,
 } from './clientHistory';
 
@@ -91,6 +92,44 @@ describe('toClientSummary', () => {
   });
 });
 
+describe('toClientAppointmentPage', () => {
+  it('converts the items and keeps the total of the period', () => {
+    expect(
+      toClientAppointmentPage({
+        items: [
+          {
+            id: 'appointment-1',
+            startsAt: '2026-08-17T13:00:00.000Z',
+            procedureName: 'Orquiectomia',
+            patientName: 'Mel',
+            amount: '620.00',
+          },
+        ],
+        total: 13,
+        page: 1,
+        limit: HISTORY_PAGE_SIZE,
+      }),
+    ).toEqual({ appointments: [appointment('appointment-1')], total: 13 });
+  });
+
+  it.each([null, undefined])('reads a %p total as zero', total => {
+    expect(
+      toClientAppointmentPage({
+        items: [],
+        total,
+        page: 1,
+        limit: HISTORY_PAGE_SIZE,
+      }),
+    ).toEqual({ appointments: [], total: 0 });
+  });
+});
+
+test('toPeriodQuery sends only the period', () => {
+  expect(toPeriodQuery({ from: '2026-08-10', to: '2026-08-24' })).toBe(
+    'from=2026-08-10&to=2026-08-24',
+  );
+});
+
 test('toHistoryQuery sends the period, the page and the page size', () => {
   expect(toHistoryQuery({ from: '2026-08-10', to: '2026-08-24' }, 2)).toBe(
     `from=2026-08-10&to=2026-08-24&page=2&limit=${HISTORY_PAGE_SIZE}`,
@@ -109,35 +148,17 @@ test('appendAppointments keeps the order and skips repeated appointments', () =>
 
 describe('remainingAppointments', () => {
   it.each([
-    [6, 4, 2],
-    [6, 6, 0],
-    [0, 0, 0],
-    [3, 4, 0],
+    [HISTORY_PAGE_SIZE + 3, 1, 3],
+    [HISTORY_PAGE_SIZE, 1, 0],
+    [HISTORY_PAGE_SIZE * 2 + 1, 2, 1],
+    [0, 1, 0],
+    [3, 1, 0],
   ])(
-    'with %i in the period and %i loaded, %i are left',
-    (count, loaded, left) => {
-      expect(
-        remainingAppointments(
-          { ...EMPTY_CLIENT_SUMMARY, appointmentsCount: count },
-          loaded,
-        ),
-      ).toBe(left);
+    'with %i in the period and %i pages loaded, %i are left',
+    (total, pages, left) => {
+      expect(remainingAppointments(total, pages)).toBe(left);
     },
   );
-});
-
-describe('isLastHistoryPage', () => {
-  it.each([
-    [0, true],
-    [HISTORY_PAGE_SIZE - 1, true],
-    [HISTORY_PAGE_SIZE, false],
-  ])('a page with %i appointments is the last: %p', (size, last) => {
-    const page = Array.from({ length: size }, (_, index) =>
-      appointment(`appointment-${index}`),
-    );
-
-    expect(isLastHistoryPage(page)).toBe(last);
-  });
 });
 
 describe('formatHistoryAmount', () => {

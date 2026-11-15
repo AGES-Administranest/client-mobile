@@ -9,6 +9,7 @@ import {
   type ReadingDifference,
 } from '../domain/offlineServiceInvoices';
 import type { ServiceInvoiceInput } from '../domain/serviceInvoice.types';
+import type { ServiceInvoiceSummary } from '../domain/serviceInvoiceRecord.types';
 
 // Everything is per user: whoever signs in next on the same device sees
 // neither the notes nor the PDFs of the one who left.
@@ -203,4 +204,45 @@ export async function discardServiceInvoice(
   } catch {
     return { pdfRemoved: false };
   }
+}
+
+const cacheKey = (userId: string) => `${PREFIX}:${userId}:list-cache`;
+const deletionsKey = (userId: string) => `${PREFIX}:${userId}:deletions`;
+
+export function loadServiceInvoiceCache(
+  userId: string,
+): Promise<ServiceInvoiceSummary[]> {
+  return readJson<ServiceInvoiceSummary[]>(cacheKey(userId), []);
+}
+
+export async function saveServiceInvoiceCache(
+  userId: string,
+  invoices: ServiceInvoiceSummary[],
+): Promise<void> {
+  await writeJson(cacheKey(userId), invoices);
+}
+
+export function loadPendingInvoiceDeletions(userId: string): Promise<string[]> {
+  return readJson<string[]>(deletionsKey(userId), []);
+}
+
+export async function queueInvoiceDeletion(
+  userId: string,
+  invoiceId: string,
+): Promise<void> {
+  const queued = await loadPendingInvoiceDeletions(userId);
+  if (queued.includes(invoiceId)) return;
+  await writeJson(deletionsKey(userId), [...queued, invoiceId]);
+  notifyOfflineServiceInvoicesChanged();
+}
+
+export async function removePendingInvoiceDeletion(
+  userId: string,
+  invoiceId: string,
+): Promise<void> {
+  const queued = await loadPendingInvoiceDeletions(userId);
+  await writeJson(
+    deletionsKey(userId),
+    queued.filter(id => id !== invoiceId),
+  );
 }
