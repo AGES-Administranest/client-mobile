@@ -10,7 +10,7 @@ import {
   queueProfileEdit,
 } from './profileCache';
 import { updateProfile } from './profileService';
-import { syncPendingProfile } from './profileSyncService';
+import { syncPendingProfile, withProfileLock } from './profileSyncService';
 import type { Profile } from '../domain/profile';
 
 jest.mock('./profileService', () => ({ updateProfile: jest.fn() }));
@@ -135,6 +135,63 @@ describe('with a newer edit queued while sending', () => {
     expect((await loadPendingProfileEdit(USER))?.update).toEqual(NEWER);
     expect((await loadCachedProfile(USER))?.city).toBe('Gravataí');
     expect(await loadProfileRejected(USER)).toBe(false);
+  });
+});
+
+describe('withProfileLock', () => {
+  it('runs one task at a time, in the order they came', async () => {
+    const order: string[] = [];
+    let finishFirst!: () => void;
+
+    const first = withProfileLock(async () => {
+      order.push('first started');
+      await new Promise<void>(resolve => {
+        finishFirst = resolve;
+      });
+      order.push('first done');
+    });
+    const second = withProfileLock(async () => {
+      order.push('second');
+    });
+
+    await Promise.resolve();
+    finishFirst();
+    await Promise.all([first, second]);
+
+    expect(order).toEqual(['first started', 'first done', 'second']);
+  });
+
+  it('keeps going after a task fails', async () => {
+    const failed = withProfileLock(() => Promise.reject(new Error('boom')));
+    const next = withProfileLock(async () => 'ran');
+
+    await expect(failed).rejects.toThrow('boom');
+    await expect(next).resolves.toBe('ran');
+  });
+
+  it('makes an online save wait for the queue, so the save is the last one', async () => {
+    let answerQueue!: () => void;
+    updateMock.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          answerQueue = () => resolve({ ...CONFIRMED, city: 'Canoas' });
+        }),
+    );
+
+    const sync = syncPendingProfile('token', USER);
+    const onlineSave = withProfileLock(async () => {
+      await updateProfile('token', { ...UPDATE, city: 'Gravataí' });
+    });
+    await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+    expect(updateMock).toHaveBeenCalledTimes(1);
+    answerQueue();
+    await Promise.all([sync, onlineSave]);
+
+    expect(updateMock.mock.calls.map(([, sent]) => sent.city)).toEqual([
+      'Canoas',
+      'Gravataí',
+    ]);
   });
 });
 

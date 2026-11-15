@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
-  clearCachedProfile,
+  clearProfileData,
   loadCachedProfile,
   saveCachedProfile,
 } from './profileCache';
@@ -42,7 +42,7 @@ it('clears only the given user', async () => {
   await saveCachedProfile('user-1', PROFILE);
   await saveCachedProfile('user-2', { ...PROFILE, id: 'user-2' });
 
-  await clearCachedProfile('user-1');
+  await clearProfileData('user-1');
 
   await expect(loadCachedProfile('user-1')).resolves.toBeNull();
   await expect(loadCachedProfile('user-2')).resolves.toMatchObject({
