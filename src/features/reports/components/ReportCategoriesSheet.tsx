@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import { BottomSheet } from 'app/components/ui/bottom-sheet';
 import { Button } from 'app/components/ui/button';
 import { Icon } from 'app/components/ui/icon';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
@@ -19,9 +20,7 @@ type ReportCategoriesSheetProps = {
   options: readonly CategoryOption[];
   selectedIds: readonly string[];
   isGenerating: boolean;
-  /** Shown above the sections: something to know before generating. */
   warning?: string | null;
-  /** Shown above the button when the last attempt failed. */
   error?: string | null;
   onToggle: (id: string) => void;
   onSelectAll: () => void;
@@ -75,11 +74,7 @@ export function ReportCategoriesSheet({
         </View>
       }
     >
-      {warning ? (
-        <View className="rounded-lg bg-details-secondary px-3 py-2">
-          <Text className="text-sm text-label-primary">{warning}</Text>
-        </View>
-      ) : null}
+      {warning ? <NoticeBanner tone="warning" message={warning} /> : null}
       <View className="flex-row justify-between">
         <Pressable accessibilityRole="button" onPress={onSelectAll}>
           <Text className="text-sm font-medium text-label-primary">

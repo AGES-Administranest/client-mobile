@@ -1,11 +1,11 @@
-import { ArrowLeft, FileText, Plus } from 'lucide-react-native';
+import { FileText, Plus } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
-import { Icon } from 'app/components/ui/icon';
+import { ModalHeader } from 'app/components/ui/modal-header';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services/network';
@@ -64,24 +64,14 @@ function InvoicesContent({ onClose, onAddInvoice }: InvoicesContentProps) {
 
   return (
     <>
-      <View className="h-11 flex-row items-center justify-center px-4">
-        <Pressable
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel={t('invoices.back')}
-          className="absolute left-4 size-9 items-center justify-center rounded-full bg-primary"
-        >
-          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-        </Pressable>
-        <Text
-          accessibilityRole="header"
-          className="text-[13px] font-semibold uppercase tracking-wide text-label-primary"
-        >
-          {t(total === 1 ? 'invoices.countSingular' : 'invoices.countPlural', {
-            count: total,
-          })}
-        </Text>
-      </View>
+      <ModalHeader
+        title={t(
+          total === 1 ? 'invoices.countSingular' : 'invoices.countPlural',
+          { count: total },
+        )}
+        backLabel={t('invoices.back')}
+        onBack={onClose}
+      />
 
       <View className="flex-1 gap-3 px-4 pt-4">
         {isLoading ? (

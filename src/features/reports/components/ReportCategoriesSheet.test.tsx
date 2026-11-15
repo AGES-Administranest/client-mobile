@@ -2,6 +2,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { Button } from 'app/components/ui/button';
+import { NoticeBanner } from 'app/components/ui/notice-banner';
 
 import { ReportCategoriesSheet } from './ReportCategoriesSheet';
 
@@ -71,6 +72,15 @@ describe('ReportCategoriesSheet', () => {
 
     expect(text).toContain('Seu CRMV não está preenchido no perfil.');
     expect(text).toContain('Sem conexão.');
+  });
+
+  it('warns with the shared notice banner', () => {
+    const tree = render({ warning: 'Seu CRMV não está preenchido no perfil.' });
+
+    expect(tree.root.findByType(NoticeBanner).props).toMatchObject({
+      tone: 'warning',
+      message: 'Seu CRMV não está preenchido no perfil.',
+    });
   });
 
   it('shows neither when there is nothing to say', () => {
