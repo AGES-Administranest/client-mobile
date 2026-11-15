@@ -867,7 +867,8 @@
       "periodTooLong": "A report covers at most one year. Pick a shorter period.",
       "downloadFailed": "The report was generated, but its PDF was not downloaded. Check your connection and download it again.",
       "retryDownload": "Download again",
-      "failed": "The report could not be generated. Please try again."
+      "failed": "The report could not be generated. Please try again.",
+      "noSection": "Select at least one section to generate the report."
     },
     "categories": {
       "financial": "Financial",
@@ -942,7 +943,11 @@
       "downloading": "Downloading report...",
       "downloadFailed": "Could not download the report. Try again.",
       "offline": "No connection. Connect to the internet to download this report.",
-      "missing": "This report is no longer available."
+      "missing": "This report is no longer available.",
+      "save": "Save to device",
+      "saveHint": "You pick the folder. The system asks permission for the app to write to it, so the report is kept outside the app.",
+      "saved": "Report saved in the chosen folder.",
+      "saveFailed": "Could not save the report in that folder. Try another one."
     },
     "delete": {
       "button": "Delete",
@@ -956,7 +961,17 @@
     },
     "seeAll": "See all",
     "addInvoice": "Add invoice",
-    "openInvoices": "Open invoices"
+    "openInvoices": "Open invoices",
+    "taxPackage": {
+      "loading": "Looking for the invoices of the period...",
+      "period": "Period",
+      "documents": "Documents",
+      "total": "Total amount",
+      "empty": "There are no invoices or receipts with a file in this period. Choose another period.",
+      "missingFiles": "Documents not synced yet: {{count}}. They need an internet connection to go in the package.",
+      "download": "Download package (ZIP)",
+      "close": "Close"
+    }
   },
   "optionsModal": {
     "scanNote": "Scan note",

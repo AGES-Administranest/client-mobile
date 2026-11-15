@@ -1,4 +1,4 @@
-import { Download, Trash2 } from 'lucide-react-native';
+import { Download, FolderDown, Trash2 } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { BottomSheet } from 'app/components/ui/bottom-sheet';
@@ -15,6 +15,8 @@ type ReportDetailSheetProps = {
   openLabel: string;
   statusMessage: string | null;
   isBusy: boolean;
+  /** Absent where the app keeps no file (web): the browser already saves it. */
+  save?: { label: string; hint: string; onPress: () => void };
   deleteLabel: string;
   onOpen: () => void;
   onDelete: () => void;
@@ -30,6 +32,7 @@ export function ReportDetailSheet({
   openLabel,
   statusMessage,
   isBusy,
+  save,
   deleteLabel,
   onOpen,
   onDelete,
@@ -71,6 +74,23 @@ export function ReportDetailSheet({
         >
           <Text className="text-base font-semibold">{openLabel}</Text>
         </Button>
+        {save ? (
+          <>
+            <Button
+              icon={FolderDown}
+              shape="pill"
+              variant="outline"
+              className="h-[49px] w-full"
+              disabled={isBusy}
+              onPress={save.onPress}
+            >
+              <Text className="text-base font-semibold">{save.label}</Text>
+            </Button>
+            <Text className="text-center text-xs text-label-tertiary">
+              {save.hint}
+            </Text>
+          </>
+        ) : null}
         <Button
           icon={Trash2}
           shape="pill"

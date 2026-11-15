@@ -867,7 +867,8 @@
       "periodTooLong": "O relatório cobre no máximo um ano. Escolha um período menor.",
       "downloadFailed": "O relatório foi gerado, mas o PDF não foi baixado. Verifique a conexão e tente baixar de novo.",
       "retryDownload": "Baixar novamente",
-      "failed": "Não foi possível gerar o relatório. Tente novamente."
+      "failed": "Não foi possível gerar o relatório. Tente novamente.",
+      "noSection": "Selecione ao menos uma seção para gerar o relatório."
     },
     "categories": {
       "financial": "Financeiro",
@@ -942,7 +943,11 @@
       "downloading": "Baixando relatório...",
       "downloadFailed": "Não foi possível baixar o relatório. Tente novamente.",
       "offline": "Sem conexão. Conecte-se à internet para baixar este relatório.",
-      "missing": "Este relatório não está mais disponível."
+      "missing": "Este relatório não está mais disponível.",
+      "save": "Salvar no aparelho",
+      "saveHint": "Você escolhe a pasta. O sistema pede permissão para o app gravar nela, para o relatório ficar fora do app.",
+      "saved": "Relatório salvo na pasta escolhida.",
+      "saveFailed": "Não foi possível salvar o relatório nessa pasta. Tente outra."
     },
     "delete": {
       "button": "Excluir",
@@ -956,7 +961,17 @@
     },
     "seeAll": "Ver todos",
     "addInvoice": "Adicionar nota",
-    "openInvoices": "Abrir notas fiscais"
+    "openInvoices": "Abrir notas fiscais",
+    "taxPackage": {
+      "loading": "Buscando as notas do período...",
+      "period": "Período",
+      "documents": "Documentos",
+      "total": "Valor total",
+      "empty": "Não há notas fiscais nem recibos com arquivo neste período. Escolha outro período.",
+      "missingFiles": "Documentos ainda não sincronizados: {{count}}. Eles precisam de conexão com a internet para entrar no pacote.",
+      "download": "Baixar pacote (ZIP)",
+      "close": "Fechar"
+    }
   },
   "optionsModal": {
     "scanNote": "Escanear nota",

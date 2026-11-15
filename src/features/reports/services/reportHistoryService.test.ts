@@ -166,6 +166,15 @@ describe('saveReport', () => {
     expect(item).toEqual(LISTED);
   });
 
+  it('lists the size the API reports, so the detail does not say "not informed"', async () => {
+    const item = await saveReport('user-1', {
+      ...GENERATED,
+      fileBytesSize: 43_428,
+    });
+
+    expect(item.fileBytesSize).toBe(43_428);
+  });
+
   it('tells a failed download apart from a failed generation', async () => {
     saveFileMock.mockRejectedValueOnce(new Error('connection lost'));
 

@@ -1,6 +1,7 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
+import { downloadTaxPackage, fetchTaxPackageSummary } from 'features/invoices';
 import { I18nProvider } from 'shared/i18n';
 import { isOnline } from 'shared/services/network';
 
@@ -46,6 +47,11 @@ jest.mock('../services/reportFileOpener', () => ({
   openLocalReport: jest.fn(),
   downloadInBrowser: jest.fn(),
 }));
+jest.mock('features/invoices', () => ({
+  ...jest.requireActual('features/invoices'),
+  fetchTaxPackageSummary: jest.fn(),
+  downloadTaxPackage: jest.fn(),
+}));
 jest.mock('../services/reportSelectionStore', () => ({
   loadLastSelection: jest.fn(() => new Promise(() => {})),
   saveLastSelection: jest.fn(() => Promise.resolve()),
@@ -54,6 +60,8 @@ jest.mock('../services/reportSelectionStore', () => ({
 const fetchHistoryMock = fetchReportHistory as jest.Mock;
 const fetchAvailability = jest.mocked(fetchReportAvailability);
 const isOnlineMock = jest.mocked(isOnline);
+const fetchSummary = jest.mocked(fetchTaxPackageSummary);
+const downloadPackage = jest.mocked(downloadTaxPackage);
 
 const STORED_REPORT = {
   id: 'report-1',
@@ -69,6 +77,12 @@ beforeEach(() => {
   fetchHistoryMock.mockResolvedValue({ items: [], hasMore: false });
   isOnlineMock.mockResolvedValue(true);
   fetchAvailability.mockResolvedValue({ total: 1 });
+  fetchSummary.mockResolvedValue({
+    documentsCount: 2,
+    totalAmount: 1500,
+    missingFiles: 0,
+  });
+  downloadPackage.mockResolvedValue(undefined);
 });
 
 const METRICS = {
@@ -106,16 +120,14 @@ afterAll(() => {
   jest.useRealTimers();
 });
 
-// The invoice package card only works when the app wires its callback, so the
-// tests wire it unless a case says otherwise.
-async function render(props: React.ComponentProps<typeof ReportsScreen> = {}) {
+async function render() {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
-          <ReportsScreen onGenerateInvoicePackage={jest.fn()} {...props} />
+          <ReportsScreen />
         </I18nProvider>
       </SafeAreaProvider>,
     );
@@ -210,17 +222,83 @@ describe('ReportsScreen', () => {
     );
   });
 
-  it('hands the chosen period of the invoice package to the caller', async () => {
-    const onGenerateInvoicePackage = jest.fn();
-    const renderer = await render({ onGenerateInvoicePackage });
+  describe('invoice package (US30)', () => {
+    const packageCard = (renderer: ReactTestRenderer.ReactTestRenderer) =>
+      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR');
+    const downloadButton = (renderer: ReactTestRenderer.ReactTestRenderer) =>
+      renderer.root.findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node
+            .findAllByType('Text' as never)
+            .some(text => text.props.children === 'Baixar pacote (ZIP)'),
+      )[0];
 
-    await press(
-      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR'),
-    );
+    it('shows the summary of the chosen period before downloading', async () => {
+      fetchSummary.mockResolvedValue({
+        documentsCount: 3,
+        totalAmount: 2450.5,
+        missingFiles: 0,
+      });
+      const renderer = await render();
 
-    expect(onGenerateInvoicePackage).toHaveBeenCalledWith({
-      from: '2026-11-01',
-      to: '2026-11-02',
+      await press(packageCard(renderer));
+
+      expect(fetchSummary).toHaveBeenCalledWith('tok', {
+        from: '2026-11-01',
+        to: '2026-11-02',
+      });
+      const output = textsOf(renderer);
+      expect(output).toContain('Documentos');
+      expect(output).toContain('"3"');
+      expect(output).toContain('2.450,50');
+      expect(output).not.toContain('não sincronizados');
+      expect(downloadPackage).not.toHaveBeenCalled();
+    });
+
+    it('downloads the package of that period and refreshes the history', async () => {
+      const renderer = await render();
+      await press(packageCard(renderer));
+      fetchHistoryMock.mockClear();
+
+      await press(downloadButton(renderer));
+
+      expect(downloadPackage).toHaveBeenCalledWith('tok', {
+        from: '2026-11-01',
+        to: '2026-11-02',
+      });
+      expect(fetchHistoryMock).toHaveBeenCalled();
+    });
+
+    it('warns about documents whose file is not synced yet', async () => {
+      fetchSummary.mockResolvedValue({
+        documentsCount: 1,
+        totalAmount: 300,
+        missingFiles: 2,
+      });
+      const renderer = await render();
+
+      await press(packageCard(renderer));
+
+      expect(textsOf(renderer)).toContain(
+        'Documentos ainda não sincronizados: 2',
+      );
+    });
+
+    it('says there is nothing to pack instead of building an empty zip', async () => {
+      fetchSummary.mockResolvedValue({
+        documentsCount: 0,
+        totalAmount: 0,
+        missingFiles: 0,
+      });
+      const renderer = await render();
+
+      await press(packageCard(renderer));
+
+      expect(textsOf(renderer)).toContain(
+        'Não há notas fiscais nem recibos com arquivo neste período',
+      );
+      expect(downloadButton(renderer).props.disabled).toBe(true);
     });
   });
 
@@ -295,8 +373,7 @@ describe('ReportsScreen', () => {
   ])(
     'the %s shortcut fills both date fields and sends YYYY-MM-DD',
     async (name, start, end, from, to) => {
-      const onGenerateInvoicePackage = jest.fn();
-      const renderer = await render({ onGenerateInvoicePackage });
+      const renderer = await render();
 
       await press(tab(renderer, name));
 
@@ -313,7 +390,7 @@ describe('ReportsScreen', () => {
         ),
       );
 
-      expect(onGenerateInvoicePackage).toHaveBeenCalledWith({ from, to });
+      expect(fetchSummary).toHaveBeenCalledWith('tok', { from, to });
     },
   );
 
@@ -386,8 +463,8 @@ describe('ReportsScreen', () => {
     ]);
   });
 
-  it('disables the invoice package while it is not wired and drops the history link while there is no report', async () => {
-    const renderer = await render({ onGenerateInvoicePackage: undefined });
+  it('offers both reports and drops the history link while there is no report', async () => {
+    const renderer = await render();
 
     expect(
       pressable(renderer, label => label === 'Relatório Geral').props.disabled,
@@ -395,7 +472,7 @@ describe('ReportsScreen', () => {
     expect(
       pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR')
         .props.disabled,
-    ).toBe(true);
+    ).toBe(false);
     expect(textsOf(renderer)).toContain('Histórico de relatórios');
     expect(
       pressable(renderer, label => label.includes('Histórico de relatórios')),

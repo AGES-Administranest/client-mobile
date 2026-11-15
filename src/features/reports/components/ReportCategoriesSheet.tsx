@@ -19,6 +19,8 @@ type ReportCategoriesSheetProps = {
   generateLabel: string;
   options: readonly CategoryOption[];
   selectedIds: readonly string[];
+  /** Why "Generate" is off while nothing is selected (US29). */
+  emptySelectionMessage: string;
   isGenerating: boolean;
   warning?: string | null;
   error?: string | null;
@@ -38,6 +40,7 @@ export function ReportCategoriesSheet({
   generateLabel,
   options,
   selectedIds,
+  emptySelectionMessage,
   isGenerating,
   warning,
   error,
@@ -61,6 +64,14 @@ export function ReportCategoriesSheet({
               className="text-sm text-destructive"
             >
               {error}
+            </Text>
+          ) : null}
+          {selectedIds.length === 0 ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              className="text-sm text-label-tertiary"
+            >
+              {emptySelectionMessage}
             </Text>
           ) : null}
           <Button
