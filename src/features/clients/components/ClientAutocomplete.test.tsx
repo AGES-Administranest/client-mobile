@@ -18,7 +18,7 @@ const CLIENTS = [
 const MESSAGES = {
   loading: 'Buscando…',
   error: 'Não foi possível buscar. Tente novamente.',
-  empty: 'Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas.',
+  empty: 'Nenhuma clínica encontrada.',
 };
 
 async function renderField(overrides: Partial<ClientAutocompleteProps> = {}) {
@@ -135,4 +135,33 @@ test('hides the list 150 ms after the input loses focus', async () => {
   } finally {
     jest.useRealTimers();
   }
+});
+
+test('offers to add a clinic instead of the empty message when nothing matches', async () => {
+  const onPress = jest.fn();
+  const renderer = await renderField({
+    value: 'Clínica Nova',
+    status: 'empty',
+    options: [],
+    addOption: { label: 'Adicionar clínica', onPress },
+  });
+  await focus(renderer);
+
+  expect(hasText(renderer, 'Nenhuma clínica encontrada.')).toBe(false);
+
+  const add = rows(renderer).find(
+    node =>
+      node.findAll(child => child.props.children === 'Adicionar clínica')
+        .length > 0,
+  )!;
+  await act(async () => add.props.onPress());
+
+  expect(onPress).toHaveBeenCalledTimes(1);
+});
+
+test('keeps the empty message when no add option is given', async () => {
+  const renderer = await renderField({ status: 'empty', options: [] });
+  await focus(renderer);
+
+  expect(hasText(renderer, 'Nenhuma clínica encontrada.')).toBe(true);
 });

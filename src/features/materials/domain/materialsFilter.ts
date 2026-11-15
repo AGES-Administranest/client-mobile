@@ -13,7 +13,11 @@ export type BackendMeasurementUnit =
   | 'MG'
   | 'GRAM'
   | 'TABLET'
-  | 'OTHER';
+  | 'OTHER'
+  | 'LITER'
+  | 'MICROGRAM'
+  | 'MG_PER_ML'
+  | 'MCG_PER_ML';
 
 export type BackendItem = {
   id: string;
@@ -57,20 +61,35 @@ const CATEGORY_LABEL: Record<BackendItemCategory, string> = {
 };
 
 const UNIT_LABEL: Record<BackendMeasurementUnit, string> = {
-  UNIT: 'un',
-  AMPOULE: 'ampola',
-  VIAL: 'frasco',
-  BOX: 'caixa',
-  ML: 'ml',
+  UNIT: 'und',
+  BOX: 'cx',
+  VIAL: 'Fr',
+  AMPOULE: 'Amp',
+  ML: 'mL',
+  LITER: 'L',
   MG: 'mg',
+  MICROGRAM: 'µg',
+  MG_PER_ML: 'mg/mL',
+  MCG_PER_ML: 'µg/mL',
   GRAM: 'g',
   TABLET: 'comprimido',
-  OTHER: 'un',
+  OTHER: 'und',
 };
 
-export const UNIT_OPTIONS: readonly string[] = Array.from(
-  new Set(Object.values(UNIT_LABEL)),
-);
+// Gram and tablet still exist in the backend (and show as such on old items),
+// but are not offered for new ones.
+export const UNIT_OPTIONS: readonly string[] = [
+  'UNIT',
+  'BOX',
+  'VIAL',
+  'AMPOULE',
+  'ML',
+  'LITER',
+  'MG',
+  'MICROGRAM',
+  'MG_PER_ML',
+  'MCG_PER_ML',
+].map(unit => UNIT_LABEL[unit as BackendMeasurementUnit]);
 
 export const CATEGORY_OPTIONS: readonly {
   value: BackendItemCategory;
@@ -106,23 +125,35 @@ export function backendUnitLabel(unit: string): string {
 export function toBackendUnit(unit: string): BackendMeasurementUnit {
   const normalized = unit.trim().toLowerCase();
   const map: Record<string, BackendMeasurementUnit> = {
+    und: 'UNIT',
     un: 'UNIT',
     unit: 'UNIT',
     unidade: 'UNIT',
+    amp: 'AMPOULE',
     ampola: 'AMPOULE',
     ampolas: 'AMPOULE',
     ampoule: 'AMPOULE',
     ampoules: 'AMPOULE',
+    fr: 'VIAL',
     frasco: 'VIAL',
     frascos: 'VIAL',
     vial: 'VIAL',
     vials: 'VIAL',
+    cx: 'BOX',
     caixa: 'BOX',
     caixas: 'BOX',
     box: 'BOX',
     boxes: 'BOX',
     ml: 'ML',
+    l: 'LITER',
     mg: 'MG',
+    µg: 'MICROGRAM',
+    μg: 'MICROGRAM',
+    mcg: 'MICROGRAM',
+    'mg/ml': 'MG_PER_ML',
+    'µg/ml': 'MCG_PER_ML',
+    'μg/ml': 'MCG_PER_ML',
+    'mcg/ml': 'MCG_PER_ML',
     g: 'GRAM',
     grama: 'GRAM',
     gramas: 'GRAM',

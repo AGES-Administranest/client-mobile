@@ -46,6 +46,14 @@ describe('fromApiError', () => {
     expect(fromApiError(401, 'TOKEN_INVALID')).toBe('SESSION_EXPIRED');
   });
 
+  it('names the account deletion answers the screen reacts to', () => {
+    expect(fromApiError(401, 'REAUTH_REQUIRED')).toBe('REAUTH_REQUIRED');
+    expect(fromApiError(500, 'ACCOUNT_DELETION_INCOMPLETE')).toBe(
+      'ACCOUNT_DELETION_INCOMPLETE',
+    );
+    expect(fromApiError(500, 'ACCOUNT_DELETION_FAILED')).toBe('UNKNOWN');
+  });
+
   it('maps throttling and falls back to UNKNOWN for server errors', () => {
     expect(fromApiError(429, 'TOO_MANY_REQUESTS')).toBe('TOO_MANY_ATTEMPTS');
     expect(fromApiError(500)).toBe('UNKNOWN');

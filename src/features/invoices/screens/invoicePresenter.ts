@@ -1,28 +1,17 @@
 import type { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
 
-import type { InvoiceStatusTone } from '../components/InvoiceCard';
-import type { Invoice, InvoiceSyncStatus } from '../domain/invoice.types';
+import type { Invoice } from '../domain/invoice.types';
 
 type Translate = ReturnType<typeof useTranslation>['t'];
 
 export type InvoiceCardView = {
-  title: string;
-  date: string;
   issuer: string;
-  taker: string;
-  value: string;
-  statusLabel: string;
-  statusTone: InvoiceStatusTone;
+  date: string;
+  location: string;
 };
 
 export type InvoiceDetailRow = { label: string; value: string };
-
-const STATUS_TONE: Record<InvoiceSyncStatus, InvoiceStatusTone> = {
-  SYNCED: 'success',
-  NOT_SYNCED: 'attention',
-  ERROR: 'alert',
-};
 
 export function formatIssueDate(issuedAt: string, locale: string): string {
   return new Date(issuedAt).toLocaleDateString(locale);
@@ -30,17 +19,12 @@ export function formatIssueDate(issuedAt: string, locale: string): string {
 
 export function invoiceCardView(
   invoice: Invoice,
-  t: Translate,
   locale: string,
 ): InvoiceCardView {
   return {
-    title: t('invoices.card.title', { number: invoice.number }),
+    issuer: invoice.issuerName,
     date: formatIssueDate(invoice.issuedAt, locale),
-    issuer: t('invoices.card.issuer', { name: invoice.issuerName }),
-    taker: t('invoices.card.taker', { name: invoice.takerName }),
-    value: formatCurrency(invoice.amount, locale),
-    statusLabel: t(`invoices.status.${invoice.syncStatus}`),
-    statusTone: STATUS_TONE[invoice.syncStatus],
+    location: invoice.issuerCity,
   };
 }
 

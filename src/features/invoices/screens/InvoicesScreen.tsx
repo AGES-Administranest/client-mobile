@@ -1,85 +1,73 @@
-import { FileText } from 'lucide-react-native';
+import { FileText, Plus } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
+import { Button } from 'app/components/ui/button';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
-import { MovementFilters } from 'app/components/ui/MovementFilters';
-import { ScreenHeader } from 'app/components/ui/screen-header';
+import { ModalHeader } from 'app/components/ui/modal-header';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services/network';
-import {
-  fromCalendarDate,
-  isRangeComplete,
-  type CalendarRange,
-} from 'shared/utils/calendar';
-import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
-import { invoiceCardView, invoiceDetailRows } from './invoicePresenter';
+import { InvoiceDetailModal } from './InvoiceDetailModal';
+import { invoiceCardView } from './invoicePresenter';
 import { InvoiceCard } from '../components/InvoiceCard';
-import { InvoiceDetailSheet } from '../components/InvoiceDetailSheet';
 import { InvoiceListFooter } from '../components/InvoiceListFooter';
+import { TaxPackageDownload } from '../components/TaxPackageDownload';
 import type { Invoice } from '../domain/invoice.types';
-import { useInvoiceFilters } from '../hooks/useInvoiceFilters';
+import { EMPTY_INVOICE_FILTERS } from '../domain/invoiceFilters';
 import { useInvoices } from '../hooks/useInvoices';
+import { useTaxPackageDownload } from '../hooks/useTaxPackageDownload';
 
 const END_REACHED_THRESHOLD = 0.5;
+
+const TAX_PACKAGE_MESSAGE = {
+  idle: null,
+  downloading: 'invoices.downloadAll.downloading',
+  done: 'invoices.downloadAll.done',
+  empty: 'invoices.downloadAll.empty',
+  tooLarge: 'invoices.downloadAll.tooLarge',
+  rateLimited: 'invoices.downloadAll.rateLimited',
+  offline: 'invoices.downloadAll.offline',
+  failed: 'invoices.downloadAll.failed',
+} as const;
 
 export type InvoicesScreenProps = {
   visible: boolean;
   onClose: () => void;
+  onAddInvoice: () => void;
+  /** iOS: the exit finished, so another Modal or the system picker may open. */
+  onDismiss?: () => void;
 };
 
 function InvoiceSeparator() {
   return <View className="h-3" />;
 }
 
-function InvoicesContent({ onClose }: Pick<InvoicesScreenProps, 'onClose'>) {
+type InvoicesContentProps = Pick<
+  InvoicesScreenProps,
+  'onClose' | 'onAddInvoice'
+>;
+
+function InvoicesContent({ onClose, onAddInvoice }: InvoicesContentProps) {
   const { t, locale } = useTranslation();
   const {
-    filters,
-    isFiltering,
-    isRangeInverted,
-    setSearch,
-    setRange,
-    clearFilters,
-  } = useInvoiceFilters();
-  const {
     invoices,
+    total,
     isLoading,
     isLoadingMore,
     hasError,
     loadMoreFailed,
     loadMore,
     retry,
-  } = useInvoices(filters);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  } = useInvoices(EMPTY_INVOICE_FILTERS);
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const taxPackage = useTaxPackageDownload();
+  const taxPackageMessageKey = TAX_PACKAGE_MESSAGE[taxPackage.status];
 
   useEffect(() => onConnectionRestored(retry), [retry]);
-
-  const periodLabel = (range: CalendarRange) => {
-    if (range.from === null) {
-      return t('invoices.filters.period');
-    }
-
-    const from = formatDayAndMonth(fromCalendarDate(range.from), locale);
-
-    if (range.to === null) {
-      return t('invoices.filters.periodFrom', { from });
-    }
-
-    if (range.to === range.from) {
-      return t('invoices.filters.periodSingle', { day: from });
-    }
-
-    return t('invoices.filters.periodRange', {
-      from,
-      to: formatDayAndMonth(fromCalendarDate(range.to), locale),
-    });
-  };
 
   const openDetail = (invoice: Invoice) => {
     setSelected(invoice);
@@ -91,48 +79,16 @@ function InvoicesContent({ onClose }: Pick<InvoicesScreenProps, 'onClose'>) {
 
   return (
     <>
-      <ScreenHeader
-        title={t('invoices.title')}
+      <ModalHeader
+        title={t(
+          total === 1 ? 'invoices.countSingular' : 'invoices.countPlural',
+          { count: total },
+        )}
         backLabel={t('invoices.back')}
         onBack={onClose}
       />
 
-      <View className="flex-1 gap-3 px-4">
-        <MovementFilters
-          itemName={filters.search}
-          onItemNameChange={setSearch}
-          range={filters.range}
-          onRangeChange={range => {
-            setRange(range);
-
-            if (isRangeComplete(range)) {
-              setIsCalendarOpen(false);
-            }
-          }}
-          isCalendarOpen={isCalendarOpen}
-          onToggleCalendar={() => setIsCalendarOpen(open => !open)}
-          onClear={() => {
-            clearFilters();
-            setIsCalendarOpen(false);
-          }}
-          canClear={isFiltering}
-          locale={locale}
-          searchPlaceholder={t('invoices.filters.searchPlaceholder')}
-          periodLabel={periodLabel(filters.range)}
-          clearLabel={t('invoices.filters.clear')}
-          previousMonthLabel={t('invoices.filters.previousMonth')}
-          nextMonthLabel={t('invoices.filters.nextMonth')}
-        />
-
-        {isRangeInverted ? (
-          <Text
-            className="text-xs text-alert-primary"
-            accessibilityRole="alert"
-          >
-            {t('invoices.filters.invalidRange')}
-          </Text>
-        ) : null}
-
+      <View className="flex-1 gap-3 px-4 pt-4">
         {isLoading ? (
           <Text className="py-6 text-center text-sm text-label-tertiary">
             {t('invoices.loading')}
@@ -155,12 +111,7 @@ function InvoicesContent({ onClose }: Pick<InvoicesScreenProps, 'onClose'>) {
         ) : null}
 
         {showEmpty ? (
-          <EmptyState
-            icon={FileText}
-            message={t(
-              isFiltering ? 'invoices.emptyFiltered' : 'invoices.empty',
-            )}
-          />
+          <EmptyState icon={FileText} message={t('invoices.empty')} />
         ) : null}
 
         <FlatList
@@ -168,14 +119,13 @@ function InvoicesContent({ onClose }: Pick<InvoicesScreenProps, 'onClose'>) {
           keyExtractor={invoice => invoice.id}
           renderItem={({ item }) => (
             <InvoiceCard
-              {...invoiceCardView(item, t, locale)}
+              {...invoiceCardView(item, locale)}
               onPress={() => openDetail(item)}
             />
           )}
           ItemSeparatorComponent={InvoiceSeparator}
           onEndReached={loadMore}
           onEndReachedThreshold={END_REACHED_THRESHOLD}
-          keyboardShouldPersistTaps="handled"
           contentContainerClassName="pb-6"
           ListFooterComponent={
             <InvoiceListFooter
@@ -188,25 +138,47 @@ function InvoicesContent({ onClose }: Pick<InvoicesScreenProps, 'onClose'>) {
             />
           }
         />
+
+        <View className="mb-4 gap-3">
+          <TaxPackageDownload
+            label={t('invoices.downloadAll.button')}
+            message={taxPackageMessageKey ? t(taxPackageMessageKey) : null}
+            isDownloading={taxPackage.status === 'downloading'}
+            onPress={taxPackage.download}
+          />
+          <Button
+            shape="pill"
+            icon={Plus}
+            className="h-[49px] w-full"
+            onPress={onAddInvoice}
+          >
+            <Text>{t('invoices.addInvoice')}</Text>
+          </Button>
+        </View>
       </View>
 
-      {selected ? (
-        <InvoiceDetailSheet
-          visible={isDetailOpen}
-          title={t('invoices.detail.title', { number: selected.number })}
-          closeLabel={t('invoices.detail.close')}
-          rows={invoiceDetailRows(selected, t, locale)}
-          onClose={() => setIsDetailOpen(false)}
-        />
-      ) : null}
+      <InvoiceDetailModal
+        invoice={selected}
+        visible={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+      />
     </>
   );
 }
 
-export function InvoicesScreen({ visible, onClose }: InvoicesScreenProps) {
+export function InvoicesScreen({
+  visible,
+  onClose,
+  onAddInvoice,
+  onDismiss,
+}: InvoicesScreenProps) {
   return (
-    <FullScreenModal visible={visible} onRequestClose={onClose}>
-      <InvoicesContent onClose={onClose} />
+    <FullScreenModal
+      visible={visible}
+      onRequestClose={onClose}
+      onDismiss={onDismiss}
+    >
+      <InvoicesContent onClose={onClose} onAddInvoice={onAddInvoice} />
     </FullScreenModal>
   );
 }

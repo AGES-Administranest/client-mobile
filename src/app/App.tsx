@@ -25,6 +25,7 @@ import {
 } from 'features/inventory';
 import { MaterialsScreen } from 'features/materials';
 import { PartnersScreen } from 'features/partners';
+import { ProfileCacheObserver } from 'features/profile';
 import { ReportsScreen } from 'features/reports';
 import { ServiceInvoiceSyncObserver } from 'features/serviceInvoices';
 import { StockSyncProvider } from 'features/stock';
@@ -59,6 +60,7 @@ export function App() {
               barStyle={isDarkMode ? 'light-content' : 'dark-content'}
             />
             <AccountInventoryAlerts />
+            <ProfileCacheObserver />
             <StockSyncProvider>
               <AppContent />
             </StockSyncProvider>

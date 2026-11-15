@@ -30,7 +30,6 @@ const FIELD_TEXTS: EntryFormTexts = {
     label: 'Escopo',
     professional: 'Profissional',
     personal: 'Pessoal',
-    hint: '',
   },
 };
 

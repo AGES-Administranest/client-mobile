@@ -1,24 +1,17 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { InvoiceCard, type InvoiceStatusTone } from './InvoiceCard';
+import { InvoiceCard } from './InvoiceCard';
 
-function renderCard(
-  props: Partial<{ statusTone: InvoiceStatusTone; onPress: () => void }> = {},
-) {
+function renderCard(onPress = jest.fn()) {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
 
   act(() => {
     renderer = ReactTestRenderer.create(
       <InvoiceCard
-        title="Nota Fiscal 000458"
-        date="10/08/2026"
-        issuer="Emitente: Vet Farma Distribuidora"
-        taker="Tomador: Clínica Veterinária Boa Vida"
-        value="R$ 1.284,50"
-        statusLabel="Sincronizada"
-        statusTone="success"
-        onPress={jest.fn()}
-        {...props}
+        issuer="HospVet Sul"
+        date="22/04/2026"
+        location="São Paulo, SP"
+        onPress={onPress}
       />,
     );
   });
@@ -26,30 +19,22 @@ function renderCard(
   return renderer;
 }
 
-function textsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
-  return JSON.stringify(
-    renderer.root
-      .findAllByType('Text' as never)
-      .map(node => node.props.children),
-  );
-}
-
 describe('InvoiceCard', () => {
-  it('shows the number, date, parties, value and status it was given', () => {
-    const texts = textsOf(renderCard());
+  it('shows the issuer, the date and the city it was given', () => {
+    const texts = JSON.stringify(
+      renderCard()
+        .root.findAllByType('Text' as never)
+        .map(node => node.props.children),
+    );
 
-    expect(texts).toContain('Nota Fiscal 000458');
-    expect(texts).toContain('10/08/2026');
-    expect(texts).toContain('Emitente: Vet Farma Distribuidora');
-    expect(texts).toContain('Tomador: Clínica Veterinária Boa Vida');
-    expect(texts).toContain('R$ 1.284,50');
-    expect(texts).toContain('Sincronizada');
+    expect(texts).toContain('HospVet Sul');
+    expect(texts).toContain('22/04/2026');
+    expect(texts).toContain('São Paulo, SP');
   });
 
   it('opens the invoice when pressed', () => {
     const onPress = jest.fn();
-    const renderer = renderCard({ onPress });
-    const button = renderer.root.find(
+    const button = renderCard(onPress).root.find(
       node =>
         node.props.accessibilityRole === 'button' &&
         typeof node.props.onPress === 'function',
@@ -61,13 +46,12 @@ describe('InvoiceCard', () => {
   });
 
   it('describes the whole card to a screen reader', () => {
-    const renderer = renderCard();
-    const button = renderer.root.find(
+    const button = renderCard().root.find(
       node => node.props.accessibilityRole === 'button',
     );
 
     expect(button.props.accessibilityLabel).toBe(
-      'Nota Fiscal 000458, Sincronizada, R$ 1.284,50',
+      'HospVet Sul, 22/04/2026, São Paulo, SP',
     );
   });
 });

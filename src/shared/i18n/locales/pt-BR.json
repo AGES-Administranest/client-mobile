@@ -287,7 +287,7 @@
       "confirm": "Dar entrada no estoque",
       "confirmUnavailable": "Dar entrada no estoque chega na próxima etapa. A conferência fica salva como rascunho.",
       "leaveTitle": "Sair da conferência?",
-      "leaveMessage": "Algumas alterações não foram salvas e vão se perder.",
+      "leaveMessage": "O que foi preenchido não é guardado e vai se perder.",
       "leaveConfirm": "Sair sem salvar",
       "leaveCancel": "Continuar conferindo",
       "line": {
@@ -474,6 +474,22 @@
         "other": {
           "one": "un",
           "other": "un"
+        },
+        "liter": {
+          "one": "L",
+          "other": "L"
+        },
+        "microgram": {
+          "one": "µg",
+          "other": "µg"
+        },
+        "mgPerMl": {
+          "one": "mg/mL",
+          "other": "mg/mL"
+        },
+        "mcgPerMl": {
+          "one": "µg/mL",
+          "other": "µg/mL"
         }
       },
       "quantity": "{{quantity}} {{unit}}",
@@ -640,7 +656,6 @@
       "appointmentDetail": "{{patient}} · {{date}}",
       "showMoreOne": "Ver mais 1 atendimento",
       "showMoreOther": "Ver mais {{count}} atendimentos",
-      "showMoreUncounted": "Ver mais atendimentos",
       "showMoreFailed": "Não foi possível carregar mais atendimentos. Tentar novamente",
       "loading": "Carregando o histórico",
       "loadingMore": "Carregando mais atendimentos…",
@@ -651,7 +666,8 @@
       "failures": {
         "network": "Não foi possível carregar o histórico. Verifique sua conexão e tente novamente.",
         "session": "Sua sessão expirou. Saia da conta e entre novamente.",
-        "unknown": "Não foi possível carregar o histórico. Tente novamente."
+        "unknown": "Não foi possível carregar o histórico. Tente novamente.",
+        "notFound": "Esta clínica não foi encontrada. Ela pode ter sido excluída."
       }
     }
   },
@@ -700,8 +716,7 @@
       "scope": {
         "label": "Escopo",
         "professional": "Profissional",
-        "personal": "Pessoal",
-        "hint": "Sugerido pela categoria. Você pode alterar."
+        "personal": "Pessoal"
       },
       "save": "Salvar",
       "saving": "Salvando…",
@@ -839,11 +854,134 @@
     "reports": "Relatórios",
     "clinics": "Clínicas"
   },
+  "reports": {
+    "generate": {
+      "title": "Gerar novo relatório",
+      "categoriesTitle": "Selecione as categorias",
+      "selectAll": "Selecionar tudo",
+      "clearAll": "Limpar tudo",
+      "confirm": "Gerar",
+      "close": "Fechar",
+      "crmvMissing": "Seu CRMV não está preenchido no perfil. O relatório sairá sem a identificação profissional completa.",
+      "offline": "Sem conexão. É preciso estar online para gerar o relatório.",
+      "periodTooLong": "O relatório cobre no máximo um ano. Escolha um período menor.",
+      "downloadFailed": "O relatório foi gerado, mas o PDF não foi baixado. Verifique a conexão e tente baixar de novo.",
+      "retryDownload": "Baixar novamente",
+      "failed": "Não foi possível gerar o relatório. Tente novamente.",
+      "noSection": "Selecione ao menos uma seção para gerar o relatório."
+    },
+    "categories": {
+      "financial": "Financeiro",
+      "appointments": "Atendimentos",
+      "clinics": "Clínicas",
+      "inventory": "Estoque e Insumos",
+      "suppliers": "Fornecedores",
+      "travel": "Deslocamento",
+      "depreciation": "Depreciação",
+      "workedHour": "Hora Trabalhada"
+    },
+    "period": {
+      "startDate": "Data de início",
+      "endDate": "Data de fim",
+      "selectDate": "Selecione",
+      "previousMonth": "Mês anterior",
+      "nextMonth": "Próximo mês",
+      "choices": {
+        "currentMonth": "Mês atual",
+        "previousMonth": "Mês anterior",
+        "currentYear": "Ano atual",
+        "custom": "Personalizado"
+      },
+      "previousYear": "Ano anterior",
+      "nextYear": "Próximo ano",
+      "errors": {
+        "endBeforeStart": "A data de fim não pode ser anterior à data de início."
+      }
+    },
+    "kinds": {
+      "general": {
+        "title": "Relatório Geral",
+        "description": "Receitas, despesas e atendimentos do período"
+      },
+      "invoicePackage": {
+        "title": "Pacote de Notas Fiscais para IR",
+        "description": "Notas fiscais do período reunidas para o Imposto de Renda"
+      }
+    },
+    "availability": {
+      "empty": "Não há registros neste período. Escolha outro período para gerar o relatório."
+    },
+    "history": {
+      "title": "Histórico de relatórios",
+      "viewAll": "Ver todos",
+      "empty": "Nenhum relatório gerado ainda.",
+      "loading": "Carregando relatórios...",
+      "error": "Não foi possível carregar o histórico.",
+      "loadingMore": "Carregando mais relatórios",
+      "loadMoreError": "Não foi possível carregar mais relatórios.",
+      "back": "Voltar",
+      "period": "{{from}} a {{to}}",
+      "noPeriod": "Período não informado",
+      "generatedAt": "Gerado em {{date}}",
+      "downloaded": "No aparelho",
+      "notInformed": "Não informado",
+      "shareFailed": "Não foi possível compartilhar o relatório.",
+      "kinds": {
+        "GENERAL_REPORT": "Relatório geral",
+        "TAX_PACKAGE": "Pacote para o contador"
+      }
+    },
+    "detail": {
+      "close": "Fechar",
+      "kind": "Tipo",
+      "period": "Período",
+      "generatedAt": "Gerado em",
+      "fileName": "Arquivo",
+      "size": "Tamanho",
+      "download": "Baixar relatório",
+      "open": "Abrir relatório",
+      "downloading": "Baixando relatório...",
+      "downloadFailed": "Não foi possível baixar o relatório. Tente novamente.",
+      "offline": "Sem conexão. Conecte-se à internet para baixar este relatório.",
+      "missing": "Este relatório não está mais disponível.",
+      "save": "Salvar no aparelho",
+      "saveHint": "Você escolhe a pasta. O sistema pede permissão para o app gravar nela, para o relatório ficar fora do app.",
+      "saved": "Relatório salvo na pasta escolhida.",
+      "saveFailed": "Não foi possível salvar o relatório nessa pasta. Tente outra."
+    },
+    "delete": {
+      "button": "Excluir",
+      "confirmTitle": "Excluir relatório?",
+      "confirmMessage": "“{{name}}” sai do histórico e o arquivo é apagado, inclusive a cópia deste aparelho.",
+      "confirm": "Excluir",
+      "confirming": "Excluindo…",
+      "cancel": "Cancelar",
+      "offline": "Sem conexão. Excluir um relatório exige internet.",
+      "failed": "Não foi possível excluir o relatório. Tente novamente."
+    },
+    "seeAll": "Ver todos",
+    "addInvoice": "Adicionar nota",
+    "openInvoices": "Abrir notas fiscais",
+    "taxPackage": {
+      "loading": "Buscando as notas do período...",
+      "period": "Período",
+      "documents": "Documentos",
+      "total": "Valor total",
+      "empty": "Não há notas fiscais nem recibos com arquivo neste período. Escolha outro período.",
+      "missingFiles": "Documentos ainda não sincronizados: {{count}}. Eles precisam de conexão com a internet para entrar no pacote.",
+      "download": "Baixar pacote (ZIP)",
+      "close": "Fechar"
+    }
+  },
   "optionsModal": {
     "scanNote": "Escanear nota",
     "typeSupply": "Digitar insumo"
   },
   "itemModal": {
+    "next": "Próximo",
+    "back": "Voltar",
+    "step1": "Passo 1 de 2",
+    "step2": "Passo 2 de 2",
     "title": "Novo insumo ou medicamento",
     "categoryLabel": "CATEGORIA",
     "nameLabel": "NOME",
@@ -893,9 +1031,14 @@
         "past": "A validade não pode ser uma data passada"
       },
       "supplierName": {
-        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres."
+        "tooShort": "O nome do fornecedor precisa ter pelo menos 2 caracteres.",
+        "pickOrAdd": "Escolha um fornecedor da lista ou adicione um novo"
       }
-    }
+    },
+    "supplierLoading": "Carregando fornecedores…",
+    "supplierEmpty": "Nenhum fornecedor encontrado",
+    "supplierError": "Não foi possível carregar os fornecedores",
+    "supplierAdd": "Adicionar fornecedor"
   },
   "auth": {
     "back": "Voltar",
@@ -968,7 +1111,8 @@
     },
     "account": {
       "menu": "Conta",
-      "signOut": "Sair da conta"
+      "signOut": "Sair da conta",
+      "profile": "Meu perfil"
     },
     "forgot": {
       "link": "Esqueci minha senha",
@@ -1024,8 +1168,74 @@
     "segments": {
       "clinics": "Clínicas",
       "suppliers": "Fornecedores"
+    }
+  },
+  "suppliers": {
+    "empty": "Nenhum fornecedor cadastrado.",
+    "loadFailure": "Não foi possível carregar os fornecedores.",
+    "countOne": "{{count}} fornecedor",
+    "countOther": "{{count}} fornecedores",
+    "add": "Adicionar fornecedor",
+    "newTitle": "Novo fornecedor",
+    "confirm": "Confirmar",
+    "close": "Fechar",
+    "fields": {
+      "name": {
+        "label": "Nome do fornecedor",
+        "placeholder": "Digite o nome do fornecedor"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Digite o email do fornecedor"
+      },
+      "taxId": {
+        "label": "CNPJ",
+        "placeholder": "Digite o CNPJ do fornecedor"
+      },
+      "phone": {
+        "label": "Contato",
+        "placeholder": "(00) 00000-0000"
+      }
     },
-    "suppliersEmpty": "Fornecedores ainda não estão disponíveis aqui."
+    "errors": {
+      "name": {
+        "required": "Informe o nome do fornecedor.",
+        "tooShort": "O nome precisa ter pelo menos 2 caracteres."
+      },
+      "email": {
+        "invalid": "Informe um e-mail válido."
+      },
+      "taxId": {
+        "required": "Informe o CNPJ do fornecedor.",
+        "invalid": "Informe um CNPJ válido.",
+        "duplicated": "Já existe um fornecedor com esse CNPJ."
+      },
+      "phone": {
+        "invalid": "Informe o telefone com DDD."
+      }
+    },
+    "statusConfirm": {
+      "deactivate": {
+        "title": "Desativar fornecedor?",
+        "message": "O fornecedor sai dos ativos e vai para o fim da lista. Os registros ligados a ele são mantidos.",
+        "confirm": "Desativar"
+      },
+      "activate": {
+        "title": "Ativar fornecedor?",
+        "message": "O fornecedor volta para os ativos.",
+        "confirm": "Ativar"
+      },
+      "cancel": "Cancelar"
+    },
+    "detail": {
+      "title": "Fornecedor",
+      "editTitle": "Editar",
+      "edit": "Editar Fornecedor",
+      "delete": "Excluir",
+      "status": "Status",
+      "active": "Ativo",
+      "inactive": "Desativo"
+    }
   },
   "procedures": {
     "newProcedure": "Novo atendimento",
@@ -1033,8 +1243,15 @@
       "title": "Novo atendimento",
       "confirm": "Confirmar",
       "close": "Fechar",
-      "location": "Local",
-      "submitError": "Não foi possível salvar. Tente novamente."
+      "client": "Tomador",
+      "location": "Local do atendimento",
+      "locationHint": "Sugerido pelo endereço do tomador. Você pode alterar.",
+      "submitError": "Não foi possível salvar. Tente novamente.",
+      "registerClient": "Cadastrar novo tomador",
+      "next": "Próximo",
+      "back": "Voltar",
+      "step1": "Passo 1 de 2",
+      "step2": "Passo 2 de 2"
     },
     "supplyPrompt": {
       "title": "Deseja registrar os insumos utilizados neste procedimento?",
@@ -1057,7 +1274,8 @@
     "placeholders": {
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "location": "Nome da clínica",
+      "client": "Nome do tomador",
+      "location": "Endereço do atendimento",
       "notes": "Observações sobre o procedimento",
       "number": "0",
       "time": "HH:MM",
@@ -1087,14 +1305,14 @@
       "INVALID_TIME": "Hora inválida",
       "IN_THE_PAST": "Escolha uma data e horário futuros",
       "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
-      "SELECT_CLIENT": "Escolha uma clínica da lista",
+      "SELECT_CLIENT": "Escolha um tomador da lista",
       "NAME_TOO_LONG": "Máximo de 160 caracteres",
       "TOO_LONG": "Máximo de 2000 caracteres"
     },
     "clientSearch": {
       "loading": "Buscando…",
       "error": "Não foi possível buscar. Tente novamente.",
-      "empty": "Nenhuma clínica encontrada. Cadastre em Parceiros → Clínicas."
+      "empty": "Nenhuma clínica encontrada."
     },
     "completion": {
       "action": "Finalizar procedimento",
@@ -1122,7 +1340,9 @@
       "lineDetail": "{{quantity}} un. × {{unitCost}}",
       "remove": "Remover {{name}}",
       "totalCost": "Total insumos",
-      "grossMargin": "Margem bruta"
+      "grossMargin": "Margem bruta",
+      "travelCost": "Total deslocamento",
+      "costsTotal": "Total de custos"
     },
     "status": {
       "SCHEDULED": "Agendado",
@@ -1245,7 +1465,7 @@
     "revenue": "RECEITA",
     "estimated": "estimado",
     "agenda": "AGENDA",
-    "addAttendance": "+ Adicionar Atendimento",
+    "addAttendance": "Adicionar atendimento",
     "sectionTitle": "PROCEDIMENTOS DO MÊS OU DIA",
     "emptyDay": "Nenhum agendamento para este dia.",
     "emptyDaySub": "Toque no botão abaixo para agendar um procedimento.",
@@ -1450,6 +1670,147 @@
         "explanationTitle": "Como o valor da hora é calculado?",
         "explanation": "Somamos os custos fixos, os custos variáveis do mês e o pró-labore e aplicamos a margem de segurança sobre esse total. O resultado é dividido pelas horas produtivas do mês: horas disponíveis por semana × 52 semanas ÷ 12 meses. O mínimo é a mesma conta sem a margem."
       }
+    },
+    "procedureEstimate": {
+      "title": "Simular valor",
+      "subtitle": "Descubra quanto cobrar pelo procedimento",
+      "back": "Voltar",
+      "optionalBadge": "Opcional",
+      "duration": {
+        "title": "Duração do procedimento",
+        "supportText": "Informe quanto tempo você estima dedicar ao atendimento",
+        "hours": "HORAS",
+        "minutes": "MINUTOS",
+        "hoursPlaceholder": "0",
+        "minutesPlaceholder": "00"
+      },
+      "client": {
+        "title": "Local do atendimento",
+        "supportText": "Selecione o tomador ou clínica para calcular o deslocamento",
+        "placeholder": "Selecione o tomador ou clínica...",
+        "helperText": "Pode deixar em branco, sem custo de deslocamento.",
+        "clear": "Remover tomador",
+        "tripEstimateLabel": "Custo de deslocamento estimado:",
+        "tripNotIncluded": "Deslocamento não incluído: este tomador ainda não tem viagens registradas.",
+        "loading": "Buscando tomadores…",
+        "error": "Não foi possível buscar tomadores.",
+        "empty": "Nenhum tomador ou clínica encontrado."
+      },
+      "supplies": {
+        "title": "Insumos previstos",
+        "supportText": "Adicione os materiais que serão utilizados no procedimento",
+        "add": "+ Adicionar insumo",
+        "helperText": "Sem materiais previstos? A lista pode ficar vazia.",
+        "subtotalLabel": "Subtotal dos insumos",
+        "empty": "Nenhum insumo adicionado",
+        "edit": "Editar quantidade",
+        "remove": "Remover insumo",
+        "units": "unidades"
+      },
+      "unconfigured": {
+        "title": "Configure seu valor por hora",
+        "message": "Para calcular o valor mínimo dos seus procedimentos, primeiro precisamos conhecer seus custos e definir seu valor de hora de trabalho.",
+        "footnote": "Essa configuração será utilizada em todas as suas simulações de procedimentos.",
+        "action": "Configurar honorários"
+      },
+      "result": {
+        "title": "Valor mínimo sugerido",
+        "laborLabel": "Mão de obra",
+        "tripLabel": "Deslocamento",
+        "suppliesLabel": "Insumos",
+        "totalLabel": "Total mínimo sugerido",
+        "infoText": "O valor é calculado com base no seu custo por hora, deslocamento e insumos previstos",
+        "idle": "Preencha a duração estimada do procedimento para ver a sugestão de valor mínimo.",
+        "loading": "Calculando sugestão de valor…",
+        "error": "Não foi possível calcular o valor sugerido.",
+        "retry": "Tentar novamente",
+        "breakEven": "Preço de custo"
+      },
+      "actions": {
+        "save": "Salvar simulação",
+        "savedSuccess": "Simulação salva com sucesso!",
+        "clear": "Limpar campos"
+      },
+      "editQuantity": {
+        "title": "Editar quantidade",
+        "confirm": "Confirmar",
+        "cancel": "Cancelar"
+      },
+      "entryButton": "Simular valor por procedimento"
+    },
+    "history": {
+      "title": "Histórico do valor da hora",
+      "subtitle": "Acompanhe como o valor mínimo da sua hora mudou mês a mês",
+      "openShortcut": "Ver histórico",
+      "loading": "Carregando o histórico do valor da hora",
+      "loadFailure": "Não foi possível carregar o histórico do valor da hora.",
+      "empty": {
+        "title": "Nenhum cálculo registrado",
+        "message": "O valor da sua hora de cada mês passa a aparecer aqui depois do primeiro cálculo."
+      },
+      "period": {
+        "previousButton": "Meses mais antigos",
+        "nextButton": "Meses mais recentes",
+        "single": "{{month}} {{year}}",
+        "sameYear": "{{from}} – {{to}} {{year}}",
+        "crossYear": "{{from}} {{fromYear}} – {{to}} {{toYear}}",
+        "latest": "Últimos {{count}} meses",
+        "earlier": "{{count}} meses anteriores"
+      },
+      "current": {
+        "title": "Valor atual da hora",
+        "variationChip": "{{variation}} vs {{month}}",
+        "firstMonth": "Primeiro mês calculado: {{month}}.",
+        "sinceStart": "Desde o início do histórico ({{month}}): **{{difference}}** ({{percent}})."
+      },
+      "chart": {
+        "title": "Evolução",
+        "placeholderTitle": "O gráfico aparece no próximo mês",
+        "placeholderMessage": "Precisamos de pelo menos {{count}} meses calculados para mostrar a evolução do valor da sua hora.",
+        "titleWithCount": "Evolução · {{count}} meses",
+        "periodChange": "{{change}} no período",
+        "legendRate": "Valor da hora",
+        "legendMinimum": "Mínimo (sem margem)",
+        "legendRateEqualsMinimum": "Valor da hora (igual ao mínimo, sem margem)",
+        "tooltipEqualsMinimum": "Igual ao mínimo (sem margem)",
+        "tooltipValue": "{{value}}/h",
+        "tooltipChange": "{{change}} vs {{month}}",
+        "pointLabel": "{{month}}, {{value}} por hora, mínimo {{minimum}}",
+        "pointLabelWithChange": "{{month}}, {{value}} por hora, mínimo {{minimum}}, {{change}} vs {{previous}}",
+        "summary": {
+          "average": "Média",
+          "highest": "Maior",
+          "lowest": "Menor",
+          "averageRange": "{{from}} – {{to}}",
+          "averageCount": "{{count}} meses"
+        }
+      },
+      "months": {
+        "title": "Registro mensal",
+        "currentChip": "Mês atual",
+        "oldest": "início do histórico",
+        "detail": "{{hours}} h produtivas · mín. {{minimum}}",
+        "rowLabel": "{{month}}, {{value}}, {{hours}} horas produtivas, mínimo {{minimum}}",
+        "viewAll": "Ver todos os meses ({{count}})"
+      },
+      "notes": {
+        "underWindow": "Com menos de {{count}} meses, o gráfico mostra todos os meses calculados. Novos meses entram aqui no fechamento.",
+        "overWindow": "O gráfico mostra até {{count}} meses por vez. Use as setas acima para ver períodos anteriores."
+      },
+      "all": {
+        "title": "Todos os meses",
+        "subtitle": "{{count}} meses calculados desde {{month}}",
+        "note": "Toque em um mês para ver os valores daquele mês.",
+        "sinceStartTitle": "Desde o início do histórico",
+        "sinceStartText": "De {{from}} em {{fromMonth}} para {{to}} em {{toMonth}}.",
+        "monthCount": {
+          "one": "{{count}} mês",
+          "other": "{{count}} meses"
+        }
+      },
+      "detail": {
+        "monthLabel": "Valores de {{month}}/{{year}}"
+      }
     }
   },
   "vehicles": {
@@ -1636,6 +1997,101 @@
       "discard": "Descartar nota",
       "keep": "Manter na fila",
       "sendAnyway": "Enviar mesmo assim"
+    },
+    "records": {
+      "fileAvailable": "PDF original disponível",
+      "status": {
+        "SYNCED": "Sincronizado",
+        "PENDING": "Não sincronizado",
+        "ERROR": "Erro no envio"
+      },
+      "list": {
+        "title": "Notas fiscais",
+        "back": "Voltar",
+        "searchPlaceholder": "Buscar por tomador ou data",
+        "filters": {
+          "ALL": "Todas",
+          "SYNCED": "Sincronizadas",
+          "PENDING": "Não sincronizadas",
+          "ERROR": "Com erro"
+        },
+        "noteTitle": "Nota Fiscal {{number}}",
+        "noteTitleNoNumber": "Nota fiscal",
+        "clientLine": "Tomador: {{name}}",
+        "loadFailed": "Não foi possível carregar as notas fiscais.",
+        "offline": "Sem conexão: mostrando as notas salvas neste aparelho.",
+        "emptyTitle": "Nenhuma nota fiscal",
+        "emptyMessage": "Registre uma nota pelo botão Adicionar nota, na aba Relatórios.",
+        "noResultsTitle": "Nada encontrado",
+        "noResultsMessage": "Não há notas para essa busca. Tente outro tomador ou outra data.",
+        "add": "Adicionar nota"
+      },
+      "detail": {
+        "title": "Detalhes da nota",
+        "back": "Voltar",
+        "download": "Baixar PDF",
+        "downloading": "Baixando PDF…",
+        "downloadFailed": "Não foi possível baixar o PDF. Tente novamente.",
+        "unavailable": {
+          "needsConnection": "O download exige conexão com a internet.",
+          "notSentYet": "O PDF ainda não foi enviado. Ele fica disponível para baixar depois que a nota sincronizar.",
+          "noFile": "Esta nota não tem PDF original."
+        },
+        "fileFallbackName": "PDF da nota fiscal",
+        "dataTitle": "Dados extraídos da nota",
+        "fields": {
+          "issueDate": "Data de emissão",
+          "number": "Número da nota",
+          "client": "Tomador",
+          "clientTaxId": "CNPJ do tomador",
+          "location": "Local",
+          "amount": "Valor total"
+        },
+        "checkData": "Confira os dados antes de enviar à contabilidade.",
+        "correct": "Corrigir",
+        "delete": "Excluir",
+        "correctNeedsConnection": "Corrigir os dados exige conexão com a internet.",
+        "correctNotSentYet": "A nota ainda não foi enviada. Ela só pode ser corrigida depois de sincronizar.",
+        "notFound": "Esta nota não existe mais.",
+        "loadFailed": "Não foi possível carregar a nota. Verifique a conexão e tente novamente.",
+        "saved": "PDF salvo na pasta escolhida."
+      },
+      "correction": {
+        "title": "Corrigir nota",
+        "back": "Voltar",
+        "checkPdf": "Confira os dados com o PDF original antes de confirmar.",
+        "location": {
+          "label": "Local",
+          "placeholder": "Cidade, UF"
+        },
+        "confirm": "Confirmar correção",
+        "confirming": "Salvando…",
+        "cancel": "Cancelar",
+        "failure": {
+          "network": "Sem conexão. Conecte-se à internet para salvar a correção.",
+          "notFound": "Esta nota não existe mais.",
+          "generic": "Não foi possível salvar a correção. Tente novamente.",
+          "clientNotFound": "Esse tomador não foi encontrado. Escolha outro."
+        },
+        "leaveTitle": "Sair da correção?",
+        "leaveMessage": "As alterações não foram salvas e vão se perder.",
+        "leaveConfirm": "Sair sem salvar",
+        "leaveCancel": "Continuar editando"
+      },
+      "delete": {
+        "title": "Excluir nota fiscal?",
+        "message": "Esta ação é permanente. O arquivo PDF original e o lançamento financeiro vinculado também serão excluídos.",
+        "messagePending": "Esta ação é permanente. O PDF guardado neste aparelho também será excluído.",
+        "pdfItem": "Arquivo PDF original",
+        "entryItem": "Lançamento financeiro vinculado",
+        "confirm": "Excluir permanentemente",
+        "deleting": "Excluindo…",
+        "cancel": "Cancelar",
+        "failed": "Não foi possível excluir a nota. Tente novamente.",
+        "doneTitle": "Nota fiscal excluída com sucesso",
+        "doneQueued": "Sem conexão: a exclusão será enviada quando a conexão voltar.",
+        "understood": "Entendi"
+      }
     }
   },
   "trips": {
@@ -1662,6 +2118,10 @@
       "delete": "Excluir deslocamento"
     },
     "form": {
+      "next": "Próximo",
+      "back": "Voltar",
+      "step1": "Passo 1 de 2",
+      "step2": "Passo 2 de 2",
       "newTitle": "Novo deslocamento",
       "editTitle": "Editar deslocamento",
       "close": "Fechar",
@@ -1727,31 +2187,13 @@
     "loadFailed": "Não foi possível carregar os deslocamentos."
   },
   "invoices": {
-    "trigger": "Notas fiscais",
     "title": "Notas fiscais",
     "back": "Voltar",
-    "filters": {
-      "searchPlaceholder": "Nome, CNPJ ou número da nota",
-      "period": "Período",
-      "periodRange": "{{from}} até {{to}}",
-      "periodSingle": "{{day}}",
-      "periodFrom": "A partir de {{from}}",
-      "clear": "Limpar",
-      "previousMonth": "Mês anterior",
-      "nextMonth": "Próximo mês",
-      "invalidRange": "A data inicial não pode ser maior que a final."
-    },
     "loading": "Carregando notas fiscais...",
     "loadingMore": "Carregando mais notas",
     "loadMoreError": "Não foi possível carregar mais notas.",
     "error": "Não foi possível carregar as notas fiscais.",
     "empty": "Nenhuma nota fiscal registrada.",
-    "emptyFiltered": "Nenhuma nota fiscal encontrada para o filtro.",
-    "card": {
-      "title": "Nota Fiscal {{number}}",
-      "issuer": "Emitente: {{name}}",
-      "taker": "Tomador: {{name}}"
-    },
     "status": {
       "SYNCED": "Sincronizada",
       "NOT_SYNCED": "Não sincronizada",
@@ -1770,7 +2212,158 @@
       "takerCnpj": "CNPJ do tomador",
       "value": "Valor",
       "issuedAt": "Data de emissão",
-      "status": "Situação"
+      "status": "Situação",
+      "download": "Baixar nota",
+      "downloading": "Baixando a nota...",
+      "downloaded": "Nota baixada.",
+      "downloadFailed": "Não foi possível baixar a nota. Tente novamente."
+    },
+    "countSingular": "{{count}} nota fiscal",
+    "countPlural": "{{count}} notas fiscais",
+    "addInvoice": "Adicionar nota fiscal",
+    "downloadAll": {
+      "button": "Baixar tudo (ZIP)",
+      "downloading": "Preparando o arquivo ZIP...",
+      "done": "Download iniciado.",
+      "empty": "Nenhuma nota fiscal com arquivo para baixar.",
+      "tooLarge": "Há notas demais para um único ZIP (limite de 500 notas ou 200 MB). Baixe as notas uma a uma por enquanto.",
+      "offline": "Sem conexão. Verifique sua internet e tente de novo.",
+      "rateLimited": "Muitas tentativas seguidas. Aguarde um minuto e tente de novo.",
+      "failed": "Não foi possível baixar as notas. Tente novamente."
+    }
+  },
+  "profile": {
+    "title": "Perfil",
+    "back": "Voltar",
+    "notInformed": "Não informado",
+    "edit": "Editar perfil",
+    "ageValue": "{{age}} anos",
+    "fields": {
+      "name": "Nome",
+      "crmv": "CRMV",
+      "email": "Email",
+      "age": "Idade",
+      "sex": "Sexo",
+      "city": "Cidade",
+      "state": "Estado"
+    },
+    "sex": {
+      "FEMALE": "Feminino",
+      "MALE": "Masculino",
+      "OTHER": "Outro",
+      "NOT_INFORMED": "Prefiro não informar"
+    },
+    "crmvNotice": "O CRMV é necessário para emitir relatórios com identificação profissional.",
+    "staleNotice": "Mostrando os últimos dados salvos. Eles podem estar desatualizados.",
+    "loadError": "Não foi possível carregar o perfil.",
+    "sessionExpired": "Sua sessão expirou. Saia da conta e entre novamente.",
+    "editForm": {
+      "title": "Editar perfil",
+      "close": "Fechar a edição do perfil",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "emailHint": "O e-mail vem do seu login e não é alterado aqui.",
+      "birthDate": "Data de nascimento",
+      "state": "UF",
+      "placeholders": {
+        "name": "Seu nome completo",
+        "crmv": "Ex.: RS-12345",
+        "birthDate": "DD/MM/AAAA",
+        "sex": "Selecione",
+        "city": "Ex.: Porto Alegre",
+        "state": "UF"
+      },
+      "errors": {
+        "nameTooShort": "Informe seu nome, com pelo menos 2 letras.",
+        "nameTooLong": "Use até 120 caracteres.",
+        "crmvInvalid": "Use o formato UF-número, como RS-12345.",
+        "birthDateInvalid": "Informe uma data válida.",
+        "birthDateOutOfRange": "Informe uma data a partir de 1900, de quem tem pelo menos 18 anos.",
+        "cityTooLong": "Use até 120 caracteres.",
+        "stateInvalid": "Escolha uma UF válida."
+      },
+      "saved": "Perfil atualizado.",
+      "saveError": "Não foi possível salvar o perfil. Tente de novo."
+    },
+    "pendingNotice": "As alterações do perfil estão salvas no aparelho e serão enviadas quando houver internet.",
+    "rejectedNotice": "A alteração do perfil feita sem conexão foi recusada. Os dados voltaram aos últimos salvos.",
+    "rejectedDismiss": "Entendi",
+    "privacy": {
+      "menu": "Privacidade",
+      "title": "Privacidade",
+      "acceptedVersion": "Versão da política aceita",
+      "acceptedAt": "Data do aceite",
+      "acceptedNote": "Essas informações correspondem ao último aceite registrado na sua conta."
+    },
+    "deleteAccount": {
+      "menu": "Excluir conta",
+      "title": "Excluir conta",
+      "heading": "Esta ação é irreversível",
+      "description": "Ao excluir sua conta, você perderá o acesso ao aplicativo e seus dados serão removidos conforme nossa política de retenção e as obrigações legais aplicáveis.",
+      "removedTitle": "O que será removido?",
+      "items": {
+        "appointments": "Atendimentos",
+        "invoices": "Notas fiscais e arquivos",
+        "finance": "Controle financeiro",
+        "stock": "Estoque",
+        "vehicles": "Veículos",
+        "equipment": "Equipamentos",
+        "reports": "Relatórios"
+      },
+      "retentionNotice": "Alguns dados poderão ser mantidos pelo período exigido por obrigações legais ou regulatórias, conforme nossa Política de Privacidade.",
+      "confirmPrompt": "Para confirmar a exclusão, informe sua senha atual.",
+      "passwordLabel": "Senha atual",
+      "passwordPlaceholder": "Digite sua senha atual",
+      "showPassword": "Mostrar senha",
+      "hidePassword": "Ocultar senha",
+      "submit": "Excluir minha conta",
+      "tryAgain": "Tentar novamente",
+      "cancel": "Cancelar",
+      "deleting": {
+        "title": "Excluindo sua conta...",
+        "message": "Estamos processando sua solicitação. Isso pode levar alguns instantes."
+      },
+      "wrongPassword": {
+        "title": "Senha incorreta",
+        "message": "Não foi possível confirmar sua identidade. Verifique sua senha e tente novamente."
+      },
+      "offline": {
+        "title": "Sem conexão",
+        "message": "A exclusão da conta exige conexão com a internet. Conecte-se e tente novamente."
+      },
+      "reauth": {
+        "title": "Confirme sua identidade",
+        "message": "Não foi possível confirmar seu login recente. Informe sua senha e tente novamente."
+      },
+      "incomplete": {
+        "title": "Exclusão não concluída",
+        "message": "Seus dados já foram removidos, mas o encerramento da conta não terminou. Tente novamente para concluir.",
+        "action": "Concluir exclusão"
+      },
+      "failed": {
+        "title": "Não foi possível excluir",
+        "message": "Algo deu errado ao excluir sua conta. Nada foi removido. Tente novamente em instantes."
+      },
+      "success": {
+        "title": "Conta excluída com sucesso",
+        "message": "Sua conta foi removida e você não poderá mais acessar o aplicativo com essas credenciais.",
+        "action": "Voltar para o início"
+      }
+    }
+  },
+  "legal": {
+    "unavailable": "Documento indisponível no momento. Tente novamente mais tarde.",
+    "privacyPolicy": {
+      "link": "Política de Privacidade",
+      "title": "Política de Privacidade",
+      "description": "Saiba como seus dados pessoais são coletados, utilizados, armazenados e protegidos.",
+      "action": "Visualizar política completa"
+    },
+    "termsOfUse": {
+      "link": "Termos de Uso",
+      "title": "Termos de Uso",
+      "description": "Consulte as condições e responsabilidades para utilização do aplicativo.",
+      "action": "Visualizar termos completos"
     }
   }
 }

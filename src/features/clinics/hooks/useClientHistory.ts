@@ -9,7 +9,6 @@ import { requireToken, toHistoryFailureKey } from './clinicFailure';
 import {
   appendAppointments,
   EMPTY_CLIENT_SUMMARY,
-  isLastHistoryPage,
   monthPeriodOf,
   remainingAppointments,
   type ClientAppointment,
@@ -41,6 +40,10 @@ export type ClientHistoryState = {
 
 type ChosenPeriod = { clientId: string; period: HistoryPeriod };
 
+type Paging = { total: number; loadedPages: number };
+
+const NO_PAGES: Paging = { total: 0, loadedPages: 0 };
+
 export function useClientHistory(clientId: string | null): ClientHistoryState {
   const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
@@ -66,25 +69,23 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
   const [failure, setFailure] = useState<TranslationKey | null>(null);
   const [summary, setSummary] = useState<ClientSummary>(EMPTY_CLIENT_SUMMARY);
   const [appointments, setAppointments] = useState<ClientAppointment[]>([]);
-  const [hasMorePages, setHasMorePages] = useState(false);
+  const [paging, setPaging] = useState<Paging>(NO_PAGES);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const [version, setVersion] = useState(0);
-  const loadedPages = useRef(0);
   // Cada troca de tomador ou de período começa uma nova geração: a resposta de
   // um pedido da geração anterior não pode entrar na ficha atual.
   const generation = useRef(0);
   const isFetchingMore = useRef(false);
 
   const clearHistory = useCallback(() => {
-    loadedPages.current = 0;
     isFetchingMore.current = false;
     setIsLoadingMore(false);
     setLoadMoreFailed(false);
     setFailure(null);
     setSummary(EMPTY_CLIENT_SUMMARY);
     setAppointments([]);
-    setHasMorePages(false);
+    setPaging(NO_PAGES);
   }, []);
 
   useEffect(() => {
@@ -118,10 +119,9 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
       })
       .then(([periodSummary, firstPage]) => {
         if (current !== generation.current) return;
-        loadedPages.current = 1;
         setSummary(periodSummary);
-        setAppointments(firstPage);
-        setHasMorePages(!isLastHistoryPage(firstPage));
+        setAppointments(firstPage.appointments);
+        setPaging({ total: firstPage.total, loadedPages: 1 });
         setStatus('ready');
       })
       .catch(error => {
@@ -144,21 +144,20 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
     return onConnectionRestored(() => setVersion(value => value + 1));
   }, [isFailed]);
 
-  const remaining = hasMorePages
-    ? remainingAppointments(summary, appointments.length)
-    : 0;
+  const remaining = remainingAppointments(paging.total, paging.loadedPages);
+  const hasMore = remaining > 0;
 
   const loadMore = useCallback(() => {
     if (
       clientId === null ||
       status !== 'ready' ||
-      !hasMorePages ||
+      !hasMore ||
       isFetchingMore.current
     ) {
       return;
     }
     const current = generation.current;
-    const nextPage = loadedPages.current + 1;
+    const nextPage = paging.loadedPages + 1;
     isFetchingMore.current = true;
     setIsLoadingMore(true);
     setLoadMoreFailed(false);
@@ -174,9 +173,10 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
       )
       .then(page => {
         if (current !== generation.current) return;
-        loadedPages.current = nextPage;
-        setAppointments(known => appendAppointments(known, page));
-        setHasMorePages(!isLastHistoryPage(page));
+        setAppointments(known => appendAppointments(known, page.appointments));
+        // O total da página nova é o mais recente: conta o que foi concluído
+        // depois da primeira.
+        setPaging({ total: page.total, loadedPages: nextPage });
       })
       .catch(() => {
         if (current !== generation.current) return;
@@ -187,7 +187,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
         isFetchingMore.current = false;
         setIsLoadingMore(false);
       });
-  }, [clientId, status, hasMorePages, from, to]);
+  }, [clientId, status, hasMore, paging.loadedPages, from, to]);
 
   const setPeriod = useCallback(
     (next: HistoryPeriod) => {
@@ -215,7 +215,7 @@ export function useClientHistory(clientId: string | null): ClientHistoryState {
     failure,
     summary,
     appointments,
-    hasMore: hasMorePages,
+    hasMore,
     remaining,
     isLoadingMore,
     loadMoreFailed,

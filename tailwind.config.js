@@ -54,6 +54,7 @@ module.exports = {
         'alert-primary': 'hsl(var(--palette-alert-primary))',
         // Colors from src/theme/colors.ts with no plain-hex CSS var equivalent
         // (opacity baked in, or duplicate of an existing token).
+        'alert-soft': 'rgba(217, 87, 67, 0.15)',
         'background-shade': 'rgba(80, 78, 78, 0.33)',
         'details-secondary': 'rgba(250, 222, 132, 0.5)',
         'label-quartenery': 'hsl(var(--palette-button-primary))',
@@ -67,6 +68,15 @@ module.exports = {
         'chart-fixed-costs': '#A07E62',
         'chart-variable-costs': '#D2BBA0',
         'chart-safety-margin': '#8C9A5B',
+        'chart-minimum': '#A07E62',
+        // Hourly rate history (US22), read from the Figma frames.
+        'trend-up': '#5D6B2F',
+        'trend-up-fill': '#EEF1E2',
+        'trend-down': '#A34A25',
+        'tooltip-surface': '#1A100A',
+        'tooltip-month': '#CFC8C2',
+        'tooltip-rise': '#D7E0B4',
+        'tooltip-fall': '#F3B9A0',
       },
       borderRadius: {
         lg: 'var(--radius)',

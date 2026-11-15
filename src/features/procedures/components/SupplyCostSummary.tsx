@@ -8,12 +8,23 @@ type SupplyCostSummaryMargin = {
   value: string;
 };
 
+type SupplyCostSummaryLine = {
+  label: string;
+  /** Preformatted value, e.g. "– R$ 20,00". */
+  value: string;
+  isDeduction: boolean;
+};
+
 type SupplyCostSummaryProps = {
   totalLabel: string;
   /** Preformatted total, e.g. "– R$ 33,90". */
   totalValue: string;
   /** Red is reserved for deductions, so a zero total stays neutral. */
   isDeduction: boolean;
+  /** Only shown when the appointment has trips to deduct. */
+  travel?: SupplyCostSummaryLine;
+  /** Only shown when supplies and travel both cost something. */
+  costsTotal?: SupplyCostSummaryLine;
   /** Only shown when the procedure's billed amount is known. */
   grossMargin?: SupplyCostSummaryMargin;
   className?: string;
@@ -23,6 +34,8 @@ function SupplyCostSummary({
   totalLabel,
   totalValue,
   isDeduction,
+  travel,
+  costsTotal,
   grossMargin,
   className,
 }: SupplyCostSummaryProps) {
@@ -40,6 +53,38 @@ function SupplyCostSummary({
         </Text>
       </View>
 
+      {travel ? (
+        <View className="flex-row items-center justify-between border-t border-border-primary py-4">
+          <Text className="text-sm text-label-primary">{travel.label}</Text>
+          <Text
+            className={cn(
+              'text-sm font-semibold',
+              travel.isDeduction ? 'text-alert-primary' : 'text-label-primary',
+            )}
+          >
+            {travel.value}
+          </Text>
+        </View>
+      ) : null}
+
+      {costsTotal ? (
+        <View className="flex-row items-center justify-between border-t border-border-primary py-4">
+          <Text className="text-sm font-semibold text-label-primary">
+            {costsTotal.label}
+          </Text>
+          <Text
+            className={cn(
+              'text-sm font-semibold',
+              costsTotal.isDeduction
+                ? 'text-alert-primary'
+                : 'text-label-primary',
+            )}
+          >
+            {costsTotal.value}
+          </Text>
+        </View>
+      ) : null}
+
       {grossMargin ? (
         <View className="flex-row items-center justify-between border-t border-border-primary py-4">
           <Text className="text-base font-semibold text-label-primary">
@@ -55,4 +100,8 @@ function SupplyCostSummary({
 }
 
 export { SupplyCostSummary };
-export type { SupplyCostSummaryMargin, SupplyCostSummaryProps };
+export type {
+  SupplyCostSummaryMargin,
+  SupplyCostSummaryProps,
+  SupplyCostSummaryLine,
+};

@@ -11,6 +11,7 @@ export {
   parseExpirationDate,
 } from './domain/expiryAlert';
 export { EXPIRY_NOTIFICATION_HOUR } from './domain/expirySchedule';
+export { inventoryStorageKey } from './services/inventoryStorage';
 export type { MonitoredItem } from './domain/lowStockAlert';
 export type { ExpiringLot, IsoDate } from './domain/expiryAlert';
 export type { InventoryNotification } from './domain/inventoryNotifications';

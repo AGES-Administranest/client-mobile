@@ -22,7 +22,8 @@ export type ProcedureTextField =
   | 'notes'
   | 'date'
   | 'startTime'
-  | 'endTime';
+  | 'endTime'
+  | 'location';
 
 export interface ProcedureFormValues {
   patientName: string;
@@ -37,6 +38,7 @@ export interface ProcedureFormValues {
   startTime: string;
   endTime: string;
   notes: string;
+  location: string;
 }
 
 export type FieldErrorCode =
@@ -76,6 +78,7 @@ export interface CreateAppointmentPayload {
   patientAgeYears?: number;
   amount?: number;
   notes?: string;
+  location?: string;
 }
 
 export const EMPTY_PROCEDURE_FORM: ProcedureFormValues = {
@@ -91,4 +94,5 @@ export const EMPTY_PROCEDURE_FORM: ProcedureFormValues = {
   startTime: '',
   endTime: '',
   notes: '',
+  location: '',
 };

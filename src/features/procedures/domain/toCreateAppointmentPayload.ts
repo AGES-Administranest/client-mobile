@@ -58,6 +58,12 @@ export function toCreateAppointmentPayload(
   if (values.notes.trim() !== '') {
     payload.notes = values.notes.trim();
   }
+  if (values.notes.trim() !== '') {
+    payload.notes = values.notes.trim();
+  }
+  if (values.location.trim() !== '') {
+    payload.location = values.location.trim();
+  }
 
   return payload;
 }

@@ -28,3 +28,54 @@ export type PricingSettingsErrors = {
 export type PricingSettingsValidation =
   | { valid: true; settings: PricingSettings }
   | { valid: false; errors: PricingSettingsErrors };
+
+export type ProcedureSupplyDto = {
+  itemId: string;
+  quantity: number;
+};
+
+export type ProcedureEstimateDto = {
+  durationMinutes: number;
+  clientId?: string | null;
+  supplies?: ProcedureSupplyDto[];
+};
+
+export type ProcedureEstimateResponse = {
+  minimumPrice: string;
+  breakEvenPrice: string;
+  hoursCost: string;
+  tripCost: string;
+  suppliesCost: string;
+  hourlyRateUsed: string;
+  minimumHourlyRateUsed: string;
+  tripEstimateAvailable: boolean;
+  tripEstimateDays: number;
+  suppliesWithoutCost: string[];
+  durationMinutes: number;
+  month: number;
+  year: number;
+};
+
+export type ProcedureEstimate = {
+  minimumPrice: number;
+  breakEvenPrice: number;
+  hoursCost: number;
+  tripCost: number;
+  suppliesCost: number;
+  hourlyRateUsed: number;
+  minimumHourlyRateUsed: number;
+  tripEstimateAvailable: boolean;
+  tripEstimateDays: number;
+  suppliesWithoutCost: string[];
+  durationMinutes: number;
+  month: number;
+  year: number;
+};
+
+export type ProcedureSelectedSupply = {
+  itemId: string;
+  name: string;
+  unit: string;
+  quantity: number;
+  unitCost: number;
+};

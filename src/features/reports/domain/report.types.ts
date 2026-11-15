@@ -1,0 +1,96 @@
+export const REPORT_CATEGORIES = [
+  'financial',
+  'appointments',
+  'clinics',
+  'inventory',
+  'suppliers',
+  'travel',
+  'depreciation',
+  'workedHour',
+] as const;
+
+export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
+
+/**
+ * The longest period a report covers, both days included: a year, leap day
+ * counted. The backend refuses more with REPORT_PERIOD_TOO_LONG.
+ */
+export const MAX_REPORT_DAYS = 366;
+
+export type ReportSection =
+  | 'FINANCIAL'
+  | 'APPOINTMENTS'
+  | 'CLIENTS'
+  | 'STOCK'
+  | 'SUPPLIERS'
+  | 'TRIPS'
+  | 'DEPRECIATION'
+  | 'HOURLY_RATE';
+
+const SECTION_BY_CATEGORY: Record<ReportCategory, ReportSection> = {
+  financial: 'FINANCIAL',
+  appointments: 'APPOINTMENTS',
+  clinics: 'CLIENTS',
+  inventory: 'STOCK',
+  suppliers: 'SUPPLIERS',
+  travel: 'TRIPS',
+  depreciation: 'DEPRECIATION',
+  workedHour: 'HOURLY_RATE',
+};
+
+/** The sections to ask for, in the order of the document, without repeats. */
+export function sectionsOf(
+  categories: readonly ReportCategory[],
+): ReportSection[] {
+  return REPORT_CATEGORIES.filter(category =>
+    categories.includes(category),
+  ).map(category => SECTION_BY_CATEGORY[category]);
+}
+
+/** Keeps only names that are still categories: a stored list may be old. */
+export function knownCategories(values: readonly unknown[]): ReportCategory[] {
+  return REPORT_CATEGORIES.filter(category => values.includes(category));
+}
+
+export type GeneratedReport = {
+  id: string;
+  kind: 'GENERAL_REPORT';
+  fileName: string;
+  /** Absent from APIs older than this field. */
+  fileBytesSize?: number;
+  period: ReportPeriod;
+  sections: ReportSection[];
+  generatedAt: string;
+  /** Signed link to the PDF; it expires in minutes. */
+  downloadUrl: string;
+  downloadUrlExpiresAt: number;
+  /** False when the profile has no CRMV: the header shows the name only. */
+  professionalIdComplete: boolean;
+};
+
+export type StoredReportKind = 'GENERAL_REPORT' | 'TAX_PACKAGE';
+
+export type ReportPeriod = {
+  from: string;
+  to: string;
+};
+
+export type ReportHistoryItem = {
+  id: string;
+  kind: StoredReportKind;
+  fileName: string;
+  /** Null for a report just generated: POST /reports does not send the size. */
+  fileBytesSize: number | null;
+  period: ReportPeriod | null;
+  generatedAt: string;
+};
+
+export type ReportHistoryPage = {
+  items: ReportHistoryItem[];
+  hasMore: boolean;
+};
+
+export type ReportDownloadLink = {
+  url: string;
+  expiresAt: number;
+};

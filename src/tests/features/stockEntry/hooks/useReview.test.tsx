@@ -66,6 +66,7 @@ const DRAFT: ItemDraft = {
   category: 'DISPOSABLE',
   name: 'Seringa 3 mL',
   supplierName: null,
+  supplierId: null,
   editingItemId: null,
   selectedItemId: null,
   unitCost: '2,00',

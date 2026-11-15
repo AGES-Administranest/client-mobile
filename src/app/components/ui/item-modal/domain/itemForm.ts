@@ -36,7 +36,7 @@ type ItemFormErrorCodes = {
   quantity: 'required' | 'zero' | 'tooLarge';
   minQuantity: 'tooLarge';
   expiration: 'incomplete' | 'invalid' | 'past';
-  supplierName: 'tooShort';
+  supplierName: 'tooShort' | 'pickOrAdd';
 };
 
 export type ItemFormErrors = {

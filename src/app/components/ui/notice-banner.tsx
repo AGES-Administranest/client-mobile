@@ -1,19 +1,37 @@
-import { Info, TriangleAlert, type LucideIcon } from 'lucide-react-native';
+import {
+  CircleCheck,
+  Info,
+  TriangleAlert,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
-export type NoticeTone = 'alert' | 'warning' | 'info';
+export type NoticeTone = 'alert' | 'warning' | 'info' | 'success';
 
-const TONES: Record<NoticeTone, { box: string; text: string }> = {
+const TONES: Record<
+  NoticeTone,
+  { box: string; text: string; icon: LucideIcon }
+> = {
   alert: {
     box: 'border border-alert-primary bg-white',
     text: 'text-alert-primary',
+    icon: TriangleAlert,
   },
-  warning: { box: 'bg-details-tertiary', text: 'text-label-primary' },
-  info: { box: 'bg-details-primary', text: 'text-label-primary' },
+  warning: {
+    box: 'bg-details-tertiary',
+    text: 'text-label-primary',
+    icon: TriangleAlert,
+  },
+  info: { box: 'bg-details-primary', text: 'text-label-primary', icon: Info },
+  success: {
+    box: 'bg-details-finish',
+    text: 'text-label-primary',
+    icon: CircleCheck,
+  },
 };
 
 type NoticeBannerProps = {
@@ -50,11 +68,7 @@ export function NoticeBanner({
           colors.box,
         )}
       >
-        <Icon
-          as={tone === 'info' ? Info : TriangleAlert}
-          size={16}
-          className={colors.text}
-        />
+        <Icon as={colors.icon} size={16} className={colors.text} />
         <Text className={cn('flex-1 text-xs leading-4', colors.text)}>
           {message}
         </Text>

@@ -165,7 +165,10 @@ async function createWithCategory(categoryLabel: string) {
     pressWithText(renderer, 'Digite a unidade')!.props.onPress();
   });
   await act(async () => {
-    pressWithText(renderer, 'ampola')!.props.onPress();
+    pressWithText(renderer, 'Amp')!.props.onPress();
+  });
+  await act(async () => {
+    pressWithText(renderer, 'Próximo')!.props.onPress();
   });
   await act(async () => {
     fieldByLabel(renderer, 'QUANTIDADE').props.onChangeText('5');
@@ -330,7 +333,7 @@ describe('supplier', () => {
     return renderer;
   }
 
-  test('offers a free-text supplier field when registering a new item', async () => {
+  test('offers a supplier search field when registering a new item', async () => {
     const renderer = await openNewItemForm();
 
     const field = fieldByLabel(renderer, 'FORNECEDOR');
@@ -343,7 +346,7 @@ describe('supplier', () => {
     );
   });
 
-  test('the typed supplier is not sent while there is no registration', async () => {
+  test('a typed supplier that was not picked blocks the next step', async () => {
     const renderer = await openNewItemForm();
 
     await act(async () => {
@@ -356,17 +359,20 @@ describe('supplier', () => {
       pressWithText(renderer, 'Digite a unidade')!.props.onPress();
     });
     await act(async () => {
-      pressWithText(renderer, 'ampola')!.props.onPress();
+      pressWithText(renderer, 'Amp')!.props.onPress();
     });
     await act(async () => {
-      fieldByLabel(renderer, 'QUANTIDADE').props.onChangeText('5');
-    });
-    await act(async () => {
-      pressWithText(renderer, 'Confirmar')!.props.onPress();
+      pressWithText(renderer, 'Próximo')!.props.onPress();
     });
 
-    const [, payload] = createItemMock.mock.calls[0];
-    expect(payload).not.toHaveProperty('supplierId');
+    const shown = renderer.root
+      .findAllByType('Text' as never)
+      .map(node => node.props.children)
+      .flat()
+      .join(' | ');
+    expect(shown).toContain('Escolha um fornecedor da lista');
+    expect(shown).toContain('Passo 1 de 2');
+    expect(createItemMock).not.toHaveBeenCalled();
   });
 });
 

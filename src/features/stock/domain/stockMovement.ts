@@ -18,7 +18,11 @@ export type MeasurementUnit =
   | 'mg'
   | 'gram'
   | 'tablet'
-  | 'other';
+  | 'other'
+  | 'liter'
+  | 'microgram'
+  | 'mgPerMl'
+  | 'mcgPerMl';
 
 export type MovementAppointment = {
   id: string;

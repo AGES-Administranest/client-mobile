@@ -199,11 +199,22 @@ function StatementRow({
         !isLast && 'border-b border-details-primary',
       )}
     >
-      <View className="size-[34px] items-center justify-center rounded-[10px] bg-details-primary">
+      <View
+        className={cn(
+          'size-[34px] items-center justify-center rounded-[10px]',
+          item.nature === 'INCOME'
+            ? 'bg-details-finish'
+            : 'bg-alert-primary/20',
+        )}
+      >
         <Icon
           as={item.nature === 'INCOME' ? ArrowUp : ArrowDown}
           size={14}
-          className="text-label-primary"
+          className={
+            item.nature === 'INCOME'
+              ? 'text-label-primary'
+              : 'text-alert-primary'
+          }
         />
       </View>
       <View className="min-w-0 flex-1">

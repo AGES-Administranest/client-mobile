@@ -1,0 +1,24 @@
+import { useEffect, useRef } from 'react';
+
+import { useAuth } from 'features/auth';
+
+import { clearProfileData } from '../services/profileCache';
+import { withProfileLock } from '../services/profileSyncService';
+
+// Watches the account instead of a sign-out button: the Home menu and the
+// terms screen both sign out, and so will account deletion (US25). It must
+// stay mounted across sign out to see the id go away.
+export function useForgetProfileOnSignOut(): void {
+  const { account } = useAuth();
+  const userId = account?.id ?? null;
+  const previousUserId = useRef(userId);
+
+  useEffect(() => {
+    const leaving = previousUserId.current;
+    previousUserId.current = userId;
+    if (leaving && leaving !== userId) {
+      // Waits for a save already in flight, which would write the data back.
+      withProfileLock(() => clearProfileData(leaving));
+    }
+  }, [userId]);
+}

@@ -24,7 +24,6 @@ const TEXTS: EntryFormTexts = {
     label: 'Escopo',
     professional: 'Profissional',
     personal: 'Pessoal',
-    hint: 'Sugerido pela categoria. Você pode alterar.',
   },
 };
 
@@ -119,7 +118,6 @@ test('shows every field of the Figma form, in order', async () => {
     'Escopo',
     'Profissional',
     'Pessoal',
-    'Sugerido pela categoria. Você pode alterar.',
   ]);
   expect(input(renderer, 'Data').props.value).toBe('09/10/2026');
   expect(input(renderer, 'Categoria').props.value).toBe('Deslocamento');
@@ -200,7 +198,6 @@ test('shows each field error right under its own field', async () => {
     'Escopo',
     'Profissional',
     'Pessoal',
-    'Sugerido pela categoria. Você pode alterar.',
   ]);
 });
 
