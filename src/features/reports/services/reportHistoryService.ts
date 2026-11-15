@@ -10,6 +10,7 @@ import {
   type GeneratedReport,
   type ReportCategory,
   type ReportHistoryItem,
+  type StoredReport,
 } from '../domain/report.types';
 
 // A long period draws many pages on the server.
@@ -29,12 +30,42 @@ export class ReportDownloadError extends Error {
   }
 }
 
-// Stand-in until the history endpoint exists (US32): no report at all, never
-// made-up ones. Keeps the signature the real call will have, GET /reports.
-export function fetchReportHistory(
-  _idToken: string,
+// The history screen has no paging yet: one page of the largest size the
+// backend allows covers it.
+export const HISTORY_PAGE_SIZE = 100;
+
+export async function fetchReportHistory(
+  idToken: string,
 ): Promise<ReportHistoryItem[]> {
-  return Promise.resolve([]);
+  const query = new URLSearchParams({
+    kind: 'GENERAL_REPORT',
+    limit: String(HISTORY_PAGE_SIZE),
+  });
+  const reports = await apiClient.get<StoredReport[]>(
+    `/reports?${query.toString()}`,
+    { token: idToken },
+  );
+
+  return reports.map(report => ({
+    id: report.id,
+    fileName: report.fileName,
+    generatedAt: report.generatedAt,
+    fileUri: savedFileUri(report),
+  }));
+}
+
+// A PDF downloaded before stays on the device: finding it keeps the card
+// shareable after the list is loaded again.
+function savedFileUri(report: StoredReport): string | undefined {
+  if (Platform.OS === 'web') {
+    return undefined;
+  }
+  const file = new File(reportFolder(report.id), report.fileName);
+  return file.exists ? file.uri : undefined;
+}
+
+function reportFolder(reportId: string): Directory {
+  return new Directory(Paths.document, 'reports', reportId);
 }
 
 export type GenerateReportInput = {
@@ -86,7 +117,7 @@ export async function saveReport(
 async function downloadReport(report: GeneratedReport): Promise<string> {
   // The file name only tells the period: two reports of the same period
   // would overwrite each other without a folder of their own.
-  const directory = new Directory(Paths.document, 'reports', report.id);
+  const directory = reportFolder(report.id);
   directory.create({ intermediates: true, idempotent: true });
 
   const controller = new AbortController();

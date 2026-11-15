@@ -66,6 +66,15 @@ export type GeneratedReport = {
   professionalIdComplete: boolean;
 };
 
+export type StoredReport = {
+  id: string;
+  kind: 'GENERAL_REPORT' | 'TAX_PACKAGE';
+  fileName: string;
+  fileBytesSize: number;
+  period: { from: string; to: string } | null;
+  generatedAt: string;
+};
+
 export type ReportHistoryItem = {
   id: string;
   fileName: string;
