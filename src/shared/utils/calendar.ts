@@ -62,7 +62,6 @@ export function addMonths(
   return { year: date.getFullYear(), monthIndex: date.getMonth() };
 }
 
-/** The calendar date `amount` days after `calendarDate` (before, if negative). */
 export function addDays(calendarDate: string, amount: number): string {
   const date = fromCalendarDate(calendarDate);
 

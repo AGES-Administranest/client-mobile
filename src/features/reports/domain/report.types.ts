@@ -17,7 +17,6 @@ export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
  */
 export const MAX_REPORT_DAYS = 366;
 
-/** How the backend names each section of the general report (US29). */
 export type ReportSection =
   | 'FINANCIAL'
   | 'APPOINTMENTS'
@@ -53,7 +52,6 @@ export function knownCategories(values: readonly unknown[]): ReportCategory[] {
   return REPORT_CATEGORIES.filter(category => values.includes(category));
 }
 
-/** What POST /reports answers (US28). */
 export type GeneratedReport = {
   id: string;
   kind: 'GENERAL_REPORT';
