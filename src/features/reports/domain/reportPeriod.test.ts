@@ -1,4 +1,8 @@
-import { reportPeriodFor, reportToday } from './reportPeriod';
+import {
+  reportPeriodFor,
+  reportToday,
+  validateReportPeriod,
+} from './reportPeriod';
 
 // Midday in Sao Paulo (UTC-3), so the calendar day is the same in any zone.
 const noon = (year: number, month: number, day: number) =>
@@ -90,5 +94,26 @@ describe('reportToday', () => {
     ['2026-01-01T03:00:00Z', '2026-01-01'],
   ])('%s (UTC) is %s in Sao Paulo', (instant, expected) => {
     expect(reportToday(new Date(instant))).toBe(expected);
+  });
+});
+
+describe('validateReportPeriod', () => {
+  it.each([
+    ['the end one day before the start', '2026-11-02', '2026-11-01'],
+    ['the end in the month before', '2026-11-01', '2026-10-31'],
+    ['the end in the year before', '2026-01-01', '2025-12-31'],
+  ])('refuses %s', (_name, from, to) => {
+    expect(validateReportPeriod({ from, to })).toBe('END_BEFORE_START');
+  });
+
+  it.each([
+    ['a single day', '2026-11-01', '2026-11-01'],
+    ['the end one day after the start', '2026-11-01', '2026-11-02'],
+    ['a period across years', '2025-12-31', '2026-01-01'],
+    ['a period with no end yet', '2026-11-01', null],
+    ['a period with no start yet', null, '2026-11-01'],
+    ['an empty period', null, null],
+  ])('accepts %s', (_name, from, to) => {
+    expect(validateReportPeriod({ from, to })).toBeNull();
   });
 });

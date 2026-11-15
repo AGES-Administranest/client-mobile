@@ -56,7 +56,7 @@ export type GeneratedReport = {
   id: string;
   kind: 'GENERAL_REPORT';
   fileName: string;
-  period: { from: string; to: string };
+  period: ReportPeriod;
   sections: ReportSection[];
   generatedAt: string;
   /** Signed link to the PDF; it expires in minutes. */
@@ -66,19 +66,29 @@ export type GeneratedReport = {
   professionalIdComplete: boolean;
 };
 
-export type StoredReport = {
-  id: string;
-  kind: 'GENERAL_REPORT' | 'TAX_PACKAGE';
-  fileName: string;
-  fileBytesSize: number;
-  period: { from: string; to: string } | null;
-  generatedAt: string;
+export type StoredReportKind = 'GENERAL_REPORT' | 'TAX_PACKAGE';
+
+export type ReportPeriod = {
+  from: string;
+  to: string;
 };
 
 export type ReportHistoryItem = {
   id: string;
+  kind: StoredReportKind;
   fileName: string;
+  /** Null for a report just generated: POST /reports does not send the size. */
+  fileBytesSize: number | null;
+  period: ReportPeriod | null;
   generatedAt: string;
-  /** Ausente quando o arquivo não pôde ser salvo no aparelho (web). */
-  fileUri?: string;
+};
+
+export type ReportHistoryPage = {
+  items: ReportHistoryItem[];
+  hasMore: boolean;
+};
+
+export type ReportDownloadLink = {
+  url: string;
+  expiresAt: number;
 };

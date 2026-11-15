@@ -892,7 +892,10 @@
         "custom": "Custom"
       },
       "previousYear": "Previous year",
-      "nextYear": "Next year"
+      "nextYear": "Next year",
+      "errors": {
+        "endBeforeStart": "The end date cannot be before the start date."
+      }
     },
     "kinds": {
       "general": {
@@ -904,12 +907,52 @@
         "description": "The period's invoices gathered for income tax"
       }
     },
+    "availability": {
+      "empty": "There are no records in this period. Choose another period to generate the report."
+    },
     "history": {
       "title": "Report history",
       "viewAll": "View all",
       "empty": "No report generated yet.",
+      "loading": "Loading reports...",
+      "error": "Could not load the history.",
+      "loadingMore": "Loading more reports",
+      "loadMoreError": "Could not load more reports.",
       "back": "Back",
-      "shareFailed": "Could not share the report."
+      "period": "{{from}} to {{to}}",
+      "noPeriod": "Period not informed",
+      "generatedAt": "Generated on {{date}}",
+      "downloaded": "On this device",
+      "notInformed": "Not informed",
+      "shareFailed": "Could not share the report.",
+      "kinds": {
+        "GENERAL_REPORT": "General report",
+        "TAX_PACKAGE": "Package for the accountant"
+      }
+    },
+    "detail": {
+      "close": "Close",
+      "kind": "Type",
+      "period": "Period",
+      "generatedAt": "Generated on",
+      "fileName": "File",
+      "size": "Size",
+      "download": "Download report",
+      "open": "Open report",
+      "downloading": "Downloading report...",
+      "downloadFailed": "Could not download the report. Try again.",
+      "offline": "No connection. Connect to the internet to download this report.",
+      "missing": "This report is no longer available."
+    },
+    "delete": {
+      "button": "Delete",
+      "confirmTitle": "Delete report?",
+      "confirmMessage": "“{{name}}” leaves the history and its file is erased, including the copy on this device.",
+      "confirm": "Delete",
+      "confirming": "Deleting…",
+      "cancel": "Cancel",
+      "offline": "No connection. Deleting a report needs the internet.",
+      "failed": "Could not delete the report. Try again."
     },
     "seeAll": "See all",
     "addInvoice": "Add invoice",
@@ -2229,6 +2272,83 @@
     },
     "pendingNotice": "Your profile changes are saved on this device and will be sent when you are back online.",
     "rejectedNotice": "The profile change made offline was refused. Your data went back to the last saved.",
-    "rejectedDismiss": "Got it"
+    "rejectedDismiss": "Got it",
+    "privacy": {
+      "menu": "Privacy",
+      "title": "Privacy",
+      "acceptedVersion": "Accepted policy version",
+      "acceptedAt": "Date accepted",
+      "acceptedNote": "This is the latest acceptance recorded on your account."
+    },
+    "deleteAccount": {
+      "menu": "Delete account",
+      "title": "Delete account",
+      "heading": "This action is irreversible",
+      "description": "When you delete your account you lose access to the app and your data is removed according to our retention policy and applicable legal obligations.",
+      "removedTitle": "What will be removed?",
+      "items": {
+        "appointments": "Appointments",
+        "invoices": "Invoices and files",
+        "finance": "Financial control",
+        "stock": "Stock",
+        "vehicles": "Vehicles",
+        "equipment": "Equipment",
+        "reports": "Reports"
+      },
+      "retentionNotice": "Some data may be kept for the period required by legal or regulatory obligations, as described in our Privacy Policy.",
+      "confirmPrompt": "To confirm the deletion, enter your current password.",
+      "passwordLabel": "Current password",
+      "passwordPlaceholder": "Enter your current password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Delete my account",
+      "tryAgain": "Try again",
+      "cancel": "Cancel",
+      "deleting": {
+        "title": "Deleting your account...",
+        "message": "We are processing your request. This may take a few moments."
+      },
+      "wrongPassword": {
+        "title": "Incorrect password",
+        "message": "We could not confirm your identity. Check your password and try again."
+      },
+      "offline": {
+        "title": "No connection",
+        "message": "Deleting the account requires an internet connection. Connect and try again."
+      },
+      "reauth": {
+        "title": "Confirm your identity",
+        "message": "We could not confirm your recent sign in. Enter your password and try again."
+      },
+      "incomplete": {
+        "title": "Deletion not finished",
+        "message": "Your data has already been removed, but closing the account did not finish. Try again to complete it.",
+        "action": "Finish deletion"
+      },
+      "failed": {
+        "title": "Could not delete",
+        "message": "Something went wrong while deleting your account. Nothing was removed. Please try again shortly."
+      },
+      "success": {
+        "title": "Account deleted successfully",
+        "message": "Your account was removed and you can no longer access the app with these credentials.",
+        "action": "Back to start"
+      }
+    }
+  },
+  "legal": {
+    "unavailable": "Document unavailable right now. Please try again later.",
+    "privacyPolicy": {
+      "link": "Privacy Policy",
+      "title": "Privacy Policy",
+      "description": "Learn how your personal data is collected, used, stored and protected.",
+      "action": "View full policy"
+    },
+    "termsOfUse": {
+      "link": "Terms of Use",
+      "title": "Terms of Use",
+      "description": "Read the conditions and responsibilities for using the app.",
+      "action": "View full terms"
+    }
   }
 }

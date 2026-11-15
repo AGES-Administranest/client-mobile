@@ -1,235 +1,251 @@
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { NetworkError } from 'shared/api';
-import { ApiError, RequestTimeoutError } from 'shared/services/apiClient';
-
-import { useReportHistory, type ReportHistoryState } from './useReportHistory';
-import {
-  REPORT_CATEGORIES,
-  type GeneratedReport,
+import { useReportHistory } from './useReportHistory';
+import type {
+  ReportHistoryItem,
+  ReportHistoryPage,
 } from '../domain/report.types';
-import {
-  createReport,
-  ReportDownloadError,
-  saveReport,
-} from '../services/reportHistoryService';
-import {
-  loadLastSelection,
-  saveLastSelection,
-} from '../services/reportSelectionStore';
-
-let mockAccount: { id: string } | null = { id: 'user-1' };
+import { findLocalReport } from '../services/reportFileStore';
+import { fetchReportHistory } from '../services/reportHistoryService';
 
 jest.mock('features/auth', () => ({
   useAuth: () => ({
     session: { idToken: 'id-token' },
-    account: mockAccount,
+    account: { id: 'user-1' },
   }),
 }));
+
 jest.mock('../services/reportHistoryService', () => ({
-  fetchReportHistory: jest.fn(() => Promise.resolve([])),
-  createReport: jest.fn(),
-  saveReport: jest.fn(),
-  shareReport: jest.fn(),
-  ReportDownloadError: class extends Error {},
-}));
-jest.mock('../services/reportSelectionStore', () => ({
-  loadLastSelection: jest.fn(),
-  saveLastSelection: jest.fn(() => Promise.resolve()),
+  fetchReportHistory: jest.fn(),
 }));
 
-const createMock = createReport as jest.Mock;
-const saveMock = saveReport as jest.Mock;
+jest.mock('../services/reportFileStore', () => ({
+  findLocalReport: jest.fn(),
+}));
 
-const INPUT = {
-  categories: ['financial', 'travel'] as const,
-  from: '2026-10-15',
-  to: '2026-11-14',
-};
+const fetchMock = fetchReportHistory as jest.MockedFunction<
+  typeof fetchReportHistory
+>;
+const findLocalMock = findLocalReport as jest.MockedFunction<
+  typeof findLocalReport
+>;
 
-const NOW = Date.parse('2026-11-14T12:00:00Z');
+function report(id: string, day: number): ReportHistoryItem {
+  return {
+    id,
+    kind: 'GENERAL_REPORT',
+    fileName: `${id}.pdf`,
+    fileBytesSize: 100,
+    period: { from: '2026-10-01', to: '2026-10-31' },
+    generatedAt: `2026-11-${String(day).padStart(2, '0')}T10:00:00.000Z`,
+  };
+}
 
-const GENERATED: GeneratedReport = {
-  id: 'report-1',
-  kind: 'GENERAL_REPORT',
-  fileName: 'a.pdf',
-  period: { from: INPUT.from, to: INPUT.to },
-  sections: ['FINANCIAL', 'TRIPS'],
-  generatedAt: '2026-11-12T00:00:00Z',
-  downloadUrl: 'https://bucket.example/report-1',
-  downloadUrlExpiresAt: NOW + 5 * 60_000,
-  professionalIdComplete: true,
-};
+function pageOf(
+  reports: ReportHistoryItem[],
+  hasMore: boolean,
+): ReportHistoryPage {
+  return { items: reports, hasMore };
+}
 
-const SAVED = {
-  id: 'report-1',
-  fileName: 'a.pdf',
-  generatedAt: '2026-11-12T00:00:00Z',
-  fileUri: 'file:///a.pdf',
-};
+function renderHistory() {
+  const result = {
+    current: null as unknown as ReturnType<typeof useReportHistory>,
+  };
 
-async function renderHook(): Promise<{ current: ReportHistoryState }> {
-  const result = {} as { current: ReportHistoryState };
-  function Probe() {
+  function TestHarness() {
     result.current = useReportHistory();
     return null;
   }
-  await act(async () => {
-    ReactTestRenderer.create(<Probe />);
+
+  act(() => {
+    ReactTestRenderer.create(<TestHarness />);
   });
+
   return result;
 }
 
-async function generate(
-  hook: { current: ReportHistoryState },
-  input: Parameters<ReportHistoryState['generate']>[0] = {
-    ...INPUT,
-    categories: [...INPUT.categories],
-  },
-) {
-  let result;
+async function flush() {
   await act(async () => {
-    result = await hook.current.generate(input);
+    await Promise.resolve();
   });
-  return result;
 }
+
+const ids = (list: ReportHistoryItem[]) => list.map(item => item.id);
 
 beforeEach(() => {
-  jest.clearAllMocks();
-  jest.spyOn(Date, 'now').mockReturnValue(NOW);
-  mockAccount = { id: 'user-1' };
-  (loadLastSelection as jest.Mock).mockResolvedValue([...REPORT_CATEGORIES]);
-  createMock.mockResolvedValue(GENERATED);
-  saveMock.mockResolvedValue(SAVED);
-});
-
-afterEach(() => {
-  jest.restoreAllMocks();
+  fetchMock.mockReset();
+  findLocalMock.mockReset();
+  findLocalMock.mockReturnValue(null);
 });
 
 describe('useReportHistory', () => {
-  it('starts from the last selection of the user', async () => {
-    (loadLastSelection as jest.Mock).mockResolvedValue(['travel']);
+  it('lists the first page, newest generation first', async () => {
+    fetchMock.mockResolvedValue(
+      pageOf([report('old', 1), report('new', 12)], false),
+    );
 
-    const hook = await renderHook();
+    const result = renderHistory();
+    expect(result.current.isLoading).toBe(true);
+    await flush();
 
-    expect(loadLastSelection).toHaveBeenCalledWith('user-1');
-    expect(hook.current.lastSelection).toEqual(['travel']);
+    expect(fetchMock).toHaveBeenCalledWith('id-token', 1);
+    expect(result.current.isLoading).toBe(false);
+    expect(ids(result.current.reports)).toEqual(['new', 'old']);
   });
 
-  it('offers every section while nothing is remembered', async () => {
-    mockAccount = null;
+  it('shows the error and loads again on retry', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('offline'));
+    fetchMock.mockResolvedValueOnce(pageOf([report('a', 1)], false));
 
-    const hook = await renderHook();
+    const result = renderHistory();
+    await flush();
+    expect(result.current.hasError).toBe(true);
+    expect(result.current.reports).toEqual([]);
 
-    expect(loadLastSelection).not.toHaveBeenCalled();
-    expect(hook.current.lastSelection).toEqual([...REPORT_CATEGORIES]);
+    act(() => result.current.retry());
+    await flush();
+
+    expect(result.current.hasError).toBe(false);
+    expect(ids(result.current.reports)).toEqual(['a']);
   });
 
-  it('adds the report to the list and remembers the sections', async () => {
-    const hook = await renderHook();
+  it('appends the next page without repeating a report', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) =>
+      report(`r${index}`, 28 - index),
+    );
+    fetchMock.mockResolvedValueOnce(pageOf(firstPage, true));
+    fetchMock.mockResolvedValueOnce(
+      pageOf([firstPage[19], report('last', 1)], false),
+    );
 
-    const result = await generate(hook);
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
 
-    expect(result).toEqual({ ok: true });
-    expect(saveMock).toHaveBeenCalledWith(GENERATED);
-    expect(hook.current.items.map(item => item.id)).toEqual(['report-1']);
-    expect(hook.current.lastSelection).toEqual(['financial', 'travel']);
-    expect(saveLastSelection).toHaveBeenCalledWith('user-1', [
-      'financial',
-      'travel',
-    ]);
+    expect(fetchMock).toHaveBeenLastCalledWith('id-token', 2);
+    expect(ids(result.current.reports)).toEqual([...ids(firstPage), 'last']);
+    expect(result.current.hasMore).toBe(false);
   });
 
-  it('asks the backend once when generate is called twice in a row', async () => {
-    const hook = await renderHook();
+  it('does not ask for another page after the last one', async () => {
+    fetchMock.mockResolvedValue(pageOf([report('a', 1)], false));
 
-    await act(async () => {
-      const input = { ...INPUT, categories: [...INPUT.categories] };
-      await Promise.all([
-        hook.current.generate(input),
-        hook.current.generate(input),
-      ]);
-    });
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
 
-    expect(createMock).toHaveBeenCalledTimes(1);
-    expect(hook.current.items).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it.each([
-    ['no connection', new NetworkError('down'), 'offline'],
-    [
-      'no answer in time',
-      new RequestTimeoutError('POST', '/reports', 60_000),
-      'offline',
-    ],
-    [
-      'a period longer than a year',
-      new ApiError('too long', 'REPORT_PERIOD_TOO_LONG', 400),
-      'periodTooLong',
-    ],
-    [
-      'a refusal of the API',
-      new ApiError('no', 'REPORT_SECTIONS_EMPTY', 400),
-      'failed',
-    ],
-    ['an unexpected error', new Error('boom'), 'failed'],
-  ])('reports %s and remembers nothing', async (_name, error, reason) => {
-    createMock.mockRejectedValue(error);
-    const hook = await renderHook();
+  it('keeps the list when the next page fails', async () => {
+    fetchMock.mockResolvedValueOnce(pageOf([report('a', 1)], true));
+    fetchMock.mockRejectedValueOnce(new Error('offline'));
 
-    const result = await generate(hook);
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
 
-    expect(result).toEqual({ ok: false, reason });
-    expect(saveMock).not.toHaveBeenCalled();
-    expect(hook.current.isGenerating).toBe(false);
-    expect(hook.current.items).toEqual([]);
-    expect(saveLastSelection).not.toHaveBeenCalled();
+    expect(result.current.loadMoreFailed).toBe(true);
+    expect(ids(result.current.reports)).toEqual(['a']);
   });
 
-  describe('when the PDF does not reach the device', () => {
-    beforeEach(() => {
-      saveMock.mockRejectedValueOnce(new ReportDownloadError('lost'));
-    });
+  it('waits for the person to ask again after the next page failed', async () => {
+    fetchMock.mockResolvedValueOnce(pageOf([report('b', 2)], true));
+    fetchMock.mockRejectedValueOnce(new Error('offline'));
+    fetchMock.mockResolvedValueOnce(pageOf([report('a', 1)], false));
 
-    it('says the report was generated but not downloaded', async () => {
-      const hook = await renderHook();
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
 
-      const result = await generate(hook);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
 
-      expect(result).toEqual({ ok: false, reason: 'downloadFailed' });
-      expect(hook.current.items).toEqual([]);
-    });
+    act(() => result.current.retryLoadMore());
+    await flush();
 
-    it('downloads the same report again instead of generating another', async () => {
-      const hook = await renderHook();
-      await generate(hook);
+    expect(result.current.loadMoreFailed).toBe(false);
+    expect(ids(result.current.reports)).toEqual(['b', 'a']);
+  });
 
-      const result = await generate(hook);
+  it('asks the first page again after a deletion, so no report is skipped', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) =>
+      report(`r${index}`, 28 - index),
+    );
+    fetchMock.mockResolvedValueOnce(pageOf(firstPage, true));
+    fetchMock.mockResolvedValueOnce(
+      pageOf([...firstPage.slice(1), report('moved-up', 1)], true),
+    );
 
-      expect(result).toEqual({ ok: true });
-      expect(createMock).toHaveBeenCalledTimes(1);
-      expect(saveMock).toHaveBeenCalledTimes(2);
-      expect(hook.current.items.map(item => item.id)).toEqual(['report-1']);
-    });
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.forget('r0'));
+    act(() => result.current.loadMore());
+    await flush();
 
-    it('generates again for other sections', async () => {
-      const hook = await renderHook();
-      await generate(hook);
+    expect(fetchMock).toHaveBeenLastCalledWith('id-token', 1);
+    expect(ids(result.current.reports)).toHaveLength(20);
+    expect(ids(result.current.reports)).toContain('moved-up');
+    expect(result.current.hasMore).toBe(true);
+  });
 
-      await generate(hook, { ...INPUT, categories: ['financial'] });
+  it('stops asking when a full page brings nothing new', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) =>
+      report(`r${index}`, 28 - index),
+    );
+    fetchMock.mockResolvedValueOnce(pageOf(firstPage, true));
+    fetchMock.mockResolvedValueOnce(pageOf(firstPage, true));
 
-      expect(createMock).toHaveBeenCalledTimes(2);
-    });
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
 
-    it('generates again once the download link expired', async () => {
-      const hook = await renderHook();
-      await generate(hook);
-      jest.spyOn(Date, 'now').mockReturnValue(GENERATED.downloadUrlExpiresAt);
+    expect(result.current.hasMore).toBe(false);
+  });
 
-      await generate(hook);
+  it('puts a report just generated at the top', async () => {
+    fetchMock.mockResolvedValue(pageOf([report('old', 1)], false));
 
-      expect(createMock).toHaveBeenCalledTimes(2);
-    });
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.add(report('new', 12)));
+
+    expect(ids(result.current.reports)).toEqual(['new', 'old']);
+  });
+
+  it('marks the reports that already have a copy on the device', async () => {
+    findLocalMock.mockImplementation((_user, item) =>
+      item.id === 'kept' ? { uri: 'file://kept', name: 'k' } : null,
+    );
+    fetchMock.mockResolvedValue(
+      pageOf([report('kept', 2), report('remote', 1)], false),
+    );
+
+    const result = renderHistory();
+    await flush();
+
+    expect([...result.current.downloadedIds]).toEqual(['kept']);
+
+    act(() => result.current.markDownloaded('remote'));
+    expect(result.current.downloadedIds.has('remote')).toBe(true);
+  });
+
+  it('drops a deleted report from the list', async () => {
+    fetchMock.mockResolvedValue(
+      pageOf([report('a', 2), report('b', 1)], false),
+    );
+
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.forget('a'));
+
+    expect(ids(result.current.reports)).toEqual(['b']);
   });
 });

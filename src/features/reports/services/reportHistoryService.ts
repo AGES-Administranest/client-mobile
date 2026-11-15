@@ -1,23 +1,22 @@
-import { Directory, File, Paths } from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import * as WebBrowser from 'expo-web-browser';
-import { Platform } from 'react-native';
+import { ApiError, apiClient } from 'shared/services/apiClient';
 
-import { apiClient } from 'shared/services/apiClient';
-
+import { downloadInBrowser } from './reportFileOpener';
+import { canKeepReportFiles, saveReportFile } from './reportFileStore';
 import {
   sectionsOf,
   type GeneratedReport,
   type ReportCategory,
+  type ReportDownloadLink,
   type ReportHistoryItem,
-  type StoredReport,
+  type ReportHistoryPage,
 } from '../domain/report.types';
+import {
+  hasMorePages,
+  REPORT_HISTORY_PAGE_SIZE,
+} from '../domain/reportHistory';
 
 // A long period draws many pages on the server.
 export const GENERATE_TIMEOUT_MS = 60_000;
-
-// Without a limit a stalled download would keep the sheet busy for good.
-export const DOWNLOAD_TIMEOUT_MS = 60_000;
 
 /**
  * The report exists on the server, but its PDF did not reach the device:
@@ -30,42 +29,58 @@ export class ReportDownloadError extends Error {
   }
 }
 
-// The history screen has no paging yet: one page of the largest size the
-// backend allows covers it.
-export const HISTORY_PAGE_SIZE = 100;
+export function isReportNotFound(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    error.status === 404 &&
+    error.code === 'REPORT_NOT_FOUND'
+  );
+}
 
+// No userId: the backend scopes the history to the token's owner and refuses
+// the field with 400.
 export async function fetchReportHistory(
   idToken: string,
-): Promise<ReportHistoryItem[]> {
+  page = 1,
+  limit = REPORT_HISTORY_PAGE_SIZE,
+): Promise<ReportHistoryPage> {
   const query = new URLSearchParams({
-    kind: 'GENERAL_REPORT',
-    limit: String(HISTORY_PAGE_SIZE),
+    page: String(page),
+    limit: String(limit),
   });
-  const reports = await apiClient.get<StoredReport[]>(
+  const items = await apiClient.get<ReportHistoryItem[]>(
     `/reports?${query.toString()}`,
     { token: idToken },
   );
 
-  return reports.map(report => ({
-    id: report.id,
-    fileName: report.fileName,
-    generatedAt: report.generatedAt,
-    fileUri: savedFileUri(report),
-  }));
+  return { items, hasMore: hasMorePages(items.length, limit) };
 }
 
-// A PDF downloaded before stays on the device: finding it keeps the card
-// shareable after the list is loaded again.
-function savedFileUri(report: StoredReport): string | undefined {
-  if (Platform.OS === 'web') {
-    return undefined;
+export function fetchReportDownloadLink(
+  idToken: string,
+  reportId: string,
+): Promise<ReportDownloadLink> {
+  return apiClient.get<ReportDownloadLink>(
+    `/reports/${encodeURIComponent(reportId)}/file`,
+    { token: idToken },
+  );
+}
+
+// A report already gone (deleted on another device) is what the person asked
+// for, so a 404 counts as deleted.
+export async function deleteReport(
+  idToken: string,
+  reportId: string,
+): Promise<void> {
+  try {
+    await apiClient.delete<void>(`/reports/${encodeURIComponent(reportId)}`, {
+      token: idToken,
+    });
+  } catch (error) {
+    if (!isReportNotFound(error)) {
+      throw error;
+    }
   }
-  const file = new File(reportFolder(report.id), report.fileName);
-  return file.exists ? file.uri : undefined;
-}
-
-function reportFolder(reportId: string): Directory {
-  return new Directory(Paths.document, 'reports', reportId);
 }
 
 export type GenerateReportInput = {
@@ -86,64 +101,29 @@ export function createReport(
 }
 
 /**
- * Saves the PDF on the device, so it can be shared later without a
+ * Saves the PDF on the device, so it can be opened later without a
  * connection (US31). The download link is already signed: it needs no token.
  */
 export async function saveReport(
+  userId: string,
   report: GeneratedReport,
 ): Promise<ReportHistoryItem> {
-  const item: ReportHistoryItem = {
-    id: report.id,
-    fileName: report.fileName,
-    generatedAt: report.generatedAt,
-  };
-
   try {
-    if (Platform.OS === 'web') {
-      // The signed URL sends an attachment; using this tab avoids popup
-      // blocking after a slow generation and keeps the app open.
-      await WebBrowser.openBrowserAsync(report.downloadUrl, {
-        windowName: '_self',
-      });
-      return item;
+    if (canKeepReportFiles) {
+      await saveReportFile(userId, report, report.downloadUrl);
+    } else {
+      await downloadInBrowser(report.downloadUrl);
     }
-
-    return { ...item, fileUri: await downloadReport(report) };
   } catch (error) {
     throw new ReportDownloadError(error);
   }
-}
 
-async function downloadReport(report: GeneratedReport): Promise<string> {
-  // The file name only tells the period: two reports of the same period
-  // would overwrite each other without a folder of their own.
-  const directory = reportFolder(report.id);
-  directory.create({ intermediates: true, idempotent: true });
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
-
-  try {
-    const file = await File.downloadFileAsync(
-      report.downloadUrl,
-      new File(directory, report.fileName),
-      { idempotent: true, signal: controller.signal },
-    );
-    return file.uri;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-export async function shareReport(fileUri: string): Promise<boolean> {
-  if (!(await Sharing.isAvailableAsync())) {
-    return false;
-  }
-
-  await Sharing.shareAsync(fileUri, {
-    mimeType: 'application/pdf',
-    UTI: 'com.adobe.pdf',
-  });
-
-  return true;
+  return {
+    id: report.id,
+    kind: report.kind,
+    fileName: report.fileName,
+    fileBytesSize: null,
+    period: report.period,
+    generatedAt: report.generatedAt,
+  };
 }
