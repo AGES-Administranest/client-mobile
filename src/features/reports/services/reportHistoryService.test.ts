@@ -1,71 +1,38 @@
-import { File as ExpoFile } from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import * as WebBrowser from 'expo-web-browser';
-import { Platform } from 'react-native';
+import { ApiError, apiClient } from 'shared/services/apiClient';
 
-import { apiClient } from 'shared/services/apiClient';
-
+import { downloadInBrowser } from './reportFileOpener';
+import { saveReportFile } from './reportFileStore';
 import {
   createReport,
-  DOWNLOAD_TIMEOUT_MS,
+  deleteReport,
+  fetchReportDownloadLink,
   fetchReportHistory,
   GENERATE_TIMEOUT_MS,
-  HISTORY_PAGE_SIZE,
   ReportDownloadError,
   saveReport,
-  shareReport,
 } from './reportHistoryService';
-import type { GeneratedReport, StoredReport } from '../domain/report.types';
+import type { GeneratedReport } from '../domain/report.types';
 
 jest.mock('shared/services/apiClient', () => ({
-  apiClient: { get: jest.fn(), post: jest.fn() },
+  ...jest.requireActual('shared/services/apiClient'),
+  apiClient: { get: jest.fn(), post: jest.fn(), delete: jest.fn() },
 }));
 
-jest.mock('expo-sharing', () => ({
-  isAvailableAsync: jest.fn(),
-  shareAsync: jest.fn(),
+jest.mock('./reportFileOpener', () => ({ downloadInBrowser: jest.fn() }));
+
+jest.mock('./reportFileStore', () => ({
+  canKeepReportFiles: true,
+  saveReportFile: jest.fn(),
 }));
-
-jest.mock('expo-web-browser', () => ({
-  openBrowserAsync: jest.fn().mockResolvedValue({ type: 'opened' }),
-}));
-
-jest.mock('expo-file-system', () => {
-  const join = (...parts: unknown[]) =>
-    parts
-      .map(part =>
-        typeof part === 'string' ? part : (part as { uri: string }).uri,
-      )
-      .join('/');
-
-  class Directory {
-    uri: string;
-    constructor(...parts: unknown[]) {
-      this.uri = join(...parts);
-    }
-    create = jest.fn();
-  }
-  class File {
-    static savedUris = new Set<string>();
-    uri: string;
-    constructor(...parts: unknown[]) {
-      this.uri = join(...parts);
-    }
-    get exists() {
-      return File.savedUris.has(this.uri);
-    }
-    static downloadFileAsync = jest.fn(
-      (_url: string, destination: { uri: string }) =>
-        Promise.resolve(destination),
-    );
-  }
-  return { Directory, File, Paths: { document: { uri: 'file:///documents' } } };
-});
 
 const get = apiClient.get as jest.Mock;
 const post = apiClient.post as jest.Mock;
-const savedUris = (ExpoFile as unknown as { savedUris: Set<string> }).savedUris;
-const download = ExpoFile.downloadFileAsync as unknown as jest.Mock;
+const remove = apiClient.delete as jest.Mock;
+const saveFileMock = saveReportFile as jest.Mock;
+const browserMock = downloadInBrowser as jest.Mock;
+const store = jest.requireMock('./reportFileStore') as {
+  canKeepReportFiles: boolean;
+};
 
 const GENERATED: GeneratedReport = {
   id: 'report-1',
@@ -79,76 +46,101 @@ const GENERATED: GeneratedReport = {
   professionalIdComplete: true,
 };
 
-const originalOs = Platform.OS;
-
-beforeEach(() => {
-  jest.clearAllMocks();
-  savedUris.clear();
-  post.mockResolvedValue(GENERATED);
-  Platform.OS = 'ios';
-});
-
-afterAll(() => {
-  Platform.OS = originalOs;
-});
-
-const INPUT = {
-  categories: ['travel', 'financial'] as const,
-  from: '2026-10-15',
-  to: '2026-11-14',
-};
-
-const STORED: StoredReport = {
+const LISTED = {
   id: 'report-1',
   kind: 'GENERAL_REPORT',
   fileName: GENERATED.fileName,
-  fileBytesSize: 40_333,
-  period: { from: '2026-10-15', to: '2026-11-14' },
+  fileBytesSize: null,
+  period: GENERATED.period,
   generatedAt: GENERATED.generatedAt,
 };
 
+function items(count: number) {
+  return Array.from({ length: count }, (_, index) => ({
+    ...LISTED,
+    id: `report-${index}`,
+    fileBytesSize: 100,
+  }));
+}
+
+beforeEach(() => {
+  jest.resetAllMocks();
+  store.canKeepReportFiles = true;
+});
+
 describe('fetchReportHistory', () => {
-  it('lists the general reports kept by the backend', async () => {
-    get.mockResolvedValue([STORED]);
+  it('asks for the page and the limit with the token, never a userId', async () => {
+    get.mockResolvedValue([]);
 
-    await expect(fetchReportHistory('id-token')).resolves.toEqual([
-      {
-        id: 'report-1',
-        fileName: GENERATED.fileName,
-        generatedAt: GENERATED.generatedAt,
-        fileUri: undefined,
-      },
-    ]);
-    expect(get).toHaveBeenCalledWith(
-      `/reports?kind=GENERAL_REPORT&limit=${HISTORY_PAGE_SIZE}`,
-      { token: 'id-token' },
-    );
+    await fetchReportHistory('token', 3, 10);
+
+    expect(get).toHaveBeenCalledWith('/reports?page=3&limit=10', {
+      token: 'token',
+    });
   });
 
-  it('finds the PDF already saved on the device', async () => {
-    const fileUri = `file:///documents/reports/report-1/${GENERATED.fileName}`;
-    savedUris.add(fileUri);
-    get.mockResolvedValue([STORED, { ...STORED, id: 'report-2' }]);
+  it('says there is more when the page came full', async () => {
+    get.mockResolvedValue(items(2));
 
-    const items = await fetchReportHistory('id-token');
-
-    expect(items.map(item => item.fileUri)).toEqual([fileUri, undefined]);
+    await expect(fetchReportHistory('token', 1, 2)).resolves.toMatchObject({
+      hasMore: true,
+    });
   });
 
-  it('looks for no file on the web', async () => {
-    Platform.OS = 'web';
-    savedUris.add(`file:///documents/reports/report-1/${GENERATED.fileName}`);
-    get.mockResolvedValue([STORED]);
+  it('says it is the last page when it came shorter than the limit', async () => {
+    get.mockResolvedValue(items(1));
 
-    const [item] = await fetchReportHistory('id-token');
+    await expect(fetchReportHistory('token', 1, 2)).resolves.toMatchObject({
+      hasMore: false,
+    });
+  });
+});
 
-    expect(item.fileUri).toBeUndefined();
+describe('fetchReportDownloadLink', () => {
+  it('asks the file route of that report', async () => {
+    get.mockResolvedValue({ url: 'https://s3/file', expiresAt: 1 });
+
+    await expect(fetchReportDownloadLink('token', 'abc')).resolves.toEqual({
+      url: 'https://s3/file',
+      expiresAt: 1,
+    });
+    expect(get).toHaveBeenCalledWith('/reports/abc/file', { token: 'token' });
+  });
+});
+
+describe('deleteReport', () => {
+  it('sends the DELETE with the token', async () => {
+    remove.mockResolvedValue(undefined);
+
+    await deleteReport('token', 'abc');
+
+    expect(remove).toHaveBeenCalledWith('/reports/abc', { token: 'token' });
+  });
+
+  it('counts a report already gone as deleted', async () => {
+    remove.mockRejectedValue(new ApiError('gone', 'REPORT_NOT_FOUND', 404));
+
+    await expect(deleteReport('token', 'abc')).resolves.toBeUndefined();
+  });
+
+  it('lets any other failure through', async () => {
+    remove.mockRejectedValue(new ApiError('boom', null, 500));
+
+    await expect(deleteReport('token', 'abc')).rejects.toThrow('boom');
   });
 });
 
 describe('createReport', () => {
   it('asks the backend for the PDF with the sections it knows', async () => {
-    await expect(createReport('id-token', INPUT)).resolves.toBe(GENERATED);
+    post.mockResolvedValue(GENERATED);
+
+    await expect(
+      createReport('id-token', {
+        categories: ['travel', 'financial'],
+        from: '2026-10-15',
+        to: '2026-11-14',
+      }),
+    ).resolves.toBe(GENERATED);
 
     expect(post).toHaveBeenCalledWith(
       '/reports',
@@ -163,88 +155,32 @@ describe('createReport', () => {
 });
 
 describe('saveReport', () => {
-  it('saves the PDF on the device in a folder of its own', async () => {
-    const item = await saveReport(GENERATED);
+  it('keeps the PDF on the device, under its owner, and lists the report', async () => {
+    const item = await saveReport('user-1', GENERATED);
 
-    const fileUri = `file:///documents/reports/report-1/${GENERATED.fileName}`;
-    expect(download).toHaveBeenCalledWith(
+    expect(saveFileMock).toHaveBeenCalledWith(
+      'user-1',
+      GENERATED,
       GENERATED.downloadUrl,
-      expect.objectContaining({ uri: fileUri }),
-      expect.objectContaining({ idempotent: true }),
     );
-    expect(item).toEqual({
-      id: 'report-1',
-      fileName: GENERATED.fileName,
-      generatedAt: GENERATED.generatedAt,
-      fileUri,
-    });
-  });
-
-  it('keeps two reports of the same period apart', async () => {
-    const first = await saveReport(GENERATED);
-    const second = await saveReport({ ...GENERATED, id: 'report-2' });
-
-    expect(first.fileUri).not.toBe(second.fileUri);
-  });
-
-  it('gives up on a download that does not finish in time', async () => {
-    jest.useFakeTimers();
-    let signal: AbortSignal | undefined;
-    download.mockImplementationOnce(
-      (_url: string, _to: unknown, options: { signal: AbortSignal }) =>
-        new Promise((_resolve, reject) => {
-          signal = options.signal;
-          signal.addEventListener('abort', () => reject(new Error('aborted')));
-        }),
-    );
-
-    const saving = saveReport(GENERATED);
-    jest.advanceTimersByTime(DOWNLOAD_TIMEOUT_MS);
-
-    await expect(saving).rejects.toBeInstanceOf(ReportDownloadError);
-    expect(signal?.aborted).toBe(true);
-    jest.useRealTimers();
+    expect(item).toEqual(LISTED);
   });
 
   it('tells a failed download apart from a failed generation', async () => {
-    download.mockRejectedValueOnce(new Error('connection lost'));
+    saveFileMock.mockRejectedValueOnce(new Error('connection lost'));
 
-    await expect(saveReport(GENERATED)).rejects.toBeInstanceOf(
+    await expect(saveReport('user-1', GENERATED)).rejects.toBeInstanceOf(
       ReportDownloadError,
     );
   });
 
-  it('downloads in the current tab so a slow generation needs no popup', async () => {
-    Platform.OS = 'web';
+  it('downloads through the browser where the app keeps no file', async () => {
+    store.canKeepReportFiles = false;
 
-    const item = await saveReport(GENERATED);
+    const item = await saveReport('user-1', GENERATED);
 
-    expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
-      GENERATED.downloadUrl,
-      { windowName: '_self' },
-    );
-    expect(download).not.toHaveBeenCalled();
-    expect(item.fileUri).toBeUndefined();
-  });
-});
-
-describe('shareReport', () => {
-  it('shares the file as a PDF', async () => {
-    (Sharing.isAvailableAsync as jest.Mock).mockResolvedValue(true);
-
-    await expect(shareReport('file:///documents/reports/a.pdf')).resolves.toBe(
-      true,
-    );
-    expect(Sharing.shareAsync).toHaveBeenCalledWith(
-      'file:///documents/reports/a.pdf',
-      { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' },
-    );
-  });
-
-  it('answers false where sharing is not available', async () => {
-    (Sharing.isAvailableAsync as jest.Mock).mockResolvedValue(false);
-
-    await expect(shareReport('file:///a.pdf')).resolves.toBe(false);
-    expect(Sharing.shareAsync).not.toHaveBeenCalled();
+    expect(browserMock).toHaveBeenCalledWith(GENERATED.downloadUrl);
+    expect(saveFileMock).not.toHaveBeenCalled();
+    expect(item).toEqual(LISTED);
   });
 });

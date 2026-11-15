@@ -908,8 +908,45 @@
       "title": "Histórico de relatórios",
       "viewAll": "Ver todos",
       "empty": "Nenhum relatório gerado ainda.",
+      "loading": "Carregando relatórios...",
+      "error": "Não foi possível carregar o histórico.",
+      "loadingMore": "Carregando mais relatórios",
+      "loadMoreError": "Não foi possível carregar mais relatórios.",
       "back": "Voltar",
-      "shareFailed": "Não foi possível compartilhar o relatório."
+      "period": "{{from}} a {{to}}",
+      "noPeriod": "Período não informado",
+      "generatedAt": "Gerado em {{date}}",
+      "downloaded": "No aparelho",
+      "notInformed": "Não informado",
+      "shareFailed": "Não foi possível compartilhar o relatório.",
+      "kinds": {
+        "GENERAL_REPORT": "Relatório geral",
+        "TAX_PACKAGE": "Pacote para o contador"
+      }
+    },
+    "detail": {
+      "close": "Fechar",
+      "kind": "Tipo",
+      "period": "Período",
+      "generatedAt": "Gerado em",
+      "fileName": "Arquivo",
+      "size": "Tamanho",
+      "download": "Baixar relatório",
+      "open": "Abrir relatório",
+      "downloading": "Baixando relatório...",
+      "downloadFailed": "Não foi possível baixar o relatório. Tente novamente.",
+      "offline": "Sem conexão. Conecte-se à internet para baixar este relatório.",
+      "missing": "Este relatório não está mais disponível."
+    },
+    "delete": {
+      "button": "Excluir",
+      "confirmTitle": "Excluir relatório?",
+      "confirmMessage": "“{{name}}” sai do histórico e o arquivo é apagado, inclusive a cópia deste aparelho.",
+      "confirm": "Excluir",
+      "confirming": "Excluindo…",
+      "cancel": "Cancelar",
+      "offline": "Sem conexão. Excluir um relatório exige internet.",
+      "failed": "Não foi possível excluir o relatório. Tente novamente."
     },
     "seeAll": "Ver todos",
     "addInvoice": "Adicionar nota",

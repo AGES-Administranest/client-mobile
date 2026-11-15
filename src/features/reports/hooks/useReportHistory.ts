@@ -1,192 +1,178 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from 'features/auth';
-import { ApiError } from 'shared/services/apiClient';
-import { isNetworkError } from 'shared/utils/network';
 
+import type { ReportHistoryItem } from '../domain/report.types';
 import {
-  REPORT_CATEGORIES,
-  sectionsOf,
-  type GeneratedReport,
-  type ReportCategory,
-  type ReportHistoryItem,
-} from '../domain/report.types';
-import {
-  createReport,
-  fetchReportHistory,
-  ReportDownloadError,
-  saveReport,
-  shareReport,
-  type GenerateReportInput,
-} from '../services/reportHistoryService';
-import {
-  loadLastSelection,
-  saveLastSelection,
-} from '../services/reportSelectionStore';
+  bringsNewReports,
+  mergeReportPages,
+  nextHistoryPage,
+  REPORT_HISTORY_PAGE_SIZE,
+  withoutReport,
+} from '../domain/reportHistory';
+import { findLocalReport } from '../services/reportFileStore';
+import { fetchReportHistory } from '../services/reportHistoryService';
 
-export type GenerateFailure =
-  | 'offline'
-  | 'periodTooLong'
-  | 'downloadFailed'
-  | 'failed';
-
-export type GenerateResult =
-  | { ok: true }
-  | { ok: false; reason: GenerateFailure };
+const FIRST_PAGE = 1;
 
 export type ReportHistoryState = {
-  items: ReportHistoryItem[];
-  isGenerating: boolean;
-  /** The sections of the last report generated; every one before the first. */
-  lastSelection: ReportCategory[];
-  generate: (input: GenerateReportInput) => Promise<GenerateResult>;
-  share: (report: ReportHistoryItem) => Promise<boolean>;
+  reports: ReportHistoryItem[];
+  downloadedIds: ReadonlySet<string>;
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  hasError: boolean;
+  loadMoreFailed: boolean;
+  loadMore: () => void;
+  retryLoadMore: () => void;
+  retry: () => void;
+  add: (report: ReportHistoryItem) => void;
+  markDownloaded: (reportId: string) => void;
+  forget: (reportId: string) => void;
 };
-
-type PendingDownload = { key: string; report: GeneratedReport };
-
-function failureOf(error: unknown): GenerateFailure {
-  // Checked first: the report already exists, so "try again" has to mean
-  // downloading it, not generating a second one.
-  if (error instanceof ReportDownloadError) {
-    return 'downloadFailed';
-  }
-  // The PDF is made on the server (ADR-04): without a connection there is
-  // nothing to generate, and the screen says that instead of "try again".
-  if (isNetworkError(error)) {
-    return 'offline';
-  }
-  // A report covers at most a year (366 days); trying again would not help,
-  // the user has to pick a shorter period.
-  if (error instanceof ApiError && error.code === 'REPORT_PERIOD_TOO_LONG') {
-    return 'periodTooLong';
-  }
-  return 'failed';
-}
-
-function keyOf(input: GenerateReportInput): string {
-  return [input.from, input.to, ...sectionsOf(input.categories)].join('|');
-}
-
-function canStillDownload(
-  pending: PendingDownload | null,
-  key: string,
-): pending is PendingDownload {
-  return (
-    pending !== null &&
-    pending.key === key &&
-    Date.now() < pending.report.downloadUrlExpiresAt
-  );
-}
 
 export function useReportHistory(): ReportHistoryState {
   const { session, account } = useAuth();
   const idToken = session?.idToken ?? null;
   const userId = account?.id ?? null;
-  const [items, setItems] = useState<ReportHistoryItem[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [lastSelection, setLastSelection] = useState<ReportCategory[]>([
-    ...REPORT_CATEGORIES,
-  ]);
-  // A second tap lands before the disabled button renders: it must get the
-  // same answer, not send a second POST /reports.
-  const inFlight = useRef<Promise<GenerateResult> | null>(null);
-  const pending = useRef<PendingDownload | null>(null);
+  const [reports, setReports] = useState<ReportHistoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [downloadedIds, setDownloadedIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const known = useRef<ReportHistoryItem[]>([]);
+  const isFetchingMore = useRef(false);
+  const generation = useRef(0);
+
+  useEffect(() => {
+    known.current = reports;
+  }, [reports]);
 
   useEffect(() => {
     if (!idToken) {
       return;
     }
 
-    let isMounted = true;
+    const current = generation.current;
 
-    fetchReportHistory(idToken)
-      .then(history => isMounted && setItems(history))
-      .catch(() => isMounted && setItems([]));
+    isFetchingMore.current = false;
+    setIsLoading(true);
+    setIsLoadingMore(false);
+    setHasError(false);
+    setLoadMoreFailed(false);
 
+    fetchReportHistory(idToken, FIRST_PAGE)
+      .then(page => {
+        if (current !== generation.current) return;
+        setReports(mergeReportPages([], page.items));
+        setHasMore(page.hasMore);
+      })
+      .catch(() => {
+        if (current !== generation.current) return;
+        setReports([]);
+        setHasMore(false);
+        setHasError(true);
+      })
+      .finally(() => {
+        if (current !== generation.current) return;
+        setIsLoading(false);
+      });
+
+    // A response that arrives after a retry or after the screen closed would
+    // put the old list over the new one.
     return () => {
-      isMounted = false;
+      generation.current += 1;
     };
-  }, [idToken]);
+  }, [idToken, attempt]);
 
-  useEffect(() => {
-    if (!userId) {
+  const fetchNextPage = useCallback(() => {
+    if (!idToken || isFetchingMore.current) {
       return;
     }
 
-    let isMounted = true;
-
-    loadLastSelection(userId).then(
-      selection => isMounted && setLastSelection(selection),
+    const current = generation.current;
+    const page = nextHistoryPage(
+      known.current.length,
+      REPORT_HISTORY_PAGE_SIZE,
     );
 
-    return () => {
-      isMounted = false;
-    };
-  }, [userId]);
+    isFetchingMore.current = true;
+    setIsLoadingMore(true);
+    setLoadMoreFailed(false);
 
-  const run = useCallback(
-    async (
-      token: string,
-      input: GenerateReportInput,
-    ): Promise<GenerateResult> => {
-      const key = keyOf(input);
-      setIsGenerating(true);
+    fetchReportHistory(idToken, page)
+      .then(({ items, hasMore: serverHasMore }) => {
+        if (current !== generation.current) return;
+        setHasMore(serverHasMore && bringsNewReports(known.current, items));
+        setReports(listed => mergeReportPages(listed, items));
+      })
+      .catch(() => {
+        if (current !== generation.current) return;
+        setLoadMoreFailed(true);
+      })
+      .finally(() => {
+        if (current !== generation.current) return;
+        isFetchingMore.current = false;
+        setIsLoadingMore(false);
+      });
+  }, [idToken]);
 
-      try {
-        const current = pending.current;
-        const report = canStillDownload(current, key)
-          ? current.report
-          : await createReport(token, input);
-        pending.current = { key, report };
+  // The list asks for more by itself whenever its end shows, and the footer
+  // changing size counts as that: after a failure only the person asks again.
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore && !loadMoreFailed) {
+      fetchNextPage();
+    }
+  }, [isLoading, hasMore, loadMoreFailed, fetchNextPage]);
 
-        const item = await saveReport(report);
-        pending.current = null;
-        setItems(previous => [item, ...previous]);
-        setLastSelection([...input.categories]);
-        if (userId) {
-          await saveLastSelection(userId, input.categories);
+  useEffect(() => {
+    const ids = new Set<string>();
+
+    if (userId) {
+      for (const report of reports) {
+        if (findLocalReport(userId, report)) {
+          ids.add(report.id);
         }
-        return { ok: true };
-      } catch (error) {
-        const reason = failureOf(error);
-        if (reason !== 'downloadFailed') {
-          pending.current = null;
-        }
-        return { ok: false, reason };
-      } finally {
-        setIsGenerating(false);
       }
-    },
-    [userId],
-  );
-
-  const generate = useCallback(
-    (input: GenerateReportInput): Promise<GenerateResult> => {
-      if (!idToken) {
-        return Promise.resolve({ ok: false, reason: 'failed' });
-      }
-      if (!inFlight.current) {
-        inFlight.current = run(idToken, input).finally(() => {
-          inFlight.current = null;
-        });
-      }
-      return inFlight.current;
-    },
-    [idToken, run],
-  );
-
-  const share = useCallback(async (report: ReportHistoryItem) => {
-    if (!report.fileUri) {
-      return false;
     }
 
-    try {
-      return await shareReport(report.fileUri);
-    } catch {
-      return false;
-    }
-  }, []);
+    setDownloadedIds(ids);
+  }, [reports, userId]);
 
-  return { items, isGenerating, lastSelection, generate, share };
+  const retry = useCallback(() => setAttempt(count => count + 1), []);
+  const add = useCallback(
+    (report: ReportHistoryItem) =>
+      setReports(listed => mergeReportPages(listed, [report])),
+    [],
+  );
+  const markDownloaded = useCallback(
+    (reportId: string) =>
+      setDownloadedIds(listed => new Set(listed).add(reportId)),
+    [],
+  );
+  const forget = useCallback(
+    (reportId: string) => setReports(listed => withoutReport(listed, reportId)),
+    [],
+  );
+
+  return {
+    reports,
+    downloadedIds,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    hasError,
+    loadMoreFailed,
+    loadMore,
+    retryLoadMore: fetchNextPage,
+    retry,
+    add,
+    markDownloaded,
+    forget,
+  };
 }

@@ -1,34 +1,54 @@
+import { FileText } from 'lucide-react-native';
+import { useState } from 'react';
 import { FlatList, View } from 'react-native';
 
+import { EmptyState } from 'app/components/ui/empty-state';
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
 import { ModalHeader } from 'app/components/ui/modal-header';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
-import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
+import { ReportDetailModal } from './ReportDetailModal';
+import { reportCardView } from './reportPresenter';
 import { ReportCard } from '../components/ReportCard';
+import { ReportListFooter } from '../components/ReportListFooter';
 import type { ReportHistoryItem } from '../domain/report.types';
+import type { ReportHistoryState } from '../hooks/useReportHistory';
+
+const END_REACHED_THRESHOLD = 0.5;
 
 type ReportHistoryScreenProps = {
   visible: boolean;
-  items: readonly ReportHistoryItem[];
-  shareError?: string | null;
+  history: ReportHistoryState;
   onClose: () => void;
-  shareActionOf: (report: ReportHistoryItem) => (() => void) | undefined;
 };
 
-function Separator() {
+function ReportSeparator() {
   return <View className="h-3" />;
 }
 
 export function ReportHistoryScreen({
   visible,
-  items,
-  shareError,
+  history,
   onClose,
-  shareActionOf,
 }: ReportHistoryScreenProps) {
   const { t, locale } = useTranslation();
+  const [selected, setSelected] = useState<ReportHistoryItem | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const {
+    reports,
+    downloadedIds,
+    isLoading,
+    isLoadingMore,
+    hasError,
+    loadMoreFailed,
+    loadMore,
+    retryLoadMore,
+    retry,
+  } = history;
+
+  const showError = hasError && reports.length === 0;
+  const showEmpty = !isLoading && !hasError && reports.length === 0;
 
   return (
     <FullScreenModal visible={visible} onRequestClose={onClose}>
@@ -37,28 +57,70 @@ export function ReportHistoryScreen({
         backLabel={t('reports.history.back')}
         onBack={onClose}
       />
-      <FlatList
-        data={items}
-        keyExtractor={report => report.id}
-        renderItem={({ item }) => (
-          <ReportCard
-            className="w-full"
-            date={formatDayAndMonth(new Date(item.generatedAt), locale, true)}
-            fileName={item.fileName}
-            onPress={shareActionOf(item)}
-          />
-        )}
-        ItemSeparatorComponent={Separator}
-        contentContainerClassName="px-4 pb-6 pt-4"
+
+      <View className="flex-1 gap-3 px-4 pt-4">
+        {isLoading ? (
+          <Text className="py-6 text-center text-sm text-label-tertiary">
+            {t('reports.history.loading')}
+          </Text>
+        ) : null}
+
+        {showError ? (
+          <View className="items-center gap-2 py-6">
+            <Text className="text-sm text-label-tertiary">
+              {t('reports.history.error')}
+            </Text>
+            <Text
+              accessibilityRole="button"
+              onPress={retry}
+              className="text-sm font-semibold text-label-quartenery"
+            >
+              {t('common.retry')}
+            </Text>
+          </View>
+        ) : null}
+
+        {showEmpty ? (
+          <EmptyState icon={FileText} message={t('reports.history.empty')} />
+        ) : null}
+
+        <FlatList
+          data={reports}
+          keyExtractor={report => report.id}
+          renderItem={({ item }) => (
+            <ReportCard
+              {...reportCardView(item, downloadedIds.has(item.id), t, locale)}
+              onPress={() => {
+                setSelected(item);
+                setIsDetailOpen(true);
+              }}
+            />
+          )}
+          ItemSeparatorComponent={ReportSeparator}
+          onEndReached={loadMore}
+          onEndReachedThreshold={END_REACHED_THRESHOLD}
+          contentContainerClassName="pb-6"
+          ListFooterComponent={
+            <ReportListFooter
+              isLoadingMore={isLoadingMore}
+              loadMoreFailed={loadMoreFailed}
+              loadingLabel={t('reports.history.loadingMore')}
+              errorLabel={t('reports.history.loadMoreError')}
+              retryLabel={t('common.retry')}
+              onRetry={retryLoadMore}
+            />
+          }
+        />
+      </View>
+
+      <ReportDetailModal
+        report={selected}
+        visible={isDetailOpen}
+        isDownloaded={selected ? downloadedIds.has(selected.id) : false}
+        onClose={() => setIsDetailOpen(false)}
+        onDownloaded={history.markDownloaded}
+        onDeleted={history.forget}
       />
-      {shareError ? (
-        <Text
-          accessibilityRole="alert"
-          className="px-4 pb-6 text-sm text-label-tertiary"
-        >
-          {shareError}
-        </Text>
-      ) : null}
     </FullScreenModal>
   );
 }

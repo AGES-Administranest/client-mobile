@@ -18,12 +18,28 @@ jest.mock('features/profile', () => ({
   isMissingCrmv: () => false,
   useProfile: () => ({ state: { status: 'loading' }, reload: jest.fn() }),
 }));
+jest.mock('shared/services/network', () => ({
+  isOnline: jest.fn(() => Promise.resolve(true)),
+  onConnectionRestored: jest.fn(() => () => undefined),
+}));
 jest.mock('../services/reportHistoryService', () => ({
   fetchReportHistory: jest.fn(),
+  fetchReportDownloadLink: jest.fn(),
+  deleteReport: jest.fn(),
+  isReportNotFound: jest.fn(() => false),
   createReport: jest.fn(),
   saveReport: jest.fn(),
-  shareReport: jest.fn(),
   ReportDownloadError: class extends Error {},
+}));
+jest.mock('../services/reportFileStore', () => ({
+  canKeepReportFiles: true,
+  findLocalReport: jest.fn(() => null),
+  saveReportFile: jest.fn(),
+  removeReportFile: jest.fn(),
+}));
+jest.mock('../services/reportFileOpener', () => ({
+  openLocalReport: jest.fn(),
+  downloadInBrowser: jest.fn(),
 }));
 jest.mock('../services/reportSelectionStore', () => ({
   loadLastSelection: jest.fn(() => new Promise(() => {})),
@@ -34,13 +50,16 @@ const fetchHistoryMock = fetchReportHistory as jest.Mock;
 
 const STORED_REPORT = {
   id: 'report-1',
+  kind: 'GENERAL_REPORT',
+  fileBytesSize: 40_333,
+  period: { from: '2026-10-01', to: '2026-10-31' },
   fileName: 'administranest_relatorio-geral_2026-10-01_2026-10-31.pdf',
   generatedAt: '2026-11-01T12:00:00.000Z',
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  fetchHistoryMock.mockResolvedValue([]);
+  fetchHistoryMock.mockResolvedValue({ items: [], hasMore: false });
 });
 
 const METRICS = {
@@ -220,11 +239,14 @@ describe('ReportsScreen', () => {
   });
 
   it('lists the reports kept by the backend', async () => {
-    fetchHistoryMock.mockResolvedValue([STORED_REPORT]);
+    fetchHistoryMock.mockResolvedValue({
+      items: [STORED_REPORT],
+      hasMore: false,
+    });
 
     const renderer = await render();
 
-    expect(fetchHistoryMock).toHaveBeenCalledWith('tok');
+    expect(fetchHistoryMock).toHaveBeenCalledWith('tok', 1);
     expect(textsOf(renderer)).toContain(STORED_REPORT.fileName);
   });
 
@@ -343,7 +365,10 @@ describe('ReportsScreen', () => {
   });
 
   it('opens the history', async () => {
-    fetchHistoryMock.mockResolvedValue([STORED_REPORT]);
+    fetchHistoryMock.mockResolvedValue({
+      items: [STORED_REPORT],
+      hasMore: false,
+    });
     const renderer = await render();
 
     await press(

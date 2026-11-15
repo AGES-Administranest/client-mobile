@@ -908,8 +908,45 @@
       "title": "Report history",
       "viewAll": "View all",
       "empty": "No report generated yet.",
+      "loading": "Loading reports...",
+      "error": "Could not load the history.",
+      "loadingMore": "Loading more reports",
+      "loadMoreError": "Could not load more reports.",
       "back": "Back",
-      "shareFailed": "Could not share the report."
+      "period": "{{from}} to {{to}}",
+      "noPeriod": "Period not informed",
+      "generatedAt": "Generated on {{date}}",
+      "downloaded": "On this device",
+      "notInformed": "Not informed",
+      "shareFailed": "Could not share the report.",
+      "kinds": {
+        "GENERAL_REPORT": "General report",
+        "TAX_PACKAGE": "Package for the accountant"
+      }
+    },
+    "detail": {
+      "close": "Close",
+      "kind": "Type",
+      "period": "Period",
+      "generatedAt": "Generated on",
+      "fileName": "File",
+      "size": "Size",
+      "download": "Download report",
+      "open": "Open report",
+      "downloading": "Downloading report...",
+      "downloadFailed": "Could not download the report. Try again.",
+      "offline": "No connection. Connect to the internet to download this report.",
+      "missing": "This report is no longer available."
+    },
+    "delete": {
+      "button": "Delete",
+      "confirmTitle": "Delete report?",
+      "confirmMessage": "“{{name}}” leaves the history and its file is erased, including the copy on this device.",
+      "confirm": "Delete",
+      "confirming": "Deleting…",
+      "cancel": "Cancel",
+      "offline": "No connection. Deleting a report needs the internet.",
+      "failed": "Could not delete the report. Try again."
     },
     "seeAll": "See all",
     "addInvoice": "Add invoice",

@@ -1,5 +1,5 @@
 import { FileText, Plus, Receipt } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -12,30 +12,27 @@ import {
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
 import { type TranslationKey, useTranslation } from 'shared/i18n';
+import { onConnectionRestored } from 'shared/services/network';
 import { formatShortCalendarDate } from 'shared/utils/calendar';
-import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
 
 import { ReportHistoryScreen } from './ReportHistoryScreen';
-import { ReportCard } from '../components/ReportCard';
+import { ReportHistorySection } from './ReportHistorySection';
 import { ReportCategoriesSheet } from '../components/ReportCategoriesSheet';
 import { ReportKindCard } from '../components/ReportKindCard';
 import { ReportPeriodSelector } from '../components/ReportPeriodSelector';
 import { ReportsHeader } from '../components/ReportsHeader';
-import { ReportsHistoryLink } from '../components/ReportsHistoryLink';
 import {
   MAX_REPORT_DAYS,
   REPORT_CATEGORIES,
   type ReportCategory,
-  type ReportHistoryItem,
 } from '../domain/report.types';
 import { REPORT_PERIOD_CHOICES } from '../domain/reportPeriod';
 import {
-  useReportHistory,
+  useGenerateReport,
   type GenerateFailure,
-} from '../hooks/useReportHistory';
+} from '../hooks/useGenerateReport';
+import { useReportHistory } from '../hooks/useReportHistory';
 import { useReportsScreen } from '../hooks/useReportsScreen';
-
-const HISTORY_PREVIEW_COUNT = 5;
 
 const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
   offline: 'reports.generate.offline',
@@ -55,7 +52,8 @@ export function ReportsScreen({
   onGenerateInvoicePackage,
 }: ReportsScreenProps) {
   const { t, locale } = useTranslation();
-  const reports = useReportHistory();
+  const history = useReportHistory();
+  const reports = useGenerateReport({ onGenerated: history.add });
   const invoiceUpload = useServiceInvoiceUpload();
   const { choice, selectChoice, range, setRange, maxDate, canGenerate } =
     useReportsScreen();
@@ -67,12 +65,14 @@ export function ReportsScreen({
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [generateFailure, setGenerateFailure] =
     useState<GenerateFailure | null>(null);
-  const [shareFailed, setShareFailed] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
   const [isServiceInvoicesOpen, setIsServiceInvoicesOpen] = useState(false);
   // iOS: the system picker does not open over a Modal that is still leaving.
   const startUploadWhenListLeaves = useRef(false);
+
+  const { retry: retryHistory } = history;
+  useEffect(() => onConnectionRestored(retryHistory), [retryHistory]);
 
   const choiceOptions = REPORT_PERIOD_CHOICES.map(value => ({
     value,
@@ -121,21 +121,6 @@ export function ReportsScreen({
   ) => {
     setCategories(update);
     setGenerateFailure(null);
-  };
-
-  const shareReport = (report: ReportHistoryItem) => {
-    setShareFailed(false);
-    reports.share(report).then(ok => setShareFailed(!ok));
-  };
-
-  // A report listed by the server or generated on the web has no file on this
-  // device to share, so its card is not a button.
-  const shareActionOf = (report: ReportHistoryItem) =>
-    report.fileUri ? () => shareReport(report) : undefined;
-
-  const toggleHistory = (open: boolean) => {
-    setShareFailed(false);
-    setIsHistoryOpen(open);
   };
 
   const addFromList = () => {
@@ -207,45 +192,10 @@ export function ReportsScreen({
           />
         </View>
 
-        <View className="gap-3">
-          <ReportsHistoryLink
-            title={t('reports.history.title')}
-            actionLabel={t('reports.history.viewAll')}
-            onPress={
-              reports.items.length > 0 ? () => toggleHistory(true) : undefined
-            }
-          />
-          {reports.items.length === 0 ? (
-            <Text className="text-sm text-label-tertiary">
-              {t('reports.history.empty')}
-            </Text>
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="-mx-4"
-              contentContainerClassName="gap-3 px-4 pb-3"
-            >
-              {reports.items.slice(0, HISTORY_PREVIEW_COUNT).map(report => (
-                <ReportCard
-                  key={report.id}
-                  date={formatDayAndMonth(
-                    new Date(report.generatedAt),
-                    locale,
-                    true,
-                  )}
-                  fileName={report.fileName}
-                  onPress={shareActionOf(report)}
-                />
-              ))}
-            </ScrollView>
-          )}
-          {shareFailed ? (
-            <Text className="text-sm text-label-tertiary">
-              {t('reports.history.shareFailed')}
-            </Text>
-          ) : null}
-        </View>
+        <ReportHistorySection
+          history={history}
+          onSeeAll={() => setIsHistoryOpen(true)}
+        />
 
         <InvoicesSection onSeeAll={() => setIsInvoiceListOpen(true)} />
 
@@ -300,10 +250,8 @@ export function ReportsScreen({
 
       <ReportHistoryScreen
         visible={isHistoryOpen}
-        items={reports.items}
-        shareError={shareFailed ? t('reports.history.shareFailed') : null}
-        onClose={() => toggleHistory(false)}
-        shareActionOf={shareActionOf}
+        history={history}
+        onClose={() => setIsHistoryOpen(false)}
       />
 
       <ServiceInvoicesFlow
