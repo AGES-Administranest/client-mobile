@@ -56,6 +56,8 @@ export type GeneratedReport = {
   id: string;
   kind: 'GENERAL_REPORT';
   fileName: string;
+  /** Absent from APIs older than this field. */
+  fileBytesSize?: number;
   period: ReportPeriod;
   sections: ReportSection[];
   generatedAt: string;

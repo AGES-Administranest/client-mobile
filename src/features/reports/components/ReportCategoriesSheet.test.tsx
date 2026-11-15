@@ -30,6 +30,7 @@ function render(props: Partial<Parameters<typeof ReportCategoriesSheet>[0]>) {
           generateLabel="Gerar"
           options={OPTIONS}
           selectedIds={['financial', 'travel']}
+          emptySelectionMessage="Selecione ao menos uma seção."
           isGenerating={false}
           onToggle={jest.fn()}
           onSelectAll={jest.fn()}
@@ -100,5 +101,12 @@ describe('ReportCategoriesSheet', () => {
     const [generate] = tree.root.findAllByType(Button);
 
     expect(Boolean(generate.props.disabled)).toBe(blocked);
+  });
+
+  it('says why it cannot generate only while no section is selected', () => {
+    expect(textOf(render({ selectedIds: [] }))).toContain(
+      'Selecione ao menos uma seção.',
+    );
+    expect(textOf(render({}))).not.toContain('Selecione ao menos uma seção.');
   });
 });

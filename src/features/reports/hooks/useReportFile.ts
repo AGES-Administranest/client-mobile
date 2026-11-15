@@ -5,6 +5,7 @@ import { isOnline } from 'shared/services/network';
 
 import type { ReportHistoryItem } from '../domain/report.types';
 import { isDownloadLinkUsable } from '../domain/reportHistory';
+import { saveReportToDevice } from '../services/reportDeviceSaver';
 import {
   downloadInBrowser,
   openLocalReport,
@@ -27,11 +28,16 @@ export type ReportFileStatus =
   | 'failed'
   | 'offline'
   | 'missing'
-  | 'shareFailed';
+  | 'shareFailed'
+  | 'saved'
+  | 'saveFailed';
 
 export type ReportFileState = {
   status: ReportFileStatus;
   open: () => void;
+  /** Saves a copy in a folder the person picks (US31). Native apps only. */
+  save: () => void;
+  canSave: boolean;
 };
 
 type ReportFileOptions = {
@@ -89,58 +95,82 @@ export function useReportFile(
     setStatus('idle');
   }, [reportId]);
 
-  const open = useCallback(() => {
-    if (!report || !userId || busyWith.current !== null) {
-      return;
-    }
-
-    // A download that ends after the person moved to another report must not
-    // show its result on that one.
-    const show = (next: ReportFileStatus) => {
-      if (isMounted.current && shown.current === report.id) setStatus(next);
-    };
-
-    const settle = (next: ReportFileStatus) => {
-      busyWith.current = null;
-      show(next);
-    };
-
-    const share = async (file: LocalReportFile): Promise<ReportFileStatus> =>
-      (await openLocalReport(file)) ? 'done' : 'shareFailed';
-
-    busyWith.current = report.id;
-
-    const run = async (): Promise<ReportFileStatus> => {
-      const local = findLocalReport(userId, report);
-      if (local) {
-        return share(local);
+  // Opening and saving both start from the copy on the device, downloading
+  // it first when it is not there yet.
+  const withLocalFile = useCallback(
+    (handle: (file: LocalReportFile) => Promise<ReportFileStatus>) => {
+      if (!report || !userId || busyWith.current !== null) {
+        return;
       }
 
-      if (!idToken) {
-        return 'failed';
-      }
+      // A download that ends after the person moved to another report must
+      // not show its result on that one.
+      const show = (next: ReportFileStatus) => {
+        if (isMounted.current && shown.current === report.id) setStatus(next);
+      };
 
-      if (!(await isOnline())) {
-        return 'offline';
-      }
+      const settle = (next: ReportFileStatus) => {
+        busyWith.current = null;
+        show(next);
+      };
 
-      show('downloading');
+      busyWith.current = report.id;
 
-      if (!canKeepReportFiles) {
-        const link = await freshLink(idToken, report.id);
-        await downloadInBrowser(link.url);
-        return 'done';
-      }
+      const run = async (): Promise<ReportFileStatus> => {
+        const local = findLocalReport(userId, report);
+        if (local) {
+          return handle(local);
+        }
 
-      const file = await downloadWithFreshLink(idToken, userId, report);
-      onDownloaded(report.id);
-      return share(file);
-    };
+        if (!idToken) {
+          return 'failed';
+        }
 
-    run()
-      .then(settle)
-      .catch(error => settle(isReportNotFound(error) ? 'missing' : 'failed'));
-  }, [report, userId, idToken, onDownloaded]);
+        if (!(await isOnline())) {
+          return 'offline';
+        }
 
-  return { status, open };
+        show('downloading');
+
+        if (!canKeepReportFiles) {
+          const link = await freshLink(idToken, report.id);
+          await downloadInBrowser(link.url);
+          return 'done';
+        }
+
+        const file = await downloadWithFreshLink(idToken, userId, report);
+        onDownloaded(report.id);
+        return handle(file);
+      };
+
+      run()
+        .then(settle)
+        .catch(error => settle(isReportNotFound(error) ? 'missing' : 'failed'));
+    },
+    [report, userId, idToken, onDownloaded],
+  );
+
+  const open = useCallback(
+    () =>
+      withLocalFile(async file =>
+        (await openLocalReport(file)) ? 'done' : 'shareFailed',
+      ),
+    [withLocalFile],
+  );
+
+  const save = useCallback(
+    () =>
+      withLocalFile(async file => {
+        try {
+          return (await saveReportToDevice(file)) === 'saved'
+            ? 'saved'
+            : 'idle';
+        } catch {
+          return 'saveFailed';
+        }
+      }),
+    [withLocalFile],
+  );
+
+  return { status, open, save, canSave: canKeepReportFiles };
 }

@@ -10,3 +10,10 @@ export {
   type InvoicesScreenProps,
 } from './screens/InvoicesScreen';
 export { InvoicesSection } from './screens/InvoicesSection';
+export {
+  downloadTaxPackage,
+  fetchTaxPackageSummary,
+  taxPackageFailure,
+  type TaxPackageFailure,
+  type TaxPackageSummary,
+} from './services/taxPackageService';

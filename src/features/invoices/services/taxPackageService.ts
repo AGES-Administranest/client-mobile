@@ -3,7 +3,10 @@ import { Linking, Platform } from 'react-native';
 import { NetworkError } from 'shared/api';
 import { ApiError, apiClient } from 'shared/services/apiClient';
 
-import { allTimeTaxPackagePeriod } from '../domain/taxPackagePeriod';
+import {
+  allTimeTaxPackagePeriod,
+  type TaxPackagePeriod,
+} from '../domain/taxPackagePeriod';
 
 // The API builds the zip inside the request and gives up after 2 minutes: the
 // app waits a little longer than that, and no longer.
@@ -24,15 +27,36 @@ export type TaxPackageFailure =
   | 'offline'
   | 'failed';
 
+/** What the package of a period would hold, shown before it is built (US30). */
+export type TaxPackageSummary = {
+  /** Documents whose file is in storage: the ones that go in the zip. */
+  documentsCount: number;
+  totalAmount: number;
+  /** Documents of the period whose file has not reached the server yet. */
+  missingFiles: number;
+};
+
+export function fetchTaxPackageSummary(
+  idToken: string,
+  period: TaxPackagePeriod,
+): Promise<TaxPackageSummary> {
+  const query = new URLSearchParams(period).toString();
+
+  return apiClient.get<TaxPackageSummary>(
+    `/reports/tax-package/summary?${query}`,
+    { token: idToken },
+  );
+}
+
+/** Without a period it packs everything, as "download all" in Invoices does. */
 export function requestTaxPackage(
   idToken: string,
-  now: Date = new Date(),
+  period: TaxPackagePeriod = allTimeTaxPackagePeriod(),
 ): Promise<TaxPackageExport> {
-  return apiClient.post<TaxPackageExport>(
-    '/reports/tax-package',
-    allTimeTaxPackagePeriod(now),
-    { token: idToken, timeoutMs: REQUEST_TIMEOUT_MS },
-  );
+  return apiClient.post<TaxPackageExport>('/reports/tax-package', period, {
+    token: idToken,
+    timeoutMs: REQUEST_TIMEOUT_MS,
+  });
 }
 
 /**
@@ -52,8 +76,11 @@ function openDownload(url: string): Promise<void> {
   return Linking.openURL(url);
 }
 
-export async function downloadTaxPackage(idToken: string): Promise<void> {
-  const { url } = await requestTaxPackage(idToken);
+export async function downloadTaxPackage(
+  idToken: string,
+  period?: TaxPackagePeriod,
+): Promise<void> {
+  const { url } = await requestTaxPackage(idToken, period);
   await openDownload(url);
 }
 

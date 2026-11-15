@@ -4,9 +4,11 @@ import { ApiError } from 'shared/services/apiClient';
 
 import {
   downloadTaxPackage,
+  fetchTaxPackageSummary,
   requestTaxPackage,
   taxPackageFailure,
 } from './taxPackageService';
+import { allTimeTaxPackagePeriod } from '../domain/taxPackagePeriod';
 
 const EXPORT = {
   url: 'https://bucket.example/exports/pacote.zip?sig=abc',
@@ -43,7 +45,10 @@ describe('requestTaxPackage', () => {
     fetchMock.mockReturnValue(answer(200, EXPORT));
 
     await expect(
-      requestTaxPackage('id-token', new Date(2026, 10, 13, 9)),
+      requestTaxPackage(
+        'id-token',
+        allTimeTaxPackagePeriod(new Date(2026, 10, 13, 9)),
+      ),
     ).resolves.toEqual(EXPORT);
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -56,6 +61,43 @@ describe('requestTaxPackage', () => {
       from: '2000-01-01',
       to: '2026-11-13',
     });
+  });
+
+  it('packs only the period it is given', async () => {
+    fetchMock.mockReturnValue(answer(200, EXPORT));
+
+    await requestTaxPackage('id-token', {
+      from: '2026-10-01',
+      to: '2026-10-31',
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({
+      from: '2026-10-01',
+      to: '2026-10-31',
+    });
+  });
+});
+
+describe('fetchTaxPackageSummary', () => {
+  it('asks for the summary of the period, with the id token', async () => {
+    const summary = { documentsCount: 2, totalAmount: 1500, missingFiles: 1 };
+    fetchMock.mockReturnValue(answer(200, summary));
+
+    await expect(
+      fetchTaxPackageSummary('id-token', {
+        from: '2026-10-01',
+        to: '2026-10-31',
+      }),
+    ).resolves.toEqual(summary);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toMatch(
+      /\/reports\/tax-package\/summary\?from=2026-10-01&to=2026-10-31$/,
+    );
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      'Bearer id-token',
+    );
   });
 });
 

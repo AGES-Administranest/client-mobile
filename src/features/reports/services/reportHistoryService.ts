@@ -122,7 +122,7 @@ export async function saveReport(
     id: report.id,
     kind: report.kind,
     fileName: report.fileName,
-    fileBytesSize: null,
+    fileBytesSize: report.fileBytesSize ?? null,
     period: report.period,
     generatedAt: report.generatedAt,
   };

@@ -32,6 +32,8 @@ const STATUS_MESSAGE = {
   offline: 'reports.detail.offline',
   missing: 'reports.detail.missing',
   shareFailed: 'reports.history.shareFailed',
+  saved: 'reports.detail.saved',
+  saveFailed: 'reports.detail.saveFailed',
 } as const satisfies Record<ReportFileStatus, string | null>;
 
 export function ReportDetailModal({
@@ -104,6 +106,15 @@ export function ReportDetailModal({
         )}
         statusMessage={messageKey ? t(messageKey) : null}
         isBusy={file.status === 'downloading'}
+        save={
+          file.canSave
+            ? {
+                label: t('reports.detail.save'),
+                hint: t('reports.detail.saveHint'),
+                onPress: file.save,
+              }
+            : undefined
+        }
         deleteLabel={t('reports.delete.button')}
         onOpen={file.open}
         onDelete={() => setStep('toConfirm')}

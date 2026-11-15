@@ -5,7 +5,11 @@ import { Platform, ScrollView, View } from 'react-native';
 import { Button } from 'app/components/ui/button';
 import { NoticeBanner, type NoticeTone } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
-import { InvoicesScreen, InvoicesSection } from 'features/invoices';
+import {
+  InvoicesScreen,
+  InvoicesSection,
+  type TaxPackageFailure,
+} from 'features/invoices';
 import { isMissingCrmv, useProfile } from 'features/profile';
 import {
   ServiceInvoiceUploadFlow,
@@ -15,6 +19,7 @@ import {
 import { type TranslationKey, useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services/network';
 import { formatShortCalendarDate } from 'shared/utils/calendar';
+import { formatCurrency } from 'shared/utils/currency';
 
 import { ReportHistoryScreen } from './ReportHistoryScreen';
 import { ReportHistorySection } from './ReportHistorySection';
@@ -22,6 +27,7 @@ import { ReportCategoriesSheet } from '../components/ReportCategoriesSheet';
 import { ReportKindCard } from '../components/ReportKindCard';
 import { ReportPeriodSelector } from '../components/ReportPeriodSelector';
 import { ReportsHeader } from '../components/ReportsHeader';
+import { TaxPackageSheet } from '../components/TaxPackageSheet';
 import {
   MAX_REPORT_DAYS,
   REPORT_CATEGORIES,
@@ -35,6 +41,16 @@ import {
 import type { ReportAvailabilityNotice } from '../hooks/useReportAvailability';
 import { useReportHistory } from '../hooks/useReportHistory';
 import { useReportsScreen } from '../hooks/useReportsScreen';
+import { useTaxPackage } from '../hooks/useTaxPackage';
+
+const TAX_PACKAGE_FAILURE_MESSAGES: Record<TaxPackageFailure, TranslationKey> =
+  {
+    empty: 'reports.taxPackage.empty',
+    tooLarge: 'invoices.downloadAll.tooLarge',
+    rateLimited: 'invoices.downloadAll.rateLimited',
+    offline: 'invoices.downloadAll.offline',
+    failed: 'invoices.downloadAll.failed',
+  };
 
 const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
   offline: 'reports.generate.offline',
@@ -55,16 +71,12 @@ const NOTICES = {
 const SECTION_TITLE =
   'text-sm font-semibold uppercase tracking-wide text-label-primary';
 
-export type ReportsScreenProps = {
-  onGenerateInvoicePackage?: (period: { from: string; to: string }) => void;
-};
-
-export function ReportsScreen({
-  onGenerateInvoicePackage,
-}: ReportsScreenProps) {
+export function ReportsScreen() {
   const { t, locale } = useTranslation();
   const history = useReportHistory();
   const reports = useGenerateReport({ onGenerated: history.add });
+  // The package is recorded by the API, so the history is fetched again.
+  const taxPackage = useTaxPackage({ onDownloaded: history.retry });
   const invoiceUpload = useServiceInvoiceUpload();
   const {
     choice,
@@ -116,11 +128,26 @@ export function ReportsScreen({
     setIsCategoryOpen(true);
   };
 
-  const generateInvoicePackage = () => {
-    if (range.from !== null && range.to !== null) {
-      onGenerateInvoicePackage?.({ from: range.from, to: range.to });
+  const openInvoicePackage = async () => {
+    if (range.from === null || range.to === null || !(await checkPeriod())) {
+      return;
     }
+
+    taxPackage.open({ from: range.from, to: range.to });
   };
+
+  const packageState = taxPackage.state;
+  const packageSummary =
+    packageState.status === 'closed' || packageState.status === 'loading'
+      ? null
+      : packageState.summary;
+  const isPackageEmpty = packageSummary?.documentsCount === 0;
+  const packageFailure =
+    packageState.status === 'failed'
+      ? packageState.reason
+      : isPackageEmpty
+      ? 'empty'
+      : null;
 
   const generateGeneralReport = () => {
     if (range.from === null || range.to === null) {
@@ -227,8 +254,8 @@ export function ReportsScreen({
             icon={Receipt}
             title={t('reports.kinds.invoicePackage.title')}
             description={t('reports.kinds.invoicePackage.description')}
-            disabled={!canGenerate || !onGenerateInvoicePackage}
-            onPress={generateInvoicePackage}
+            disabled={!canGenerate}
+            onPress={openInvoicePackage}
           />
         </View>
 
@@ -270,6 +297,7 @@ export function ReportsScreen({
           label: t(`reports.categories.${item}`),
         }))}
         selectedIds={categories}
+        emptySelectionMessage={t('reports.generate.noSection')}
         isGenerating={reports.isGenerating}
         warning={isCrmvMissing ? t('reports.generate.crmvMissing') : null}
         error={
@@ -286,6 +314,69 @@ export function ReportsScreen({
         onClearAll={() => changeCategories(() => [])}
         onGenerate={generateGeneralReport}
         onClose={() => setIsCategoryOpen(false)}
+      />
+
+      <TaxPackageSheet
+        visible={packageState.status !== 'closed'}
+        title={t('reports.kinds.invoicePackage.title')}
+        closeLabel={t('reports.taxPackage.close')}
+        downloadLabel={t(
+          packageState.status === 'downloading'
+            ? 'invoices.downloadAll.downloading'
+            : 'reports.taxPackage.download',
+        )}
+        loadingLabel={
+          packageState.status === 'loading'
+            ? t('reports.taxPackage.loading')
+            : null
+        }
+        figures={
+          packageState.status === 'closed'
+            ? []
+            : [
+                {
+                  label: t('reports.taxPackage.period'),
+                  value: t('reports.history.period', {
+                    from: formatShortCalendarDate(
+                      packageState.period.from,
+                      locale,
+                    ),
+                    to: formatShortCalendarDate(packageState.period.to, locale),
+                  }),
+                },
+                ...(packageSummary && !isPackageEmpty
+                  ? [
+                      {
+                        label: t('reports.taxPackage.documents'),
+                        value: String(packageSummary.documentsCount),
+                      },
+                      {
+                        label: t('reports.taxPackage.total'),
+                        value: formatCurrency(
+                          packageSummary.totalAmount,
+                          locale,
+                        ),
+                      },
+                    ]
+                  : []),
+              ]
+        }
+        warning={
+          packageSummary && packageSummary.missingFiles > 0
+            ? t('reports.taxPackage.missingFiles', {
+                count: packageSummary.missingFiles,
+              })
+            : null
+        }
+        error={
+          packageFailure
+            ? t(TAX_PACKAGE_FAILURE_MESSAGES[packageFailure])
+            : null
+        }
+        canDownload={packageSummary !== null && !isPackageEmpty}
+        isDownloading={packageState.status === 'downloading'}
+        onDownload={taxPackage.download}
+        onClose={taxPackage.close}
       />
 
       <ReportHistoryScreen
