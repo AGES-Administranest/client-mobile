@@ -48,26 +48,25 @@ const REPORT: ReportHistoryItem = {
   generatedAt: '2026-11-12T10:00:00.000Z',
 };
 
-const LOCAL = {
-  uri: 'file://relatorio.pdf',
-  contentUri: 'content://r',
-  name: 'relatorio.pdf',
-  mimeType: 'application/pdf',
-};
+const LOCAL = { uri: 'file://relatorio.pdf', name: 'relatorio.pdf' };
 
 function renderFile(onDownloaded = jest.fn()) {
   const result = {
     current: null as unknown as ReturnType<typeof useReportFile>,
+    show: (_report: ReportHistoryItem) => {},
   };
 
-  function TestHarness() {
-    result.current = useReportFile(REPORT, { onDownloaded });
+  function TestHarness({ report }: { report: ReportHistoryItem }) {
+    result.current = useReportFile(report, { onDownloaded });
     return null;
   }
 
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
   act(() => {
-    ReactTestRenderer.create(<TestHarness />);
+    renderer = ReactTestRenderer.create(<TestHarness report={REPORT} />);
   });
+  result.show = report =>
+    act(() => renderer.update(<TestHarness report={report} />));
 
   return result;
 }
@@ -86,7 +85,7 @@ const validLink = (url: string) => ({
 beforeEach(() => {
   jest.resetAllMocks();
   onlineMock.mockResolvedValue(true);
-  openMock.mockResolvedValue(undefined);
+  openMock.mockResolvedValue(true);
   findLocalMock.mockReturnValue(null);
 });
 
@@ -182,5 +181,28 @@ describe('useReportFile', () => {
     await settle();
 
     expect(result.current.status).toBe('missing');
+  });
+
+  it('says so when the device cannot share the file', async () => {
+    findLocalMock.mockReturnValue(LOCAL);
+    openMock.mockResolvedValue(false);
+
+    const result = renderFile();
+    act(() => result.current.open());
+    await settle();
+
+    expect(result.current.status).toBe('shareFailed');
+  });
+
+  it('keeps the result of a download away from the report shown next', async () => {
+    linkMock.mockResolvedValue(validLink('https://s3/a'));
+    saveMock.mockRejectedValue(new Error('broken'));
+
+    const result = renderFile();
+    act(() => result.current.open());
+    result.show({ ...REPORT, id: 'report-2' });
+    await settle();
+
+    expect(result.current.status).toBe('idle');
   });
 });

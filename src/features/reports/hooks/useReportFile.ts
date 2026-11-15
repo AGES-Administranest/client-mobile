@@ -26,7 +26,8 @@ export type ReportFileStatus =
   | 'done'
   | 'failed'
   | 'offline'
-  | 'missing';
+  | 'missing'
+  | 'shareFailed';
 
 export type ReportFileState = {
   status: ReportFileStatus;
@@ -71,7 +72,8 @@ export function useReportFile(
   const userId = account?.id ?? null;
   const [status, setStatus] = useState<ReportFileStatus>('idle');
   const isMounted = useRef(true);
-  const isBusy = useRef(false);
+  const busyWith = useRef<string | null>(null);
+  const shown = useRef<string | null>(null);
 
   useEffect(() => {
     isMounted.current = true;
@@ -82,25 +84,36 @@ export function useReportFile(
   }, []);
 
   const reportId = report?.id ?? null;
-  useEffect(() => setStatus('idle'), [reportId]);
+  useEffect(() => {
+    shown.current = reportId;
+    setStatus('idle');
+  }, [reportId]);
 
   const open = useCallback(() => {
-    if (!report || !userId || isBusy.current) {
+    if (!report || !userId || busyWith.current !== null) {
       return;
     }
 
-    const settle = (next: ReportFileStatus) => {
-      isBusy.current = false;
-      if (isMounted.current) setStatus(next);
+    // A download that ends after the person moved to another report must not
+    // show its result on that one.
+    const show = (next: ReportFileStatus) => {
+      if (isMounted.current && shown.current === report.id) setStatus(next);
     };
 
-    isBusy.current = true;
+    const settle = (next: ReportFileStatus) => {
+      busyWith.current = null;
+      show(next);
+    };
+
+    const share = async (file: LocalReportFile): Promise<ReportFileStatus> =>
+      (await openLocalReport(file)) ? 'done' : 'shareFailed';
+
+    busyWith.current = report.id;
 
     const run = async (): Promise<ReportFileStatus> => {
       const local = findLocalReport(userId, report);
       if (local) {
-        await openLocalReport(local);
-        return 'done';
+        return share(local);
       }
 
       if (!idToken) {
@@ -111,18 +124,17 @@ export function useReportFile(
         return 'offline';
       }
 
-      if (isMounted.current) setStatus('downloading');
+      show('downloading');
 
       if (!canKeepReportFiles) {
         const link = await freshLink(idToken, report.id);
-        downloadInBrowser(link.url);
+        await downloadInBrowser(link.url);
         return 'done';
       }
 
       const file = await downloadWithFreshLink(idToken, userId, report);
       onDownloaded(report.id);
-      await openLocalReport(file);
-      return 'done';
+      return share(file);
     };
 
     run()

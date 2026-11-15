@@ -1,28 +1,34 @@
-import { Platform, Share } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import * as WebBrowser from 'expo-web-browser';
 
-import {
-  copyReportToPickedFolder,
-  type LocalReportFile,
-} from './reportFileStore';
+import type { LocalReportFile } from './reportFileStore';
 
-// iOS shares a file url through the system sheet (open in, save to Files).
-// Android's Share only carries text, and Linking.openURL hands a content uri
-// to the viewer without the read grant, so there the copy is saved to a folder
-// the person picks. expo-sharing would give Android the sheet too.
-export async function openLocalReport(file: LocalReportFile): Promise<void> {
-  if (Platform.OS === 'ios') {
-    await Share.share({ url: file.uri });
-    return;
-  }
+type ShareType = { mimeType: string; UTI: string };
 
-  await copyReportToPickedFolder(file);
+const SHARE_TYPES: Record<string, ShareType> = {
+  pdf: { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' },
+  zip: { mimeType: 'application/zip', UTI: 'public.zip-archive' },
+};
+
+function shareTypeOf(fileName: string): ShareType | undefined {
+  const extension = fileName.split('.').pop()?.toLowerCase() ?? '';
+  return SHARE_TYPES[extension];
 }
 
-// The signed url answers with Content-Disposition: attachment, so the browser
-// saves the file under its name and the app page stays where it was.
-// Navigating instead of opening a tab, because a tab opened after an await is
-// blocked as a popup. The app's types have no DOM, hence the narrow cast.
-export function downloadInBrowser(url: string): void {
-  const page = globalThis as { location?: { assign: (to: string) => void } };
-  page.location?.assign(url);
+// The system sheet is how the person opens the file in a viewer, saves it or
+// sends it. Resolves false where the device has no such sheet.
+export async function openLocalReport(file: LocalReportFile): Promise<boolean> {
+  if (!(await Sharing.isAvailableAsync())) {
+    return false;
+  }
+
+  await Sharing.shareAsync(file.uri, shareTypeOf(file.name));
+
+  return true;
+}
+
+// The signed URL sends an attachment; using this tab avoids popup blocking
+// after an await and keeps the app open.
+export async function downloadInBrowser(url: string): Promise<void> {
+  await WebBrowser.openBrowserAsync(url, { windowName: '_self' });
 }

@@ -17,6 +17,8 @@ const ERROR_KEYS: Record<AuthErrorCode, TranslationKey> = {
   ACCOUNT_USES_OTHER_SIGN_IN: 'auth.errors.accountUsesOtherSignIn',
   TOO_MANY_ATTEMPTS: 'auth.errors.tooManyAttempts',
   NETWORK_UNAVAILABLE: 'auth.errors.networkUnavailable',
+  REAUTH_REQUIRED: 'profile.deleteAccount.reauth.message',
+  ACCOUNT_DELETION_INCOMPLETE: 'profile.deleteAccount.incomplete.message',
   UNKNOWN: 'auth.errors.unknown',
 };
 

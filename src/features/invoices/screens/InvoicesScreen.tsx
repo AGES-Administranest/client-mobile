@@ -1,11 +1,11 @@
-import { ArrowLeft, FileText, Plus } from 'lucide-react-native';
+import { FileText, Plus } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
-import { Icon } from 'app/components/ui/icon';
+import { ModalHeader } from 'app/components/ui/modal-header';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services/network';
@@ -14,11 +14,24 @@ import { InvoiceDetailModal } from './InvoiceDetailModal';
 import { invoiceCardView } from './invoicePresenter';
 import { InvoiceCard } from '../components/InvoiceCard';
 import { InvoiceListFooter } from '../components/InvoiceListFooter';
+import { TaxPackageDownload } from '../components/TaxPackageDownload';
 import type { Invoice } from '../domain/invoice.types';
 import { EMPTY_INVOICE_FILTERS } from '../domain/invoiceFilters';
 import { useInvoices } from '../hooks/useInvoices';
+import { useTaxPackageDownload } from '../hooks/useTaxPackageDownload';
 
 const END_REACHED_THRESHOLD = 0.5;
+
+const TAX_PACKAGE_MESSAGE = {
+  idle: null,
+  downloading: 'invoices.downloadAll.downloading',
+  done: 'invoices.downloadAll.done',
+  empty: 'invoices.downloadAll.empty',
+  tooLarge: 'invoices.downloadAll.tooLarge',
+  rateLimited: 'invoices.downloadAll.rateLimited',
+  offline: 'invoices.downloadAll.offline',
+  failed: 'invoices.downloadAll.failed',
+} as const;
 
 export type InvoicesScreenProps = {
   visible: boolean;
@@ -51,6 +64,8 @@ function InvoicesContent({ onClose, onAddInvoice }: InvoicesContentProps) {
   } = useInvoices(EMPTY_INVOICE_FILTERS);
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const taxPackage = useTaxPackageDownload();
+  const taxPackageMessageKey = TAX_PACKAGE_MESSAGE[taxPackage.status];
 
   useEffect(() => onConnectionRestored(retry), [retry]);
 
@@ -64,24 +79,14 @@ function InvoicesContent({ onClose, onAddInvoice }: InvoicesContentProps) {
 
   return (
     <>
-      <View className="h-11 flex-row items-center justify-center px-4">
-        <Pressable
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel={t('invoices.back')}
-          className="absolute left-4 size-9 items-center justify-center rounded-full bg-primary"
-        >
-          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-        </Pressable>
-        <Text
-          accessibilityRole="header"
-          className="text-[13px] font-semibold uppercase tracking-wide text-label-primary"
-        >
-          {t(total === 1 ? 'invoices.countSingular' : 'invoices.countPlural', {
-            count: total,
-          })}
-        </Text>
-      </View>
+      <ModalHeader
+        title={t(
+          total === 1 ? 'invoices.countSingular' : 'invoices.countPlural',
+          { count: total },
+        )}
+        backLabel={t('invoices.back')}
+        onBack={onClose}
+      />
 
       <View className="flex-1 gap-3 px-4 pt-4">
         {isLoading ? (
@@ -134,14 +139,22 @@ function InvoicesContent({ onClose, onAddInvoice }: InvoicesContentProps) {
           }
         />
 
-        <Button
-          shape="pill"
-          icon={Plus}
-          className="mb-4 h-[49px] w-full"
-          onPress={onAddInvoice}
-        >
-          <Text>{t('invoices.addInvoice')}</Text>
-        </Button>
+        <View className="mb-4 gap-3">
+          <TaxPackageDownload
+            label={t('invoices.downloadAll.button')}
+            message={taxPackageMessageKey ? t(taxPackageMessageKey) : null}
+            isDownloading={taxPackage.status === 'downloading'}
+            onPress={taxPackage.download}
+          />
+          <Button
+            shape="pill"
+            icon={Plus}
+            className="h-[49px] w-full"
+            onPress={onAddInvoice}
+          >
+            <Text>{t('invoices.addInvoice')}</Text>
+          </Button>
+        </View>
       </View>
 
       <InvoiceDetailModal

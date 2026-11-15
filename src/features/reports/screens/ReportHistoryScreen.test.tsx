@@ -54,12 +54,7 @@ const METRICS = {
   insets: { top: 59, left: 0, right: 0, bottom: 34 },
 };
 
-const LOCAL = {
-  uri: 'file://relatorio.pdf',
-  contentUri: 'content://r',
-  name: 'relatorio.pdf',
-  mimeType: 'application/pdf',
-};
+const LOCAL = { uri: 'file://relatorio.pdf', name: 'relatorio.pdf' };
 
 const onlineMock = isOnline as jest.Mock;
 const openMock = openLocalReport as jest.Mock;
@@ -81,7 +76,7 @@ const GENERAL: ReportHistoryItem = {
 const PACKAGE: ReportHistoryItem = {
   id: 'package',
   kind: 'TAX_PACKAGE',
-  fileName: null,
+  fileName: 'notas-fiscais.zip',
   fileBytesSize: null,
   period: null,
   generatedAt: '2026-11-10T15:00:00.000Z',
@@ -99,7 +94,9 @@ function historyOf(
     hasError: false,
     loadMoreFailed: false,
     loadMore: jest.fn(),
+    retryLoadMore: jest.fn(),
     retry: jest.fn(),
+    add: jest.fn(),
     markDownloaded: jest.fn(),
     forget: jest.fn(),
     ...overrides,
@@ -149,6 +146,7 @@ beforeEach(() => {
   jest.resetAllMocks();
   onlineMock.mockResolvedValue(true);
   findLocalMock.mockReturnValue(null);
+  openMock.mockResolvedValue(true);
 });
 
 afterEach(() => {
@@ -203,7 +201,7 @@ describe('ReportHistoryScreen', () => {
     expect(detail().title).toBe('Pacote para o contador');
     expect(detail().rows).toEqual(
       expect.arrayContaining([
-        { label: 'Arquivo', value: 'Relatório sem nome' },
+        { label: 'Arquivo', value: 'notas-fiscais.zip' },
         { label: 'Tamanho', value: 'Não informado' },
       ]),
     );

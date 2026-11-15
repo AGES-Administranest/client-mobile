@@ -1,8 +1,10 @@
 import type { ReportHistoryItem } from './report.types';
 import {
+  bringsNewReports,
   hasMorePages,
   isDownloadLinkUsable,
   mergeReportPages,
+  nextHistoryPage,
   toFileSize,
   withoutReport,
 } from './reportHistory';
@@ -28,6 +30,41 @@ describe('hasMorePages', () => {
     [1, 1, true],
   ])('%i received with a limit of %i → %s', (received, limit, expected) => {
     expect(hasMorePages(received, limit)).toBe(expected);
+  });
+});
+
+describe('nextHistoryPage', () => {
+  it.each([
+    [0, 20, 1],
+    [20, 20, 2],
+    [40, 20, 3],
+    // One deleted after the first page: the first page is asked again, so the
+    // report that moved into it is not skipped.
+    [19, 20, 1],
+    // One generated after the first page: the second page repeats one report.
+    [21, 20, 2],
+  ])('%i known with a limit of %i → page %i', (known, limit, expected) => {
+    expect(nextHistoryPage(known, limit)).toBe(expected);
+  });
+});
+
+describe('bringsNewReports', () => {
+  const known = [report('a', '2026-11-12T10:00:00.000Z')];
+
+  it('is true when the page has a report the list does not hold', () => {
+    expect(
+      bringsNewReports(known, [
+        report('a', '2026-11-12T10:00:00.000Z'),
+        report('b', '2026-11-11T10:00:00.000Z'),
+      ]),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['only known reports', [report('a', '2026-11-12T10:00:00.000Z')]],
+    ['nothing', []],
+  ])('is false when the page has %s', (_name, incoming) => {
+    expect(bringsNewReports(known, incoming)).toBe(false);
   });
 });
 

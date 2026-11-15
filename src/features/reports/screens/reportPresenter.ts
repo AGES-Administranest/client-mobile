@@ -52,10 +52,6 @@ function formatSize(bytes: number | null, t: Translate, locale: string) {
   return `${value} ${size.unit}`;
 }
 
-export function reportFileName(report: ReportHistoryItem, t: Translate) {
-  return report.fileName ?? t('reports.history.untitled');
-}
-
 export function reportCardView(
   report: ReportHistoryItem,
   isDownloaded: boolean,
@@ -63,12 +59,12 @@ export function reportCardView(
   locale: string,
 ): ReportCardView {
   return {
-    kind: t(`reports.kinds.${report.kind}`),
+    kind: t(`reports.history.kinds.${report.kind}`),
     period: formatReportPeriod(report, t, locale),
     generatedAt: t('reports.history.generatedAt', {
       date: formatGeneratedAt(report.generatedAt, locale),
     }),
-    fileName: reportFileName(report, t),
+    fileName: report.fileName,
     downloadedLabel: isDownloaded ? t('reports.history.downloaded') : null,
   };
 }
@@ -81,7 +77,7 @@ export function reportDetailRows(
   return [
     {
       label: t('reports.detail.kind'),
-      value: t(`reports.kinds.${report.kind}`),
+      value: t(`reports.history.kinds.${report.kind}`),
     },
     {
       label: t('reports.detail.period'),
@@ -91,7 +87,7 @@ export function reportDetailRows(
       label: t('reports.detail.generatedAt'),
       value: formatGeneratedAt(report.generatedAt, locale),
     },
-    { label: t('reports.detail.fileName'), value: reportFileName(report, t) },
+    { label: t('reports.detail.fileName'), value: report.fileName },
     {
       label: t('reports.detail.size'),
       value: formatSize(report.fileBytesSize, t, locale),

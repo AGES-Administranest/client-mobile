@@ -7,6 +7,7 @@ import { useTranslation } from 'shared/i18n';
 import { ReportDetailModal } from './ReportDetailModal';
 import { reportCardView } from './reportPresenter';
 import { ReportCard } from '../components/ReportCard';
+import { ReportsHistoryLink } from '../components/ReportsHistoryLink';
 import type { ReportHistoryItem } from '../domain/report.types';
 import type { ReportHistoryState } from '../hooks/useReportHistory';
 
@@ -28,20 +29,11 @@ export function ReportHistorySection({
 
   return (
     <View className="gap-3">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-semibold uppercase tracking-wide text-label-primary">
-          {t('reports.history.title')}
-        </Text>
-        {reports.length > 0 ? (
-          <Text
-            accessibilityRole="button"
-            onPress={onSeeAll}
-            className="text-xs text-label-quartenery"
-          >
-            {t('reports.seeAll')}
-          </Text>
-        ) : null}
-      </View>
+      <ReportsHistoryLink
+        title={t('reports.history.title')}
+        actionLabel={t('reports.history.viewAll')}
+        onPress={reports.length > 0 ? onSeeAll : undefined}
+      />
 
       {isLoading ? (
         <Text className="text-sm text-label-tertiary">

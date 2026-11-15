@@ -111,11 +111,12 @@ describe('useReportHistory', () => {
   });
 
   it('appends the next page without repeating a report', async () => {
-    fetchMock.mockResolvedValueOnce(
-      pageOf([report('c', 3), report('b', 2)], true),
+    const firstPage = Array.from({ length: 20 }, (_, index) =>
+      report(`r${index}`, 28 - index),
     );
+    fetchMock.mockResolvedValueOnce(pageOf(firstPage, true));
     fetchMock.mockResolvedValueOnce(
-      pageOf([report('b', 2), report('a', 1)], false),
+      pageOf([firstPage[19], report('last', 1)], false),
     );
 
     const result = renderHistory();
@@ -124,7 +125,7 @@ describe('useReportHistory', () => {
     await flush();
 
     expect(fetchMock).toHaveBeenLastCalledWith('id-token', 2);
-    expect(ids(result.current.reports)).toEqual(['c', 'b', 'a']);
+    expect(ids(result.current.reports)).toEqual([...ids(firstPage), 'last']);
     expect(result.current.hasMore).toBe(false);
   });
 
@@ -152,11 +153,76 @@ describe('useReportHistory', () => {
     expect(ids(result.current.reports)).toEqual(['a']);
   });
 
+  it('waits for the person to ask again after the next page failed', async () => {
+    fetchMock.mockResolvedValueOnce(pageOf([report('b', 2)], true));
+    fetchMock.mockRejectedValueOnce(new Error('offline'));
+    fetchMock.mockResolvedValueOnce(pageOf([report('a', 1)], false));
+
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    act(() => result.current.retryLoadMore());
+    await flush();
+
+    expect(result.current.loadMoreFailed).toBe(false);
+    expect(ids(result.current.reports)).toEqual(['b', 'a']);
+  });
+
+  it('asks the first page again after a deletion, so no report is skipped', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) =>
+      report(`r${index}`, 28 - index),
+    );
+    fetchMock.mockResolvedValueOnce(pageOf(firstPage, true));
+    fetchMock.mockResolvedValueOnce(
+      pageOf([...firstPage.slice(1), report('moved-up', 1)], true),
+    );
+
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.forget('r0'));
+    act(() => result.current.loadMore());
+    await flush();
+
+    expect(fetchMock).toHaveBeenLastCalledWith('id-token', 1);
+    expect(ids(result.current.reports)).toHaveLength(20);
+    expect(ids(result.current.reports)).toContain('moved-up');
+    expect(result.current.hasMore).toBe(true);
+  });
+
+  it('stops asking when a full page brings nothing new', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) =>
+      report(`r${index}`, 28 - index),
+    );
+    fetchMock.mockResolvedValueOnce(pageOf(firstPage, true));
+    fetchMock.mockResolvedValueOnce(pageOf(firstPage, true));
+
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.loadMore());
+    await flush();
+
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it('puts a report just generated at the top', async () => {
+    fetchMock.mockResolvedValue(pageOf([report('old', 1)], false));
+
+    const result = renderHistory();
+    await flush();
+    act(() => result.current.add(report('new', 12)));
+
+    expect(ids(result.current.reports)).toEqual(['new', 'old']);
+  });
+
   it('marks the reports that already have a copy on the device', async () => {
     findLocalMock.mockImplementation((_user, item) =>
-      item.id === 'kept'
-        ? { uri: 'file://kept', contentUri: 'c', name: 'k', mimeType: null }
-        : null,
+      item.id === 'kept' ? { uri: 'file://kept', name: 'k' } : null,
     );
     fetchMock.mockResolvedValue(
       pageOf([report('kept', 2), report('remote', 1)], false),

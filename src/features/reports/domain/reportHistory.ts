@@ -16,8 +16,8 @@ function newestFirst(a: ReportHistoryItem, b: ReportHistoryItem): number {
   return byDate !== 0 ? byDate : a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 }
 
-// A report deleted while paging shifts the next page by one, so the same
-// report can come twice; the list keeps one copy, newest generation first.
+// Pages are cut by position, so a report generated meanwhile pushes one that
+// is already known into the next page; the list keeps one copy, newest first.
 export function mergeReportPages(
   known: readonly ReportHistoryItem[],
   incoming: readonly ReportHistoryItem[],
@@ -29,6 +29,23 @@ export function mergeReportPages(
   }
 
   return [...byId.values()].sort(newestFirst);
+}
+
+// Counted from what the list holds, not from the pages already asked for: a
+// report deleted here pulls the rest one position up, and the page after the
+// last one asked would skip the report that moved into it.
+export function nextHistoryPage(knownCount: number, limit: number): number {
+  return Math.floor(knownCount / limit) + 1;
+}
+
+// A full page with nothing new would be asked for again without end.
+export function bringsNewReports(
+  known: readonly ReportHistoryItem[],
+  incoming: readonly ReportHistoryItem[],
+): boolean {
+  const knownIds = new Set(known.map(report => report.id));
+
+  return incoming.some(report => !knownIds.has(report.id));
 }
 
 export function withoutReport(

@@ -1,4 +1,5 @@
 import { ApiError, NetworkError, postJson } from 'shared/api';
+import { apiClient } from 'shared/services/apiClient';
 
 import { Account } from '../domain/account';
 import { AuthError, fromApiError } from '../domain/authErrors';
@@ -48,4 +49,18 @@ function toAccount(payload: unknown): Account {
     termsVersion:
       typeof data.termsVersion === 'string' ? data.termsVersion : null,
   };
+}
+
+export async function deleteAccount(idToken: string): Promise<void> {
+  try {
+    await apiClient.delete<void>('/users/me', { token: idToken });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw new AuthError(fromApiError(error.status, error.code), error.code);
+    }
+    if (error instanceof NetworkError) {
+      throw new AuthError('NETWORK_UNAVAILABLE');
+    }
+    throw error;
+  }
 }

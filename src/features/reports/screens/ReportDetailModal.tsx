@@ -1,11 +1,10 @@
 import { Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { useTranslation } from 'shared/i18n';
 
-import { reportDetailRows, reportFileName } from './reportPresenter';
+import { reportDetailRows } from './reportPresenter';
 import { ReportDetailSheet } from '../components/ReportDetailSheet';
 import type { ReportHistoryItem } from '../domain/report.types';
 import { useDeleteReport } from '../hooks/useDeleteReport';
@@ -25,11 +24,6 @@ type ReportDetailModalProps = {
 // finished closing.
 type Step = 'detail' | 'toConfirm' | 'confirm' | 'backToDetail' | 'deleted';
 
-// Android saves the copy to a folder the person picks instead of opening it
-// (see openLocalReport).
-const DOWNLOADED_ACTION =
-  Platform.OS === 'android' ? 'reports.detail.save' : 'reports.detail.open';
-
 const STATUS_MESSAGE = {
   idle: null,
   downloading: 'reports.detail.downloading',
@@ -37,6 +31,7 @@ const STATUS_MESSAGE = {
   failed: 'reports.detail.downloadFailed',
   offline: 'reports.detail.offline',
   missing: 'reports.detail.missing',
+  shareFailed: 'reports.history.shareFailed',
 } as const satisfies Record<ReportFileStatus, string | null>;
 
 export function ReportDetailModal({
@@ -101,11 +96,11 @@ export function ReportDetailModal({
     <>
       <ReportDetailSheet
         visible={visible && step === 'detail'}
-        title={t(`reports.kinds.${report.kind}`)}
+        title={t(`reports.history.kinds.${report.kind}`)}
         closeLabel={t('reports.detail.close')}
         rows={reportDetailRows(report, t, locale)}
         openLabel={t(
-          isDownloaded ? DOWNLOADED_ACTION : 'reports.detail.download',
+          isDownloaded ? 'reports.detail.open' : 'reports.detail.download',
         )}
         statusMessage={messageKey ? t(messageKey) : null}
         isBusy={file.status === 'downloading'}
@@ -122,7 +117,7 @@ export function ReportDetailModal({
         message={
           deleteError ??
           t('reports.delete.confirmMessage', {
-            name: reportFileName(report, t),
+            name: report.fileName,
           })
         }
         confirmLabel={t(

@@ -1,49 +1,56 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import { Platform } from 'react-native';
 
-import type { ReportHistoryItem } from '../domain/report.types';
+import { registerLocalDataCleaner } from 'shared/services/localData';
+
+const ROOT_NAME = 'reports';
+
+// Without a limit a stalled download would keep the sheet busy for good.
+export const DOWNLOAD_TIMEOUT_MS = 60_000;
 
 // The web build has no document directory: there the file is only downloaded
 // by the browser, never kept by the app.
 export const canKeepReportFiles = Platform.OS !== 'web';
 
-// The document directory, not the cache: the system may empty the cache, and
-// the copy is what lets a report open without a connection.
-function directoryOf(userId: string, reportId: string): Directory {
-  return new Directory(Paths.document, 'reports', userId, reportId);
-}
-
-function fileNameOf(report: Pick<ReportHistoryItem, 'id' | 'fileName'>) {
-  return report.fileName ?? `${report.id}.pdf`;
-}
+type NamedReport = { id: string; fileName: string };
 
 export type LocalReportFile = {
   uri: string;
-  contentUri: string;
   name: string;
-  mimeType: string | null;
 };
 
-function toLocal(file: File): LocalReportFile {
-  return {
-    uri: file.uri,
-    contentUri: file.contentUri,
-    name: file.name,
-    mimeType: file.type || null,
-  };
+// The document directory, not the cache: the system may empty the cache, and
+// the copy is what lets a report open without a connection. A folder for each
+// report, because the file name only tells the period: two reports of the same
+// period would overwrite each other.
+function directoryOf(userId: string, reportId: string): Directory {
+  return new Directory(Paths.document, ROOT_NAME, userId, reportId);
+}
+
+registerLocalDataCleaner(() => {
+  if (!canKeepReportFiles) {
+    return;
+  }
+
+  const root = new Directory(Paths.document, ROOT_NAME);
+  if (root.exists) root.delete();
+});
+
+function toLocal(file: File, report: NamedReport): LocalReportFile {
+  return { uri: file.uri, name: report.fileName };
 }
 
 export function findLocalReport(
   userId: string,
-  report: Pick<ReportHistoryItem, 'id' | 'fileName'>,
+  report: NamedReport,
 ): LocalReportFile | null {
   if (!canKeepReportFiles) {
     return null;
   }
 
   try {
-    const file = new File(directoryOf(userId, report.id), fileNameOf(report));
-    return file.exists ? toLocal(file) : null;
+    const file = new File(directoryOf(userId, report.id), report.fileName);
+    return file.exists ? toLocal(file, report) : null;
   } catch {
     return null;
   }
@@ -51,17 +58,25 @@ export function findLocalReport(
 
 export async function saveReportFile(
   userId: string,
-  report: Pick<ReportHistoryItem, 'id' | 'fileName'>,
+  report: NamedReport,
   url: string,
 ): Promise<LocalReportFile> {
   const directory = directoryOf(userId, report.id);
   directory.create({ idempotent: true, intermediates: true });
-  const destination = new File(directory, fileNameOf(report));
-  const file = await File.downloadFileAsync(url, destination, {
-    idempotent: true,
-  });
 
-  return toLocal(file);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+
+  try {
+    const file = await File.downloadFileAsync(
+      url,
+      new File(directory, report.fileName),
+      { idempotent: true, signal: controller.signal },
+    );
+    return toLocal(file, report);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export function removeReportFile(userId: string, reportId: string): void {
@@ -73,35 +88,4 @@ export function removeReportFile(userId: string, reportId: string): void {
   if (directory.exists) {
     directory.delete();
   }
-}
-
-const PICKER_CANCELLED = 'ERR_PICKER_CANCELLED';
-
-function isPickerCancelled(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    (error as { code?: unknown }).code === PICKER_CANCELLED
-  );
-}
-
-// Resolves false when the person closes the folder picker without choosing.
-export async function copyReportToPickedFolder(
-  local: LocalReportFile,
-): Promise<boolean> {
-  let folder: Directory;
-
-  try {
-    folder = await Directory.pickDirectoryAsync();
-  } catch (error) {
-    if (isPickerCancelled(error)) {
-      return false;
-    }
-    throw error;
-  }
-
-  const target = folder.createFile(local.name, local.mimeType);
-  target.write(await new File(local.uri).bytes());
-
-  return true;
 }

@@ -3,7 +3,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from 'features/auth';
 
 import type { ReportHistoryItem } from '../domain/report.types';
-import { mergeReportPages, withoutReport } from '../domain/reportHistory';
+import {
+  bringsNewReports,
+  mergeReportPages,
+  nextHistoryPage,
+  REPORT_HISTORY_PAGE_SIZE,
+  withoutReport,
+} from '../domain/reportHistory';
 import { findLocalReport } from '../services/reportFileStore';
 import { fetchReportHistory } from '../services/reportHistoryService';
 
@@ -18,7 +24,9 @@ export type ReportHistoryState = {
   hasError: boolean;
   loadMoreFailed: boolean;
   loadMore: () => void;
+  retryLoadMore: () => void;
   retry: () => void;
+  add: (report: ReportHistoryItem) => void;
   markDownloaded: (reportId: string) => void;
   forget: (reportId: string) => void;
 };
@@ -37,9 +45,13 @@ export function useReportHistory(): ReportHistoryState {
   const [downloadedIds, setDownloadedIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
-  const nextPage = useRef(FIRST_PAGE + 1);
+  const known = useRef<ReportHistoryItem[]>([]);
   const isFetchingMore = useRef(false);
   const generation = useRef(0);
+
+  useEffect(() => {
+    known.current = reports;
+  }, [reports]);
 
   useEffect(() => {
     if (!idToken) {
@@ -48,7 +60,6 @@ export function useReportHistory(): ReportHistoryState {
 
     const current = generation.current;
 
-    nextPage.current = FIRST_PAGE + 1;
     isFetchingMore.current = false;
     setIsLoading(true);
     setIsLoadingMore(false);
@@ -79,23 +90,26 @@ export function useReportHistory(): ReportHistoryState {
     };
   }, [idToken, attempt]);
 
-  const loadMore = useCallback(() => {
-    if (!idToken || isLoading || !hasMore || isFetchingMore.current) {
+  const fetchNextPage = useCallback(() => {
+    if (!idToken || isFetchingMore.current) {
       return;
     }
 
     const current = generation.current;
+    const page = nextHistoryPage(
+      known.current.length,
+      REPORT_HISTORY_PAGE_SIZE,
+    );
 
     isFetchingMore.current = true;
     setIsLoadingMore(true);
     setLoadMoreFailed(false);
 
-    fetchReportHistory(idToken, nextPage.current)
-      .then(page => {
+    fetchReportHistory(idToken, page)
+      .then(({ items, hasMore: serverHasMore }) => {
         if (current !== generation.current) return;
-        nextPage.current += 1;
-        setReports(known => mergeReportPages(known, page.items));
-        setHasMore(page.hasMore);
+        setHasMore(serverHasMore && bringsNewReports(known.current, items));
+        setReports(listed => mergeReportPages(listed, items));
       })
       .catch(() => {
         if (current !== generation.current) return;
@@ -106,7 +120,15 @@ export function useReportHistory(): ReportHistoryState {
         isFetchingMore.current = false;
         setIsLoadingMore(false);
       });
-  }, [idToken, isLoading, hasMore]);
+  }, [idToken]);
+
+  // The list asks for more by itself whenever its end shows, and the footer
+  // changing size counts as that: after a failure only the person asks again.
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore && !loadMoreFailed) {
+      fetchNextPage();
+    }
+  }, [isLoading, hasMore, loadMoreFailed, fetchNextPage]);
 
   useEffect(() => {
     const ids = new Set<string>();
@@ -123,13 +145,18 @@ export function useReportHistory(): ReportHistoryState {
   }, [reports, userId]);
 
   const retry = useCallback(() => setAttempt(count => count + 1), []);
+  const add = useCallback(
+    (report: ReportHistoryItem) =>
+      setReports(listed => mergeReportPages(listed, [report])),
+    [],
+  );
   const markDownloaded = useCallback(
     (reportId: string) =>
-      setDownloadedIds(known => new Set(known).add(reportId)),
+      setDownloadedIds(listed => new Set(listed).add(reportId)),
     [],
   );
   const forget = useCallback(
-    (reportId: string) => setReports(known => withoutReport(known, reportId)),
+    (reportId: string) => setReports(listed => withoutReport(listed, reportId)),
     [],
   );
 
@@ -142,7 +169,9 @@ export function useReportHistory(): ReportHistoryState {
     hasError,
     loadMoreFailed,
     loadMore,
+    retryLoadMore: fetchNextPage,
     retry,
+    add,
     markDownloaded,
     forget,
   };
