@@ -1,5 +1,6 @@
 import { Check, LogOut } from 'lucide-react-native';
 
+import { useLegalDocuments } from 'shared/hooks/useLegalDocuments';
 import { useTranslation } from 'shared/i18n';
 
 import { AuthButton } from '../components/AuthButton';
@@ -13,6 +14,7 @@ import { useAcceptTerms } from '../hooks/useAcceptTerms';
 // terms. Going back means leaving the account: there is no use without it.
 export function TermsScreen() {
   const { t } = useTranslation();
+  const legal = useLegalDocuments();
   const {
     name,
     checked,
@@ -39,6 +41,17 @@ export function TermsScreen() {
         onChange={setChecked}
         error={checkErrorKey ? t(checkErrorKey) : undefined}
         disabled={isSubmitting}
+        links={[
+          {
+            label: t('legal.privacyPolicy.link'),
+            onPress: () => legal.open('privacyPolicy'),
+          },
+          {
+            label: t('legal.termsOfUse.link'),
+            onPress: () => legal.open('termsOfUse'),
+          },
+        ]}
+        linksError={legal.unavailable ? t('legal.unavailable') : undefined}
       />
 
       <FormMessage message={errorKey ? t(errorKey) : null} />
