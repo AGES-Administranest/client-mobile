@@ -2,10 +2,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { I18nProvider } from 'shared/i18n';
+import { ApiError } from 'shared/services/apiClient';
 
 import { InvoicesScreen } from './InvoicesScreen';
 import type { Invoice, InvoicePage } from '../domain/invoice.types';
 import { fetchInvoices } from '../services/invoiceService';
+import { downloadTaxPackage } from '../services/taxPackageService';
 
 jest.mock('features/auth', () => ({
   useAuth: () => ({ session: { idToken: 'tok' } }),
@@ -15,7 +17,15 @@ jest.mock('../services/invoiceService', () => ({
   fetchInvoices: jest.fn(),
 }));
 
+jest.mock('../services/taxPackageService', () => ({
+  ...jest.requireActual('../services/taxPackageService'),
+  downloadTaxPackage: jest.fn(),
+}));
+
 const fetchMock = fetchInvoices as jest.MockedFunction<typeof fetchInvoices>;
+const downloadMock = downloadTaxPackage as jest.MockedFunction<
+  typeof downloadTaxPackage
+>;
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -71,6 +81,7 @@ async function renderScreen(onClose = jest.fn(), onAddInvoice = jest.fn()) {
 beforeEach(() => {
   jest.useFakeTimers();
   fetchMock.mockReset();
+  downloadMock.mockReset();
 });
 
 afterEach(() => {
@@ -186,5 +197,61 @@ describe('InvoicesScreen', () => {
     act(() => add!.props.onPress());
 
     expect(onAddInvoice).toHaveBeenCalledTimes(1);
+  });
+
+  describe('download all', () => {
+    async function pressDownloadAll(
+      renderer: ReactTestRenderer.ReactTestRenderer,
+    ) {
+      const label = renderer.root.find(
+        node =>
+          (node.type as unknown) === 'Text' &&
+          node.props.children === 'Baixar tudo (ZIP)',
+      );
+      let button = label.parent;
+
+      while (button && typeof button.props.onPress !== 'function') {
+        button = button.parent;
+      }
+
+      await act(async () => {
+        button!.props.onPress();
+      });
+    }
+
+    it('downloads the zip with the id token and says it started', async () => {
+      fetchMock.mockResolvedValue(page([]));
+      downloadMock.mockResolvedValue(undefined);
+      const { renderer, texts } = await renderScreen();
+
+      await pressDownloadAll(renderer);
+
+      expect(downloadMock).toHaveBeenCalledWith('tok');
+      expect(texts()).toContain('Download iniciado.');
+    });
+
+    it('says so when there is no invoice with a file to download', async () => {
+      fetchMock.mockResolvedValue(page([]));
+      downloadMock.mockRejectedValue(
+        new ApiError('nothing', 'TAX_PACKAGE_EMPTY', 404),
+      );
+      const { renderer, texts } = await renderScreen();
+
+      await pressDownloadAll(renderer);
+
+      expect(texts()).toContain('Nenhuma nota fiscal com arquivo para baixar.');
+    });
+
+    it('says so when the connection is down', async () => {
+      fetchMock.mockResolvedValue(page([]));
+      downloadMock.mockRejectedValue(new TypeError('no answer'));
+      const { renderer, texts } = await renderScreen();
+
+      await pressDownloadAll(renderer);
+
+      expect(texts()).toContain(
+        'Sem conexão. Verifique sua internet e tente de novo.',
+      );
+    });
   });
 });

@@ -38,7 +38,7 @@ afterAll(() => {
 async function render(
   value: CalendarRange,
   onChange = jest.fn(),
-  maxDate?: string,
+  extra: { maxDate?: string; maxRangeDays?: number } = {},
 ) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
@@ -50,7 +50,7 @@ async function render(
         locale="pt-BR"
         previousMonthLabel="Mês anterior"
         nextMonthLabel="Próximo mês"
-        maxDate={maxDate}
+        {...extra}
       />,
     );
   });
@@ -158,6 +158,36 @@ test('announces each day with its full date, not just the number', async () => {
   );
 });
 
+test('blocks the days past maxRangeDays once the first day is picked', async () => {
+  const { renderer } = await render(
+    { from: '2026-09-08', to: null },
+    jest.fn(),
+    {
+      maxRangeDays: 3,
+    },
+  );
+  const disabled = (date: string) =>
+    dayCell(renderer, date).props.accessibilityState.disabled;
+
+  // 3 days counting both ends: 06–08 or 08–10.
+  expect(disabled('2026-09-05')).toBe(true);
+  expect(disabled('2026-09-06')).toBeFalsy();
+  expect(disabled('2026-09-10')).toBeFalsy();
+  expect(disabled('2026-09-11')).toBe(true);
+});
+
+test('lets a new range start anywhere once the range is complete', async () => {
+  const { renderer } = await render(
+    { from: '2026-09-08', to: '2026-09-10' },
+    jest.fn(),
+    { maxRangeDays: 3 },
+  );
+
+  expect(
+    dayCell(renderer, '2026-09-25').props.accessibilityState.disabled,
+  ).toBeFalsy();
+});
+
 describe('maxDate', () => {
   function pressableDay(
     renderer: ReactTestRenderer.ReactTestRenderer,
@@ -169,7 +199,9 @@ describe('maxDate', () => {
   }
 
   test('disables the days after the limit', async () => {
-    const { renderer } = await render(EMPTY, jest.fn(), '2026-09-15');
+    const { renderer } = await render(EMPTY, jest.fn(), {
+      maxDate: '2026-09-15',
+    });
     const day = pressableDay(renderer, '2026-09-16');
 
     expect(day.props.disabled).toBe(true);
@@ -177,7 +209,9 @@ describe('maxDate', () => {
   });
 
   test('blocks the next month once it starts after the limit', async () => {
-    const { renderer } = await render(EMPTY, jest.fn(), '2026-09-15');
+    const { renderer } = await render(EMPTY, jest.fn(), {
+      maxDate: '2026-09-15',
+    });
 
     expect(pressLabelled(renderer, 'Próximo mês').props.disabled).toBe(true);
 
@@ -190,7 +224,9 @@ describe('maxDate', () => {
 
   test('accepts the limit day itself', async () => {
     const onChange = jest.fn();
-    const { renderer } = await render(EMPTY, onChange, '2026-09-15');
+    const { renderer } = await render(EMPTY, onChange, {
+      maxDate: '2026-09-15',
+    });
 
     await act(() => {
       dayCell(renderer, '2026-09-15').props.onPress();

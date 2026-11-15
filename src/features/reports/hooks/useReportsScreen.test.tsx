@@ -39,10 +39,10 @@ const CURRENT_MONTH = { from: '2026-11-01', to: '2026-11-02' };
 
 type HookState = ReturnType<typeof useReportsScreen>;
 
-async function renderHook(onGenerateReport = jest.fn()) {
+async function renderHook() {
   const latest = { current: null as unknown as HookState };
   function Probe() {
-    latest.current = useReportsScreen({ onGenerateReport });
+    latest.current = useReportsScreen();
     return null;
   }
   await act(async () => {
@@ -52,13 +52,15 @@ async function renderHook(onGenerateReport = jest.fn()) {
       </AuthProvider>,
     );
   });
-  return { state: latest, onGenerateReport };
+  return latest;
 }
 
-async function generate(state: { current: HookState }) {
+async function check(state: { current: HookState }) {
+  let canGoOn = false;
   await act(async () => {
-    await state.current.generate('general');
+    canGoOn = await state.current.checkPeriod();
   });
+  return canGoOn;
 }
 
 beforeAll(() => {
@@ -89,7 +91,7 @@ beforeEach(() => {
 
 describe('useReportsScreen', () => {
   it('refuses an end before the start without asking the API', async () => {
-    const { state, onGenerateReport } = await renderHook();
+    const state = await renderHook();
 
     await act(async () => {
       state.current.selectChoice('custom');
@@ -100,45 +102,36 @@ describe('useReportsScreen', () => {
 
     expect(state.current.periodError).toBe('END_BEFORE_START');
     expect(state.current.canGenerate).toBe(false);
-
-    await generate(state);
-
+    expect(await check(state)).toBe(false);
     expect(isOnlineMock).not.toHaveBeenCalled();
     expect(fetchAvailability).not.toHaveBeenCalled();
-    expect(onGenerateReport).not.toHaveBeenCalled();
   });
 
-  it('hands the period on when it has records', async () => {
+  it('lets the period go on when it has records', async () => {
     fetchAvailability.mockResolvedValue({ total: 5 });
-    const { state, onGenerateReport } = await renderHook();
+    const state = await renderHook();
 
-    await generate(state);
-
+    expect(await check(state)).toBe(true);
     expect(fetchAvailability).toHaveBeenCalledWith('id-token', CURRENT_MONTH);
-    expect(onGenerateReport).toHaveBeenCalledWith('general', CURRENT_MONTH);
     expect(state.current.notice).toBeNull();
     expect(state.current.isChecking).toBe(false);
   });
 
   it('warns that the period has no records and stops there', async () => {
     fetchAvailability.mockResolvedValue({ total: 0 });
-    const { state, onGenerateReport } = await renderHook();
+    const state = await renderHook();
 
-    await generate(state);
-
+    expect(await check(state)).toBe(false);
     expect(state.current.notice).toBe('empty');
-    expect(onGenerateReport).not.toHaveBeenCalled();
   });
 
   it('warns that reports need internet without asking the API when offline', async () => {
     isOnlineMock.mockResolvedValue(false);
-    const { state, onGenerateReport } = await renderHook();
+    const state = await renderHook();
 
-    await generate(state);
-
+    expect(await check(state)).toBe(false);
     expect(state.current.notice).toBe('offline');
     expect(fetchAvailability).not.toHaveBeenCalled();
-    expect(onGenerateReport).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -149,24 +142,20 @@ describe('useReportsScreen', () => {
     ],
   ])('treats %s as offline', async (_name, error) => {
     fetchAvailability.mockRejectedValue(error);
-    const { state, onGenerateReport } = await renderHook();
+    const state = await renderHook();
 
-    await generate(state);
-
+    expect(await check(state)).toBe(false);
     expect(state.current.notice).toBe('offline');
-    expect(onGenerateReport).not.toHaveBeenCalled();
   });
 
   it('shows a general failure when the API answers with an error', async () => {
     fetchAvailability.mockRejectedValue(
       new ApiError('boom', 'INTERNAL_ERROR', 500),
     );
-    const { state, onGenerateReport } = await renderHook();
+    const state = await renderHook();
 
-    await generate(state);
-
+    expect(await check(state)).toBe(false);
     expect(state.current.notice).toBe('failed');
-    expect(onGenerateReport).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -178,9 +167,9 @@ describe('useReportsScreen', () => {
     ],
   ])('drops the notice when %s changes the period', async (_name, change) => {
     fetchAvailability.mockResolvedValue({ total: 0 });
-    const { state } = await renderHook();
+    const state = await renderHook();
 
-    await generate(state);
+    await check(state);
     expect(state.current.notice).toBe('empty');
 
     await act(async () => {
@@ -197,28 +186,24 @@ describe('useReportsScreen', () => {
         answer = resolve;
       }),
     );
-    const { state, onGenerateReport } = await renderHook();
+    const state = await renderHook();
 
-    let first: Promise<void> = Promise.resolve();
+    let first: Promise<boolean> = Promise.resolve(false);
     await act(async () => {
-      first = state.current.generate('general');
+      first = state.current.checkPeriod();
     });
 
     expect(state.current.isChecking).toBe(true);
     expect(state.current.canGenerate).toBe(false);
-
-    await act(async () => {
-      await state.current.generate('invoicePackage');
-    });
+    expect(await check(state)).toBe(false);
 
     await act(async () => {
       answer({ total: 1 });
       await first;
     });
 
+    expect(await first).toBe(true);
     expect(fetchAvailability).toHaveBeenCalledTimes(1);
-    expect(onGenerateReport).toHaveBeenCalledTimes(1);
-    expect(onGenerateReport).toHaveBeenCalledWith('general', CURRENT_MONTH);
     expect(state.current.canGenerate).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
 import { LogIn, UserPlus } from 'lucide-react-native';
 
+import { useLegalDocuments } from 'shared/hooks/useLegalDocuments';
 import { useTranslation } from 'shared/i18n';
 
 import { AuthButton } from '../components/AuthButton';
@@ -22,6 +23,7 @@ export function SignUpScreen({
   onNeedsConfirmation,
 }: SignUpScreenProps) {
   const { t } = useTranslation();
+  const legal = useLegalDocuments();
   const { form, errors, setField, submit, isSubmitting, errorKey } =
     useSignUpForm({ onNeedsConfirmation });
 
@@ -92,6 +94,17 @@ export function SignUpScreen({
         onChange={value => setField('acceptedTerms', value)}
         error={fieldError('acceptedTerms')}
         disabled={isSubmitting}
+        links={[
+          {
+            label: t('legal.privacyPolicy.link'),
+            onPress: () => legal.open('privacyPolicy'),
+          },
+          {
+            label: t('legal.termsOfUse.link'),
+            onPress: () => legal.open('termsOfUse'),
+          },
+        ]}
+        linksError={legal.unavailable ? t('legal.unavailable') : undefined}
       />
 
       <FormMessage message={errorKey ? t(errorKey) : null} />

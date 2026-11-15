@@ -10,15 +10,9 @@ import {
   reportPeriodFor,
   reportToday,
   validateReportPeriod,
-  type ReportKind,
-  type ReportPeriod,
   type ReportPeriodChoice,
   type ReportPeriodError,
 } from '../domain/reportPeriod';
-
-type UseReportsScreenOptions = {
-  onGenerateReport?: (kind: ReportKind, period: ReportPeriod) => void;
-};
 
 export type ReportsScreenState = {
   choice: ReportPeriodChoice;
@@ -30,12 +24,11 @@ export type ReportsScreenState = {
   notice: ReportAvailabilityNotice | null;
   isChecking: boolean;
   canGenerate: boolean;
-  generate: (kind: ReportKind) => Promise<void>;
+  /** Resolves `true` only when the period on screen can go on to a report. */
+  checkPeriod: () => Promise<boolean>;
 };
 
-export function useReportsScreen({
-  onGenerateReport,
-}: UseReportsScreenOptions = {}): ReportsScreenState {
+export function useReportsScreen(): ReportsScreenState {
   const [choice, setChoice] = useState<ReportPeriodChoice>('currentMonth');
   const [customRange, setCustomRange] = useState<CalendarRange>({
     from: null,
@@ -67,20 +60,12 @@ export function useReportsScreen({
     setCustomRange(next);
   };
 
-  const generate = async (kind: ReportKind) => {
-    if (
-      range.from === null ||
-      range.to === null ||
-      periodError !== null ||
-      !onGenerateReport
-    ) {
-      return;
+  const checkPeriod = async () => {
+    if (range.from === null || range.to === null || periodError !== null) {
+      return false;
     }
 
-    const period = { from: range.from, to: range.to };
-    if (await availability.ensureRecords(period)) {
-      onGenerateReport(kind, period);
-    }
+    return availability.ensureRecords({ from: range.from, to: range.to });
   };
 
   return {
@@ -95,8 +80,7 @@ export function useReportsScreen({
     canGenerate:
       isRangeComplete(range) &&
       periodError === null &&
-      !availability.isChecking &&
-      Boolean(onGenerateReport),
-    generate,
+      !availability.isChecking,
+    checkPeriod,
   };
 }

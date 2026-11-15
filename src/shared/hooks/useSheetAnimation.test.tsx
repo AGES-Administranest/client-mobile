@@ -2,6 +2,16 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { useSheetAnimation } from './useSheetAnimation';
 
+beforeEach(() => {
+  jest.useFakeTimers({ doNotFake: ['queueMicrotask', 'nextTick'] });
+});
+
+afterEach(() => {
+  // Drag release schedules a frame that must finish before Jest tears down.
+  act(() => jest.runOnlyPendingTimers());
+  jest.useRealTimers();
+});
+
 type Gesture = { dx: number; dy: number; vy: number; y0?: number };
 type Handlers = {
   onMoveShouldSetPanResponder: (e: unknown, g: Gesture) => boolean;

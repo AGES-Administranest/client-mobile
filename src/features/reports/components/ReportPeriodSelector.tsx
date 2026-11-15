@@ -23,9 +23,12 @@ type ReportPeriodSelectorProps<T extends string> = {
   range: CalendarRange;
   onRangeChange: (range: CalendarRange) => void;
   maxDate: string;
+  maxRangeDays?: number;
   locale: string;
   previousMonthLabel: string;
   nextMonthLabel: string;
+  previousYearLabel?: string;
+  nextYearLabel?: string;
   className?: string;
 };
 
@@ -42,9 +45,12 @@ export function ReportPeriodSelector<T extends string>({
   range,
   onRangeChange,
   maxDate,
+  maxRangeDays,
   locale,
   previousMonthLabel,
   nextMonthLabel,
+  previousYearLabel,
+  nextYearLabel,
   className,
 }: ReportPeriodSelectorProps<T>) {
   return (
@@ -73,9 +79,12 @@ export function ReportPeriodSelector<T extends string>({
           value={range}
           onChange={onRangeChange}
           maxDate={maxDate}
+          maxRangeDays={maxRangeDays}
           locale={locale}
           previousMonthLabel={previousMonthLabel}
           nextMonthLabel={nextMonthLabel}
+          previousYearLabel={previousYearLabel}
+          nextYearLabel={nextYearLabel}
         />
       ) : null}
     </View>

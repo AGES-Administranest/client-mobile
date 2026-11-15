@@ -4,27 +4,70 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 import { I18nProvider } from 'shared/i18n';
 import { isOnline } from 'shared/services/network';
 
+import { ReportHistoryScreen } from './ReportHistoryScreen';
 import { ReportsScreen } from './ReportsScreen';
 import { fetchReportAvailability } from '../services/reportAvailabilityService';
+import {
+  createReport,
+  fetchReportHistory,
+  saveReport,
+} from '../services/reportHistoryService';
 
 jest.mock('features/auth', () => ({
-  useAuth: () => ({ session: { idToken: 'tok' } }),
+  useAuth: () => ({ session: { idToken: 'tok' }, account: { id: 'user-1' } }),
+}));
+jest.mock('features/profile', () => ({
+  isMissingCrmv: () => false,
+  useProfile: () => ({ state: { status: 'loading' }, reload: jest.fn() }),
+}));
+jest.mock('shared/services/network', () => ({
+  isOnline: jest.fn(() => Promise.resolve(true)),
+  onConnectionRestored: jest.fn(() => () => undefined),
 }));
 jest.mock('../services/reportAvailabilityService', () => ({
   fetchReportAvailability: jest.fn(),
 }));
-jest.mock('shared/services/network', () => ({
-  isOnline: jest.fn(),
-  onConnectionRestored: jest.fn(() => () => undefined),
+jest.mock('../services/reportHistoryService', () => ({
+  fetchReportHistory: jest.fn(),
+  fetchReportDownloadLink: jest.fn(),
+  deleteReport: jest.fn(),
+  isReportNotFound: jest.fn(() => false),
+  createReport: jest.fn(),
+  saveReport: jest.fn(),
+  ReportDownloadError: class extends Error {},
+}));
+jest.mock('../services/reportFileStore', () => ({
+  canKeepReportFiles: true,
+  findLocalReport: jest.fn(() => null),
+  saveReportFile: jest.fn(),
+  removeReportFile: jest.fn(),
+}));
+jest.mock('../services/reportFileOpener', () => ({
+  openLocalReport: jest.fn(),
+  downloadInBrowser: jest.fn(),
+}));
+jest.mock('../services/reportSelectionStore', () => ({
+  loadLastSelection: jest.fn(() => new Promise(() => {})),
+  saveLastSelection: jest.fn(() => Promise.resolve()),
 }));
 
+const fetchHistoryMock = fetchReportHistory as jest.Mock;
 const fetchAvailability = jest.mocked(fetchReportAvailability);
 const isOnlineMock = jest.mocked(isOnline);
 
+const STORED_REPORT = {
+  id: 'report-1',
+  kind: 'GENERAL_REPORT',
+  fileBytesSize: 40_333,
+  period: { from: '2026-10-01', to: '2026-10-31' },
+  fileName: 'administranest_relatorio-geral_2026-10-01_2026-10-31.pdf',
+  generatedAt: '2026-11-01T12:00:00.000Z',
+};
+
 beforeEach(() => {
-  isOnlineMock.mockReset();
+  jest.clearAllMocks();
+  fetchHistoryMock.mockResolvedValue({ items: [], hasMore: false });
   isOnlineMock.mockResolvedValue(true);
-  fetchAvailability.mockReset();
   fetchAvailability.mockResolvedValue({ total: 1 });
 });
 
@@ -63,8 +106,8 @@ afterAll(() => {
   jest.useRealTimers();
 });
 
-// The cards and the history link only work when the app wires the callbacks,
-// so the tests wire them unless a case says otherwise.
+// The invoice package card only works when the app wires its callback, so the
+// tests wire it unless a case says otherwise.
 async function render(props: React.ComponentProps<typeof ReportsScreen> = {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
@@ -72,11 +115,7 @@ async function render(props: React.ComponentProps<typeof ReportsScreen> = {}) {
     renderer = ReactTestRenderer.create(
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
-          <ReportsScreen
-            onGenerateReport={jest.fn()}
-            onOpenHistory={jest.fn()}
-            {...props}
-          />
+          <ReportsScreen onGenerateInvoicePackage={jest.fn()} {...props} />
         </I18nProvider>
       </SafeAreaProvider>,
     );
@@ -171,19 +210,84 @@ describe('ReportsScreen', () => {
     );
   });
 
-  it.each([
-    ['Relatório Geral', 'general'],
-    ['Pacote de Notas Fiscais para IR', 'invoicePackage'],
-  ])('%s hands the chosen period to the caller', async (title, kind) => {
-    const onGenerateReport = jest.fn();
-    const renderer = await render({ onGenerateReport });
+  it('hands the chosen period of the invoice package to the caller', async () => {
+    const onGenerateInvoicePackage = jest.fn();
+    const renderer = await render({ onGenerateInvoicePackage });
 
-    await press(pressable(renderer, label => label === title));
+    await press(
+      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR'),
+    );
 
-    expect(onGenerateReport).toHaveBeenCalledWith(kind, {
+    expect(onGenerateInvoicePackage).toHaveBeenCalledWith({
       from: '2026-11-01',
       to: '2026-11-02',
     });
+  });
+
+  it('generates the general report of the chosen period with the sections picked', async () => {
+    (createReport as jest.Mock).mockResolvedValue({ id: 'report-1' });
+    (saveReport as jest.Mock).mockResolvedValue(STORED_REPORT);
+    const renderer = await render();
+
+    await press(pressable(renderer, label => label === 'Relatório Geral'));
+    await press(
+      renderer.root.findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node
+            .findAllByType('Text' as never)
+            .some(text => text.props.children === 'Gerar'),
+      )[0],
+    );
+
+    expect(createReport).toHaveBeenCalledWith(
+      'tok',
+      expect.objectContaining({ from: '2026-11-01', to: '2026-11-02' }),
+    );
+    expect(textsOf(renderer)).toContain(STORED_REPORT.fileName);
+  });
+
+  it('warns that the period has no records instead of opening the sections', async () => {
+    fetchAvailability.mockResolvedValue({ total: 0 });
+    const renderer = await render();
+
+    await press(pressable(renderer, label => label === 'Relatório Geral'));
+
+    expect(fetchAvailability).toHaveBeenCalledWith('tok', {
+      from: '2026-11-01',
+      to: '2026-11-02',
+    });
+    expect(textsOf(renderer)).toContain('Não há registros neste período');
+    expect(textsOf(renderer)).not.toContain('Selecione as categorias');
+
+    await press(tab(renderer, 'Mês anterior'));
+
+    expect(textsOf(renderer)).not.toContain('Não há registros neste período');
+  });
+
+  it('warns that generating reports needs internet when offline', async () => {
+    isOnlineMock.mockResolvedValue(false);
+    const renderer = await render();
+
+    await press(pressable(renderer, label => label === 'Relatório Geral'));
+
+    expect(fetchAvailability).not.toHaveBeenCalled();
+    expect(textsOf(renderer)).toContain(
+      'Gerar relatórios exige conexão com a internet',
+    );
+    expect(textsOf(renderer)).not.toContain('Selecione as categorias');
+  });
+
+  it('lists the reports kept by the backend', async () => {
+    fetchHistoryMock.mockResolvedValue({
+      items: [STORED_REPORT],
+      hasMore: false,
+    });
+
+    const renderer = await render();
+
+    expect(fetchHistoryMock).toHaveBeenCalledWith('tok', 1);
+    expect(textsOf(renderer)).toContain(STORED_REPORT.fileName);
   });
 
   it.each([
@@ -193,8 +297,8 @@ describe('ReportsScreen', () => {
   ])(
     'the %s shortcut fills both date fields and sends YYYY-MM-DD',
     async (name, start, end, from, to) => {
-      const onGenerateReport = jest.fn();
-      const renderer = await render({ onGenerateReport });
+      const onGenerateInvoicePackage = jest.fn();
+      const renderer = await render({ onGenerateInvoicePackage });
 
       await press(tab(renderer, name));
 
@@ -204,9 +308,14 @@ describe('ReportsScreen', () => {
       ]);
       expect(isCalendarShown(renderer)).toBe(false);
 
-      await press(pressable(renderer, title => title === 'Relatório Geral'));
+      await press(
+        pressable(
+          renderer,
+          title => title === 'Pacote de Notas Fiscais para IR',
+        ),
+      );
 
-      expect(onGenerateReport).toHaveBeenCalledWith('general', { from, to });
+      expect(onGenerateInvoicePackage).toHaveBeenCalledWith({ from, to });
     },
   );
 
@@ -279,15 +388,12 @@ describe('ReportsScreen', () => {
     ]);
   });
 
-  it('disables the report cards and drops the history link while nothing is wired', async () => {
-    const renderer = await render({
-      onGenerateReport: undefined,
-      onOpenHistory: undefined,
-    });
+  it('disables the invoice package while it is not wired and drops the history link while there is no report', async () => {
+    const renderer = await render({ onGenerateInvoicePackage: undefined });
 
     expect(
       pressable(renderer, label => label === 'Relatório Geral').props.disabled,
-    ).toBe(true);
+    ).toBe(false);
     expect(
       pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR')
         .props.disabled,
@@ -298,44 +404,12 @@ describe('ReportsScreen', () => {
     ).toBeUndefined();
   });
 
-  it('warns that the period has no records instead of generating', async () => {
-    fetchAvailability.mockResolvedValue({ total: 0 });
-    const onGenerateReport = jest.fn();
-    const renderer = await render({ onGenerateReport });
-
-    await press(pressable(renderer, label => label === 'Relatório Geral'));
-
-    expect(fetchAvailability).toHaveBeenCalledWith('tok', {
-      from: '2026-11-01',
-      to: '2026-11-02',
-    });
-    expect(onGenerateReport).not.toHaveBeenCalled();
-    expect(textsOf(renderer)).toContain('Não há registros neste período');
-
-    await press(tab(renderer, 'Mês anterior'));
-
-    expect(textsOf(renderer)).not.toContain('Não há registros neste período');
-  });
-
-  it('warns that generating reports needs internet when offline', async () => {
-    isOnlineMock.mockResolvedValue(false);
-    const onGenerateReport = jest.fn();
-    const renderer = await render({ onGenerateReport });
-
-    await press(
-      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR'),
-    );
-
-    expect(fetchAvailability).not.toHaveBeenCalled();
-    expect(onGenerateReport).not.toHaveBeenCalled();
-    expect(textsOf(renderer)).toContain(
-      'Gerar relatórios exige conexão com a internet',
-    );
-  });
-
   it('opens the history', async () => {
-    const onOpenHistory = jest.fn();
-    const renderer = await render({ onOpenHistory });
+    fetchHistoryMock.mockResolvedValue({
+      items: [STORED_REPORT],
+      hasMore: false,
+    });
+    const renderer = await render();
 
     await press(
       pressable(
@@ -344,6 +418,8 @@ describe('ReportsScreen', () => {
       ),
     );
 
-    expect(onOpenHistory).toHaveBeenCalledTimes(1);
+    expect(renderer.root.findByType(ReportHistoryScreen).props.visible).toBe(
+      true,
+    );
   });
 });
