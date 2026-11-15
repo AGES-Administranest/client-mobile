@@ -856,7 +856,28 @@
   },
   "reports": {
     "generate": {
-      "title": "Gerar novo relatório"
+      "title": "Gerar novo relatório",
+      "categoriesTitle": "Selecione as categorias",
+      "selectAll": "Selecionar tudo",
+      "clearAll": "Limpar tudo",
+      "confirm": "Gerar",
+      "close": "Fechar",
+      "crmvMissing": "Seu CRMV não está preenchido no perfil. O relatório sairá sem a identificação profissional completa.",
+      "offline": "Sem conexão. É preciso estar online para gerar o relatório.",
+      "periodTooLong": "O relatório cobre no máximo um ano. Escolha um período menor.",
+      "downloadFailed": "O relatório foi gerado, mas o PDF não foi baixado. Verifique a conexão e tente baixar de novo.",
+      "retryDownload": "Baixar novamente",
+      "failed": "Não foi possível gerar o relatório. Tente novamente."
+    },
+    "categories": {
+      "financial": "Financeiro",
+      "appointments": "Atendimentos",
+      "clinics": "Clínicas",
+      "inventory": "Estoque e Insumos",
+      "suppliers": "Fornecedores",
+      "travel": "Deslocamento",
+      "depreciation": "Depreciação",
+      "workedHour": "Hora Trabalhada"
     },
     "period": {
       "startDate": "Data de início",
@@ -869,7 +890,9 @@
         "previousMonth": "Mês anterior",
         "currentYear": "Ano atual",
         "custom": "Personalizado"
-      }
+      },
+      "previousYear": "Ano anterior",
+      "nextYear": "Próximo ano"
     },
     "kinds": {
       "general": {
@@ -884,7 +907,9 @@
     "history": {
       "title": "Histórico de relatórios",
       "viewAll": "Ver todos",
-      "empty": "Nenhum relatório gerado ainda."
+      "empty": "Nenhum relatório gerado ainda.",
+      "back": "Voltar",
+      "shareFailed": "Não foi possível compartilhar o relatório."
     },
     "seeAll": "Ver todos",
     "addInvoice": "Adicionar nota",

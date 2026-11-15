@@ -856,7 +856,28 @@
   },
   "reports": {
     "generate": {
-      "title": "Generate new report"
+      "title": "Generate new report",
+      "categoriesTitle": "Select categories",
+      "selectAll": "Select all",
+      "clearAll": "Clear all",
+      "confirm": "Generate",
+      "close": "Close",
+      "crmvMissing": "Your CRMV is not filled in on your profile. The report will not have your full professional identification.",
+      "offline": "No connection. You need to be online to generate the report.",
+      "periodTooLong": "A report covers at most one year. Pick a shorter period.",
+      "downloadFailed": "The report was generated, but its PDF was not downloaded. Check your connection and download it again.",
+      "retryDownload": "Download again",
+      "failed": "The report could not be generated. Please try again."
+    },
+    "categories": {
+      "financial": "Financial",
+      "appointments": "Appointments",
+      "clinics": "Clinics",
+      "inventory": "Inventory and Supplies",
+      "suppliers": "Suppliers",
+      "travel": "Travel",
+      "depreciation": "Depreciation",
+      "workedHour": "Worked Hour"
     },
     "period": {
       "startDate": "Start date",
@@ -869,7 +890,9 @@
         "previousMonth": "Last month",
         "currentYear": "This year",
         "custom": "Custom"
-      }
+      },
+      "previousYear": "Previous year",
+      "nextYear": "Next year"
     },
     "kinds": {
       "general": {
@@ -884,7 +907,9 @@
     "history": {
       "title": "Report history",
       "viewAll": "View all",
-      "empty": "No report generated yet."
+      "empty": "No report generated yet.",
+      "back": "Back",
+      "shareFailed": "Could not share the report."
     },
     "seeAll": "See all",
     "addInvoice": "Add invoice",

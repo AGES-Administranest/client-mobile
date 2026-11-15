@@ -1,4 +1,9 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
 
@@ -10,8 +15,8 @@ import {
   buildMonthGrid,
   fromCalendarDate,
   isWithinCalendarRange,
+  rangeEndBounds,
   selectRangeDay,
-  toCalendarDate,
   type CalendarRange,
 } from 'shared/utils/calendar';
 
@@ -24,7 +29,16 @@ type DateRangePickerProps = {
   locale: string;
   previousMonthLabel: string;
   nextMonthLabel: string;
+  /** Com os dois rótulos, aparecem setas que pulam 12 meses. */
+  previousYearLabel?: string;
+  nextYearLabel?: string;
+  /** Último dia selecionável (YYYY-MM-DD); depois dele os dias ficam bloqueados. */
   maxDate?: string;
+  /**
+   * Maior intervalo permitido, em dias, contando o primeiro e o último. Depois
+   * de escolhido o primeiro dia, os dias que passariam disso ficam bloqueados.
+   */
+  maxRangeDays?: number;
   className?: string;
 };
 
@@ -43,7 +57,10 @@ function DateRangePicker({
   locale,
   previousMonthLabel,
   nextMonthLabel,
+  previousYearLabel,
+  nextYearLabel,
   maxDate,
+  maxRangeDays,
   className,
 }: DateRangePickerProps) {
   const [visible, setVisible] = useVisibleMonth(value);
@@ -68,9 +85,18 @@ function DateRangePicker({
     days.slice(index * WEEK_LENGTH, (index + 1) * WEEK_LENGTH),
   );
 
-  const isNextMonthBlocked =
-    maxDate !== undefined &&
-    toCalendarDate(new Date(visible.year, visible.monthIndex + 1, 1)) > maxDate;
+  const lastVisibleMonth = maxDate ? fromCalendarDate(maxDate) : null;
+  const monthsUntilMax =
+    lastVisibleMonth === null
+      ? Infinity
+      : lastVisibleMonth.getFullYear() * 12 +
+        lastVisibleMonth.getMonth() -
+        (visible.year * 12 + visible.monthIndex);
+  const isAtLastMonth = monthsUntilMax <= 0;
+  const canGoNextYear = monthsUntilMax >= 12;
+
+  const endBounds =
+    maxRangeDays === undefined ? null : rangeEndBounds(value, maxRangeDays);
 
   const goToMonth = (amount: number) =>
     setVisible(current => addMonths(current.year, current.monthIndex, amount));
@@ -78,28 +104,57 @@ function DateRangePicker({
   return (
     <View className={cn('gap-2 rounded-2xl bg-white p-3', className)}>
       <View className="flex-row items-center justify-between">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={previousMonthLabel}
-          onPress={() => goToMonth(-1)}
-          className="size-8 items-center justify-center rounded-full bg-details-primary"
-        >
-          <Icon as={ChevronLeft} className="size-4 text-label-primary" />
-        </Pressable>
+        <View className="flex-row items-center gap-1">
+          {previousYearLabel ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={previousYearLabel}
+              onPress={() => goToMonth(-12)}
+              className="size-8 items-center justify-center rounded-full bg-details-primary"
+            >
+              <Icon as={ChevronsLeft} className="size-4 text-label-primary" />
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={previousMonthLabel}
+            onPress={() => goToMonth(-1)}
+            className="size-8 items-center justify-center rounded-full bg-details-primary"
+          >
+            <Icon as={ChevronLeft} className="size-4 text-label-primary" />
+          </Pressable>
+        </View>
         <Text className="font-semibold capitalize">{monthLabel}</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={nextMonthLabel}
-          accessibilityState={{ disabled: isNextMonthBlocked || undefined }}
-          disabled={isNextMonthBlocked}
-          onPress={() => goToMonth(1)}
-          className={cn(
-            'size-8 items-center justify-center rounded-full bg-details-primary',
-            isNextMonthBlocked && 'opacity-40',
-          )}
-        >
-          <Icon as={ChevronRight} className="size-4 text-label-primary" />
-        </Pressable>
+        <View className="flex-row items-center gap-1">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={nextMonthLabel}
+            accessibilityState={{ disabled: isAtLastMonth || undefined }}
+            disabled={isAtLastMonth}
+            onPress={() => goToMonth(1)}
+            className={cn(
+              'size-8 items-center justify-center rounded-full bg-details-primary',
+              isAtLastMonth && 'opacity-40',
+            )}
+          >
+            <Icon as={ChevronRight} className="size-4 text-label-primary" />
+          </Pressable>
+          {nextYearLabel ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={nextYearLabel}
+              accessibilityState={{ disabled: !canGoNextYear || undefined }}
+              disabled={!canGoNextYear}
+              onPress={() => goToMonth(12)}
+              className={cn(
+                'size-8 items-center justify-center rounded-full bg-details-primary',
+                !canGoNextYear && 'opacity-40',
+              )}
+            >
+              <Icon as={ChevronsRight} className="size-4 text-label-primary" />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <View className="flex-row">
@@ -122,11 +177,15 @@ function DateRangePicker({
               value.from !== null &&
               value.to !== null &&
               isWithinCalendarRange(day.date, value);
-            const isDisabled = maxDate !== undefined && day.date > maxDate;
+            const isBlocked =
+              (maxDate !== undefined && day.date > maxDate) ||
+              (endBounds !== null &&
+                (day.date < endBounds.earliest || day.date > endBounds.latest));
 
             return (
               <Pressable
                 key={day.date}
+                disabled={isBlocked}
                 testID={day.date}
                 accessibilityRole="button"
                 accessibilityLabel={new Intl.DateTimeFormat(locale, {
@@ -134,15 +193,14 @@ function DateRangePicker({
                 }).format(fromCalendarDate(day.date))}
                 accessibilityState={{
                   selected: isEdge || isInside,
-                  disabled: isDisabled || undefined,
+                  disabled: isBlocked || undefined,
                 }}
-                disabled={isDisabled}
                 onPress={() => onChange(selectRangeDay(value, day.date))}
                 className={cn(
                   'h-9 flex-1 items-center justify-center rounded-lg',
                   isInside && 'bg-details-primary',
                   isEdge && 'bg-button-primary',
-                  isDisabled && 'opacity-40',
+                  isBlocked && 'opacity-40',
                 )}
               >
                 <Text

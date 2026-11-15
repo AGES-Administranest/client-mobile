@@ -3,11 +3,45 @@ import ReactTestRenderer, { act } from 'react-test-renderer';
 
 import { I18nProvider } from 'shared/i18n';
 
+import { ReportHistoryScreen } from './ReportHistoryScreen';
 import { ReportsScreen } from './ReportsScreen';
+import {
+  createReport,
+  fetchReportHistory,
+  saveReport,
+} from '../services/reportHistoryService';
 
 jest.mock('features/auth', () => ({
-  useAuth: () => ({ session: { idToken: 'tok' } }),
+  useAuth: () => ({ session: { idToken: 'tok' }, account: { id: 'user-1' } }),
 }));
+jest.mock('features/profile', () => ({
+  isMissingCrmv: () => false,
+  useProfile: () => ({ state: { status: 'loading' }, reload: jest.fn() }),
+}));
+jest.mock('../services/reportHistoryService', () => ({
+  fetchReportHistory: jest.fn(),
+  createReport: jest.fn(),
+  saveReport: jest.fn(),
+  shareReport: jest.fn(),
+  ReportDownloadError: class extends Error {},
+}));
+jest.mock('../services/reportSelectionStore', () => ({
+  loadLastSelection: jest.fn(() => new Promise(() => {})),
+  saveLastSelection: jest.fn(() => Promise.resolve()),
+}));
+
+const fetchHistoryMock = fetchReportHistory as jest.Mock;
+
+const STORED_REPORT = {
+  id: 'report-1',
+  fileName: 'administranest_relatorio-geral_2026-10-01_2026-10-31.pdf',
+  generatedAt: '2026-11-01T12:00:00.000Z',
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  fetchHistoryMock.mockResolvedValue([]);
+});
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -44,8 +78,8 @@ afterAll(() => {
   jest.useRealTimers();
 });
 
-// The cards and the history link only work when the app wires the callbacks,
-// so the tests wire them unless a case says otherwise.
+// The invoice package card only works when the app wires its callback, so the
+// tests wire it unless a case says otherwise.
 async function render(props: React.ComponentProps<typeof ReportsScreen> = {}) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
 
@@ -53,11 +87,7 @@ async function render(props: React.ComponentProps<typeof ReportsScreen> = {}) {
     renderer = ReactTestRenderer.create(
       <SafeAreaProvider initialMetrics={METRICS}>
         <I18nProvider>
-          <ReportsScreen
-            onGenerateReport={jest.fn()}
-            onOpenHistory={jest.fn()}
-            {...props}
-          />
+          <ReportsScreen onGenerateInvoicePackage={jest.fn()} {...props} />
         </I18nProvider>
       </SafeAreaProvider>,
     );
@@ -152,19 +182,50 @@ describe('ReportsScreen', () => {
     );
   });
 
-  it.each([
-    ['Relatório Geral', 'general'],
-    ['Pacote de Notas Fiscais para IR', 'invoicePackage'],
-  ])('%s hands the chosen period to the caller', async (title, kind) => {
-    const onGenerateReport = jest.fn();
-    const renderer = await render({ onGenerateReport });
+  it('hands the chosen period of the invoice package to the caller', async () => {
+    const onGenerateInvoicePackage = jest.fn();
+    const renderer = await render({ onGenerateInvoicePackage });
 
-    await press(pressable(renderer, label => label === title));
+    await press(
+      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR'),
+    );
 
-    expect(onGenerateReport).toHaveBeenCalledWith(kind, {
+    expect(onGenerateInvoicePackage).toHaveBeenCalledWith({
       from: '2026-11-01',
       to: '2026-11-02',
     });
+  });
+
+  it('generates the general report of the chosen period with the sections picked', async () => {
+    (createReport as jest.Mock).mockResolvedValue({ id: 'report-1' });
+    (saveReport as jest.Mock).mockResolvedValue(STORED_REPORT);
+    const renderer = await render();
+
+    await press(pressable(renderer, label => label === 'Relatório Geral'));
+    await press(
+      renderer.root.findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node
+            .findAllByType('Text' as never)
+            .some(text => text.props.children === 'Gerar'),
+      )[0],
+    );
+
+    expect(createReport).toHaveBeenCalledWith(
+      'tok',
+      expect.objectContaining({ from: '2026-11-01', to: '2026-11-02' }),
+    );
+    expect(textsOf(renderer)).toContain(STORED_REPORT.fileName);
+  });
+
+  it('lists the reports kept by the backend', async () => {
+    fetchHistoryMock.mockResolvedValue([STORED_REPORT]);
+
+    const renderer = await render();
+
+    expect(fetchHistoryMock).toHaveBeenCalledWith('tok');
+    expect(textsOf(renderer)).toContain(STORED_REPORT.fileName);
   });
 
   it.each([
@@ -174,8 +235,8 @@ describe('ReportsScreen', () => {
   ])(
     'the %s shortcut fills both date fields and sends YYYY-MM-DD',
     async (name, start, end, from, to) => {
-      const onGenerateReport = jest.fn();
-      const renderer = await render({ onGenerateReport });
+      const onGenerateInvoicePackage = jest.fn();
+      const renderer = await render({ onGenerateInvoicePackage });
 
       await press(tab(renderer, name));
 
@@ -185,9 +246,14 @@ describe('ReportsScreen', () => {
       ]);
       expect(isCalendarShown(renderer)).toBe(false);
 
-      await press(pressable(renderer, title => title === 'Relatório Geral'));
+      await press(
+        pressable(
+          renderer,
+          title => title === 'Pacote de Notas Fiscais para IR',
+        ),
+      );
 
-      expect(onGenerateReport).toHaveBeenCalledWith('general', { from, to });
+      expect(onGenerateInvoicePackage).toHaveBeenCalledWith({ from, to });
     },
   );
 
@@ -260,15 +326,12 @@ describe('ReportsScreen', () => {
     ]);
   });
 
-  it('disables the report cards and drops the history link while nothing is wired', async () => {
-    const renderer = await render({
-      onGenerateReport: undefined,
-      onOpenHistory: undefined,
-    });
+  it('disables the invoice package while it is not wired and drops the history link while there is no report', async () => {
+    const renderer = await render({ onGenerateInvoicePackage: undefined });
 
     expect(
       pressable(renderer, label => label === 'Relatório Geral').props.disabled,
-    ).toBe(true);
+    ).toBe(false);
     expect(
       pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR')
         .props.disabled,
@@ -280,8 +343,8 @@ describe('ReportsScreen', () => {
   });
 
   it('opens the history', async () => {
-    const onOpenHistory = jest.fn();
-    const renderer = await render({ onOpenHistory });
+    fetchHistoryMock.mockResolvedValue([STORED_REPORT]);
+    const renderer = await render();
 
     await press(
       pressable(
@@ -290,6 +353,8 @@ describe('ReportsScreen', () => {
       ),
     );
 
-    expect(onOpenHistory).toHaveBeenCalledTimes(1);
+    expect(renderer.root.findByType(ReportHistoryScreen).props.visible).toBe(
+      true,
+    );
   });
 });
