@@ -41,6 +41,7 @@ const HISTORY_PREVIEW_COUNT = 5;
 const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
   offline: 'reports.generate.offline',
   periodTooLong: 'reports.generate.periodTooLong',
+  downloadFailed: 'reports.generate.downloadFailed',
   failed: 'reports.generate.failed',
 };
 
@@ -51,7 +52,7 @@ export function ReportsScreen() {
   const { t, locale } = useTranslation();
   const reports = useReportHistory();
   const invoiceUpload = useServiceInvoiceUpload();
-  const { state: profile } = useProfile();
+  const { state: profile, reload: reloadProfile } = useProfile();
   const isCrmvMissing =
     profile.status === 'ready' && isMissingCrmv(profile.profile);
 
@@ -70,6 +71,24 @@ export function ReportsScreen() {
   const shareReport = (report: ReportHistoryItem) => {
     setShareFailed(false);
     reports.share(report).then(ok => setShareFailed(!ok));
+  };
+
+  // On the web the PDF goes to the browser's downloads: there is no file here
+  // to share, so the card is not a button.
+  const shareActionOf = (report: ReportHistoryItem) =>
+    report.fileUri ? () => shareReport(report) : undefined;
+
+  // The failure was about the sections chosen before; it no longer applies.
+  const changeCategories = (
+    update: (current: ReportCategory[]) => ReportCategory[],
+  ) => {
+    setCategories(update);
+    setGenerateFailure(null);
+  };
+
+  const toggleHistory = (open: boolean) => {
+    setShareFailed(false);
+    setIsHistoryOpen(open);
   };
 
   const dateLabel = (calendarDate: string | null) =>
@@ -158,6 +177,8 @@ export function ReportsScreen() {
             className="h-[49px] w-full"
             disabled={!isRangeComplete(range)}
             onPress={() => {
+              // The CRMV may have been filled in the Profile tab meanwhile.
+              reloadProfile();
               setCategories(reports.lastSelection);
               setGenerateFailure(null);
               setIsCategoryOpen(true);
@@ -173,7 +194,7 @@ export function ReportsScreen() {
             {reports.items.length > 0 ? (
               <Text
                 accessibilityRole="button"
-                onPress={() => setIsHistoryOpen(true)}
+                onPress={() => toggleHistory(true)}
                 className="text-xs text-label-quartenery"
               >
                 {t('reports.seeAll')}
@@ -200,7 +221,7 @@ export function ReportsScreen() {
                     true,
                   )}
                   fileName={report.fileName}
-                  onPress={() => shareReport(report)}
+                  onPress={shareActionOf(report)}
                 />
               ))}
             </ScrollView>
@@ -233,7 +254,11 @@ export function ReportsScreen() {
         closeLabel={t('reports.generate.close')}
         selectAllLabel={t('reports.generate.selectAll')}
         clearAllLabel={t('reports.generate.clearAll')}
-        generateLabel={t('reports.generate.confirm')}
+        generateLabel={t(
+          generateFailure === 'downloadFailed'
+            ? 'reports.generate.retryDownload'
+            : 'reports.generate.confirm',
+        )}
         options={REPORT_CATEGORIES.map(item => ({
           id: item,
           label: t(`reports.categories.${item}`),
@@ -245,14 +270,14 @@ export function ReportsScreen() {
           generateFailure ? t(GENERATE_FAILURE_MESSAGES[generateFailure]) : null
         }
         onToggle={id =>
-          setCategories(current =>
+          changeCategories(current =>
             current.includes(id as ReportCategory)
               ? current.filter(item => item !== id)
               : [...current, id as ReportCategory],
           )
         }
-        onSelectAll={() => setCategories([...REPORT_CATEGORIES])}
-        onClearAll={() => setCategories([])}
+        onSelectAll={() => changeCategories(() => [...REPORT_CATEGORIES])}
+        onClearAll={() => changeCategories(() => [])}
         onGenerate={() => {
           if (range.from && range.to) {
             setGenerateFailure(null);
@@ -273,8 +298,9 @@ export function ReportsScreen() {
       <ReportHistoryScreen
         visible={isHistoryOpen}
         items={reports.items}
-        onClose={() => setIsHistoryOpen(false)}
-        onSelect={shareReport}
+        shareError={shareFailed ? t('reports.history.shareFailed') : null}
+        onClose={() => toggleHistory(false)}
+        shareActionOf={shareActionOf}
       />
 
       <InvoicesScreen

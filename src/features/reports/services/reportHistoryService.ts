@@ -12,8 +12,22 @@ import {
   type ReportHistoryItem,
 } from '../domain/report.types';
 
-/** Generating a long period draws many pages on the server. */
+// A long period draws many pages on the server.
 export const GENERATE_TIMEOUT_MS = 60_000;
+
+// Without a limit a stalled download would keep the sheet busy for good.
+export const DOWNLOAD_TIMEOUT_MS = 60_000;
+
+/**
+ * The report exists on the server, but its PDF did not reach the device:
+ * downloading again is enough, generating again would make a second report.
+ */
+export class ReportDownloadError extends Error {
+  constructor(cause: unknown) {
+    super('The report PDF could not be downloaded', { cause });
+    this.name = 'ReportDownloadError';
+  }
+}
 
 // Stand-in until the history endpoint exists (US32): no report at all, never
 // made-up ones. Keeps the signature the real call will have, GET /reports.
@@ -29,46 +43,65 @@ export type GenerateReportInput = {
   to: string;
 };
 
-/**
- * Generates the PDF of the general report (POST /reports, US28) and saves it
- * on the device, so it can be shared later without a connection (US31).
- *
- * The download link is already signed: it needs no token.
- */
-export async function generateReport(
+export function createReport(
   idToken: string,
   input: GenerateReportInput,
-): Promise<ReportHistoryItem> {
-  const report = await apiClient.post<GeneratedReport>(
+): Promise<GeneratedReport> {
+  return apiClient.post<GeneratedReport>(
     '/reports',
     { from: input.from, to: input.to, sections: sectionsOf(input.categories) },
     { token: idToken, timeoutMs: GENERATE_TIMEOUT_MS },
   );
+}
+
+/**
+ * Saves the PDF on the device, so it can be shared later without a
+ * connection (US31). The download link is already signed: it needs no token.
+ */
+export async function saveReport(
+  report: GeneratedReport,
+): Promise<ReportHistoryItem> {
   const item: ReportHistoryItem = {
     id: report.id,
     fileName: report.fileName,
     generatedAt: report.generatedAt,
   };
 
-  if (Platform.OS === 'web') {
-    // The signed URL sends an attachment; using this tab avoids popup blocking
-    // after a slow generation and keeps the app open while the file downloads.
-    await WebBrowser.openBrowserAsync(report.downloadUrl, {
-      windowName: '_self',
-    });
-    return item;
+  try {
+    if (Platform.OS === 'web') {
+      // The signed URL sends an attachment; using this tab avoids popup
+      // blocking after a slow generation and keeps the app open.
+      await WebBrowser.openBrowserAsync(report.downloadUrl, {
+        windowName: '_self',
+      });
+      return item;
+    }
+
+    return { ...item, fileUri: await downloadReport(report) };
+  } catch (error) {
+    throw new ReportDownloadError(error);
   }
+}
 
-  const directory = new Directory(Paths.document, 'reports');
+async function downloadReport(report: GeneratedReport): Promise<string> {
+  // The file name only tells the period: two reports of the same period
+  // would overwrite each other without a folder of their own.
+  const directory = new Directory(Paths.document, 'reports', report.id);
   directory.create({ intermediates: true, idempotent: true });
-  const file = await File.downloadFileAsync(
-    report.downloadUrl,
-    new File(directory, report.fileName),
-    // The same period generated again replaces the older file.
-    { idempotent: true },
-  );
 
-  return { ...item, fileUri: file.uri };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+
+  try {
+    const file = await File.downloadFileAsync(
+      report.downloadUrl,
+      new File(directory, report.fileName),
+      { idempotent: true, signal: controller.signal },
+    );
+    return file.uri;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function shareReport(fileUri: string): Promise<boolean> {

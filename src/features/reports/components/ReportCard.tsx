@@ -21,6 +21,7 @@ export function ReportCard({
       accessibilityRole="button"
       accessibilityLabel={fileName}
       onPress={onPress}
+      disabled={!onPress}
       className={cn(
         'w-[215px] gap-3 rounded-[9px] bg-white p-[10px] shadow-md shadow-black/10',
         className,

@@ -1,8 +1,7 @@
-import { ArrowLeft } from 'lucide-react-native';
-import { FlatList, Pressable, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
 import { FullScreenModal } from 'app/components/ui/full-screen-modal';
-import { Icon } from 'app/components/ui/icon';
+import { ModalHeader } from 'app/components/ui/modal-header';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
 import { formatDayAndMonth } from 'shared/utils/formatDayAndMonth';
@@ -13,8 +12,9 @@ import type { ReportHistoryItem } from '../domain/report.types';
 type ReportHistoryScreenProps = {
   visible: boolean;
   items: readonly ReportHistoryItem[];
+  shareError?: string | null;
   onClose: () => void;
-  onSelect: (report: ReportHistoryItem) => void;
+  shareActionOf: (report: ReportHistoryItem) => (() => void) | undefined;
 };
 
 function Separator() {
@@ -24,29 +24,19 @@ function Separator() {
 export function ReportHistoryScreen({
   visible,
   items,
+  shareError,
   onClose,
-  onSelect,
+  shareActionOf,
 }: ReportHistoryScreenProps) {
   const { t, locale } = useTranslation();
 
   return (
     <FullScreenModal visible={visible} onRequestClose={onClose}>
-      <View className="h-11 flex-row items-center justify-center px-4">
-        <Pressable
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel={t('invoices.back')}
-          className="absolute left-4 size-9 items-center justify-center rounded-full bg-primary"
-        >
-          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-        </Pressable>
-        <Text
-          accessibilityRole="header"
-          className="text-[13px] font-semibold uppercase tracking-wide text-label-primary"
-        >
-          {t('reports.history.title')}
-        </Text>
-      </View>
+      <ModalHeader
+        title={t('reports.history.title')}
+        backLabel={t('reports.history.back')}
+        onBack={onClose}
+      />
       <FlatList
         data={items}
         keyExtractor={report => report.id}
@@ -55,12 +45,20 @@ export function ReportHistoryScreen({
             className="w-full"
             date={formatDayAndMonth(new Date(item.generatedAt), locale, true)}
             fileName={item.fileName}
-            onPress={() => onSelect(item)}
+            onPress={shareActionOf(item)}
           />
         )}
         ItemSeparatorComponent={Separator}
         contentContainerClassName="px-4 pb-6 pt-4"
       />
+      {shareError ? (
+        <Text
+          accessibilityRole="alert"
+          className="px-4 pb-6 text-sm text-label-tertiary"
+        >
+          {shareError}
+        </Text>
+      ) : null}
     </FullScreenModal>
   );
 }

@@ -2029,6 +2029,8 @@
       "crmvMissing": "Seu CRMV não está preenchido no perfil. O relatório sairá sem a identificação profissional completa.",
       "offline": "Sem conexão. É preciso estar online para gerar o relatório.",
       "periodTooLong": "O relatório cobre no máximo um ano. Escolha um período menor.",
+      "downloadFailed": "O relatório foi gerado, mas o PDF não foi baixado. Verifique a conexão e tente baixar de novo.",
+      "retryDownload": "Baixar novamente",
       "failed": "Não foi possível gerar o relatório. Tente novamente."
     },
     "categories": {
@@ -2043,6 +2045,7 @@
     },
     "history": {
       "title": "Histórico de relatórios",
+      "back": "Voltar",
       "empty": "Nenhum relatório gerado ainda.",
       "shareFailed": "Não foi possível compartilhar o relatório."
     }

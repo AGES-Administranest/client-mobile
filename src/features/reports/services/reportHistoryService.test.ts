@@ -6,8 +6,11 @@ import { Platform } from 'react-native';
 import { apiClient } from 'shared/services/apiClient';
 
 import {
+  createReport,
+  DOWNLOAD_TIMEOUT_MS,
   GENERATE_TIMEOUT_MS,
-  generateReport,
+  ReportDownloadError,
+  saveReport,
   shareReport,
 } from './reportHistoryService';
 import type { GeneratedReport } from '../domain/report.types';
@@ -80,13 +83,15 @@ afterAll(() => {
   Platform.OS = originalOs;
 });
 
-describe('generateReport', () => {
+const INPUT = {
+  categories: ['travel', 'financial'] as const,
+  from: '2026-10-15',
+  to: '2026-11-14',
+};
+
+describe('createReport', () => {
   it('asks the backend for the PDF with the sections it knows', async () => {
-    await generateReport('id-token', {
-      categories: ['travel', 'financial'],
-      from: '2026-10-15',
-      to: '2026-11-14',
-    });
+    await expect(createReport('id-token', INPUT)).resolves.toBe(GENERATED);
 
     expect(post).toHaveBeenCalledWith(
       '/reports',
@@ -98,19 +103,17 @@ describe('generateReport', () => {
       { token: 'id-token', timeoutMs: GENERATE_TIMEOUT_MS },
     );
   });
+});
 
-  it('saves the PDF on the device under its own name', async () => {
-    const item = await generateReport('id-token', {
-      categories: ['financial'],
-      from: '2026-10-15',
-      to: '2026-11-14',
-    });
+describe('saveReport', () => {
+  it('saves the PDF on the device in a folder of its own', async () => {
+    const item = await saveReport(GENERATED);
 
-    const fileUri = `file:///documents/reports/${GENERATED.fileName}`;
+    const fileUri = `file:///documents/reports/report-1/${GENERATED.fileName}`;
     expect(download).toHaveBeenCalledWith(
       GENERATED.downloadUrl,
       expect.objectContaining({ uri: fileUri }),
-      { idempotent: true },
+      expect.objectContaining({ idempotent: true }),
     );
     expect(item).toEqual({
       id: 'report-1',
@@ -120,14 +123,44 @@ describe('generateReport', () => {
     });
   });
 
+  it('keeps two reports of the same period apart', async () => {
+    const first = await saveReport(GENERATED);
+    const second = await saveReport({ ...GENERATED, id: 'report-2' });
+
+    expect(first.fileUri).not.toBe(second.fileUri);
+  });
+
+  it('gives up on a download that does not finish in time', async () => {
+    jest.useFakeTimers();
+    let signal: AbortSignal | undefined;
+    download.mockImplementationOnce(
+      (_url: string, _to: unknown, options: { signal: AbortSignal }) =>
+        new Promise((_resolve, reject) => {
+          signal = options.signal;
+          signal.addEventListener('abort', () => reject(new Error('aborted')));
+        }),
+    );
+
+    const saving = saveReport(GENERATED);
+    jest.advanceTimersByTime(DOWNLOAD_TIMEOUT_MS);
+
+    await expect(saving).rejects.toBeInstanceOf(ReportDownloadError);
+    expect(signal?.aborted).toBe(true);
+    jest.useRealTimers();
+  });
+
+  it('tells a failed download apart from a failed generation', async () => {
+    download.mockRejectedValueOnce(new Error('connection lost'));
+
+    await expect(saveReport(GENERATED)).rejects.toBeInstanceOf(
+      ReportDownloadError,
+    );
+  });
+
   it('downloads in the current tab so a slow generation needs no popup', async () => {
     Platform.OS = 'web';
 
-    const item = await generateReport('id-token', {
-      categories: ['financial'],
-      from: '2026-10-15',
-      to: '2026-11-14',
-    });
+    const item = await saveReport(GENERATED);
 
     expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith(
       GENERATED.downloadUrl,
@@ -135,19 +168,6 @@ describe('generateReport', () => {
     );
     expect(download).not.toHaveBeenCalled();
     expect(item.fileUri).toBeUndefined();
-  });
-
-  it('saves nothing when the backend refuses', async () => {
-    post.mockRejectedValue(new Error('REPORT_SECTIONS_EMPTY'));
-
-    await expect(
-      generateReport('id-token', {
-        categories: [],
-        from: '2026-10-15',
-        to: '2026-11-14',
-      }),
-    ).rejects.toThrow('REPORT_SECTIONS_EMPTY');
-    expect(download).not.toHaveBeenCalled();
   });
 });
 
