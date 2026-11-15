@@ -272,9 +272,7 @@ describe('ReportsScreen', () => {
     await press(pressable(renderer, label => label === 'Relatório Geral'));
 
     expect(fetchAvailability).not.toHaveBeenCalled();
-    expect(textsOf(renderer)).toContain(
-      'Gerar relatórios exige conexão com a internet',
-    );
+    expect(textsOf(renderer)).toContain('É preciso estar online');
     expect(textsOf(renderer)).not.toContain('Selecione as categorias');
   });
 

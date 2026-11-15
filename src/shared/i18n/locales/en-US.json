@@ -908,9 +908,7 @@
       }
     },
     "availability": {
-      "offline": "Generating reports requires an internet connection. Connect and try again.",
-      "empty": "There are no records in this period. Choose another period to generate the report.",
-      "failed": "We couldn't check the period right now. Please try again."
+      "empty": "There are no records in this period. Choose another period to generate the report."
     },
     "history": {
       "title": "Report history",

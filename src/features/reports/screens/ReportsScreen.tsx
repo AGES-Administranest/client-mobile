@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
-import { NoticeBanner } from 'app/components/ui/notice-banner';
+import { NoticeBanner, type NoticeTone } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
 import { InvoicesScreen, InvoicesSection } from 'features/invoices';
 import { isMissingCrmv, useProfile } from 'features/profile';
@@ -43,11 +43,14 @@ const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
   failed: 'reports.generate.failed',
 };
 
-const NOTICE_TONES = {
-  offline: 'warning',
-  empty: 'warning',
-  failed: 'alert',
-} as const satisfies Record<ReportAvailabilityNotice, string>;
+const NOTICES = {
+  offline: { tone: 'warning', message: 'reports.generate.offline' },
+  empty: { tone: 'warning', message: 'reports.availability.empty' },
+  failed: { tone: 'alert', message: 'reports.generate.failed' },
+} as const satisfies Record<
+  ReportAvailabilityNotice,
+  { tone: NoticeTone; message: TranslationKey }
+>;
 
 const SECTION_TITLE =
   'text-sm font-semibold uppercase tracking-wide text-label-primary';
@@ -206,10 +209,10 @@ export function ReportsScreen({
             </Text>
           ) : null}
           {notice !== null ? (
-            <View role="alert" accessibilityLiveRegion="polite">
+            <View accessibilityLiveRegion="polite">
               <NoticeBanner
-                tone={NOTICE_TONES[notice]}
-                message={t(`reports.availability.${notice}`)}
+                tone={NOTICES[notice].tone}
+                message={t(NOTICES[notice].message)}
               />
             </View>
           ) : null}

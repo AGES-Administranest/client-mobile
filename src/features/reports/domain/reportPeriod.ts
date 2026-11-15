@@ -81,8 +81,6 @@ export function reportToday(now: Date): string {
   return toCalendarString(todayInReportTimeZone(now));
 }
 
-export type ReportPeriod = { from: string; to: string };
-
 export type ReportPeriodError = 'END_BEFORE_START';
 
 // The calendar swaps the ends on its own, so this only catches a period that

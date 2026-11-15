@@ -1,7 +1,7 @@
 import { apiClient } from 'shared/services/apiClient';
 
+import type { ReportPeriod } from '../domain/report.types';
 import type { ReportAvailability } from '../domain/reportAvailability';
-import type { ReportPeriod } from '../domain/reportPeriod';
 
 // The person is waiting on the tap that asked for the report.
 const FETCH_TIMEOUT_MS = 10_000;

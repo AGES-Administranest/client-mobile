@@ -908,9 +908,7 @@
       }
     },
     "availability": {
-      "offline": "Gerar relatórios exige conexão com a internet. Conecte-se e tente de novo.",
-      "empty": "Não há registros neste período. Escolha outro período para gerar o relatório.",
-      "failed": "Não foi possível verificar o período agora. Tente novamente."
+      "empty": "Não há registros neste período. Escolha outro período para gerar o relatório."
     },
     "history": {
       "title": "Histórico de relatórios",

@@ -179,6 +179,34 @@ describe('useReportsScreen', () => {
     expect(state.current.notice).toBeNull();
   });
 
+  it('drops a check still running when the period changes', async () => {
+    let answer: (value: { total: number }) => void = () => undefined;
+    fetchAvailability.mockReturnValue(
+      new Promise(resolve => {
+        answer = resolve;
+      }),
+    );
+    const state = await renderHook();
+
+    let stale: Promise<boolean> = Promise.resolve(true);
+    await act(async () => {
+      stale = state.current.checkPeriod();
+    });
+    await act(async () => {
+      state.current.selectChoice('previousMonth');
+    });
+
+    expect(state.current.canGenerate).toBe(true);
+
+    await act(async () => {
+      answer({ total: 0 });
+      await stale;
+    });
+
+    expect(await stale).toBe(false);
+    expect(state.current.notice).toBeNull();
+  });
+
   it('checks once and blocks the cards while the check is running', async () => {
     let answer: (value: { total: number }) => void = () => undefined;
     fetchAvailability.mockReturnValue(

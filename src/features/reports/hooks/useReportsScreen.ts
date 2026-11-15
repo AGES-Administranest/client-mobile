@@ -43,10 +43,10 @@ export function useReportsScreen(): ReportsScreenState {
     choice === 'custom' ? customRange : reportPeriodFor(choice, now);
   const periodError = validateReportPeriod(range);
 
-  // A notice speaks of the period it was asked for; once the period changes it
-  // would describe one that is no longer on screen.
+  // A notice or a check in progress speaks of the period it was asked for;
+  // once the period changes it would describe one that is no longer on screen.
   const selectChoice = (next: ReportPeriodChoice) => {
-    availability.dismissNotice();
+    availability.reset();
     // "Personalizado" starts from the period that was showing, so the calendar
     // opens on it instead of empty.
     if (next === 'custom' && choice !== 'custom') {
@@ -56,7 +56,7 @@ export function useReportsScreen(): ReportsScreenState {
   };
 
   const setRange = (next: CalendarRange) => {
-    availability.dismissNotice();
+    availability.reset();
     setCustomRange(next);
   };
 

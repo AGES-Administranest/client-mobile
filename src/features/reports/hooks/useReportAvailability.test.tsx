@@ -116,16 +116,17 @@ describe('useReportAvailability', () => {
     expect(state.current.notice).toBe('failed');
   });
 
-  it('does not ask the API without a session', async () => {
+  it('fails without asking the API when there is no session', async () => {
     const state = await renderHook(null);
 
     await expect(ensureRecords(state)).resolves.toBe(false);
 
+    expect(state.current.notice).toBe('failed');
     expect(isOnlineMock).not.toHaveBeenCalled();
     expect(fetchAvailability).not.toHaveBeenCalled();
   });
 
-  it('clears the notice on dismiss and when a new check starts', async () => {
+  it('clears the notice on reset and when a new check starts', async () => {
     fetchAvailability.mockResolvedValue({ total: 0 });
     const state = await renderHook();
 
@@ -133,7 +134,7 @@ describe('useReportAvailability', () => {
     expect(state.current.notice).toBe('empty');
 
     await act(async () => {
-      state.current.dismissNotice();
+      state.current.reset();
     });
     expect(state.current.notice).toBeNull();
 
@@ -142,4 +143,41 @@ describe('useReportAvailability', () => {
     await ensureRecords(state);
     expect(state.current.notice).toBeNull();
   });
+
+  it.each([
+    ['an empty period', 0],
+    ['a period with records', 1],
+  ])(
+    'ignores the answer about %s when it arrives after a reset',
+    async (_name, total) => {
+      let answer: (value: { total: number }) => void = () => undefined;
+      fetchAvailability.mockReturnValue(
+        new Promise(resolve => {
+          answer = resolve;
+        }),
+      );
+      const state = await renderHook();
+
+      let stale: Promise<boolean> = Promise.resolve(true);
+      await act(async () => {
+        stale = state.current.ensureRecords(PERIOD);
+      });
+      await act(async () => {
+        state.current.reset();
+      });
+
+      expect(state.current.isChecking).toBe(false);
+
+      await act(async () => {
+        answer({ total });
+        await stale;
+      });
+
+      expect(await stale).toBe(false);
+      expect(state.current.notice).toBeNull();
+
+      fetchAvailability.mockResolvedValue({ total: 3 });
+      await expect(ensureRecords(state)).resolves.toBe(true);
+    },
+  );
 });
