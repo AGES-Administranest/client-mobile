@@ -2099,6 +2099,15 @@
         "title": "No connection",
         "message": "Deleting the account requires an internet connection. Connect and try again."
       },
+      "reauth": {
+        "title": "Confirm your identity",
+        "message": "We could not confirm your recent sign in. Enter your password and try again."
+      },
+      "incomplete": {
+        "title": "Deletion not finished",
+        "message": "Your data has already been removed, but closing the account did not finish. Try again to complete it.",
+        "action": "Finish deletion"
+      },
       "failed": {
         "title": "Could not delete",
         "message": "Something went wrong while deleting your account. Nothing was removed. Please try again shortly."

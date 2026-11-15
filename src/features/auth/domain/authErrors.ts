@@ -10,6 +10,8 @@ export type AuthErrorCode =
   | 'ACCOUNT_USES_OTHER_SIGN_IN'
   | 'TOO_MANY_ATTEMPTS'
   | 'NETWORK_UNAVAILABLE'
+  | 'REAUTH_REQUIRED'
+  | 'ACCOUNT_DELETION_INCOMPLETE'
   | 'UNKNOWN';
 
 export class AuthError extends Error {
@@ -55,6 +57,14 @@ export function toAuthErrorCode(cognitoType: string): AuthErrorCode {
 export function fromApiError(status: number, code?: string): AuthErrorCode {
   if (status === 409 && code === 'USER_EMAIL_ALREADY_REGISTERED') {
     return 'ACCOUNT_USES_OTHER_SIGN_IN';
+  }
+  // Account deletion: the data is already gone and only the closure is
+  // pending, so the screen must not say that nothing was removed.
+  if (code === 'ACCOUNT_DELETION_INCOMPLETE') {
+    return 'ACCOUNT_DELETION_INCOMPLETE';
+  }
+  if (status === 401 && code === 'REAUTH_REQUIRED') {
+    return 'REAUTH_REQUIRED';
   }
   if (status === 401) {
     return 'SESSION_EXPIRED';

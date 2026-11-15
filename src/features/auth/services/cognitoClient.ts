@@ -15,8 +15,7 @@ export type CognitoOperation =
   | 'InitiateAuth'
   | 'ForgotPassword'
   | 'ConfirmForgotPassword'
-  | 'RevokeToken'
-  | 'DeleteUser';
+  | 'RevokeToken';
 
 export async function callCognito<TResponse>(
   operation: CognitoOperation,

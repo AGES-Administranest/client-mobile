@@ -294,7 +294,6 @@ describe('deleting the account', () => {
 
   beforeEach(() => {
     service.signIn.mockResolvedValue(FRESH);
-    service.deleteUser.mockResolvedValue(undefined);
     api.deleteAccount.mockResolvedValue(undefined);
     storage.clearSession.mockResolvedValue(undefined);
     jest.mocked(clearLocalUserData).mockResolvedValue(undefined);
@@ -312,7 +311,6 @@ describe('deleting the account', () => {
       'Senha@1234',
     );
     expect(api.deleteAccount).toHaveBeenCalledWith('id-fresh');
-    expect(service.deleteUser).toHaveBeenCalledWith(FRESH);
     expect(storage.clearSession).toHaveBeenCalled();
     expect(clearLocalUserData).toHaveBeenCalled();
   });
@@ -357,23 +355,11 @@ describe('deleting the account', () => {
       ).rejects.toMatchObject({ code: 'NETWORK_UNAVAILABLE' });
     });
 
-    expect(service.deleteUser).not.toHaveBeenCalled();
     expect(clearLocalUserData).not.toHaveBeenCalled();
-  });
-
-  it('still succeeds when removing the Cognito user fails afterwards', async () => {
-    service.deleteUser.mockRejectedValue(new AuthError('UNKNOWN'));
-    const auth = await renderProvider(SESSION, ACCEPTED);
-
-    await act(async () => {
-      await auth.current!.deleteAccount('Senha@1234');
-    });
-
-    expect(clearLocalUserData).toHaveBeenCalled();
   });
 });
 
-it('wipes the local data on a plain sign out too', async () => {
+it('keeps the local data on a plain sign out: unsynced items must survive', async () => {
   service.signOut.mockResolvedValue(undefined);
   const auth = await renderProvider(SESSION, ACCEPTED);
 
@@ -381,5 +367,5 @@ it('wipes the local data on a plain sign out too', async () => {
     await auth.current!.signOut();
   });
 
-  expect(clearLocalUserData).toHaveBeenCalled();
+  expect(clearLocalUserData).not.toHaveBeenCalled();
 });

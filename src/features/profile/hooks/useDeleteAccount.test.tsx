@@ -92,6 +92,8 @@ it('asks for a connection without trying anything when the device is offline', a
 it.each([
   ['INVALID_CREDENTIALS', 'wrongPassword'],
   ['NETWORK_UNAVAILABLE', 'offline'],
+  ['REAUTH_REQUIRED', 'reauth'],
+  ['ACCOUNT_DELETION_INCOMPLETE', 'incomplete'],
   ['TOO_MANY_ATTEMPTS', 'failed'],
 ])('shows %s as %s', async (code, phase) => {
   deleteAccount.mockRejectedValue(new AuthError(code as never));

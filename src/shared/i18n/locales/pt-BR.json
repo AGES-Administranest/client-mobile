@@ -2099,6 +2099,15 @@
         "title": "Sem conexão",
         "message": "A exclusão da conta exige conexão com a internet. Conecte-se e tente novamente."
       },
+      "reauth": {
+        "title": "Confirme sua identidade",
+        "message": "Não foi possível confirmar seu login recente. Informe sua senha e tente novamente."
+      },
+      "incomplete": {
+        "title": "Exclusão não concluída",
+        "message": "Seus dados já foram removidos, mas o encerramento da conta não terminou. Tente novamente para concluir.",
+        "action": "Concluir exclusão"
+      },
       "failed": {
         "title": "Não foi possível excluir",
         "message": "Algo deu errado ao excluir sua conta. Nada foi removido. Tente novamente em instantes."

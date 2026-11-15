@@ -3,15 +3,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AuthError, useAuth } from 'features/auth';
 import { isOnline } from 'shared/services/network';
 
-import { classifyDeletionFailure } from '../domain/deleteAccount';
+import {
+  classifyDeletionFailure,
+  type DeletionFailure,
+} from '../domain/deleteAccount';
 
-export type DeletionPhase =
-  | 'idle'
-  | 'deleting'
-  | 'wrongPassword'
-  | 'offline'
-  | 'failed'
-  | 'done';
+export type DeletionPhase = 'idle' | 'deleting' | DeletionFailure | 'done';
 
 export type DeleteAccountState = {
   phase: DeletionPhase;

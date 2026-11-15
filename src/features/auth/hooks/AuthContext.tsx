@@ -179,7 +179,8 @@ export function AuthProvider({
     setSession(null);
     setAccount(null);
     await sessionStorage.clearSession();
-    await clearLocalUserData();
+    // The offline queues stay: they are keyed by user, and wiping them here
+    // would lose whatever had not synced yet. Only account deletion wipes.
 
     if (current) {
       // Revoking is best effort: the user is signed out locally either way.
@@ -195,7 +196,6 @@ export function AuthProvider({
 
       const tokens = await authService.signIn(account.email, password);
       await accountApi.deleteAccount(tokens.idToken);
-      await authService.deleteUser(tokens).catch(() => undefined);
       await sessionStorage.clearSession();
       await clearLocalUserData();
     },

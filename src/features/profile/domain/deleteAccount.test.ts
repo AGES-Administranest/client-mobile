@@ -3,6 +3,8 @@ import { classifyDeletionFailure } from './deleteAccount';
 it.each([
   ['INVALID_CREDENTIALS', 'wrongPassword'],
   ['NETWORK_UNAVAILABLE', 'offline'],
+  ['REAUTH_REQUIRED', 'reauth'],
+  ['ACCOUNT_DELETION_INCOMPLETE', 'incomplete'],
   ['TOO_MANY_ATTEMPTS', 'failed'],
   ['SESSION_EXPIRED', 'failed'],
   ['UNKNOWN', 'failed'],

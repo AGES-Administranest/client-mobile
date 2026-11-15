@@ -206,6 +206,22 @@ function DeleteAccountContent({
         onRequestClose={deletion.dismiss}
       />
       <DeletionDialog
+        visible={phase === 'reauth'}
+        title={t('profile.deleteAccount.reauth.title')}
+        message={t('profile.deleteAccount.reauth.message')}
+        primaryLabel={t('profile.deleteAccount.tryAgain')}
+        onPrimary={deletion.dismiss}
+        onRequestClose={deletion.dismiss}
+      />
+      <DeletionDialog
+        visible={phase === 'incomplete'}
+        title={t('profile.deleteAccount.incomplete.title')}
+        message={t('profile.deleteAccount.incomplete.message')}
+        primaryLabel={t('profile.deleteAccount.incomplete.action')}
+        onPrimary={deletion.submit}
+        onRequestClose={deletion.dismiss}
+      />
+      <DeletionDialog
         visible={phase === 'failed'}
         title={t('profile.deleteAccount.failed.title')}
         message={t('profile.deleteAccount.failed.message')}
