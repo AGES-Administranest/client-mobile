@@ -892,7 +892,10 @@
         "custom": "Custom"
       },
       "previousYear": "Previous year",
-      "nextYear": "Next year"
+      "nextYear": "Next year",
+      "errors": {
+        "endBeforeStart": "The end date cannot be before the start date."
+      }
     },
     "kinds": {
       "general": {
@@ -903,6 +906,9 @@
         "title": "Invoice Package for Income Tax",
         "description": "The period's invoices gathered for income tax"
       }
+    },
+    "availability": {
+      "empty": "There are no records in this period. Choose another period to generate the report."
     },
     "history": {
       "title": "Report history",

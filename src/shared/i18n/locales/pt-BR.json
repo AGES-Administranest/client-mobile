@@ -892,7 +892,10 @@
         "custom": "Personalizado"
       },
       "previousYear": "Ano anterior",
-      "nextYear": "Próximo ano"
+      "nextYear": "Próximo ano",
+      "errors": {
+        "endBeforeStart": "A data de fim não pode ser anterior à data de início."
+      }
     },
     "kinds": {
       "general": {
@@ -903,6 +906,9 @@
         "title": "Pacote de Notas Fiscais para IR",
         "description": "Notas fiscais do período reunidas para o Imposto de Renda"
       }
+    },
+    "availability": {
+      "empty": "Não há registros neste período. Escolha outro período para gerar o relatório."
     },
     "history": {
       "title": "Histórico de relatórios",

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
+import { NoticeBanner, type NoticeTone } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
 import { InvoicesScreen, InvoicesSection } from 'features/invoices';
 import { isMissingCrmv, useProfile } from 'features/profile';
@@ -31,6 +32,7 @@ import {
   useGenerateReport,
   type GenerateFailure,
 } from '../hooks/useGenerateReport';
+import type { ReportAvailabilityNotice } from '../hooks/useReportAvailability';
 import { useReportHistory } from '../hooks/useReportHistory';
 import { useReportsScreen } from '../hooks/useReportsScreen';
 
@@ -40,6 +42,15 @@ const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
   downloadFailed: 'reports.generate.downloadFailed',
   failed: 'reports.generate.failed',
 };
+
+const NOTICES = {
+  offline: { tone: 'warning', message: 'reports.generate.offline' },
+  empty: { tone: 'warning', message: 'reports.availability.empty' },
+  failed: { tone: 'alert', message: 'reports.generate.failed' },
+} as const satisfies Record<
+  ReportAvailabilityNotice,
+  { tone: NoticeTone; message: TranslationKey }
+>;
 
 const SECTION_TITLE =
   'text-sm font-semibold uppercase tracking-wide text-label-primary';
@@ -55,8 +66,17 @@ export function ReportsScreen({
   const history = useReportHistory();
   const reports = useGenerateReport({ onGenerated: history.add });
   const invoiceUpload = useServiceInvoiceUpload();
-  const { choice, selectChoice, range, setRange, maxDate, canGenerate } =
-    useReportsScreen();
+  const {
+    choice,
+    selectChoice,
+    range,
+    setRange,
+    maxDate,
+    periodError,
+    notice,
+    canGenerate,
+    checkPeriod,
+  } = useReportsScreen();
   const { state: profile, reload: reloadProfile } = useProfile();
   const isCrmvMissing =
     profile.status === 'ready' && isMissingCrmv(profile.profile);
@@ -84,7 +104,11 @@ export function ReportsScreen({
       ? t('reports.period.selectDate')
       : formatShortCalendarDate(date, locale);
 
-  const openCategories = () => {
+  const openCategories = async () => {
+    if (!(await checkPeriod())) {
+      return;
+    }
+
     // The CRMV may have been filled in the Profile tab meanwhile.
     reloadProfile();
     setCategories(reports.lastSelection);
@@ -176,6 +200,22 @@ export function ReportsScreen({
             previousYearLabel={t('reports.period.previousYear')}
             nextYearLabel={t('reports.period.nextYear')}
           />
+          {periodError === 'END_BEFORE_START' ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              className="text-xs text-alert-primary"
+            >
+              {t('reports.period.errors.endBeforeStart')}
+            </Text>
+          ) : null}
+          {notice !== null ? (
+            <View accessibilityLiveRegion="polite">
+              <NoticeBanner
+                tone={NOTICES[notice].tone}
+                message={t(NOTICES[notice].message)}
+              />
+            </View>
+          ) : null}
           <ReportKindCard
             icon={FileText}
             title={t('reports.kinds.general.title')}
