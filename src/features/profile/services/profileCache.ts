@@ -49,8 +49,12 @@ export async function saveCachedProfile(
   );
 }
 
-export async function clearCachedProfile(userId: string): Promise<void> {
-  await AsyncStorage.removeItem(keyOf(userId)).catch(() => undefined);
+export async function clearProfileData(userId: string): Promise<void> {
+  await AsyncStorage.multiRemove([
+    keyOf(userId),
+    pendingKey(userId),
+    rejectedKey(userId),
+  ]).catch(() => undefined);
 }
 
 export async function loadPendingProfileEdit(

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { useAuth } from 'features/auth';
 
-import { clearCachedProfile } from '../services/profileCache';
+import { clearProfileData } from '../services/profileCache';
 
 // Watches the account instead of a sign-out button: the Home menu and the
 // terms screen both sign out, and so will account deletion (US25). It must
@@ -16,7 +16,7 @@ export function useForgetProfileOnSignOut(): void {
     const leaving = previousUserId.current;
     previousUserId.current = userId;
     if (leaving && leaving !== userId) {
-      clearCachedProfile(leaving);
+      clearProfileData(leaving);
     }
   }, [userId]);
 }

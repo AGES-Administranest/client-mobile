@@ -10,7 +10,14 @@ import {
 
 import { useForgetProfileOnSignOut } from './useForgetProfileOnSignOut';
 import type { Profile } from '../domain/profile';
-import { loadCachedProfile, saveCachedProfile } from '../services/profileCache';
+import {
+  loadCachedProfile,
+  loadPendingProfileEdit,
+  loadProfileRejected,
+  queueProfileEdit,
+  saveCachedProfile,
+  saveProfileRejected,
+} from '../services/profileCache';
 
 jest.mock('features/auth/services/authService', () => ({
   signOut: jest.fn().mockResolvedValue(undefined),
@@ -76,6 +83,30 @@ it('forgets the saved profile whenever the account signs out', async () => {
   });
 
   await expect(loadCachedProfile('user-1')).resolves.toBeNull();
+});
+
+it('also forgets an edit not sent yet and a refusal notice', async () => {
+  await queueProfileEdit(
+    'user-1',
+    {
+      name: 'Ana Souza',
+      crmv: 'RS-12345',
+      birthDate: null,
+      sex: null,
+      city: 'Canoas',
+      state: 'RS',
+    },
+    PROFILE,
+  );
+  await saveProfileRejected('user-1', true);
+  await renderHarness();
+
+  await act(async () => {
+    await signOut();
+  });
+
+  await expect(loadPendingProfileEdit('user-1')).resolves.toBeNull();
+  await expect(loadProfileRejected('user-1')).resolves.toBe(false);
 });
 
 it('keeps the saved profile while the account stays signed in', async () => {
