@@ -31,6 +31,7 @@ import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { OptionsModal } from 'app/components/ui/options-modal';
 import { Text } from 'app/components/ui/text';
+import { layout } from 'app/lib/layout';
 import {
   AppointmentDayList,
   DaySummary,
@@ -44,7 +45,7 @@ import { useAuth } from 'features/auth';
 import { useClientNames } from 'features/clients';
 import { InventoryNotificationsScreen, useInventory } from 'features/inventory';
 import { AppointmentDetailScreen, DiaDiaScreen } from 'features/procedures';
-import { ProfileScreen } from 'features/profile';
+import { ProfileScreen, useProfile } from 'features/profile';
 import { useTranslation } from 'shared/i18n';
 import { fromCalendarDate, toCalendarDate } from 'shared/utils/calendar';
 import { initials } from 'shared/utils/initials';
@@ -55,6 +56,9 @@ export function HomeScreen() {
   const { t, locale } = useTranslation();
   const { account, signOut } = useAuth();
   const { status, items, lots, refresh } = useInventory();
+  const { state: profileState } = useProfile();
+  const profileSex =
+    profileState.status === 'ready' ? profileState.profile.sex : null;
   const [accountVisible, setAccountVisible] = useState(false);
   const [profileVisible, setProfileVisible] = useState(false);
   const opensProfileAfterMenu = useRef(false);
@@ -187,7 +191,14 @@ export function HomeScreen() {
               className="text-xl font-bold text-label-primary"
               numberOfLines={1}
             >
-              {t('home.greeting', { name: firstName })}
+              {t('home.greeting', {
+                title: t(
+                  profileSex === 'FEMALE'
+                    ? 'home.doctorTitle.female'
+                    : 'home.doctorTitle.default',
+                ),
+                name: firstName,
+              })}
             </Text>
             <Text className="text-xs text-label-primary" numberOfLines={1}>
               {capitalize(
@@ -361,10 +372,10 @@ export function HomeScreen() {
         onRequestClose={() => setNotificationsVisible(false)}
       >
         <Animated.View
-          style={{
-            flex: 1,
-            transform: [{ translateX: notificationsTranslateX }],
-          }}
+          style={[
+            layout.fill,
+            { transform: [{ translateX: notificationsTranslateX }] },
+          ]}
         >
           <InventoryNotificationsScreen
             status={status}
@@ -396,7 +407,7 @@ export function HomeScreen() {
           {
             label: t('auth.account.signOut'),
             icon: LogOut,
-            variant: 'outline',
+            className: 'bg-button-secondary active:bg-button-secondary/90',
             onPress: () => {
               setAccountVisible(false);
               signOut();

@@ -1569,7 +1569,11 @@
     }
   },
   "home": {
-    "greeting": "Olá, Dr. {{name}}"
+    "greeting": "Olá, {{title}} {{name}}",
+    "doctorTitle": {
+      "default": "Dr.",
+      "female": "Dra."
+    }
   },
   "pricing": {
     "onboarding": {
