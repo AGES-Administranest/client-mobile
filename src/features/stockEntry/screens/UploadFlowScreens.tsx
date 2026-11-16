@@ -85,7 +85,6 @@ export function UploadFlowScreens({
         fileName={upload.document?.name ?? ''}
         sizeBytes={upload.document?.sizeBytes ?? 0}
         onSend={upload.sendDocument}
-        onReplace={() => upload.replaceDocument()}
         onCancel={upload.cancelDocument}
       />
 

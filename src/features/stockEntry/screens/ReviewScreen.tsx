@@ -1,4 +1,4 @@
-import { Check, Plus } from 'lucide-react-native';
+import { Check, Plus, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -161,6 +161,16 @@ export function ReviewScreen({
         onRetry={autosave.retry}
       />
 
+      {/* What still needs fixing stays pinned on top, with the filter toggle */}
+      <View className="px-4 pb-3">
+        <AttentionCounter
+          label={attentionLabels.label}
+          needsAttention={attention.length > 0}
+          actionLabel={attentionLabels.actionLabel}
+          onAction={state.toggleOnlyAttention}
+        />
+      </View>
+
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -213,14 +223,6 @@ export function ReviewScreen({
             }
           />
 
-          {/* Lines needing attention, with the filter toggle */}
-          <AttentionCounter
-            label={attentionLabels.label}
-            needsAttention={attention.length > 0}
-            actionLabel={attentionLabels.actionLabel}
-            onAction={state.toggleOnlyAttention}
-          />
-
           {/* Lines section title and count */}
           <View className="flex-row items-baseline justify-between">
             <Text className="text-[11px] font-bold uppercase tracking-wide text-label-tertiary">
@@ -249,24 +251,22 @@ export function ReviewScreen({
           </Pressable>
         </ScrollView>
 
-        {/* Footer: stock entry (disabled until step 3) and discard */}
+        {/* Footer: stock entry (disabled until step 3), discard, and the note */}
         <View className="gap-3 px-4 pb-4 pt-2">
           <ActionButton
             label={t('stockEntry.review.confirm')}
             icon={<Icon as={Check} size={16} />}
             disabled
           />
+          <ActionButton
+            variant="destructive"
+            label={t('stockEntry.review.discard')}
+            icon={<Icon as={Trash2} size={16} />}
+            onPress={() => setSheet('discard')}
+          />
           <Text className="text-center text-xs text-label-tertiary">
             {t('stockEntry.review.confirmUnavailable')}
           </Text>
-          <Pressable
-            onPress={() => setSheet('discard')}
-            accessibilityRole="button"
-          >
-            <Text className="text-center text-sm text-label-tertiary">
-              {t('stockEntry.review.discard')}
-            </Text>
-          </Pressable>
         </View>
       </KeyboardAvoidingView>
 

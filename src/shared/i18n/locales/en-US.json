@@ -238,7 +238,6 @@
       "meta": "PDF · {{size}}",
       "info": "Supplier, number and items are read when it is sent. You check everything before stocking it.",
       "send": "Send this file",
-      "replace": "Change file",
       "cancel": "Cancel"
     },
     "reading": {

@@ -238,7 +238,6 @@
       "meta": "PDF · {{size}}",
       "info": "Fornecedor, número e itens são lidos no envio. Você confere tudo antes de dar entrada.",
       "send": "Enviar este arquivo",
-      "replace": "Trocar arquivo",
       "cancel": "Cancelar"
     },
     "reading": {

@@ -123,9 +123,7 @@ export function ReviewLineCard({
         accessibilityRole="button"
         className={cn(
           'flex-row items-center gap-2 rounded-lg px-3 py-2.5',
-          isLinked
-            ? 'bg-details-primary'
-            : 'border border-dashed border-alert-primary bg-white',
+          isLinked ? 'bg-details-primary' : 'bg-alert-primary/10',
         )}
       >
         <Icon
