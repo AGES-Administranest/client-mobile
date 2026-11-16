@@ -23,7 +23,11 @@ import {
   type ClientOption,
   type ClientSearchStatus,
 } from 'features/clients';
-import { decimalOnly, formatDateInput } from 'shared/utils/inputMasks';
+import {
+  decimalOnly,
+  formatAmountInput,
+  formatDateInput,
+} from 'shared/utils/inputMasks';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type { TripMode } from '../domain/trip.types';
@@ -451,7 +455,9 @@ export function TripFormSheetPresentation({
                 placeholderTextColor={LabelPlaceholder}
                 value={values.cost}
                 keyboardType="decimal-pad"
-                onChangeText={v => onFieldValueChange('cost', v)}
+                onChangeText={v =>
+                  onFieldValueChange('cost', formatAmountInput(v))
+                }
                 className={cn(FIELD_INPUT, borderOf(errors.cost))}
               />
               {errors.cost ? (

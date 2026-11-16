@@ -1248,14 +1248,14 @@
   "procedures": {
     "newProcedure": "New appointment",
     "form": {
+      "amount": "Appointment amount (R$)",
       "title": "New appointment",
       "confirm": "Confirm",
       "close": "Close",
-      "client": "Client",
+      "client": "Clinic",
       "location": "Appointment location",
-      "locationHint": "Suggested from the client's address. You can change it.",
       "submitError": "Couldn't save. Please try again.",
-      "registerClient": "Register new client",
+      "registerClient": "Add clinic",
       "next": "Next",
       "back": "Back",
       "step1": "Step 1 of 2",
@@ -1280,9 +1280,10 @@
       "notes": "Notes"
     },
     "placeholders": {
+      "amount": "0.00",
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "client": "Client name",
+      "client": "Clinic name",
       "location": "Appointment address",
       "notes": "Notes about the procedure",
       "number": "0",
@@ -1313,7 +1314,7 @@
       "INVALID_TIME": "Invalid time",
       "IN_THE_PAST": "Pick a future date and time",
       "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
-      "SELECT_CLIENT": "Pick a client from the list",
+      "SELECT_CLIENT": "Pick a clinic from the list",
       "NAME_TOO_LONG": "At most 160 characters",
       "TOO_LONG": "At most 2000 characters"
     },

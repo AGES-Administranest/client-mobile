@@ -1248,14 +1248,14 @@
   "procedures": {
     "newProcedure": "Novo atendimento",
     "form": {
+      "amount": "Valor do atendimento (R$)",
       "title": "Novo atendimento",
       "confirm": "Confirmar",
       "close": "Fechar",
-      "client": "Tomador",
+      "client": "Clínica",
       "location": "Local do atendimento",
-      "locationHint": "Sugerido pelo endereço do tomador. Você pode alterar.",
       "submitError": "Não foi possível salvar. Tente novamente.",
-      "registerClient": "Cadastrar novo tomador",
+      "registerClient": "Adicionar clínica",
       "next": "Próximo",
       "back": "Voltar",
       "step1": "Passo 1 de 2",
@@ -1280,9 +1280,10 @@
       "notes": "Observações"
     },
     "placeholders": {
+      "amount": "0,00",
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "client": "Nome do tomador",
+      "client": "Nome da clínica",
       "location": "Endereço do atendimento",
       "notes": "Observações sobre o procedimento",
       "number": "0",
@@ -1313,7 +1314,7 @@
       "INVALID_TIME": "Hora inválida",
       "IN_THE_PAST": "Escolha uma data e horário futuros",
       "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
-      "SELECT_CLIENT": "Escolha um tomador da lista",
+      "SELECT_CLIENT": "Escolha uma clínica da lista",
       "NAME_TOO_LONG": "Máximo de 160 caracteres",
       "TOO_LONG": "Máximo de 2000 caracteres"
     },
