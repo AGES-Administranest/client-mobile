@@ -90,10 +90,12 @@ export function useLowStockAlert(
           }
         })
         .catch(error => {
-          console.warn(
-            '[useLowStockAlert] notification failed; retry on next sync',
-            error,
-          );
+          if (__DEV__) {
+            console.warn(
+              '[useLowStockAlert] notification failed; retry on next sync',
+              error,
+            );
+          }
         });
 
       return queueRef.current;
