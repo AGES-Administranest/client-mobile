@@ -1,10 +1,4 @@
-import {
-  Calculator,
-  Check,
-  FileText,
-  Pencil,
-  Trash2,
-} from 'lucide-react-native';
+import { Calculator, FileText, Pencil, Trash2 } from 'lucide-react-native';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
@@ -200,7 +194,6 @@ export function ServiceInvoiceDetailScreen({
           <View className="flex-row gap-3">
             <Button
               shape="pill"
-              variant="outline"
               icon={Pencil}
               disabled={!canCorrect}
               className="h-[46px] flex-1"
@@ -212,9 +205,8 @@ export function ServiceInvoiceDetailScreen({
             </Button>
             <Button
               shape="pill"
-              variant="destructive"
               icon={Trash2}
-              className="h-[46px] flex-1"
+              className="h-[46px] flex-1 bg-button-secondary active:bg-button-secondary/90"
               onPress={deletion.request}
             >
               <Text className="font-semibold">
@@ -228,7 +220,6 @@ export function ServiceInvoiceDetailScreen({
       <StatusDialog
         visible={deletion.step === 'confirming' || deletion.step === 'deleting'}
         tone="danger"
-        icon={Trash2}
         title={t('serviceInvoices.records.delete.title')}
         message={t(
           isSynced
@@ -280,7 +271,6 @@ export function ServiceInvoiceDetailScreen({
       <StatusDialog
         visible={deletion.step === 'done'}
         tone="success"
-        icon={Check}
         title={t('serviceInvoices.records.delete.doneTitle')}
         message={
           deletion.queuedOffline
