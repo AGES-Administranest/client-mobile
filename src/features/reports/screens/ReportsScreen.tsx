@@ -1,37 +1,32 @@
-import { FileText, Plus, Receipt } from 'lucide-react-native';
+import { FilePlus, Plus } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Platform, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { NoticeBanner, type NoticeTone } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
-import {
-  InvoicesScreen,
-  InvoicesSection,
-  type TaxPackageFailure,
-} from 'features/invoices';
+import { useAuth } from 'features/auth';
 import { isMissingCrmv, useProfile } from 'features/profile';
 import {
   ServiceInvoiceUploadFlow,
   ServiceInvoicesFlow,
+  ServiceInvoicesSection,
   useServiceInvoiceUpload,
 } from 'features/serviceInvoices';
 import { type TranslationKey, useTranslation } from 'shared/i18n';
 import { onConnectionRestored } from 'shared/services/network';
 import { formatShortCalendarDate } from 'shared/utils/calendar';
-import { formatCurrency } from 'shared/utils/currency';
 
 import { ReportHistoryScreen } from './ReportHistoryScreen';
 import { ReportHistorySection } from './ReportHistorySection';
 import { ReportCategoriesSheet } from '../components/ReportCategoriesSheet';
-import { ReportKindCard } from '../components/ReportKindCard';
 import { ReportPeriodSelector } from '../components/ReportPeriodSelector';
 import { ReportsHeader } from '../components/ReportsHeader';
-import { TaxPackageSheet } from '../components/TaxPackageSheet';
 import {
   MAX_REPORT_DAYS,
   REPORT_CATEGORIES,
   type ReportCategory,
+  type ReportHistoryItem,
 } from '../domain/report.types';
 import { REPORT_PERIOD_CHOICES } from '../domain/reportPeriod';
 import {
@@ -41,16 +36,8 @@ import {
 import type { ReportAvailabilityNotice } from '../hooks/useReportAvailability';
 import { useReportHistory } from '../hooks/useReportHistory';
 import { useReportsScreen } from '../hooks/useReportsScreen';
-import { useTaxPackage } from '../hooks/useTaxPackage';
-
-const TAX_PACKAGE_FAILURE_MESSAGES: Record<TaxPackageFailure, TranslationKey> =
-  {
-    empty: 'reports.taxPackage.empty',
-    tooLarge: 'invoices.downloadAll.tooLarge',
-    rateLimited: 'invoices.downloadAll.rateLimited',
-    offline: 'invoices.downloadAll.offline',
-    failed: 'invoices.downloadAll.failed',
-  };
+import { openLocalReport } from '../services/reportFileOpener';
+import { findLocalReport } from '../services/reportFileStore';
 
 const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
   offline: 'reports.generate.offline',
@@ -61,7 +48,7 @@ const GENERATE_FAILURE_MESSAGES: Record<GenerateFailure, TranslationKey> = {
 
 const NOTICES = {
   offline: { tone: 'warning', message: 'reports.generate.offline' },
-  empty: { tone: 'warning', message: 'reports.availability.empty' },
+  empty: { tone: 'alert', message: 'reports.availability.empty' },
   failed: { tone: 'alert', message: 'reports.generate.failed' },
 } as const satisfies Record<
   ReportAvailabilityNotice,
@@ -75,9 +62,11 @@ export function ReportsScreen() {
   const { t, locale } = useTranslation();
   const history = useReportHistory();
   const reports = useGenerateReport({ onGenerated: history.add });
-  // The package is recorded by the API, so the history is fetched again.
-  const taxPackage = useTaxPackage({ onDownloaded: history.retry });
+  const { account } = useAuth();
   const invoiceUpload = useServiceInvoiceUpload();
+  // The report just generated, handed to the share sheet once the sheet that
+  // made it is gone (a second Modal cannot be presented while one is leaving).
+  const reportToShare = useRef<ReportHistoryItem | null>(null);
   const {
     choice,
     selectChoice,
@@ -98,10 +87,8 @@ export function ReportsScreen() {
   const [generateFailure, setGenerateFailure] =
     useState<GenerateFailure | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isInvoiceListOpen, setIsInvoiceListOpen] = useState(false);
   const [isServiceInvoicesOpen, setIsServiceInvoicesOpen] = useState(false);
-  // iOS: the system picker does not open over a Modal that is still leaving.
-  const startUploadWhenListLeaves = useRef(false);
+  const [invoiceToOpen, setInvoiceToOpen] = useState<string | null>(null);
 
   const { retry: retryHistory } = history;
   useEffect(() => onConnectionRestored(retryHistory), [retryHistory]);
@@ -128,27 +115,6 @@ export function ReportsScreen() {
     setIsCategoryOpen(true);
   };
 
-  const openInvoicePackage = async () => {
-    if (range.from === null || range.to === null || !(await checkPeriod())) {
-      return;
-    }
-
-    taxPackage.open({ from: range.from, to: range.to });
-  };
-
-  const packageState = taxPackage.state;
-  const packageSummary =
-    packageState.status === 'closed' || packageState.status === 'loading'
-      ? null
-      : packageState.summary;
-  const isPackageEmpty = packageSummary?.documentsCount === 0;
-  const packageFailure =
-    packageState.status === 'failed'
-      ? packageState.reason
-      : isPackageEmpty
-      ? 'empty'
-      : null;
-
   const generateGeneralReport = () => {
     if (range.from === null || range.to === null) {
       return;
@@ -159,11 +125,22 @@ export function ReportsScreen() {
       .generate({ categories, from: range.from, to: range.to })
       .then(result => {
         if (result.ok) {
+          reportToShare.current = result.report;
           setIsCategoryOpen(false);
         } else {
           setGenerateFailure(result.reason);
         }
       });
+  };
+
+  // On the phone a report is made to be sent somewhere: it is already saved on
+  // the device, so the system share sheet opens right away. The web has no
+  // local copy and the browser already downloaded it.
+  const shareGeneratedReport = () => {
+    const report = reportToShare.current;
+    reportToShare.current = null;
+    const file = report && account ? findLocalReport(account.id, report) : null;
+    if (file) openLocalReport(file).catch(() => undefined);
   };
 
   // The failure was about the sections chosen before; it no longer applies.
@@ -174,30 +151,9 @@ export function ReportsScreen() {
     setGenerateFailure(null);
   };
 
-  const addFromList = () => {
-    setIsInvoiceListOpen(false);
-
-    if (Platform.OS === 'ios') {
-      startUploadWhenListLeaves.current = true;
-    } else {
-      invoiceUpload.start();
-    }
-  };
-
-  const onListDismissed = () => {
-    if (startUploadWhenListLeaves.current) {
-      startUploadWhenListLeaves.current = false;
-      invoiceUpload.start();
-    }
-  };
-
   return (
     <>
-      <ReportsHeader
-        title={t('tabbar.reports')}
-        invoicesLabel={t('reports.openInvoices')}
-        onInvoicesPress={() => setIsServiceInvoicesOpen(true)}
-      />
+      <ReportsHeader title={t('tabbar.reports')} />
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-6 px-4 pb-6 pt-2"
@@ -208,6 +164,8 @@ export function ReportsScreen() {
             {t('reports.generate.title')}
           </Text>
           <ReportPeriodSelector
+            label={t('reports.period.label')}
+            description={t(`reports.period.descriptions.${choice}`)}
             options={choiceOptions}
             value={choice}
             onValueChange={selectChoice}
@@ -243,20 +201,16 @@ export function ReportsScreen() {
               />
             </View>
           ) : null}
-          <ReportKindCard
-            icon={FileText}
-            title={t('reports.kinds.general.title')}
-            description={t('reports.kinds.general.description')}
+          <Button
+            shape="pill"
+            icon={FilePlus}
+            className="h-[49px] w-full"
+            accessibilityLabel={t('reports.generate.button')}
             disabled={!canGenerate}
             onPress={openCategories}
-          />
-          <ReportKindCard
-            icon={Receipt}
-            title={t('reports.kinds.invoicePackage.title')}
-            description={t('reports.kinds.invoicePackage.description')}
-            disabled={!canGenerate}
-            onPress={openInvoicePackage}
-          />
+          >
+            <Text>{t('reports.generate.button')}</Text>
+          </Button>
         </View>
 
         <ReportHistorySection
@@ -264,7 +218,16 @@ export function ReportsScreen() {
           onSeeAll={() => setIsHistoryOpen(true)}
         />
 
-        <InvoicesSection onSeeAll={() => setIsInvoiceListOpen(true)} />
+        <ServiceInvoicesSection
+          onSeeAll={() => {
+            setInvoiceToOpen(null);
+            setIsServiceInvoicesOpen(true);
+          }}
+          onOpenInvoice={invoiceId => {
+            setInvoiceToOpen(invoiceId);
+            setIsServiceInvoicesOpen(true);
+          }}
+        />
 
         <View className="gap-3">
           <Button
@@ -314,69 +277,7 @@ export function ReportsScreen() {
         onClearAll={() => changeCategories(() => [])}
         onGenerate={generateGeneralReport}
         onClose={() => setIsCategoryOpen(false)}
-      />
-
-      <TaxPackageSheet
-        visible={packageState.status !== 'closed'}
-        title={t('reports.kinds.invoicePackage.title')}
-        closeLabel={t('reports.taxPackage.close')}
-        downloadLabel={t(
-          packageState.status === 'downloading'
-            ? 'invoices.downloadAll.downloading'
-            : 'reports.taxPackage.download',
-        )}
-        loadingLabel={
-          packageState.status === 'loading'
-            ? t('reports.taxPackage.loading')
-            : null
-        }
-        figures={
-          packageState.status === 'closed'
-            ? []
-            : [
-                {
-                  label: t('reports.taxPackage.period'),
-                  value: t('reports.history.period', {
-                    from: formatShortCalendarDate(
-                      packageState.period.from,
-                      locale,
-                    ),
-                    to: formatShortCalendarDate(packageState.period.to, locale),
-                  }),
-                },
-                ...(packageSummary && !isPackageEmpty
-                  ? [
-                      {
-                        label: t('reports.taxPackage.documents'),
-                        value: String(packageSummary.documentsCount),
-                      },
-                      {
-                        label: t('reports.taxPackage.total'),
-                        value: formatCurrency(
-                          packageSummary.totalAmount,
-                          locale,
-                        ),
-                      },
-                    ]
-                  : []),
-              ]
-        }
-        warning={
-          packageSummary && packageSummary.missingFiles > 0
-            ? t('reports.taxPackage.missingFiles', {
-                count: packageSummary.missingFiles,
-              })
-            : null
-        }
-        error={
-          packageFailure
-            ? t(TAX_PACKAGE_FAILURE_MESSAGES[packageFailure])
-            : null
-        }
-        canDownload={packageSummary !== null && !isPackageEmpty}
-        isDownloading={packageState.status === 'downloading'}
-        onDownload={taxPackage.download}
-        onClose={taxPackage.close}
+        onClosed={shareGeneratedReport}
       />
 
       <ReportHistoryScreen
@@ -387,15 +288,9 @@ export function ReportsScreen() {
 
       <ServiceInvoicesFlow
         open={isServiceInvoicesOpen}
+        initialInvoiceId={invoiceToOpen}
         onClose={() => setIsServiceInvoicesOpen(false)}
         upload={invoiceUpload}
-      />
-
-      <InvoicesScreen
-        visible={isInvoiceListOpen}
-        onClose={() => setIsInvoiceListOpen(false)}
-        onAddInvoice={addFromList}
-        onDismiss={onListDismissed}
       />
     </>
   );

@@ -1,7 +1,5 @@
 import type { CalendarRange } from 'shared/utils/calendar';
 
-export type ReportKind = 'general' | 'invoicePackage';
-
 export type ReportPeriodShortcut =
   | 'currentMonth'
   | 'previousMonth'

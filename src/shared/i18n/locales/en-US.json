@@ -863,6 +863,7 @@
   },
   "reports": {
     "generate": {
+      "button": "Generate Report",
       "title": "Generate new report",
       "categoriesTitle": "Select categories",
       "selectAll": "Select all",
@@ -888,6 +889,13 @@
       "workedHour": "Worked Hour"
     },
     "period": {
+      "label": "Period",
+      "descriptions": {
+        "currentMonth": "From the first day of the month until today.",
+        "previousMonth": "The whole previous month.",
+        "currentYear": "From January 1st until today.",
+        "custom": "Pick the start and end dates on the calendar."
+      },
       "startDate": "Start date",
       "endDate": "End date",
       "selectDate": "Select",
@@ -915,7 +923,9 @@
       "empty": "There are no records in this period. Choose another period to generate the report."
     },
     "history": {
-      "title": "Report history",
+      "title": "Reports",
+      "filterAll": "All",
+      "noResults": "No reports of this type.",
       "viewAll": "View all",
       "empty": "No report generated yet.",
       "loading": "Loading reports...",

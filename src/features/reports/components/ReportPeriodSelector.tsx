@@ -2,16 +2,18 @@ import { View } from 'react-native';
 
 import { DateRangePicker } from 'app/components/ui/date-range-picker';
 import {
-  SegmentedControl,
-  type SegmentOption,
-} from 'app/components/ui/segmented-control';
+  SelectField,
+  type SelectFieldOption,
+} from 'app/components/ui/select-field';
 import { cn } from 'app/lib/utils';
 import type { CalendarRange } from 'shared/utils/calendar';
 
 import { ReportDateField } from './ReportDateField';
 
 type ReportPeriodSelectorProps<T extends string> = {
-  options: readonly SegmentOption<T>[];
+  label: string;
+  description: string;
+  options: readonly SelectFieldOption<T>[];
   value: T;
   onValueChange: (value: T) => void;
   startDateLabel: string;
@@ -33,6 +35,8 @@ type ReportPeriodSelectorProps<T extends string> = {
 };
 
 export function ReportPeriodSelector<T extends string>({
+  label,
+  description,
   options,
   value,
   onValueChange,
@@ -55,7 +59,9 @@ export function ReportPeriodSelector<T extends string>({
 }: ReportPeriodSelectorProps<T>) {
   return (
     <View className={cn('gap-3', className)}>
-      <SegmentedControl
+      <SelectField
+        label={label}
+        description={description}
         options={options}
         value={value}
         onValueChange={onValueChange}

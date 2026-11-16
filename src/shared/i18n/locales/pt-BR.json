@@ -863,6 +863,7 @@
   },
   "reports": {
     "generate": {
+      "button": "Gerar Relatório",
       "title": "Gerar novo relatório",
       "categoriesTitle": "Selecione as categorias",
       "selectAll": "Selecionar tudo",
@@ -888,6 +889,13 @@
       "workedHour": "Hora Trabalhada"
     },
     "period": {
+      "label": "Período",
+      "descriptions": {
+        "currentMonth": "Do primeiro dia do mês até hoje.",
+        "previousMonth": "O mês anterior completo.",
+        "currentYear": "De 1º de janeiro até hoje.",
+        "custom": "Escolha as datas de início e fim no calendário."
+      },
       "startDate": "Data de início",
       "endDate": "Data de fim",
       "selectDate": "Selecione",
@@ -915,7 +923,9 @@
       "empty": "Não há registros neste período. Escolha outro período para gerar o relatório."
     },
     "history": {
-      "title": "Histórico de relatórios",
+      "title": "Relatórios",
+      "filterAll": "Todos",
+      "noResults": "Nenhum relatório deste tipo.",
       "viewAll": "Ver todos",
       "empty": "Nenhum relatório gerado ainda.",
       "loading": "Carregando relatórios...",

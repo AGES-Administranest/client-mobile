@@ -32,7 +32,7 @@ export function ReportHistorySection({
       <ReportsHistoryLink
         title={t('reports.history.title')}
         actionLabel={t('reports.history.viewAll')}
-        onPress={reports.length > 0 ? onSeeAll : undefined}
+        onPress={onSeeAll}
       />
 
       {isLoading ? (

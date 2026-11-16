@@ -136,7 +136,10 @@ describe('useGenerateReport', () => {
 
     const result = await generate(hook);
 
-    expect(result).toEqual({ ok: true });
+    expect(result).toEqual({
+      ok: true,
+      report: expect.objectContaining({ id: expect.any(String) }),
+    });
     expect(saveMock).toHaveBeenCalledWith('user-1', GENERATED);
     expect(onGenerated).toHaveBeenCalledWith(SAVED);
     expect(hook.current.lastSelection).toEqual(['financial', 'travel']);
@@ -212,7 +215,10 @@ describe('useGenerateReport', () => {
 
       const result = await generate(hook);
 
-      expect(result).toEqual({ ok: true });
+      expect(result).toEqual({
+        ok: true,
+        report: expect.objectContaining({ id: expect.any(String) }),
+      });
       expect(createMock).toHaveBeenCalledTimes(1);
       expect(saveMock).toHaveBeenCalledTimes(2);
       expect(onGenerated).toHaveBeenCalledTimes(1);
