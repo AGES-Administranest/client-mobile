@@ -34,6 +34,9 @@ const INPUT_PROPS: Record<ClinicField, TextInputProps> = {
   },
 };
 
+// The only field the backend requires.
+const REQUIRED_FIELDS: ClinicField[] = ['name'];
+
 type ClinicFieldTexts = {
   label: string;
   placeholder: string;
@@ -41,20 +44,23 @@ type ClinicFieldTexts = {
 
 type ClinicInputProps = TextInputProps & {
   label: string;
+  required?: boolean;
   error?: string;
   className?: string;
 };
 
 function ClinicInput({
   label,
+  required,
   error,
   className,
   ...inputProps
 }: ClinicInputProps) {
   return (
-    <View className={cn('gap-2', className)}>
-      <Text className="text-xs font-semibold uppercase text-label-primary">
+    <View className={cn('gap-1.5', className)}>
+      <Text className="text-xs font-semibold uppercase leading-[18px] tracking-[0.48px] text-label-primary">
         {label}
+        {required ? ' *' : ''}
       </Text>
       <TextInput
         {...inputProps}
@@ -62,7 +68,7 @@ function ClinicInput({
         placeholderTextColor={LabelTertiary}
         selectionColor={LabelPrimary}
         className={cn(
-          'rounded-xl border bg-white px-4 py-2.5 text-[15px] text-label-primary',
+          'h-[43px] rounded-[10px] border bg-white px-3 text-sm text-label-primary',
           error ? 'border-alert-primary' : 'border-border-primary',
         )}
       />
@@ -73,12 +79,16 @@ function ClinicInput({
   );
 }
 
+type ClinicFieldsSection = 'main' | 'contact';
+
 type ClinicFieldsProps = {
   draft: ClinicDraft;
   fieldErrors: Partial<Record<ClinicField, string>>;
   fieldTexts: Record<ClinicField, ClinicFieldTexts>;
   editable?: boolean;
   showName?: boolean;
+  /** Um passo do formulário: sem isto, todos os campos. */
+  section?: ClinicFieldsSection;
   onChangeField: (field: ClinicField, value: string) => void;
 };
 
@@ -88,12 +98,14 @@ function ClinicFields({
   fieldTexts,
   editable = true,
   showName = true,
+  section,
   onChangeField,
 }: ClinicFieldsProps) {
   const renderField = (field: ClinicField, className?: string) => (
     <ClinicInput
       {...INPUT_PROPS[field]}
       label={fieldTexts[field].label}
+      required={REQUIRED_FIELDS.includes(field)}
       placeholder={editable ? fieldTexts[field].placeholder : undefined}
       value={draft[field]}
       error={fieldErrors[field]}
@@ -105,19 +117,27 @@ function ClinicFields({
 
   return (
     <>
-      {showName ? renderField('name') : null}
-      {renderField('cnpj')}
-      {renderField('addressLine')}
-      <View className="flex-row gap-3">
-        {renderField('city', 'flex-1')}
-        {renderField('state', 'w-20')}
-      </View>
-      {renderField('phone')}
-      {renderField('email')}
-      {renderField('contactName')}
+      {section !== 'contact' ? (
+        <>
+          {showName ? renderField('name') : null}
+          {renderField('cnpj')}
+          {renderField('addressLine')}
+          <View className="flex-row gap-3">
+            {renderField('city', 'flex-1')}
+            {renderField('state', 'w-20')}
+          </View>
+        </>
+      ) : null}
+      {section !== 'main' ? (
+        <>
+          {renderField('phone')}
+          {renderField('email')}
+          {renderField('contactName')}
+        </>
+      ) : null}
     </>
   );
 }
 
 export { ClinicFields };
-export type { ClinicFieldsProps, ClinicFieldTexts };
+export type { ClinicFieldsProps, ClinicFieldsSection, ClinicFieldTexts };

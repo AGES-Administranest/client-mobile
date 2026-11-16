@@ -128,7 +128,7 @@ test('masks the CNPJ, the phone and the state as they are typed', async () => {
   expect(current.draft.state).toBe('SP');
 });
 
-test('refuses to save an empty form and never calls the API', async () => {
+test('refuses to save without a name and never calls the API', async () => {
   await mount();
 
   let created: Client | null | undefined;
@@ -137,16 +137,7 @@ test('refuses to save an empty form and never calls the API', async () => {
   });
 
   expect(created).toBeNull();
-  expect(current.errors).toEqual({
-    name: 'required',
-    cnpj: 'required',
-    addressLine: 'required',
-    city: 'required',
-    state: 'required',
-    phone: 'required',
-    email: 'required',
-    contactName: 'required',
-  });
+  expect(current.errors).toEqual({ name: 'required' });
   expect(createClientMock).not.toHaveBeenCalled();
 });
 

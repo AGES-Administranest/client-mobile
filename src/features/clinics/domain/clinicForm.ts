@@ -220,46 +220,62 @@ function isValidPhone(phone: string): boolean {
   return number.length === 9 ? number[0] === '9' : /^[2-5]\d{7}$/.test(number);
 }
 
+// Only the name is required (it is all the backend asks for); the rest is
+// checked only when filled in.
+const filled = (value: string) => value.trim() !== '';
+
 const clinicDraftSchema = z.object({
   name: z.string().trim().min(1, 'required').min(NAME_MIN_LENGTH, 'tooShort'),
   cnpj: z
     .string()
-    .refine(value => digitsOnly(value) !== '', 'required')
-    .refine(value => isValidCnpj(digitsOnly(value)), 'invalid'),
-  addressLine: z
-    .string()
-    .trim()
-    .min(1, 'required')
-    .min(ADDRESS_MIN_LENGTH, 'tooShort'),
-  city: z
-    .string()
-    .trim()
-    .min(1, 'required')
-    .min(2, 'tooShort')
-    .refine(value => PERSON_OR_PLACE_PATTERN.test(value), 'invalid'),
-  state: z
-    .string()
-    .trim()
-    .min(1, 'required')
-    .refine(value => BRAZILIAN_STATES.has(value.toUpperCase()), 'invalid'),
-  phone: z
-    .string()
-    .refine(value => digitsOnly(value) !== '', 'required')
-    .refine(value => isValidPhone(digitsOnly(value)), 'invalid'),
-  email: z
-    .string()
-    .trim()
-    .min(1, 'required')
     .refine(
-      value => value.length <= EMAIL_MAX_LENGTH && EMAIL_PATTERN.test(value),
+      value => !filled(digitsOnly(value)) || isValidCnpj(digitsOnly(value)),
       'invalid',
     ),
-  contactName: z
+  addressLine: z
     .string()
-    .trim()
-    .min(1, 'required')
-    .min(2, 'tooShort')
-    .refine(value => PERSON_OR_PLACE_PATTERN.test(value), 'invalid'),
+    .refine(
+      value => !filled(value) || value.trim().length >= ADDRESS_MIN_LENGTH,
+      'tooShort',
+    ),
+  city: z.string().superRefine((value, ctx) => {
+    if (!filled(value)) return;
+    if (value.trim().length < 2) {
+      ctx.addIssue({ code: 'custom', message: 'tooShort' });
+    } else if (!PERSON_OR_PLACE_PATTERN.test(value.trim())) {
+      ctx.addIssue({ code: 'custom', message: 'invalid' });
+    }
+  }),
+  state: z
+    .string()
+    .refine(
+      value =>
+        !filled(value) || BRAZILIAN_STATES.has(value.trim().toUpperCase()),
+      'invalid',
+    ),
+  phone: z
+    .string()
+    .refine(
+      value => !filled(digitsOnly(value)) || isValidPhone(digitsOnly(value)),
+      'invalid',
+    ),
+  email: z
+    .string()
+    .refine(
+      value =>
+        !filled(value) ||
+        (value.trim().length <= EMAIL_MAX_LENGTH &&
+          EMAIL_PATTERN.test(value.trim())),
+      'invalid',
+    ),
+  contactName: z.string().superRefine((value, ctx) => {
+    if (!filled(value)) return;
+    if (value.trim().length < 2) {
+      ctx.addIssue({ code: 'custom', message: 'tooShort' });
+    } else if (!PERSON_OR_PLACE_PATTERN.test(value.trim())) {
+      ctx.addIssue({ code: 'custom', message: 'invalid' });
+    }
+  }),
 });
 
 export function validateClinicDraft(draft: ClinicDraft): ClinicDraftErrors {
