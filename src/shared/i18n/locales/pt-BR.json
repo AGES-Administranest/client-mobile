@@ -2,6 +2,7 @@
   "common": {
     "appName": "Administranest",
     "loading": "Carregando...",
+    "back": "Voltar",
     "retry": "Tentar novamente"
   },
   "finance": {
@@ -1466,9 +1467,12 @@
       "dismiss": "Cancelar"
     },
     "title": "Agendamentos",
+    "loadError": "Erro ao buscar agendamentos",
     "calendar": {
       "prevMonth": "Mês anterior",
-      "nextMonth": "Próximo mês"
+      "nextMonth": "Próximo mês",
+      "prevYear": "Ano anterior",
+      "nextYear": "Próximo ano"
     },
     "attendances": "ATENDIMENTOS",
     "revenue": "RECEITA",
@@ -1477,8 +1481,9 @@
     "addAttendance": "Adicionar atendimento",
     "sectionTitle": "PROCEDIMENTOS DO MÊS OU DIA",
     "emptyDay": "Nenhum agendamento para este dia.",
-    "emptyDaySub": "Toque no botão abaixo para agendar um procedimento.",
+    "emptyDaySub": "Agende um procedimento para acompanhar sua agenda por aqui.",
     "newAppointment": "+ Novo agendamento",
+    "addAppointment": "Novo agendamento",
     "status": {
       "scheduled": "Agendado",
       "completed": "Concluído",

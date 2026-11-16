@@ -22,6 +22,7 @@ const addAppointmentToCalendarMock =
   >;
 
 const APPOINTMENT: ExportableAppointment = {
+  id: 'appointment-1',
   procedureName: 'Ovariohisterectomia',
   patientName: 'Mel',
   startsAt: '2026-10-02T14:00:00',
@@ -65,6 +66,7 @@ test('creates the calendar event and reports success when permission is granted'
       title: 'Ovariohisterectomia - Mel',
       location: APPOINTMENT.location,
     }),
+    'appointment-1',
   );
   expect(result.current.status).toBe('success');
 });

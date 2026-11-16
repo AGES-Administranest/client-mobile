@@ -2,6 +2,7 @@
   "common": {
     "appName": "Administranest",
     "loading": "Loading...",
+    "back": "Back",
     "retry": "Retry"
   },
   "finance": {
@@ -1466,9 +1467,12 @@
       "dismiss": "Cancel"
     },
     "title": "Appointments",
+    "loadError": "Could not load appointments",
     "calendar": {
       "prevMonth": "Previous month",
-      "nextMonth": "Next month"
+      "nextMonth": "Next month",
+      "prevYear": "Previous year",
+      "nextYear": "Next year"
     },
     "attendances": "APPOINTMENTS",
     "revenue": "REVENUE",
@@ -1477,8 +1481,9 @@
     "addAttendance": "Add appointment",
     "sectionTitle": "PROCEDURES FOR MONTH OR DAY",
     "emptyDay": "No appointments for this day.",
-    "emptyDaySub": "Tap the button below to schedule an appointment.",
+    "emptyDaySub": "Schedule an appointment to follow your agenda here.",
     "newAppointment": "+ New appointment",
+    "addAppointment": "New appointment",
     "status": {
       "scheduled": "Scheduled",
       "completed": "Completed",

@@ -36,6 +36,8 @@ export type AppointmentsState = {
   onSelectDate: (date: string) => void;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
+  onPreviousYear: () => void;
+  onNextYear: () => void;
   onRefresh: () => Promise<void>;
 };
 
@@ -134,10 +136,8 @@ export function useAppointments(): AppointmentsState {
         const loaded = await loadMonth(idToken ?? '', userId, monthString);
         setAppointments(loaded.appointments);
         setIsOffline(loaded.isOffline);
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Erro ao buscar agendamentos';
-        setError(message);
+      } catch {
+        setError('LOAD_FAILED');
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
@@ -158,11 +158,9 @@ export function useAppointments(): AppointmentsState {
           setAppointments(loaded.appointments);
           setIsOffline(loaded.isOffline);
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
-          const message =
-            err instanceof Error ? err.message : 'Erro ao buscar agendamentos';
-          setError(message);
+          setError('LOAD_FAILED');
         }
       } finally {
         if (isMounted) {
@@ -207,9 +205,9 @@ export function useAppointments(): AppointmentsState {
     return appointmentsByDate[selectedDate] ?? [];
   }, [appointmentsByDate, selectedDate]);
 
-  const onPreviousMonth = useCallback(() => {
+  const shiftMonths = useCallback((amount: number) => {
     setVisibleDate(current => {
-      const next = addMonths(current.year, current.monthIndex, -1);
+      const next = addMonths(current.year, current.monthIndex, amount);
       const nextMonthStr = String(next.monthIndex + 1).padStart(2, '0');
       // Set selected date to 1st of that month if not currently in it
       setSelectedDate(`${next.year}-${nextMonthStr}-01`);
@@ -217,14 +215,10 @@ export function useAppointments(): AppointmentsState {
     });
   }, []);
 
-  const onNextMonth = useCallback(() => {
-    setVisibleDate(current => {
-      const next = addMonths(current.year, current.monthIndex, 1);
-      const nextMonthStr = String(next.monthIndex + 1).padStart(2, '0');
-      setSelectedDate(`${next.year}-${nextMonthStr}-01`);
-      return next;
-    });
-  }, []);
+  const onPreviousMonth = useCallback(() => shiftMonths(-1), [shiftMonths]);
+  const onNextMonth = useCallback(() => shiftMonths(1), [shiftMonths]);
+  const onPreviousYear = useCallback(() => shiftMonths(-12), [shiftMonths]);
+  const onNextYear = useCallback(() => shiftMonths(12), [shiftMonths]);
 
   // A date outside the visible month (the day list's arrows can cross into
   // one) brings its month into view.
@@ -257,6 +251,8 @@ export function useAppointments(): AppointmentsState {
     onSelectDate,
     onPreviousMonth,
     onNextMonth,
+    onPreviousYear,
+    onNextYear,
     onRefresh,
   };
 }

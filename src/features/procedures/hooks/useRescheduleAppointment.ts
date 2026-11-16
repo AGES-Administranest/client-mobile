@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { rescheduleCalendarEvent } from 'features/appointments';
 import { useAuth } from 'features/auth';
 import { ApiError } from 'shared/services/apiClient';
 
@@ -108,11 +109,9 @@ export function useRescheduleAppointment(
     setSubmitting(true);
     setFailure(null);
     try {
-      await updateAppointment(
-        session.idToken,
-        appointment.id,
-        toReschedulePayload(values),
-      );
+      const payload = toReschedulePayload(values);
+      await updateAppointment(session.idToken, appointment.id, payload);
+      rescheduleCalendarEvent(appointment.id, payload.startsAt, payload.endsAt);
       if (isMounted.current) {
         setVisible(false);
         setDone(true);
