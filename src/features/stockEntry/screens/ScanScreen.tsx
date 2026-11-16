@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionButton } from 'app/components/ui';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { MIN_SCREEN_TOP } from 'app/lib/layout';
 import { useTranslation } from 'shared/i18n';
 
 import { ScanFrame } from '../components/ScanFrame';
@@ -55,7 +56,7 @@ export function ScanScreen({
         />
       ) : null}
 
-      <View style={{ paddingTop: insets.top }}>
+      <View style={{ paddingTop: Math.max(insets.top, MIN_SCREEN_TOP) }}>
         <View className="bg-details-tertiary px-6 py-4">
           <Text className="text-center text-sm text-label-primary">
             {permission?.granted
