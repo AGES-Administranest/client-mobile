@@ -1060,6 +1060,9 @@
       "email": "E-mail",
       "password": "Password",
       "passwordConfirmation": "Confirm password",
+      "crmv": "CRMV (optional)",
+      "crmvPlaceholder": "E.g. RS-12345",
+      "sex": "Sex (optional)",
       "code": "Confirmation code"
     },
     "login": {
@@ -1086,6 +1089,7 @@
       "invalidEmail": "Enter a valid e-mail.",
       "passwordMismatch": "Passwords do not match.",
       "termsRequired": "Accept the terms to continue.",
+      "invalidCrmv": "Use the state and the number, like RS-12345.",
       "invalidCode": "The code must have 6 digits."
     },
     "errors": {

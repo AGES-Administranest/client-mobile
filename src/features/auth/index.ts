@@ -26,6 +26,11 @@ export {
   TERMS_VERSION,
   type Account,
 } from './domain/account';
+export {
+  clearSignUpProfile,
+  loadSignUpProfile,
+  type SignUpProfile,
+} from './services/signUpProfileStore';
 export { AuthProvider, useAuth } from './hooks/AuthContext';
 export { AuthFlow } from './screens/AuthFlow';
 export { TermsScreen } from './screens/TermsScreen';

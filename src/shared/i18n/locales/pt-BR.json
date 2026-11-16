@@ -1060,6 +1060,9 @@
       "email": "E-mail",
       "password": "Senha",
       "passwordConfirmation": "Confirmar senha",
+      "crmv": "CRMV (opcional)",
+      "crmvPlaceholder": "Ex.: RS-12345",
+      "sex": "Sexo (opcional)",
       "code": "Código de confirmação"
     },
     "login": {
@@ -1086,6 +1089,7 @@
       "invalidEmail": "Informe um e-mail válido.",
       "passwordMismatch": "As senhas não coincidem.",
       "termsRequired": "Aceite os termos para continuar.",
+      "invalidCrmv": "Use a UF e o número, como RS-12345.",
       "invalidCode": "O código deve ter 6 dígitos."
     },
     "errors": {

@@ -1,8 +1,11 @@
+import { isValidCrmv } from 'shared/utils/crmv';
+
 export type AuthFieldError =
   | 'required'
   | 'invalidEmail'
   | 'passwordMismatch'
   | 'termsRequired'
+  | 'invalidCrmv'
   | 'invalidCode';
 
 export type LoginForm = {
@@ -10,9 +13,14 @@ export type LoginForm = {
   password: string;
 };
 
+export type SignUpSex = 'FEMALE' | 'MALE' | 'OTHER' | 'NOT_INFORMED';
+
 export type SignUpForm = LoginForm & {
   name: string;
   passwordConfirmation: string;
+  // Both optional: they go to the profile once the account is open.
+  crmv: string;
+  sex: SignUpSex | null;
   // Terms of use and privacy policy (US25): no account without it.
   acceptedTerms: boolean;
 };
@@ -49,6 +57,10 @@ export function validateSignUpForm(form: SignUpForm): FormErrors<SignUpForm> {
     errors.passwordConfirmation = 'required';
   } else if (form.password !== form.passwordConfirmation) {
     errors.passwordConfirmation = 'passwordMismatch';
+  }
+
+  if (form.crmv.trim() && !isValidCrmv(form.crmv)) {
+    errors.crmv = 'invalidCrmv';
   }
 
   if (!form.acceptedTerms) {

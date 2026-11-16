@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 
+import { formatCrmvInput } from 'shared/utils/crmv';
+
 import { useAuth } from './AuthContext';
 import { useSubmit } from './useSubmit';
 import {
@@ -9,6 +11,7 @@ import {
   validateSignUpForm,
 } from '../domain/validateAuthForm';
 import { signUp } from '../services/authService';
+import { saveSignUpProfile } from '../services/signUpProfileStore';
 
 type UseSignUpFormOptions = {
   onNeedsConfirmation: (email: string, password: string) => void;
@@ -19,6 +22,8 @@ const EMPTY_FORM: SignUpForm = {
   email: '',
   password: '',
   passwordConfirmation: '',
+  crmv: '',
+  sex: null,
   acceptedTerms: false,
 };
 
@@ -33,7 +38,10 @@ export function useSignUpForm({ onNeedsConfirmation }: UseSignUpFormOptions) {
       field: TField,
       value: SignUpForm[TField],
     ) => {
-      setForm(current => ({ ...current, [field]: value }));
+      setForm(current => ({
+        ...current,
+        [field]: field === 'crmv' ? formatCrmvInput(String(value)) : value,
+      }));
       setErrors(current => ({ ...current, [field]: undefined }));
     },
     [],
@@ -51,6 +59,10 @@ export function useSignUpForm({ onNeedsConfirmation }: UseSignUpFormOptions) {
 
     return run(async () => {
       const result = await signUp(email, form.password, form.name.trim());
+      await saveSignUpProfile(email, {
+        crmv: form.crmv.trim().toUpperCase() || null,
+        sex: form.sex,
+      });
 
       if (result.isConfirmed) {
         // The box was ticked above, so the account is opened with the terms
