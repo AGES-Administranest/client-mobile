@@ -11,7 +11,7 @@ type ScreenHeaderProps = {
 
 export function ScreenHeader({ title, backLabel, onBack }: ScreenHeaderProps) {
   return (
-    <View className="flex-row items-center gap-1 px-3 pb-2">
+    <View className="flex-row items-center gap-3 px-4 pb-2">
       <BackButton label={backLabel} onPress={onBack} />
       <Text className="text-xl font-bold text-label-primary">{title}</Text>
     </View>
