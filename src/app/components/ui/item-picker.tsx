@@ -49,12 +49,12 @@ export function ItemPicker({
         className={cn(
           'flex-row items-center gap-2 border bg-white px-4 py-3',
           isOpen ? 'rounded-t-xl' : 'rounded-xl',
-          hasError ? 'border-alert-primary' : 'border-border-primary',
+          hasError ? 'border-alert-primary' : 'border-details-primary',
         )}
       >
         <Text
           className={cn(
-            'flex-1 text-base',
+            'flex-1 text-[15px]',
             selected ? 'text-label-primary' : 'text-label-tertiary',
           )}
           numberOfLines={1}
@@ -71,7 +71,7 @@ export function ItemPicker({
         <View
           className={cn(
             'overflow-hidden rounded-b-xl border border-t-0 bg-white',
-            hasError ? 'border-alert-primary' : 'border-border-primary',
+            hasError ? 'border-alert-primary' : 'border-details-primary',
           )}
         >
           {options.length === 0 && emptyMessage ? (
@@ -95,7 +95,7 @@ export function ItemPicker({
                 )}
               >
                 <Text
-                  className="flex-1 text-base text-label-primary"
+                  className="flex-1 text-[15px] text-label-primary"
                   numberOfLines={1}
                 >
                   {option.name}

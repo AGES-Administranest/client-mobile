@@ -162,9 +162,6 @@ async function createWithCategory(categoryLabel: string) {
     fieldByLabel(renderer, 'CUSTO UNITÁRIO').props.onChangeText('1250');
   });
   await act(async () => {
-    pressWithText(renderer, 'Digite a unidade')!.props.onPress();
-  });
-  await act(async () => {
     pressWithText(renderer, 'Amp')!.props.onPress();
   });
   await act(async () => {
@@ -354,9 +351,6 @@ describe('supplier', () => {
     });
     await act(async () => {
       fieldByLabel(renderer, 'CUSTO UNITÁRIO').props.onChangeText('1250');
-    });
-    await act(async () => {
-      pressWithText(renderer, 'Digite a unidade')!.props.onPress();
     });
     await act(async () => {
       pressWithText(renderer, 'Amp')!.props.onPress();
