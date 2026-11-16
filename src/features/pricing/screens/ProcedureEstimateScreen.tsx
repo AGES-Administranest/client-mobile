@@ -1,12 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from 'app/components/ui/icon';
+import { BackButton } from 'app/components/ui/back-button';
 import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { Text } from 'app/components/ui/text';
+import { MIN_SCREEN_TOP } from 'app/lib/layout';
 import { useClientSearch } from 'features/clients';
 import { SupplySelectorSheet, useSupplySelector } from 'features/stock';
 import { useTranslation } from 'shared/i18n';
@@ -28,7 +28,6 @@ import {
 } from '../domain/procedureEstimate';
 import { useProcedureEstimate } from '../hooks/useProcedureEstimate';
 
-const MIN_TOP_PADDING = 16;
 const styles = StyleSheet.create({ fill: { flex: 1 } });
 
 export type ProcedureEstimateScreenProps = {
@@ -48,7 +47,7 @@ export function ProcedureEstimateScreen({
         style={[
           styles.fill,
           {
-            paddingTop: Math.max(insets.top, MIN_TOP_PADDING),
+            paddingTop: Math.max(insets.top, MIN_SCREEN_TOP),
             paddingBottom: insets.bottom,
           },
         ]}
@@ -238,19 +237,11 @@ function ProcedureEstimateBody({
     <>
       <View className="gap-0.5 px-[18px] pb-2 pt-0">
         <View className="flex-row items-center gap-2">
-          <Pressable
+          <BackButton
+            label={t('pricing.procedureEstimate.back')}
             onPress={goBack}
-            accessibilityRole="button"
-            accessibilityLabel={t('pricing.procedureEstimate.back')}
-            hitSlop={8}
-            className="-ml-1 p-1 active:opacity-70"
-          >
-            <Icon
-              as={ChevronLeft}
-              size={26}
-              className="text-label-quartenery"
-            />
-          </Pressable>
+            className="-ml-1"
+          />
 
           <Text
             accessibilityRole="header"
