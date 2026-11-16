@@ -45,23 +45,15 @@ export function ServiceInvoiceListItem({
 
       <View className="min-w-0 flex-1 gap-0.5">
         <View className="flex-row items-center justify-between gap-2">
-          <Text
-            numberOfLines={1}
-            className="flex-1 text-sm font-bold text-label-primary"
-          >
+          <Text className="flex-1 text-sm font-bold text-label-primary">
             {title}
           </Text>
           <InvoiceStatusBadge status={status} label={statusLabel} />
         </View>
         <Text className="text-xs text-label-tertiary">{issueDate}</Text>
-        <Text numberOfLines={1} className="text-xs text-label-tertiary">
-          {clientLine}
-        </Text>
+        <Text className="text-xs text-label-tertiary">{clientLine}</Text>
         <View className="flex-row items-center justify-between gap-2">
-          <Text
-            numberOfLines={1}
-            className="flex-1 text-xs text-label-tertiary"
-          >
+          <Text className="flex-1 text-xs text-label-tertiary">
             {location ?? ''}
           </Text>
           <Text className="text-sm font-bold text-label-primary">{amount}</Text>

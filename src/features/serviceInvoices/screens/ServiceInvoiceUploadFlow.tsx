@@ -18,6 +18,7 @@ import {
 } from '../domain/offlineServiceInvoices';
 import { usePendingServiceInvoices } from '../hooks/usePendingServiceInvoices';
 import type { ServiceInvoiceUploadState } from '../hooks/useServiceInvoiceUpload';
+import { notifyOfflineServiceInvoicesChanged } from '../services/offlineServiceInvoiceStore';
 
 const REJECTION_REASON_KEYS: Record<KnownRejectionCode, TranslationKey> = {
   SERVICE_INVOICE_FILE_DUPLICATED:
@@ -194,6 +195,8 @@ export function ServiceInvoiceUploadFlow({
           onClose={upload.leaveReview}
           onConfirmed={() => {
             upload.finishReview();
+            // Every list of notes reloads on this, wherever the note was added from.
+            notifyOfflineServiceInvoicesChanged();
             onInvoiceConfirmed?.();
           }}
         />

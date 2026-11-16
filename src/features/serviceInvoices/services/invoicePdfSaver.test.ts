@@ -4,15 +4,15 @@ import { Linking, Platform } from 'react-native';
 import { savePdfToDevice } from './invoicePdfSaver';
 
 jest.mock('expo-file-system', () => {
-  const File = jest.fn().mockImplementation((directory, name) => ({
+  const MockFile = jest.fn().mockImplementation((directory, name) => ({
     directory,
     name,
     exists: false,
   }));
-  Object.assign(File, { downloadFileAsync: jest.fn() });
-  const Directory = jest.fn();
-  Object.assign(Directory, { pickDirectoryAsync: jest.fn() });
-  return { File, Directory };
+  Object.assign(MockFile, { downloadFileAsync: jest.fn() });
+  const MockDirectory = jest.fn();
+  Object.assign(MockDirectory, { pickDirectoryAsync: jest.fn() });
+  return { File: MockFile, Directory: MockDirectory };
 });
 
 const pick = jest.mocked(Directory.pickDirectoryAsync);

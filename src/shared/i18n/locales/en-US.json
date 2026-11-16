@@ -909,10 +909,6 @@
       "general": {
         "title": "General Report",
         "description": "Revenue, expenses and appointments for the period"
-      },
-      "invoicePackage": {
-        "title": "Invoice Package for Income Tax",
-        "description": "The period's invoices gathered for income tax"
       }
     },
     "availability": {
@@ -967,18 +963,7 @@
       "failed": "Could not delete the report. Try again."
     },
     "seeAll": "See all",
-    "addInvoice": "Add invoice",
-    "openInvoices": "Open invoices",
-    "taxPackage": {
-      "loading": "Looking for the invoices of the period...",
-      "period": "Period",
-      "documents": "Documents",
-      "total": "Total amount",
-      "empty": "There are no invoices or receipts with a file in this period. Choose another period.",
-      "missingFiles": "Documents not synced yet: {{count}}. They need an internet connection to go in the package.",
-      "download": "Download package (ZIP)",
-      "close": "Close"
-    }
+    "addInvoice": "Add invoice"
   },
   "optionsModal": {
     "scanNote": "Scan note",
@@ -2042,10 +2027,11 @@
         "loadFailed": "Could not load the invoices.",
         "offline": "No connection: showing the invoices saved on this device.",
         "emptyTitle": "No invoices",
-        "emptyMessage": "Register an invoice with the Add invoice button on the Reports tab.",
+        "emptyMessage": "Attach an invoice PDF so the app reads its data.",
         "noResultsTitle": "Nothing found",
         "noResultsMessage": "No invoices match this search. Try another client or date.",
-        "add": "Add invoice"
+        "add": "Add invoice",
+        "addHint": "PDF only, no images."
       },
       "detail": {
         "title": "Invoice details",

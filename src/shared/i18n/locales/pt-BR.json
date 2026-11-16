@@ -909,10 +909,6 @@
       "general": {
         "title": "Relatório Geral",
         "description": "Receitas, despesas e atendimentos do período"
-      },
-      "invoicePackage": {
-        "title": "Pacote de Notas Fiscais para IR",
-        "description": "Notas fiscais do período reunidas para o Imposto de Renda"
       }
     },
     "availability": {
@@ -967,18 +963,7 @@
       "failed": "Não foi possível excluir o relatório. Tente novamente."
     },
     "seeAll": "Ver todos",
-    "addInvoice": "Adicionar nota",
-    "openInvoices": "Abrir notas fiscais",
-    "taxPackage": {
-      "loading": "Buscando as notas do período...",
-      "period": "Período",
-      "documents": "Documentos",
-      "total": "Valor total",
-      "empty": "Não há notas fiscais nem recibos com arquivo neste período. Escolha outro período.",
-      "missingFiles": "Documentos ainda não sincronizados: {{count}}. Eles precisam de conexão com a internet para entrar no pacote.",
-      "download": "Baixar pacote (ZIP)",
-      "close": "Fechar"
-    }
+    "addInvoice": "Adicionar nota"
   },
   "optionsModal": {
     "scanNote": "Escanear nota",
@@ -2042,10 +2027,11 @@
         "loadFailed": "Não foi possível carregar as notas fiscais.",
         "offline": "Sem conexão: mostrando as notas salvas neste aparelho.",
         "emptyTitle": "Nenhuma nota fiscal",
-        "emptyMessage": "Registre uma nota pelo botão Adicionar nota, na aba Relatórios.",
+        "emptyMessage": "Anexe o PDF de uma nota para o app ler os dados.",
         "noResultsTitle": "Nada encontrado",
         "noResultsMessage": "Não há notas para essa busca. Tente outro tomador ou outra data.",
-        "add": "Adicionar nota"
+        "add": "Adicionar nota",
+        "addHint": "Aceitamos só PDF, não imagens."
       },
       "detail": {
         "title": "Detalhes da nota",
