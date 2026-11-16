@@ -40,7 +40,8 @@ const BASE = {
   isLoading: false,
   errorMessage: null,
   loadingLabel: 'Carregando equipamentos...',
-  emptyMessage: 'Nenhum equipamento cadastrado.',
+  emptyTitle: 'Nenhum equipamento cadastrado',
+  emptyMessage: 'Cadastre o primeiro para acompanhar a depreciação.',
   retryLabel: 'Tentar novamente',
   addLabel: 'Adicionar equipamento',
   onRetry: () => {},
@@ -142,7 +143,7 @@ test('the error shows its message and retry calls onRetry', async () => {
   expect(onRetry).toHaveBeenCalledTimes(1);
 });
 
-test('the empty state hides the summary and keeps the add button', async () => {
+test('the empty state hides the summary and carries the add button', async () => {
   const renderer = await renderList({ items: [], summary: SUMMARY });
 
   expect(texts(renderer)).toContain(BASE.emptyMessage);

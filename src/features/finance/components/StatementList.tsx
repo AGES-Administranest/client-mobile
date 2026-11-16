@@ -128,12 +128,14 @@ export function StatementList({
         icon={Receipt}
         title={texts.empty.title}
         message={texts.empty.description}
+        titleClassName="text-base leading-6 text-label-quartenery"
+        messageClassName="text-[13px] leading-[19.5px]"
         action={{
           label: texts.empty.action,
           icon: Plus,
           onPress: onCreatePress,
         }}
-        className={className}
+        className={cn('shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]', className)}
       />
     );
   }

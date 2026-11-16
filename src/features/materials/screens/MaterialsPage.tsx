@@ -210,6 +210,7 @@ function EquipmentSegment() {
         isLoading={isLoading}
         errorMessage={error ? t(error) : null}
         loadingLabel={t('equipment.loading')}
+        emptyTitle={t('equipment.emptyTitle')}
         emptyMessage={t('equipment.empty')}
         retryLabel={t('common.retry')}
         addLabel={t('equipment.addButton')}

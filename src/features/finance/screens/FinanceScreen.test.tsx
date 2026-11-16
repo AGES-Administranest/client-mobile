@@ -898,12 +898,12 @@ test('opens the vehicles screen from the header icon', async () => {
     );
   });
 
-  const textsOf = () =>
+  const renderedTexts = () =>
     renderer!.root
       .findAllByType('Text' as never)
       .map(node => node.props.children);
 
-  expect(JSON.stringify(textsOf())).not.toContain('VEÍCULOS');
+  expect(JSON.stringify(renderedTexts())).not.toContain('VEÍCULOS');
 
   const openVehicles = renderer!.root.find(
     node =>
@@ -913,7 +913,7 @@ test('opens the vehicles screen from the header icon', async () => {
 
   await act(async () => openVehicles.props.onPress());
 
-  expect(JSON.stringify(textsOf())).toContain('VEÍCULOS');
+  expect(JSON.stringify(renderedTexts())).toContain('VEÍCULOS');
 
   const back = renderer!.root.find(
     node =>
@@ -923,5 +923,5 @@ test('opens the vehicles screen from the header icon', async () => {
 
   await act(async () => back.props.onPress());
 
-  expect(JSON.stringify(textsOf())).not.toContain('VEÍCULOS');
+  expect(JSON.stringify(renderedTexts())).not.toContain('VEÍCULOS');
 });

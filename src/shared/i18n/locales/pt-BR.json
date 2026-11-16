@@ -119,7 +119,8 @@
   },
   "equipment": {
     "loading": "Carregando equipamentos...",
-    "empty": "Nenhum equipamento cadastrado. Cadastre o primeiro para acompanhar a depreciação.",
+    "emptyTitle": "Nenhum equipamento cadastrado",
+    "empty": "Cadastre o primeiro para acompanhar a depreciação.",
     "addButton": "Adicionar equipamento",
     "errorLoad": "Não foi possível carregar os equipamentos.",
     "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
@@ -359,7 +360,8 @@
       "pending": "PENDÊNCIAS",
       "countOne": "1 entrada",
       "count": "{{count}} entradas",
-      "empty": "Nenhuma entrada pendente. Toda nota enviada aparece aqui até ser conferida.",
+      "empty": "Nenhuma entrada pendente",
+      "emptyHint": "Toda nota enviada aparece aqui até ser conferida. Comece registrando uma nova entrada.",
       "loadFailed": "Não foi possível carregar as entradas.",
       "retry": "Tentar de novo",
       "newEntry": "Nova entrada",
@@ -628,7 +630,8 @@
     },
     "countOne": "{{count}} clínica",
     "countOther": "{{count}} clínicas",
-    "empty": "Nenhuma clínica cadastrada.",
+    "empty": "Nenhuma clínica cadastrada",
+    "emptyHint": "Cadastre sua primeira clínica para vinculá-la aos atendimentos.",
     "detail": {
       "call": "Entrar em contato",
       "edit": "Editar clínica",
@@ -1180,7 +1183,8 @@
     }
   },
   "suppliers": {
-    "empty": "Nenhum fornecedor cadastrado.",
+    "empty": "Nenhum fornecedor cadastrado",
+    "emptyHint": "Cadastre um fornecedor para associá-lo aos seus materiais.",
     "loadFailure": "Não foi possível carregar os fornecedores.",
     "countOne": "{{count}} fornecedor",
     "countOther": "{{count}} fornecedores",

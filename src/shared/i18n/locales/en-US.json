@@ -119,7 +119,8 @@
   },
   "equipment": {
     "loading": "Loading equipment...",
-    "empty": "No equipment registered. Register the first one to track depreciation.",
+    "emptyTitle": "No equipment registered",
+    "empty": "Register the first one to track depreciation.",
     "addButton": "Add equipment",
     "errorLoad": "Could not load the equipment.",
     "errorSession": "Your session has expired. Sign out and sign in again.",
@@ -359,7 +360,8 @@
       "pending": "PENDING",
       "countOne": "1 entry",
       "count": "{{count}} entries",
-      "empty": "No pending entries. Every invoice you send shows up here until it is reviewed.",
+      "empty": "No pending entries",
+      "emptyHint": "Every invoice you send shows up here until it is reviewed. Start by registering a new entry.",
       "loadFailed": "Could not load the entries.",
       "retry": "Try again",
       "newEntry": "New entry",
@@ -628,7 +630,8 @@
     },
     "countOne": "{{count}} clinic",
     "countOther": "{{count}} clinics",
-    "empty": "No clinics yet.",
+    "empty": "No clinics yet",
+    "emptyHint": "Register your first clinic to link it to your appointments.",
     "detail": {
       "call": "Contact",
       "edit": "Edit clinic",
@@ -1180,7 +1183,8 @@
     }
   },
   "suppliers": {
-    "empty": "No suppliers registered.",
+    "empty": "No suppliers registered",
+    "emptyHint": "Register a supplier to link it to your materials.",
     "loadFailure": "Could not load the suppliers.",
     "countOne": "{{count}} supplier",
     "countOther": "{{count}} suppliers",
