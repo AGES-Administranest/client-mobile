@@ -9,10 +9,7 @@ import { useTranslation } from 'shared/i18n';
 import { Colors } from '../../../theme/colors';
 import { AuthButton } from '../components/AuthButton';
 import { BrandHeader } from '../components/BrandHeader';
-import { FormMessage } from '../components/FormMessage';
 import { OrDivider } from '../components/OrDivider';
-import { SocialSignInButtons } from '../components/SocialSignInButtons';
-import { useSocialSignIn } from '../hooks/useSocialSignIn';
 
 const LOGO_TOP = 168;
 
@@ -27,7 +24,6 @@ export function WelcomeScreen({
 }: WelcomeScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const social = useSocialSignIn();
 
   return (
     <View className="flex-1">
@@ -62,30 +58,13 @@ export function WelcomeScreen({
             label={t('auth.welcome.createAccount')}
             icon={UserPlus}
             onPress={onCreateAccount}
-            disabled={social.isSubmitting}
           />
           <OrDivider label={t('auth.welcome.or')} />
           <AuthButton
             label={t('auth.welcome.login')}
             icon={LogIn}
             onPress={onLogin}
-            disabled={social.isSubmitting}
           />
-
-          {social.isEnabled && (
-            <>
-              <OrDivider label={t('auth.social.divider')} />
-              <SocialSignInButtons
-                labels={{ Google: t('auth.social.google') }}
-                onPress={social.signInWith}
-                pendingProvider={social.pendingProvider}
-                disabled={social.isSubmitting}
-              />
-              <FormMessage
-                message={social.errorKey ? t(social.errorKey) : null}
-              />
-            </>
-          )}
         </View>
       </ScrollView>
     </View>
