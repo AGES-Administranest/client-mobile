@@ -1062,7 +1062,7 @@
       "email": "E-mail",
       "password": "Password",
       "passwordConfirmation": "Confirm password",
-      "crmv": "CRMV (optional)",
+      "crmv": "CRMV",
       "crmvPlaceholder": "E.g. RS-12345",
       "sex": "Sex (optional)",
       "code": "Confirmation code"

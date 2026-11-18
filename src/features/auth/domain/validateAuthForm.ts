@@ -59,7 +59,9 @@ export function validateSignUpForm(form: SignUpForm): FormErrors<SignUpForm> {
     errors.passwordConfirmation = 'passwordMismatch';
   }
 
-  if (form.crmv.trim() && !isValidCrmv(form.crmv)) {
+  if (!form.crmv.trim()) {
+    errors.crmv = 'required';
+  } else if (!isValidCrmv(form.crmv)) {
     errors.crmv = 'invalidCrmv';
   }
 

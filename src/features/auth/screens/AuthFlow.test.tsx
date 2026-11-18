@@ -16,6 +16,7 @@ import * as socialAuthService from '../services/socialAuthService';
 jest.mock('../services/authService');
 jest.mock('../services/socialAuthService');
 jest.mock('../services/accountApi');
+jest.mock('../services/signUpProfileStore');
 
 const service = jest.mocked(authService);
 const socialService = jest.mocked(socialAuthService);
@@ -300,10 +301,21 @@ describe('sign up', () => {
     await press(renderer, 'Criar conta');
     await type(renderer, 'Nome', 'Ana');
     await type(renderer, 'E-mail', 'ana@example.com');
+    await type(renderer, 'CRMV', 'RS-12345');
     await type(renderer, 'Senha', 'Passw0rd@');
     await type(renderer, 'Confirmar senha', 'Passw0rd@');
     await press(renderer, TERMS_LABEL);
   }
+
+  it('does not create the account without the CRMV', async () => {
+    const renderer = await renderFlow();
+    await fillSignUp(renderer);
+    await type(renderer, 'CRMV', '');
+    await press(renderer, 'Criar conta');
+
+    expect(texts(renderer)).toContain('Campo obrigatório.');
+    expect(service.signUp).not.toHaveBeenCalled();
+  });
 
   it('does not create the account without accepting the terms', async () => {
     const renderer = await renderFlow();
