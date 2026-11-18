@@ -12,7 +12,7 @@ const VALID_SIGN_UP: SignUpForm = {
   email: 'ana@example.com',
   password: 'Passw0rd@',
   passwordConfirmation: 'Passw0rd@',
-  crmv: '',
+  crmv: 'RS-12345',
   sex: null,
   acceptedTerms: true,
 };
@@ -85,11 +85,12 @@ describe('validateSignUpForm', () => {
   it.each([
     ['RS-12345', {}],
     ['rs-12345', {}],
-    ['', {}],
+    ['', { crmv: 'required' }],
+    ['   ', { crmv: 'required' }],
     ['XX-12345', { crmv: 'invalidCrmv' }],
     ['RS12345', { crmv: 'invalidCrmv' }],
     ['RS-1234567', { crmv: 'invalidCrmv' }],
-  ])('checks the optional CRMV %p', (crmv, expected) => {
+  ])('checks the required CRMV %p', (crmv, expected) => {
     expect(validateSignUpForm({ ...VALID_SIGN_UP, crmv })).toEqual(expected);
   });
 

@@ -69,7 +69,7 @@ export function ScanScreen({
       <ScanFrame />
 
       <View
-        className="gap-3 px-5"
+        className="gap-3 px-4"
         style={{ paddingBottom: insets.bottom + 24 }}
       >
         {permission?.granted ? (

@@ -235,7 +235,7 @@ function ProcedureEstimateBody({
 
   return (
     <>
-      <View className="gap-0.5 px-[18px] pb-2 pt-0">
+      <View className="gap-0.5 px-4 pb-2 pt-0">
         <View className="flex-row items-center gap-2">
           <BackButton
             label={t('pricing.procedureEstimate.back')}
@@ -267,7 +267,7 @@ function ProcedureEstimateBody({
       <ScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerClassName="gap-3 px-[18px] pb-10 pt-2.5"
+        contentContainerClassName="gap-3 px-4 pb-10 pt-2.5"
       >
         {isConfiguringPricing ? (
           <PricingSetupView

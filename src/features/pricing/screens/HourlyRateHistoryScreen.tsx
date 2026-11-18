@@ -107,7 +107,7 @@ function HourlyRateHistoryContent({
           });
           pendingOffset.current = null;
         }}
-        contentContainerClassName="gap-[18px] px-[22px] pb-10 pt-2.5"
+        contentContainerClassName="gap-[18px] px-4 pb-10 pt-2.5"
       >
         {detailMonth ? (
           <HourlyRateMonthDetailView month={detailMonth} />
