@@ -163,7 +163,7 @@ function NotificationsLayout({
         style={StyleSheet.absoluteFill}
       />
 
-      <View className="flex-row items-center px-3 pb-2 pt-1">
+      <View className="flex-row items-center px-4 pb-2 pt-1">
         <BackButton label={t('auth.back')} onPress={onBack} />
         <Text className="flex-1 text-center text-sm font-semibold text-label-primary">
           {t('inventory.notifications.title')}
