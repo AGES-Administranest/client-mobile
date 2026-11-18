@@ -33,7 +33,7 @@ export function useProcedureFormTexts(
     endTime: t('procedures.fields.endTime'),
     date: t('procedures.fields.date'),
     notes: t('procedures.fields.notes'),
-    amount: t('procedures.fields.amount'),
+    amount: t('procedures.form.amount'),
     species: t('procedures.fields.species'),
     asaClassification: t('procedures.fields.asaClassification'),
   };
@@ -58,7 +58,7 @@ export function useProcedureFormTexts(
       startTime: t('procedures.placeholders.time'),
       endTime: t('procedures.placeholders.time'),
       date: t('procedures.placeholders.date'),
-      amount: t('procedures.placeholders.number'),
+      amount: t('procedures.placeholders.amount'),
       species: t('procedures.placeholders.species'),
     },
     speciesOptions: [
@@ -77,7 +77,6 @@ export function useProcedureFormTexts(
       error: t('procedures.clientSearch.error'),
       empty: t('procedures.clientSearch.empty'),
     },
-    locationHint: t('procedures.form.locationHint'),
     nameMaxLength: APPOINTMENT_NAME_MAX_LENGTH,
     notesMaxLength: CANCELLATION_REASON_MAX_LENGTH,
   };

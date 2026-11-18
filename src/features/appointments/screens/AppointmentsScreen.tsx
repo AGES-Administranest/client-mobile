@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 
+import { BackButton } from 'app/components/ui/back-button';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
 import { useTranslation } from 'shared/i18n';
@@ -83,15 +84,7 @@ export function AppointmentsScreen({
 
   const defaultHeader = (
     <View className="flex-row items-center justify-between px-4 pt-3 pb-2">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Voltar"
-        onPress={onBack}
-        hitSlop={8}
-        className="size-11 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-      >
-        <Icon as={ArrowLeft} className="size-5 text-white" />
-      </Pressable>
+      <BackButton label={t('common.back')} onPress={onBack} />
 
       <Pressable
         accessibilityRole="button"
@@ -129,7 +122,7 @@ export function AppointmentsScreen({
         {error && (
           <View className="p-3 my-2 rounded-xl bg-alert-primary/10 border border-alert-primary/30">
             <Text className="text-xs text-alert-primary text-center font-medium">
-              {error}
+              {t('appointments.loadError')}
             </Text>
           </View>
         )}
@@ -142,7 +135,7 @@ export function AppointmentsScreen({
           sectionTitle={t('appointments.sectionTitle')}
           emptyTitle={t('appointments.emptyDay')}
           emptySubtitle={t('appointments.emptyDaySub')}
-          addLabel={t('appointments.newAppointment')}
+          addLabel={t('appointments.addAppointment')}
           speciesLabels={speciesLabels}
           statusLabels={statusLabels}
           onAddAppointment={onAddAppointment}

@@ -50,6 +50,8 @@ type SearchSelectProps = {
   trailingIcon?: LucideIcon;
   /** The Figma 36px combobox: smaller radius, padding and text. */
   compact?: boolean;
+  /** Looks like the sheet's TextInput fields: same border color, height and label gap. */
+  formField?: boolean;
   className?: string;
   onChangeText: (text: string) => void;
   onSelect: (option: SearchSelectOption) => void;
@@ -82,6 +84,7 @@ export function SearchSelect({
   addOption,
   trailingIcon,
   compact = false,
+  formField = false,
   className,
   onChangeText,
   onSelect,
@@ -142,7 +145,12 @@ export function SearchSelect({
 
   return (
     <View className={cn('mb-3', className)}>
-      <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
+      <Text
+        className={cn(
+          'mb-1 text-xs font-semibold uppercase text-label-primary',
+          formField && 'mb-2',
+        )}
+      >
         {label}
       </Text>
       <View
@@ -152,6 +160,7 @@ export function SearchSelect({
             ? 'rounded-lg border bg-white px-3'
             : 'rounded-xl border bg-white px-4',
           error ? 'border-alert-primary' : 'border-border-primary',
+          formField && !error && 'border-details-primary',
         )}
       >
         <TextInput
@@ -163,8 +172,9 @@ export function SearchSelect({
           // min-w-0: na web o input tem largura mínima própria e empurraria o
           // ícone para fora do campo.
           className={cn(
-            'min-w-0 flex-1 text-label-primary',
+            'min-w-0 flex-1 text-label-primary outline-none',
             compact ? 'py-2 text-sm' : 'py-2.5 text-[15px]',
+            formField && 'py-3',
           )}
           placeholder={placeholder}
           placeholderTextColor={LabelPlaceholder}
@@ -227,6 +237,9 @@ function OptionList({
   onSelect,
   onAdd,
 }: OptionListProps) {
+  const rowPadding = 'px-4 py-2.5';
+  const rowText = 'text-[15px]';
+
   return (
     <View className="mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
       {options.map((option, index) => {
@@ -238,12 +251,14 @@ function OptionList({
             accessibilityState={{ selected }}
             onPress={() => onSelect(option)}
             className={cn(
-              'px-4 py-3',
+              rowPadding,
               index > 0 && 'border-t border-border-primary',
               selected && 'bg-details-primary',
             )}
           >
-            <Text className="text-base text-label-primary">{option.label}</Text>
+            <Text className={cn(rowText, 'text-label-primary')}>
+              {option.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -252,12 +267,13 @@ function OptionList({
           accessibilityRole="button"
           onPress={onAdd}
           className={cn(
-            'flex-row items-center gap-2 px-4 py-3',
+            'flex-row items-center gap-2',
+            rowPadding,
             options.length > 0 && 'border-t border-border-primary',
           )}
         >
           <Icon as={Plus} size={16} className="text-label-primary" />
-          <Text className="text-base text-label-primary">
+          <Text className={cn(rowText, 'text-label-primary')}>
             {addOption.label}
           </Text>
         </Pressable>

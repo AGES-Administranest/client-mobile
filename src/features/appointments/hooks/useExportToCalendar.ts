@@ -37,7 +37,10 @@ export function useExportToCalendar(
         return;
       }
 
-      await addAppointmentToCalendar(toCalendarEventInput(appointment));
+      await addAppointmentToCalendar(
+        toCalendarEventInput(appointment),
+        appointment.id,
+      );
       setStatus('success');
     } catch {
       setStatus('error');

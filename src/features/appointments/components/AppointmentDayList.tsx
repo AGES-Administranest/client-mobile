@@ -78,6 +78,8 @@ export function AppointmentDayList({
           icon={CalendarDays}
           title={emptyTitle}
           message={emptySubtitle}
+          titleClassName="text-base leading-6 text-label-quartenery"
+          messageClassName="text-[13px] leading-[19.5px]"
           action={
             onAddAppointment
               ? {
@@ -87,7 +89,7 @@ export function AppointmentDayList({
                 }
               : undefined
           }
-          className="my-2"
+          className="my-2 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]"
         />
       ) : (
         <View className="gap-3">

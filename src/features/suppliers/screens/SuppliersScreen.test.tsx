@@ -119,7 +119,7 @@ function typeInto(renderer: Renderer, label: string, value: string) {
 
 test('creates, edits, deactivates and deletes a supplier', async () => {
   const renderer = await renderScreen();
-  expect(textsOf(renderer)).toContain('Nenhum fornecedor cadastrado.');
+  expect(textsOf(renderer)).toContain('Nenhum fornecedor cadastrado');
 
   await pressByText(renderer, 'Adicionar fornecedor');
   await pressByText(renderer, 'Confirmar');

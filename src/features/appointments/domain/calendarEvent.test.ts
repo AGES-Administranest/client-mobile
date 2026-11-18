@@ -4,6 +4,7 @@ import {
 } from './calendarEvent';
 
 const BASE_APPOINTMENT: ExportableAppointment = {
+  id: 'a1',
   procedureName: 'Ovariohisterectomia',
   patientName: 'Mel',
   startsAt: '2026-10-02T14:00:00',

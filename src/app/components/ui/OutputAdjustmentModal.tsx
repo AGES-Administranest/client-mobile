@@ -11,6 +11,7 @@ import {
 import { Button } from 'app/components/ui/button';
 import { ItemPicker } from 'app/components/ui/item-picker';
 import { Text } from 'app/components/ui/text';
+import { layout } from 'app/lib/layout';
 import { cn } from 'app/lib/utils';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
@@ -103,35 +104,33 @@ function OutputAdjustmentModal({
     >
       {/* style, não className: na web o NativeWind não aplica className em
             Animated.View, e sem flex: 1 a folha subia para o topo. */}
-      <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
+      <Animated.View style={[layout.fill, { opacity: sheet.progress }]}>
         <View className="flex-1 justify-end bg-background-shade">
           {/* O limite de 85% sobe para o wrapper animado, que é o filho
               direto da tela; a folha encolhe dentro dele e o ScrollView rola. */}
           <Animated.View
             {...sheet.panHandlers}
-            style={{
-              maxHeight: '85%',
-              ...sheet.sheetStyle,
-            }}
+            style={[layout.sheetMaxHeight, sheet.sheetStyle]}
           >
-            <View className="shrink rounded-t-3xl bg-background-modal p-5">
-              <View className="mb-4">
+            <View className="shrink gap-5 rounded-t-3xl bg-background-modal px-5 pb-8 pt-4">
+              <View className="gap-2">
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={closeLabel}
                   onPress={onClose}
-                  className="h-6 w-full items-center justify-center"
+                  hitSlop={12}
+                  className="self-center"
                 >
-                  <View className="h-1 w-10 rounded-full bg-border-primary" />
+                  <View className="h-1 w-10 rounded-full bg-details-primary" />
                 </Pressable>
-                <Text variant="h4" className="mt-2">
+                <Text className="text-xl font-bold text-label-primary">
                   {title}
                 </Text>
               </View>
 
               <ScrollView contentContainerClassName="gap-4 pb-2">
-                <View className="gap-1">
-                  <Text className="text-xs font-medium uppercase text-label-tertiary">
+                <View className="gap-2">
+                  <Text className="text-xs font-semibold uppercase text-label-primary">
                     {itemLabel}
                   </Text>
                   <ItemPicker
@@ -152,8 +151,8 @@ function OutputAdjustmentModal({
                   />
                 </View>
 
-                <View className="gap-1">
-                  <Text className="text-xs font-medium uppercase text-label-tertiary">
+                <View className="gap-2">
+                  <Text className="text-xs font-semibold uppercase text-label-primary">
                     {quantityLabel}
                   </Text>
                   <TextInput
@@ -163,7 +162,7 @@ function OutputAdjustmentModal({
                     accessibilityLabel={quantityLabel}
                     keyboardType="number-pad"
                     inputMode="numeric"
-                    className="rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary"
+                    className="rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
                     placeholderTextColor={LabelTertiary}
                   />
                   <FieldError
@@ -172,7 +171,7 @@ function OutputAdjustmentModal({
                 </View>
 
                 <View className="gap-2">
-                  <Text className="text-xs font-medium uppercase text-label-tertiary">
+                  <Text className="text-xs font-semibold uppercase text-label-primary">
                     {reasonLabel}
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
@@ -187,15 +186,13 @@ function OutputAdjustmentModal({
                           accessibilityState={{ selected: isSelected }}
                           onPress={() => onReasonChange(reason)}
                           className={cn(
-                            'rounded-full border px-4 py-2',
-                            isSelected
-                              ? 'border-button-primary bg-button-primary'
-                              : 'border-border-primary bg-white',
+                            'rounded-full px-5 py-3',
+                            isSelected ? 'bg-button-primary' : 'bg-white',
                           )}
                         >
                           <Text
                             className={cn(
-                              'text-sm',
+                              'text-[15px] font-medium text-label-tertiary',
                               isSelected &&
                                 'font-semibold text-label-secondary',
                             )}
@@ -212,8 +209,8 @@ function OutputAdjustmentModal({
                 </View>
 
                 {needsWrittenReason ? (
-                  <View className="gap-1">
-                    <Text className="text-xs font-medium uppercase text-label-tertiary">
+                  <View className="gap-2">
+                    <Text className="text-xs font-semibold uppercase text-label-primary">
                       {otherReasonLabel}
                     </Text>
                     <TextInput
@@ -222,7 +219,7 @@ function OutputAdjustmentModal({
                       placeholder={otherReasonPlaceholder}
                       accessibilityLabel={otherReasonLabel}
                       multiline
-                      className="min-h-20 rounded-xl border border-border-primary bg-white px-4 py-3 text-base text-label-primary"
+                      className="min-h-20 rounded-xl border border-details-primary bg-white px-4 py-3 text-[15px] text-label-primary"
                       placeholderTextColor={LabelTertiary}
                     />
                     <FieldError
@@ -244,7 +241,7 @@ function OutputAdjustmentModal({
                   shape="pill"
                   onPress={onSubmit}
                   disabled={isSaving}
-                  className="mt-2 h-12"
+                  className="h-[49px] w-full"
                 >
                   <Text>{saveLabel}</Text>
                 </Button>

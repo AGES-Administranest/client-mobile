@@ -1,5 +1,4 @@
-import { ArrowLeft, ArrowRight, Check, ChevronDown } from 'lucide-react-native';
-import { useState } from 'react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react-native';
 import {
   Animated,
   Dimensions,
@@ -14,7 +13,7 @@ import {
 } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
-import { Icon } from 'app/components/ui/icon';
+import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { Text } from 'app/components/ui/text';
 import {
   ClientAutocomplete,
@@ -23,6 +22,7 @@ import {
   type ClientSearchStatus,
 } from 'features/clients';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
+import { formatAmountInput } from 'shared/utils/inputMasks';
 import { LabelPlaceholder } from 'theme/colors';
 
 import type {
@@ -59,7 +59,6 @@ export type ProcedureFormTexts = {
   asaOptions: AsaClassification[];
   errors: Partial<Record<keyof ProcedureFormValues, string>>;
   clientSearchMessages: ClientAutocompleteMessages;
-  locationHint: string;
   nameMaxLength: number;
   notesMaxLength: number;
 };
@@ -78,7 +77,6 @@ type ProcedureFormSheetProps = {
   submitErrorText: string;
   texts: ProcedureFormTexts;
   client: ProcedureClientField;
-  showLocationHint: boolean;
   step: ProcedureStep;
   onNext: () => void;
   onBack: () => void;
@@ -102,7 +100,6 @@ export function ProcedureFormSheet({
   submitErrorText,
   texts,
   client,
-  showLocationHint,
   step,
   onNext,
   onBack,
@@ -116,11 +113,6 @@ export function ProcedureFormSheet({
   onClosed,
   onRegisterClient,
 }: ProcedureFormSheetProps) {
-  const [speciesOpen, setSpeciesOpen] = useState(false);
-  const selectedSpecies = texts.speciesOptions.find(
-    option => option.value === values.species,
-  );
-
   const sheet = useSheetAnimation(visible, onClose, onClosed);
 
   // O fim só é opcional para um atendimento já realizado; ao agendar, falta
@@ -224,8 +216,6 @@ export function ProcedureFormSheet({
                     placeholder={texts.placeholders.location}
                     value={values.location}
                     error={texts.errors.location}
-                    multiline
-                    hint={showLocationHint ? texts.locationHint : undefined}
                     onChangeText={v => onChangeText('location', v)}
                   />
 
@@ -292,7 +282,9 @@ export function ProcedureFormSheet({
                     value={values.amount}
                     error={texts.errors.amount}
                     keyboardType="decimal-pad"
-                    onChangeText={v => onChangeText('amount', v)}
+                    onChangeText={v =>
+                      onChangeText('amount', formatAmountInput(v))
+                    }
                   />
 
                   <Field
@@ -309,49 +301,12 @@ export function ProcedureFormSheet({
                     <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">
                       {labelOf('species')}
                     </Text>
-                    <Pressable
-                      onPress={() => setSpeciesOpen(open => !open)}
-                      accessibilityRole="button"
-                      className="flex-row items-center justify-between rounded-xl border border-border-primary bg-white px-4 py-2.5"
-                    >
-                      <Text
-                        className={
-                          selectedSpecies
-                            ? 'text-[15px] text-label-primary'
-                            : 'text-[15px] text-label-tertiary'
-                        }
-                      >
-                        {selectedSpecies?.label ?? texts.placeholders.species}
-                      </Text>
-                      <Icon
-                        as={ChevronDown}
-                        className="size-4 text-label-tertiary"
-                      />
-                    </Pressable>
-
-                    {speciesOpen ? (
-                      <View className="mt-1 overflow-hidden rounded-xl border border-border-primary bg-white">
-                        {texts.speciesOptions.map((option, index) => (
-                          <Pressable
-                            key={option.value}
-                            accessibilityRole="button"
-                            onPress={() => {
-                              onChangeSpecies(option.value);
-                              setSpeciesOpen(false);
-                            }}
-                            className={
-                              index === 0
-                                ? 'px-4 py-3'
-                                : 'border-t border-border-primary px-4 py-3'
-                            }
-                          >
-                            <Text className="text-[15px] text-label-primary">
-                              {option.label}
-                            </Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                    ) : null}
+                    <CategoryFilter
+                      bordered={false}
+                      options={texts.speciesOptions}
+                      value={values.species ?? ''}
+                      onValueChange={value => onChangeSpecies(value as Species)}
+                    />
                   </View>
 
                   <Text className="mb-1 text-xs font-semibold uppercase text-label-primary">

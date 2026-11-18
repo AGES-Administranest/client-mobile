@@ -100,6 +100,8 @@ export function ClinicsScreen() {
     }
   };
 
+  const showsEmptyAction = clinics.length === 0 && !isLoading && !loadFailure;
+
   const callSelected = () => {
     const phone = digitsOnly(selected?.phone ?? '');
     Linking.openURL(`tel:${phone}`).catch(() => undefined);
@@ -112,7 +114,20 @@ export function ClinicsScreen() {
           {isLoading ? null : (
             <EmptyState
               icon={Hospital}
-              message={t(loadFailure ?? 'clinics.empty')}
+              title={loadFailure ? undefined : t('clinics.empty')}
+              message={t(loadFailure ?? 'clinics.emptyHint')}
+              titleClassName="text-base leading-6 text-label-quartenery"
+              messageClassName="text-[13px] leading-[19.5px]"
+              action={
+                loadFailure
+                  ? undefined
+                  : {
+                      label: t('clinics.addClinic'),
+                      icon: Plus,
+                      onPress: openNewClinic,
+                    }
+              }
+              className="shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]"
             />
           )}
         </View>
@@ -138,14 +153,16 @@ export function ClinicsScreen() {
         </ScrollView>
       )}
 
-      <Button
-        shape="pill"
-        className="mb-[16px] h-[49px] w-full"
-        onPress={openNewClinic}
-      >
-        <Icon as={Plus} className="size-5" />
-        <Text className="font-semibold">{t('clinics.addClinic')}</Text>
-      </Button>
+      {showsEmptyAction ? null : (
+        <Button
+          shape="pill"
+          className="mb-[16px] h-[49px] w-full"
+          onPress={openNewClinic}
+        >
+          <Icon as={Plus} className="size-5" />
+          <Text className="font-semibold">{t('clinics.addClinic')}</Text>
+        </Button>
+      )}
 
       <NewClinicSheet
         visible={isNewClinicOpen}
@@ -158,6 +175,11 @@ export function ClinicsScreen() {
         confirmLabel={t('clinics.newClinic.confirm')}
         savingLabel={t('clinics.newClinic.saving')}
         closeLabel={t('clinics.newClinic.close')}
+        stepTexts={{
+          next: t('clinics.newClinic.next'),
+          back: t('clinics.newClinic.back'),
+          labels: [t('clinics.newClinic.step1'), t('clinics.newClinic.step2')],
+        }}
         onChangeField={newClinic.setField}
         onSubmit={submitNewClinic}
         onClose={() => setIsNewClinicOpen(false)}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useClientNames } from 'features/clients';
+import { TaxPackageDownloadAction } from 'features/invoices';
 import { useTranslation } from 'shared/i18n';
 import { formatCurrency } from 'shared/utils/currency';
 
@@ -58,6 +59,7 @@ export function ServiceInvoiceListScreen({
         noResultsTitle: t('serviceInvoices.records.list.noResultsTitle'),
         noResultsMessage: t('serviceInvoices.records.list.noResultsMessage'),
         add: t('serviceInvoices.records.list.add'),
+        addHint: t('serviceInvoices.records.list.addHint'),
       }}
       status={invoices.status}
       isOffline={invoices.isOffline}
@@ -91,6 +93,7 @@ export function ServiceInvoiceListScreen({
       onLoadMore={invoices.loadMore}
       onRetry={invoices.reload}
       onAddInvoice={onAddInvoice}
+      extraAction={<TaxPackageDownloadAction />}
       onBack={onBack}
     />
   );

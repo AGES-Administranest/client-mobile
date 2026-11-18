@@ -1,32 +1,19 @@
-import type { LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
-import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { cn } from 'app/lib/utils';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
-import { Colors } from 'theme/colors';
 
 const MAX_WIDTH = 400;
 const INITIAL_SCALE = 0.98;
-const BADGE_SIZE = 48;
 
 const styles = StyleSheet.create({
   card: { width: '100%', maxWidth: MAX_WIDTH },
-  badge: {
-    width: BADGE_SIZE,
-    height: BADGE_SIZE,
-    borderRadius: BADGE_SIZE / 2,
-  },
 });
 
 type StatusDialogTone = 'danger' | 'success';
-
-const BADGE_COLORS: Record<StatusDialogTone, string> = {
-  danger: Colors.alert.soft,
-  success: Colors.details.finish,
-};
 
 type StatusDialogAction = {
   label: string;
@@ -37,7 +24,6 @@ type StatusDialogAction = {
 type StatusDialogProps = {
   visible: boolean;
   tone: StatusDialogTone;
-  icon: LucideIcon;
   title: string;
   message?: string;
   children?: ReactNode;
@@ -49,7 +35,6 @@ type StatusDialogProps = {
 function StatusDialog({
   visible,
   tone,
-  icon,
   title,
   message,
   children,
@@ -87,21 +72,6 @@ function StatusDialog({
               className="items-center gap-4 rounded-2xl bg-white p-5 shadow-[0px_12px_24px_-10px_rgba(0,0,0,0.16)]"
               onPress={event => event.stopPropagation()}
             >
-              <View
-                className="items-center justify-center"
-                style={[styles.badge, { backgroundColor: BADGE_COLORS[tone] }]}
-              >
-                <Icon
-                  as={icon}
-                  size={22}
-                  className={
-                    tone === 'danger'
-                      ? 'text-button-secondary'
-                      : 'text-label-quartenery'
-                  }
-                />
-              </View>
-
               <View className="items-center gap-2">
                 <Text
                   accessibilityRole="header"
@@ -121,9 +91,12 @@ function StatusDialog({
               <View className="w-full gap-2 pt-1">
                 <Button
                   shape="pill"
-                  variant={tone === 'danger' ? 'destructive' : 'outline'}
                   disabled={primary.disabled}
-                  className="h-[46px] w-full"
+                  className={cn(
+                    'h-[46px] w-full',
+                    tone === 'danger' &&
+                      'bg-button-secondary active:bg-button-secondary/90',
+                  )}
                   onPress={primary.onPress}
                 >
                   <Text className="font-semibold">{primary.label}</Text>
@@ -131,7 +104,6 @@ function StatusDialog({
                 {hasSecondary ? (
                   <Button
                     shape="pill"
-                    variant="outline"
                     disabled={secondary.disabled}
                     className="h-[46px] w-full"
                     onPress={secondary.onPress}

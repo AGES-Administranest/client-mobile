@@ -20,6 +20,7 @@ import { Button } from 'app/components/ui/button';
 import { CategoryFilter } from 'app/components/ui/CategoryFilter';
 import { SearchSelect } from 'app/components/ui/search-select';
 import { Text } from 'app/components/ui/text';
+import { layout } from 'app/lib/layout';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { useTranslation, type TranslationKey } from 'shared/i18n';
 import {
@@ -132,7 +133,6 @@ function ItemModal({
   const [query, setQuery] = useState(item?.name ?? '');
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(item);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [unitDropdownOpen, setUnitDropdownOpen] = useState(false);
   const [supplierName, setSupplierName] = useState('');
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [errors, setErrors] = useState<ItemFormErrors>({});
@@ -403,7 +403,7 @@ function ItemModal({
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
+      <Animated.View style={[layout.fill, { opacity: sheet.progress }]}>
         <Pressable
           className="flex-1 justify-end bg-background-shade"
           onPress={onClose}
@@ -525,75 +525,77 @@ function ItemModal({
                           </View>
                         )}
                     </View>
-                    {showSupplier && supplierPicker && (
-                      <SearchSelect
-                        compact
-                        className="mb-0"
-                        label={t('itemModal.supplierLabel')}
-                        placeholder={t('itemModal.supplierPlaceholder')}
-                        text={supplierName}
-                        selectedId={supplierId}
-                        error={errorText('supplierName') ?? undefined}
-                        status={supplierStatus}
-                        options={supplierMatches.map(m => ({
-                          id: m.id,
-                          label: m.name,
-                        }))}
-                        messages={{
-                          loading: t('itemModal.supplierLoading'),
-                          empty: t('itemModal.supplierEmpty'),
-                          error: t('itemModal.supplierError'),
-                        }}
-                        addOption={
-                          supplierStatus === 'empty' &&
-                          supplierName.trim() !== ''
-                            ? {
-                                label: t('itemModal.supplierAdd'),
-                                onPress: () =>
-                                  supplierPicker.onRegister(
-                                    supplierName.trim(),
-                                  ),
-                              }
-                            : undefined
-                        }
-                        onChangeText={text => {
-                          setSupplierName(text);
-                          setSupplierId(null);
-                          clearError('supplierName');
-                        }}
-                        onSelect={option => {
-                          setSupplierName(option.label);
-                          setSupplierId(option.id);
-                          clearError('supplierName');
-                        }}
-                      />
-                    )}
+                    <View className="z-10 gap-4">
+                      {showSupplier && supplierPicker && (
+                        <View>
+                          <SearchSelect
+                            formField
+                            className="mb-0"
+                            label={t('itemModal.supplierLabel')}
+                            placeholder={t('itemModal.supplierPlaceholder')}
+                            text={supplierName}
+                            selectedId={supplierId}
+                            error={errorText('supplierName') ?? undefined}
+                            status={supplierStatus}
+                            options={supplierMatches.map(m => ({
+                              id: m.id,
+                              label: m.name,
+                            }))}
+                            messages={{
+                              loading: t('itemModal.supplierLoading'),
+                              empty: t('itemModal.supplierEmpty'),
+                              error: t('itemModal.supplierError'),
+                            }}
+                            addOption={
+                              supplierStatus === 'empty' &&
+                              supplierName.trim() !== ''
+                                ? {
+                                    label: t('itemModal.supplierAdd'),
+                                    onPress: () =>
+                                      supplierPicker.onRegister(
+                                        supplierName.trim(),
+                                      ),
+                                  }
+                                : undefined
+                            }
+                            onChangeText={text => {
+                              setSupplierName(text);
+                              setSupplierId(null);
+                              clearError('supplierName');
+                            }}
+                            onSelect={option => {
+                              setSupplierName(option.label);
+                              setSupplierId(option.id);
+                              clearError('supplierName');
+                            }}
+                          />
+                        </View>
+                      )}
 
-                    {showSupplier && !supplierPicker && (
+                      {showSupplier && !supplierPicker && (
+                        <View className="gap-2">
+                          <Text className="text-xs font-semibold text-label-primary">
+                            {t('itemModal.supplierLabel')}
+                          </Text>
+                          <TextInput
+                            value={supplierName}
+                            onChangeText={text => {
+                              setSupplierName(text);
+                              clearError('supplierName');
+                            }}
+                            placeholder={t('itemModal.supplierPlaceholder')}
+                            placeholderTextColor={LabelTertiary}
+                            selectionColor={LabelPrimary}
+                            maxLength={120}
+                            className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${inputBorder(
+                              'supplierName',
+                            )}`}
+                          />
+                          {renderError('supplierName')}
+                        </View>
+                      )}
+
                       <View className="gap-2">
-                        <Text className="text-xs font-semibold text-label-primary">
-                          {t('itemModal.supplierLabel')}
-                        </Text>
-                        <TextInput
-                          value={supplierName}
-                          onChangeText={text => {
-                            setSupplierName(text);
-                            clearError('supplierName');
-                          }}
-                          placeholder={t('itemModal.supplierPlaceholder')}
-                          placeholderTextColor={LabelTertiary}
-                          selectionColor={LabelPrimary}
-                          maxLength={120}
-                          className={`rounded-xl border bg-white px-4 py-3 text-[15px] text-label-primary ${inputBorder(
-                            'supplierName',
-                          )}`}
-                        />
-                        {renderError('supplierName')}
-                      </View>
-                    )}
-
-                    <View className="z-10 flex-row gap-3">
-                      <View className="flex-1 gap-2">
                         <Text className="text-xs font-semibold text-label-primary">
                           {t('itemModal.unitCostLabel')}
                         </Text>
@@ -614,53 +616,26 @@ function ItemModal({
                         />
                         {renderError('unitCost')}
                       </View>
-                      <View className="z-10 flex-1 gap-2">
-                        <Pressable
-                          disabled={isDetail}
-                          onPress={() => setUnitDropdownOpen(open => !open)}
-                        >
-                          <Text className="text-xs font-semibold text-label-primary">
-                            {t('itemModal.unitLabel')}
-                          </Text>
-                          <View
-                            className={`justify-center rounded-xl border bg-white px-4 py-3 ${inputBorder(
-                              'unit',
-                            )}`}
-                          >
-                            <Text
-                              className={
-                                unit
-                                  ? 'text-[15px] text-label-primary'
-                                  : 'text-[15px] text-label-tertiary'
-                              }
-                            >
-                              {unit || t('itemModal.unitPlaceholder')}
-                            </Text>
-                          </View>
-                        </Pressable>
-                        {renderError('unit')}
+                    </View>
 
-                        {!isDetail &&
-                          unitDropdownOpen &&
-                          unitOptions.length > 0 && (
-                            <View className="absolute inset-x-0 top-full z-10 mt-1 gap-2 rounded-2xl bg-white px-4 py-4 shadow-md shadow-black/10">
-                              {unitOptions.map(option => (
-                                <Pressable
-                                  key={option}
-                                  onPress={() => {
-                                    setUnit(option);
-                                    clearError('unit');
-                                    setUnitDropdownOpen(false);
-                                  }}
-                                >
-                                  <Text className="text-[15px] font-medium text-label-primary">
-                                    {option}
-                                  </Text>
-                                </Pressable>
-                              ))}
-                            </View>
-                          )}
-                      </View>
+                    <View className="gap-2">
+                      <Text className="text-xs font-semibold text-label-primary">
+                        {t('itemModal.unitLabel')}
+                      </Text>
+                      <CategoryFilter
+                        bordered={false}
+                        options={(isDetail
+                          ? unitOptions.filter(option => option === unit)
+                          : unitOptions
+                        ).map(option => ({ value: option, label: option }))}
+                        value={unit}
+                        onValueChange={value => {
+                          if (isDetail) return;
+                          setUnit(value);
+                          clearError('unit');
+                        }}
+                      />
+                      {renderError('unit')}
                     </View>
                   </>
                 ) : null}

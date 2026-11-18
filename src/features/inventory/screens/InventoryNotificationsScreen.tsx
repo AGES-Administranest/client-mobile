@@ -1,12 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Bell, BellOff } from 'lucide-react-native';
+import { Bell, BellOff } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BackButton } from 'app/components/ui/back-button';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { MIN_SCREEN_TOP } from 'app/lib/layout';
 import { useTranslation } from 'shared/i18n';
 import { Colors } from 'theme/colors';
 
@@ -105,7 +107,7 @@ function ReadyInventoryNotifications({
   return (
     <NotificationsLayout onBack={onBack}>
       {notifications.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center px-4 pb-6">
           <EmptyState
             icon={BellOff}
             message={t('inventory.notifications.empty')}
@@ -151,7 +153,10 @@ function NotificationsLayout({
   const insets = useSafeAreaInsets();
 
   return (
-    <View className="flex-1" style={{ paddingTop: insets.top }}>
+    <View
+      className="flex-1"
+      style={{ paddingTop: Math.max(insets.top, MIN_SCREEN_TOP) }}
+    >
       <LinearGradient
         colors={Colors.background.primary.colors}
         locations={Colors.background.primary.locations}
@@ -159,15 +164,7 @@ function NotificationsLayout({
       />
 
       <View className="flex-row items-center px-3 pb-2 pt-1">
-        <Pressable
-          onPress={onBack}
-          accessibilityRole="button"
-          accessibilityLabel={t('auth.back')}
-          hitSlop={8}
-          className="size-11 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-        >
-          <Icon as={ArrowLeft} className="size-5 text-white" />
-        </Pressable>
+        <BackButton label={t('auth.back')} onPress={onBack} />
         <Text className="flex-1 text-center text-sm font-semibold text-label-primary">
           {t('inventory.notifications.title')}
         </Text>

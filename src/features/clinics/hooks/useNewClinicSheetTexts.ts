@@ -2,6 +2,7 @@ import { useTranslation, type TranslationKey } from 'shared/i18n';
 
 import type { NewClinicFormState } from './useNewClinicForm';
 import type { ClinicFieldTexts } from '../components/ClinicFields';
+import type { NewClinicStepTexts } from '../components/NewClinicSheet';
 import {
   CLINIC_FIELDS,
   type ClinicDraftErrors,
@@ -60,6 +61,7 @@ type NewClinicSheetTexts = {
   confirmLabel: string;
   savingLabel: string;
   closeLabel: string;
+  stepTexts: NewClinicStepTexts;
 };
 
 /** Everything `NewClinicSheet` shows, translated, for the form it is bound to. */
@@ -93,5 +95,10 @@ export function useNewClinicSheetTexts(
     confirmLabel: t('clinics.newClinic.confirm'),
     savingLabel: t('clinics.newClinic.saving'),
     closeLabel: t('clinics.newClinic.close'),
+    stepTexts: {
+      next: t('clinics.newClinic.next'),
+      back: t('clinics.newClinic.back'),
+      labels: [t('clinics.newClinic.step1'), t('clinics.newClinic.step2')],
+    },
   };
 }

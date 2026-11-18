@@ -46,3 +46,16 @@ export function formatCurrencyInput(value: string): string {
 export function currencyToNumber(formatted: string): number {
   return parseFloat(formatted.replace(/\./g, '').replace(',', '.')) || 0;
 }
+
+// Reais typed as cents ("12345" -> "123,45"), without thousands separators so
+// the value keeps parsing as a plain decimal.
+export function formatAmountInput(value: string): string {
+  return formatCurrencyInput(value).replace(/\./g, '');
+}
+
+// A stored decimal ("350.5") as the same masked text ("350,50").
+export function toAmountInput(value: string | number | null): string {
+  if (value === null || value === '') return '';
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(2).replace('.', ',') : '';
+}

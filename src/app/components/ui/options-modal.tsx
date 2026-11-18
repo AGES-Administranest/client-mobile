@@ -3,6 +3,7 @@ import { Animated, Modal, Pressable, View } from 'react-native';
 
 import { Button, type ButtonProps } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
+import { layout } from 'app/lib/layout';
 import { cn } from 'app/lib/utils';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
@@ -11,6 +12,7 @@ type OptionModalItem = {
   label: string;
   icon: LucideIcon;
   variant?: ButtonProps['variant'];
+  className?: string;
   onPress: () => void;
 };
 
@@ -43,7 +45,7 @@ function OptionsModal({
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
+      <Animated.View style={[layout.fill, { opacity: sheet.progress }]}>
         <Pressable
           className="flex-1 justify-end bg-background-shade"
           onPress={onClose}
@@ -84,7 +86,7 @@ function OptionsModal({
                   icon={option.icon}
                   variant={option.variant}
                   shape="pill"
-                  className="h-[49px] w-full"
+                  className={cn('h-[49px] w-full', option.className)}
                 >
                   <Text className="font-medium">{option.label}</Text>
                 </Button>

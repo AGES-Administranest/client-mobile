@@ -1,8 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Plus, RotateCw, Route } from 'lucide-react-native';
+import { Plus, RotateCw, Route } from 'lucide-react-native';
 import {
   ActivityIndicator,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -10,10 +9,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BackButton } from 'app/components/ui/back-button';
 import { Button } from 'app/components/ui/button';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { MIN_SCREEN_TOP } from 'app/lib/layout';
 import { BackgroundPrimary } from 'theme/colors';
 
 import { TripListItem, type TripListItemTexts } from './TripListItem';
@@ -124,7 +125,12 @@ export function TripsScreenPresentation({
     : 'ready';
 
   return (
-    <View style={[styles.fill, { paddingTop: Math.max(insets.top, 16) }]}>
+    <View
+      style={[
+        styles.fill,
+        { paddingTop: Math.max(insets.top, MIN_SCREEN_TOP) },
+      ]}
+    >
       <LinearGradient
         colors={BackgroundPrimary.colors}
         locations={BackgroundPrimary.locations}
@@ -134,15 +140,7 @@ export function TripsScreenPresentation({
       />
 
       <View className="gap-3 px-[15px] pb-2 pt-0">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={texts.back}
-          hitSlop={8}
-          onPress={onBack}
-          className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-        >
-          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-        </Pressable>
+        <BackButton label={texts.back} onPress={onBack} />
 
         <View className="px-[7px]">
           <Text

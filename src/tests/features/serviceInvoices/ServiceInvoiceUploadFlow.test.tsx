@@ -822,6 +822,7 @@ describe('registering a new taker', () => {
     await type(renderer, 'Endereço', 'Rua das Hortênsias, 340');
     await type(renderer, 'Cidade', 'Campinas');
     await type(renderer, 'UF', 'SP');
+    await press(renderer, 'Próximo');
     await type(renderer, 'Contato', '1134567890');
     await type(renderer, 'E-mail', 'contato@vetnova.com.br');
     await type(renderer, 'Responsável', 'Dr. André Matos');
@@ -961,6 +962,7 @@ describe('registering a new taker', () => {
     expect(texts(renderer)).toContain(
       'Não foi possível salvar a clínica. Tente novamente.',
     );
+    await press(renderer, 'Voltar');
     expect(field(renderer, 'Nome da clínica').props.value).toBe('Clínica Nova');
   });
 

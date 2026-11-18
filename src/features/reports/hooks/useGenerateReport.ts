@@ -29,7 +29,7 @@ export type GenerateFailure =
   | 'failed';
 
 export type GenerateResult =
-  | { ok: true }
+  | { ok: true; report: ReportHistoryItem }
   | { ok: false; reason: GenerateFailure };
 
 export type GenerateReportState = {
@@ -131,7 +131,7 @@ export function useGenerateReport({
         onGenerated(item);
         setLastSelection([...input.categories]);
         await saveLastSelection(owner, input.categories);
-        return { ok: true };
+        return { ok: true, report: item };
       } catch (error) {
         const reason = failureOf(error);
         if (reason !== 'downloadFailed') {

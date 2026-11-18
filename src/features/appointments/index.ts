@@ -44,3 +44,9 @@ export {
   queueAppointmentUpdate,
   resolveLocalAppointmentId,
 } from './services/offlineAppointmentStore';
+export {
+  removeAppointmentFromCalendar,
+  rescheduleCalendarEvent,
+  syncAppointmentToCalendar,
+} from './services/calendarService';
+export { toCalendarEventInput } from './domain/calendarEvent';

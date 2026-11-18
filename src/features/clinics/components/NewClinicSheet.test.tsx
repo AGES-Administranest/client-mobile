@@ -31,6 +31,12 @@ const FIELD_TEXTS: NewClinicSheetProps['fieldTexts'] = {
   },
 };
 
+const STEP_TEXTS: NewClinicSheetProps['stepTexts'] = {
+  next: 'Próximo',
+  back: 'Voltar',
+  labels: ['Passo 1 de 2', 'Passo 2 de 2'],
+};
+
 type Overrides = {
   draft?: Partial<ClinicDraft>;
   fieldErrors?: Partial<Record<ClinicField, string>>;
@@ -66,6 +72,7 @@ async function render({
           confirmLabel="Confirmar"
           savingLabel="Salvando..."
           closeLabel="Fechar"
+          stepTexts={STEP_TEXTS}
           {...spies}
         />
       </SafeAreaProvider>,
@@ -91,6 +98,29 @@ function inputOf(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
   );
 }
 
+function buttonLabelled(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  labels: string[],
+) {
+  return renderer.root
+    .findAll(
+      node =>
+        node.props.role === 'button' &&
+        typeof node.props.onPress === 'function',
+    )
+    .find(node =>
+      node
+        .findAllByType('Text' as never)
+        .some(label => labels.includes(label.props.children)),
+    )!;
+}
+
+async function goToContactStep(renderer: ReactTestRenderer.ReactTestRenderer) {
+  await act(() => {
+    buttonLabelled(renderer, ['Próximo']).props.onPress();
+  });
+}
+
 function confirmButton(renderer: ReactTestRenderer.ReactTestRenderer) {
   return renderer.root
     .findAll(
@@ -109,16 +139,51 @@ function confirmButton(renderer: ReactTestRenderer.ReactTestRenderer) {
     )!;
 }
 
-test('shows the title and one labelled input per field', async () => {
+const MAIN_STEP_FIELDS = [
+  'name',
+  'cnpj',
+  'addressLine',
+  'city',
+  'state',
+] as const;
+const CONTACT_STEP_FIELDS = ['phone', 'email', 'contactName'] as const;
+
+test('splits the fields in two steps', async () => {
   const { renderer } = await render();
 
-  const texts = textsOf(renderer);
-
-  expect(texts).toContain('Nova clínica');
-  for (const { label, placeholder } of Object.values(FIELD_TEXTS)) {
-    expect(texts).toContain(label);
+  expect(textsOf(renderer)).toContain('Nova clínica');
+  expect(textsOf(renderer)).toContain('Passo 1 de 2');
+  for (const field of MAIN_STEP_FIELDS) {
+    const { label, placeholder } = FIELD_TEXTS[field];
     expect(inputOf(renderer, label).props.placeholder).toBe(placeholder);
   }
+  for (const field of CONTACT_STEP_FIELDS) {
+    expect(() => inputOf(renderer, FIELD_TEXTS[field].label)).toThrow();
+  }
+
+  await goToContactStep(renderer);
+
+  expect(textsOf(renderer)).toContain('Passo 2 de 2');
+  for (const field of CONTACT_STEP_FIELDS) {
+    const { label, placeholder } = FIELD_TEXTS[field];
+    expect(inputOf(renderer, label).props.placeholder).toBe(placeholder);
+  }
+  for (const field of MAIN_STEP_FIELDS) {
+    expect(() => inputOf(renderer, FIELD_TEXTS[field].label)).toThrow();
+  }
+});
+
+test('goes back to the first step keeping what was typed', async () => {
+  const { renderer } = await render({ draft: { name: 'Clínica VetNova' } });
+
+  await goToContactStep(renderer);
+  await act(() => {
+    buttonLabelled(renderer, ['Voltar']).props.onPress();
+  });
+
+  expect(inputOf(renderer, 'Nome da clínica').props.value).toBe(
+    'Clínica VetNova',
+  );
 });
 
 test('shows what is in the draft', async () => {
@@ -146,6 +211,7 @@ test('reports each keystroke together with the field it belongs to', async () =>
 
 test('opens the right keyboard for the phone and the e-mail', async () => {
   const { renderer } = await render();
+  await goToContactStep(renderer);
 
   expect(inputOf(renderer, 'Contato').props.keyboardType).toBe('phone-pad');
   expect(inputOf(renderer, 'E-mail').props.keyboardType).toBe('email-address');
@@ -168,8 +234,11 @@ test('shows the failure the API answered with', async () => {
   expect(textsOf(renderer)).toContain('Já existe uma clínica com esse nome.');
 });
 
-test('confirms through onSubmit', async () => {
+test('only confirms on the last step', async () => {
   const { renderer, spies } = await render();
+
+  expect(confirmButton(renderer)).toBeUndefined();
+  await goToContactStep(renderer);
 
   await act(() => {
     confirmButton(renderer).props.onPress();
@@ -180,6 +249,7 @@ test('confirms through onSubmit', async () => {
 
 test('locks the confirm button while saving', async () => {
   const { renderer } = await render({ isSaving: true });
+  await goToContactStep(renderer);
 
   expect(textsOf(renderer)).toContain('Salvando...');
   expect(confirmButton(renderer).props.disabled).toBe(true);

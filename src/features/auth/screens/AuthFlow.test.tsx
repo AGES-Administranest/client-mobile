@@ -85,7 +85,8 @@ function texts(renderer: ReactTestRenderer.ReactTestRenderer) {
   return JSON.stringify(
     renderer.root
       .findAllByType('Text' as never)
-      .map(node => node.props.children),
+      .flatMap(node => [node.props.children].flat())
+      .filter(child => typeof child === 'string'),
   );
 }
 

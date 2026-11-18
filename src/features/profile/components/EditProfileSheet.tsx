@@ -102,7 +102,7 @@ export function EditProfileSheet({
           <Text
             accessibilityRole="button"
             onPress={isSaving ? undefined : onCancel}
-            className="self-center py-1 text-[15px] font-semibold text-label-quartenery"
+            className="self-center py-1 text-[15px] font-semibold text-button-secondary"
           >
             {texts.cancel}
           </Text>

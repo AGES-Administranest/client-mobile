@@ -19,7 +19,7 @@ export function fetchProfile(idToken: string): Promise<Profile> {
 
 export function updateProfile(
   idToken: string,
-  update: ProfileUpdate,
+  update: Partial<ProfileUpdate>,
 ): Promise<Profile> {
   return apiClient.patch<Profile>('/users/me', update, {
     token: idToken,

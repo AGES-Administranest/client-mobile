@@ -1,13 +1,14 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 
-import { downloadTaxPackage, fetchTaxPackageSummary } from 'features/invoices';
 import { I18nProvider } from 'shared/i18n';
 import { isOnline } from 'shared/services/network';
 
 import { ReportHistoryScreen } from './ReportHistoryScreen';
 import { ReportsScreen } from './ReportsScreen';
 import { fetchReportAvailability } from '../services/reportAvailabilityService';
+import { openLocalReport } from '../services/reportFileOpener';
+import { findLocalReport } from '../services/reportFileStore';
 import {
   createReport,
   fetchReportHistory,
@@ -47,11 +48,6 @@ jest.mock('../services/reportFileOpener', () => ({
   openLocalReport: jest.fn(),
   downloadInBrowser: jest.fn(),
 }));
-jest.mock('features/invoices', () => ({
-  ...jest.requireActual('features/invoices'),
-  fetchTaxPackageSummary: jest.fn(),
-  downloadTaxPackage: jest.fn(),
-}));
 jest.mock('../services/reportSelectionStore', () => ({
   loadLastSelection: jest.fn(() => new Promise(() => {})),
   saveLastSelection: jest.fn(() => Promise.resolve()),
@@ -60,8 +56,6 @@ jest.mock('../services/reportSelectionStore', () => ({
 const fetchHistoryMock = fetchReportHistory as jest.Mock;
 const fetchAvailability = jest.mocked(fetchReportAvailability);
 const isOnlineMock = jest.mocked(isOnline);
-const fetchSummary = jest.mocked(fetchTaxPackageSummary);
-const downloadPackage = jest.mocked(downloadTaxPackage);
 
 const STORED_REPORT = {
   id: 'report-1',
@@ -77,12 +71,6 @@ beforeEach(() => {
   fetchHistoryMock.mockResolvedValue({ items: [], hasMore: false });
   isOnlineMock.mockResolvedValue(true);
   fetchAvailability.mockResolvedValue({ total: 1 });
-  fetchSummary.mockResolvedValue({
-    documentsCount: 2,
-    totalAmount: 1500,
-    missingFiles: 0,
-  });
-  downloadPackage.mockResolvedValue(undefined);
 });
 
 const METRICS = {
@@ -147,15 +135,32 @@ function pressable(
   )[0];
 }
 
-function tab(renderer: ReactTestRenderer.ReactTestRenderer, name: string) {
-  return renderer.root.findAll(
-    node =>
-      node.props.accessibilityRole === 'tab' &&
-      typeof node.props.onPress === 'function' &&
-      node
-        .findAllByType('Text' as never)
-        .some(text => text.props.children === name),
-  )[0];
+// The period is a dropdown: open it, then pick the option.
+async function choose(
+  renderer: ReactTestRenderer.ReactTestRenderer,
+  name: string,
+) {
+  await act(async () => {
+    renderer.root
+      .find(
+        node =>
+          node.props.accessibilityLabel === 'Período' &&
+          typeof node.props.onPress === 'function',
+      )
+      .props.onPress();
+  });
+  await act(async () => {
+    renderer.root
+      .find(
+        node =>
+          node.props.accessibilityRole === 'menuitem' &&
+          typeof node.props.onPress === 'function' &&
+          node
+            .findAllByType('Text' as never)
+            .some(text => text.props.children === name),
+      )
+      .props.onPress();
+  });
 }
 
 async function press(instance: ReactTestRenderer.ReactTestInstance) {
@@ -196,17 +201,17 @@ function isCalendarShown(renderer: ReactTestRenderer.ReactTestRenderer) {
 }
 
 describe('ReportsScreen', () => {
-  it('shows the two report cards, the period and the history access', async () => {
+  it('shows the generate button, the period and the history access', async () => {
     const renderer = await render();
     const output = textsOf(renderer);
 
-    expect(output).toContain('Relatório Geral');
-    expect(output).toContain('Pacote de Notas Fiscais para IR');
+    expect(output).toContain('Gerar Relatório');
+    expect(output).not.toContain('Pacote de Notas Fiscais para IR');
     expect(dateFieldLabels(renderer)).toEqual([
       'Data de início: 01/11/2026',
       'Data de fim: 02/11/2026',
     ]);
-    expect(output).toContain('Histórico de relatórios');
+    expect(output).toContain('Ver todos');
   });
 
   it('shows the invoices section and the add-note button below the report history', async () => {
@@ -214,7 +219,7 @@ describe('ReportsScreen', () => {
 
     expect(output).toContain('Notas fiscais');
     expect(output).toContain('Adicionar nota');
-    expect(output.indexOf('Histórico de relatórios')).toBeLessThan(
+    expect(output.lastIndexOf('Relatórios')).toBeLessThan(
       output.lastIndexOf('Notas fiscais'),
     );
     expect(output.lastIndexOf('Notas fiscais')).toBeLessThan(
@@ -222,92 +227,12 @@ describe('ReportsScreen', () => {
     );
   });
 
-  describe('invoice package (US30)', () => {
-    const packageCard = (renderer: ReactTestRenderer.ReactTestRenderer) =>
-      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR');
-    const downloadButton = (renderer: ReactTestRenderer.ReactTestRenderer) =>
-      renderer.root.findAll(
-        node =>
-          typeof node.props.onPress === 'function' &&
-          node
-            .findAllByType('Text' as never)
-            .some(text => text.props.children === 'Baixar pacote (ZIP)'),
-      )[0];
-
-    it('shows the summary of the chosen period before downloading', async () => {
-      fetchSummary.mockResolvedValue({
-        documentsCount: 3,
-        totalAmount: 2450.5,
-        missingFiles: 0,
-      });
-      const renderer = await render();
-
-      await press(packageCard(renderer));
-
-      expect(fetchSummary).toHaveBeenCalledWith('tok', {
-        from: '2026-11-01',
-        to: '2026-11-02',
-      });
-      const output = textsOf(renderer);
-      expect(output).toContain('Documentos');
-      expect(output).toContain('"3"');
-      expect(output).toContain('2.450,50');
-      expect(output).not.toContain('não sincronizados');
-      expect(downloadPackage).not.toHaveBeenCalled();
-    });
-
-    it('downloads the package of that period and refreshes the history', async () => {
-      const renderer = await render();
-      await press(packageCard(renderer));
-      fetchHistoryMock.mockClear();
-
-      await press(downloadButton(renderer));
-
-      expect(downloadPackage).toHaveBeenCalledWith('tok', {
-        from: '2026-11-01',
-        to: '2026-11-02',
-      });
-      expect(fetchHistoryMock).toHaveBeenCalled();
-    });
-
-    it('warns about documents whose file is not synced yet', async () => {
-      fetchSummary.mockResolvedValue({
-        documentsCount: 1,
-        totalAmount: 300,
-        missingFiles: 2,
-      });
-      const renderer = await render();
-
-      await press(packageCard(renderer));
-
-      expect(textsOf(renderer)).toContain(
-        'Documentos ainda não sincronizados: 2',
-      );
-    });
-
-    it('says there is nothing to pack instead of building an empty zip', async () => {
-      fetchSummary.mockResolvedValue({
-        documentsCount: 0,
-        totalAmount: 0,
-        missingFiles: 0,
-      });
-      const renderer = await render();
-
-      await press(packageCard(renderer));
-
-      expect(textsOf(renderer)).toContain(
-        'Não há notas fiscais nem recibos com arquivo neste período',
-      );
-      expect(downloadButton(renderer).props.disabled).toBe(true);
-    });
-  });
-
   it('generates the general report of the chosen period with the sections picked', async () => {
     (createReport as jest.Mock).mockResolvedValue({ id: 'report-1' });
     (saveReport as jest.Mock).mockResolvedValue(STORED_REPORT);
     const renderer = await render();
 
-    await press(pressable(renderer, label => label === 'Relatório Geral'));
+    await press(pressable(renderer, label => label === 'Gerar Relatório'));
     await press(
       renderer.root.findAll(
         node =>
@@ -325,11 +250,34 @@ describe('ReportsScreen', () => {
     expect(textsOf(renderer)).toContain(STORED_REPORT.fileName);
   });
 
+  it('opens the share sheet with the report just generated', async () => {
+    const local = { uri: 'file://r.pdf', name: STORED_REPORT.fileName };
+    (createReport as jest.Mock).mockResolvedValue({ id: 'report-1' });
+    (saveReport as jest.Mock).mockResolvedValue(STORED_REPORT);
+    (findLocalReport as jest.Mock).mockReturnValue(local);
+    (openLocalReport as jest.Mock).mockResolvedValue(true);
+    const renderer = await render();
+
+    await press(pressable(renderer, label => label === 'Gerar Relatório'));
+    await press(
+      renderer.root.findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node
+            .findAllByType('Text' as never)
+            .some(text => text.props.children === 'Gerar'),
+      )[0],
+    );
+
+    expect(findLocalReport).toHaveBeenCalledWith('user-1', STORED_REPORT);
+    expect(openLocalReport).toHaveBeenCalledWith(local);
+  });
+
   it('warns that the period has no records instead of opening the sections', async () => {
     fetchAvailability.mockResolvedValue({ total: 0 });
     const renderer = await render();
 
-    await press(pressable(renderer, label => label === 'Relatório Geral'));
+    await press(pressable(renderer, label => label === 'Gerar Relatório'));
 
     expect(fetchAvailability).toHaveBeenCalledWith('tok', {
       from: '2026-11-01',
@@ -338,7 +286,7 @@ describe('ReportsScreen', () => {
     expect(textsOf(renderer)).toContain('Não há registros neste período');
     expect(textsOf(renderer)).not.toContain('Selecione as categorias');
 
-    await press(tab(renderer, 'Mês anterior'));
+    await choose(renderer, 'Mês anterior');
 
     expect(textsOf(renderer)).not.toContain('Não há registros neste período');
   });
@@ -347,7 +295,7 @@ describe('ReportsScreen', () => {
     isOnlineMock.mockResolvedValue(false);
     const renderer = await render();
 
-    await press(pressable(renderer, label => label === 'Relatório Geral'));
+    await press(pressable(renderer, label => label === 'Gerar Relatório'));
 
     expect(fetchAvailability).not.toHaveBeenCalled();
     expect(textsOf(renderer)).toContain('É preciso estar online');
@@ -370,42 +318,40 @@ describe('ReportsScreen', () => {
     ['Mês atual', '01/11/2026', '02/11/2026', '2026-11-01', '2026-11-02'],
     ['Mês anterior', '01/10/2026', '31/10/2026', '2026-10-01', '2026-10-31'],
     ['Ano atual', '01/01/2026', '02/11/2026', '2026-01-01', '2026-11-02'],
-  ])(
-    'the %s shortcut fills both date fields and sends YYYY-MM-DD',
-    async (name, start, end, from, to) => {
-      const renderer = await render();
+  ])('the %s shortcut fills both date fields', async (name, start, end) => {
+    const renderer = await render();
 
-      await press(tab(renderer, name));
+    await choose(renderer, name);
 
-      expect(dateFieldLabels(renderer)).toEqual([
-        `Data de início: ${start}`,
-        `Data de fim: ${end}`,
-      ]);
-      expect(isCalendarShown(renderer)).toBe(false);
-
-      await press(
-        pressable(
-          renderer,
-          title => title === 'Pacote de Notas Fiscais para IR',
-        ),
-      );
-
-      expect(fetchSummary).toHaveBeenCalledWith('tok', { from, to });
-    },
-  );
+    expect(dateFieldLabels(renderer)).toEqual([
+      `Data de início: ${start}`,
+      `Data de fim: ${end}`,
+    ]);
+    expect(isCalendarShown(renderer)).toBe(false);
+  });
 
   it('shows the calendar only for the custom period', async () => {
     const renderer = await render();
 
     expect(isCalendarShown(renderer)).toBe(false);
 
-    await press(tab(renderer, 'Personalizado'));
+    await choose(renderer, 'Personalizado');
 
     expect(isCalendarShown(renderer)).toBe(true);
 
-    await press(tab(renderer, 'Mês atual'));
+    await choose(renderer, 'Mês atual');
 
     expect(isCalendarShown(renderer)).toBe(false);
+  });
+
+  it('describes the chosen period under the dropdown', async () => {
+    const renderer = await render();
+
+    expect(textsOf(renderer)).toContain('Do primeiro dia do mês até hoje.');
+
+    await choose(renderer, 'Ano atual');
+
+    expect(textsOf(renderer)).toContain('De 1º de janeiro até hoje.');
   });
 
   it.each(['Data de início', 'Data de fim'])(
@@ -415,9 +361,9 @@ describe('ReportsScreen', () => {
 
       await press(dateField(renderer, name));
 
-      expect(
-        tab(renderer, 'Personalizado').props.accessibilityState.selected,
-      ).toBe(true);
+      expect(textsOf(renderer)).toContain(
+        'Escolha as datas de início e fim no calendário.',
+      );
       expect(isCalendarShown(renderer)).toBe(true);
       expect(dateFieldLabels(renderer)).toEqual([
         'Data de início: 01/11/2026',
@@ -429,7 +375,7 @@ describe('ReportsScreen', () => {
   it('blocks the days after today in the calendar', async () => {
     const renderer = await render();
 
-    await press(tab(renderer, 'Personalizado'));
+    await choose(renderer, 'Personalizado');
 
     const tomorrow = renderer.root.find(
       node =>
@@ -440,12 +386,12 @@ describe('ReportsScreen', () => {
     expect(dayCell(renderer, '2026-11-02')).toBeDefined();
   });
 
-  it('keeps the cards disabled until the custom period has both ends', async () => {
+  it('keeps the button disabled until the custom period has both ends', async () => {
     const renderer = await render();
     const generalCard = () =>
-      pressable(renderer, label => label === 'Relatório Geral');
+      pressable(renderer, label => label === 'Gerar Relatório');
 
-    await press(tab(renderer, 'Personalizado'));
+    await choose(renderer, 'Personalizado');
     await press(dayCell(renderer, '2026-11-01'));
 
     expect(dateFieldLabels(renderer)).toEqual([
@@ -463,20 +409,15 @@ describe('ReportsScreen', () => {
     ]);
   });
 
-  it('offers both reports and drops the history link while there is no report', async () => {
+  it('offers the report and keeps the see-all link while there is no report', async () => {
     const renderer = await render();
 
     expect(
-      pressable(renderer, label => label === 'Relatório Geral').props.disabled,
+      pressable(renderer, label => label === 'Gerar Relatório').props.disabled,
     ).toBe(false);
     expect(
-      pressable(renderer, label => label === 'Pacote de Notas Fiscais para IR')
-        .props.disabled,
-    ).toBe(false);
-    expect(textsOf(renderer)).toContain('Histórico de relatórios');
-    expect(
-      pressable(renderer, label => label.includes('Histórico de relatórios')),
-    ).toBeUndefined();
+      pressable(renderer, label => label === 'Relatórios: Ver todos'),
+    ).toBeDefined();
   });
 
   it('opens the history', async () => {
@@ -487,10 +428,7 @@ describe('ReportsScreen', () => {
     const renderer = await render();
 
     await press(
-      pressable(
-        renderer,
-        label => label.includes('Ver todos') && label.includes('Histórico'),
-      ),
+      pressable(renderer, label => label === 'Relatórios: Ver todos'),
     );
 
     expect(renderer.root.findByType(ReportHistoryScreen).props.visible).toBe(

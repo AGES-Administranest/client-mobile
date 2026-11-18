@@ -63,7 +63,7 @@ function textsOf(renderer: ReactTestRenderer.ReactTestRenderer) {
 test('starts on the clinics segment with the add button', async () => {
   const texts = textsOf(await renderScreen());
 
-  expect(texts).toContain('Nenhuma clínica cadastrada.');
+  expect(texts).toContain('Nenhuma clínica cadastrada');
   expect(texts).toContain('Adicionar clínica');
 });
 
@@ -84,6 +84,6 @@ test('switching to suppliers hides the clinics content', async () => {
 
   const texts = textsOf(renderer);
   expect(texts).not.toContain('Adicionar clínica');
-  expect(texts).toContain('Nenhum fornecedor cadastrado.');
+  expect(texts).toContain('Nenhum fornecedor cadastrado');
   expect(texts).toContain('Adicionar fornecedor');
 });

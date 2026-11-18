@@ -12,7 +12,13 @@ export type CalendarEventInput = {
 // screen's appointment can be exported.
 export type ExportableAppointment = Pick<
   Appointment,
-  'procedureName' | 'patientName' | 'startsAt' | 'endsAt' | 'location' | 'notes'
+  | 'id'
+  | 'procedureName'
+  | 'patientName'
+  | 'startsAt'
+  | 'endsAt'
+  | 'location'
+  | 'notes'
 >;
 
 // An appointment may be saved without an end time; the event still needs one.

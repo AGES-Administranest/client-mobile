@@ -25,6 +25,7 @@ type EquipmentListProps = {
   isLoading: boolean;
   errorMessage: string | null;
   loadingLabel: string;
+  emptyTitle: string;
   emptyMessage: string;
   retryLabel: string;
   addLabel: string;
@@ -39,6 +40,7 @@ export function EquipmentList({
   isLoading,
   errorMessage,
   loadingLabel,
+  emptyTitle,
   emptyMessage,
   retryLabel,
   addLabel,
@@ -70,7 +72,15 @@ export function EquipmentList({
         ) : null}
         {isEmpty ? (
           <View className="flex-1 items-center justify-center">
-            <EmptyState icon={Wrench} message={emptyMessage} />
+            <EmptyState
+              icon={Wrench}
+              title={emptyTitle}
+              message={emptyMessage}
+              titleClassName="text-base leading-6 text-label-quartenery"
+              messageClassName="text-[13px] leading-[19.5px]"
+              action={{ label: addLabel, icon: Plus, onPress: onAddPress }}
+              className="shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]"
+            />
           </View>
         ) : null}
         {summary && items.length > 0 ? (
@@ -94,14 +104,16 @@ export function EquipmentList({
           />
         ))}
       </ScrollView>
-      <Button
-        shape="pill"
-        icon={Plus}
-        className="h-[49px] w-full mb-[16px]"
-        onPress={onAddPress}
-      >
-        <Text>{addLabel}</Text>
-      </Button>
+      {isEmpty ? null : (
+        <Button
+          shape="pill"
+          icon={Plus}
+          className="h-[49px] w-full mb-[16px]"
+          onPress={onAddPress}
+        >
+          <Text>{addLabel}</Text>
+        </Button>
+      )}
     </View>
   );
 }

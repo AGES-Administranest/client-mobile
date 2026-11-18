@@ -1,7 +1,6 @@
-import { ArrowLeft } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Icon } from 'app/components/ui/icon';
+import { BackButton } from 'app/components/ui/back-button';
 import { Text } from 'app/components/ui/text';
 
 export type ModalHeaderProps = {
@@ -13,14 +12,11 @@ export type ModalHeaderProps = {
 export function ModalHeader({ title, backLabel, onBack }: ModalHeaderProps) {
   return (
     <View className="h-11 flex-row items-center justify-center px-4">
-      <Pressable
+      <BackButton
+        label={backLabel}
         onPress={onBack}
-        accessibilityRole="button"
-        accessibilityLabel={backLabel}
-        className="absolute left-4 size-9 items-center justify-center rounded-full bg-primary"
-      >
-        <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-      </Pressable>
+        className="absolute left-4"
+      />
       <Text
         accessibilityRole="header"
         className="text-[13px] font-semibold uppercase tracking-wide text-label-primary"

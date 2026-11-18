@@ -10,6 +10,7 @@ import {
 
 import { Icon } from 'app/components/ui/icon';
 import { Text } from 'app/components/ui/text';
+import { layout } from 'app/lib/layout';
 import { cn } from 'app/lib/utils';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPrimary, LabelTertiary } from 'theme/colors';
@@ -144,7 +145,7 @@ function SupplySelectorSheet({
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
+      <Animated.View style={[layout.fill, { opacity: sheet.progress }]}>
         <Pressable
           className="flex-1 justify-end bg-background-shade"
           accessibilityLabel={closeLabel}

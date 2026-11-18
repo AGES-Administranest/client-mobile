@@ -123,10 +123,12 @@ export function useExpiryAlert(
           }
         })
         .catch(error => {
-          console.warn(
-            '[useExpiryAlert] notification sync failed; retry on next sync',
-            error,
-          );
+          if (__DEV__) {
+            console.warn(
+              '[useExpiryAlert] notification sync failed; retry on next sync',
+              error,
+            );
+          }
         });
 
       return queueRef.current;

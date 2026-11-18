@@ -1,4 +1,4 @@
-import { ArrowLeft, Pencil, ShieldCheck, Trash2 } from 'lucide-react-native';
+import { Pencil, ShieldCheck, Trash2 } from 'lucide-react-native';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   AccessibilityInfo,
@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import { Button } from 'app/components/ui/button';
+import { BackButton } from 'app/components/ui/back-button';
 import { Icon } from 'app/components/ui/icon';
 import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { Text } from 'app/components/ui/text';
@@ -102,23 +102,7 @@ function ProfileContent({
 
   return (
     <>
-      <View className="h-11 justify-center px-5">
-        <Text
-          accessibilityRole="header"
-          className="text-center text-[26px] font-bold leading-[30px] text-label-primary"
-        >
-          {t('profile.title')}
-        </Text>
-        <Pressable
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel={t('profile.back')}
-          hitSlop={8}
-          className="absolute left-5 size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-        >
-          <Icon as={ArrowLeft} size={20} className="text-label-secondary" />
-        </Pressable>
-      </View>
+      {state.status === 'ready' ? null : <ProfileHeader onClose={onClose} />}
 
       {state.status === 'loading' ? (
         <View className="flex-1 items-center justify-center">
@@ -141,6 +125,7 @@ function ProfileContent({
         </View>
       ) : (
         <ProfileDetails
+          onClose={onClose}
           profile={state.profile}
           isStale={state.isStale}
           accountLinks={accountLinks}
@@ -154,7 +139,44 @@ function ProfileContent({
   );
 }
 
+type ProfileHeaderProps = {
+  onClose: () => void;
+  onEdit?: () => void;
+};
+
+function ProfileHeader({ onClose, onEdit }: ProfileHeaderProps) {
+  const { t } = useTranslation();
+
+  return (
+    <View className="h-11 justify-center px-5">
+      <Text
+        accessibilityRole="header"
+        className="text-center text-[26px] font-bold leading-[30px] text-label-primary"
+      >
+        {t('profile.title')}
+      </Text>
+      <BackButton
+        label={t('profile.back')}
+        onPress={onClose}
+        className="absolute left-5"
+      />
+      {onEdit ? (
+        <Pressable
+          onPress={onEdit}
+          accessibilityRole="button"
+          accessibilityLabel={t('profile.edit')}
+          hitSlop={8}
+          className="absolute right-5 size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
+        >
+          <Icon as={Pencil} size={18} className="text-label-secondary" />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
 type ProfileDetailsProps = {
+  onClose: () => void;
   profile: Profile;
   isStale: boolean;
   accountLinks: ReactNode;
@@ -165,6 +187,7 @@ type ProfileDetailsProps = {
 };
 
 function ProfileDetails({
+  onClose,
   profile,
   isStale,
   accountLinks,
@@ -233,6 +256,13 @@ function ProfileDetails({
 
   return (
     <>
+      <ProfileHeader
+        onClose={onClose}
+        onEdit={() => {
+          form.reset();
+          setIsEditing(true);
+        }}
+      />
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-3 px-4 pb-4 pt-2"
@@ -291,19 +321,6 @@ function ProfileDetails({
         </View>
         {accountLinks}
       </ScrollView>
-      <View className="px-4 pb-4 pt-2">
-        <Button
-          icon={Pencil}
-          shape="pill"
-          className="h-[49px] w-full"
-          onPress={() => {
-            form.reset();
-            setIsEditing(true);
-          }}
-        >
-          <Text className="font-medium">{t('profile.edit')}</Text>
-        </Button>
-      </View>
       <EditProfileSheet
         visible={isEditing}
         texts={{

@@ -11,6 +11,7 @@ import {
 
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
+import { layout } from 'app/lib/layout';
 import { cn } from 'app/lib/utils';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 import { LabelPlaceholder } from 'theme/colors';
@@ -70,7 +71,7 @@ export function CancelAppointmentSheet({
       >
         {/* style, não className: na web o NativeWind não aplica className em
             Animated.View, e sem flex: 1 a folha subia para o topo. */}
-        <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
+        <Animated.View style={[layout.fill, { opacity: sheet.progress }]}>
           <Pressable
             className="flex-1 justify-end bg-background-shade"
             onPress={onClose}

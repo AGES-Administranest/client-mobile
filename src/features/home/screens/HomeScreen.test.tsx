@@ -83,6 +83,17 @@ function texts(renderer: ReactTestRenderer.ReactTestRenderer) {
 }
 
 beforeEach(() => {
+  mockFetchProfile.mockReset();
+  mockFetchProfile.mockResolvedValue({
+    id: 'user-1',
+    name: 'Bruna Senha',
+    email: 'bruna@example.com',
+    crmv: null,
+    birthDate: null,
+    sex: null,
+    city: null,
+    state: null,
+  });
   mockSignOut.mockClear();
   mockFetchAppointments.mockReset();
   mockFetchAppointments.mockResolvedValue([]);
@@ -165,13 +176,46 @@ describe('profile', () => {
 
   it('opens from the account menu', async () => {
     const renderer = await renderHome();
-    expect(texts(renderer)).not.toContain('Editar perfil');
+    expect(editButtons(renderer)).toHaveLength(0);
 
     await openAccountMenu(renderer);
     await pressMenuOption(renderer, 'Meu perfil');
 
     expect(mockFetchProfile).toHaveBeenCalledWith('id');
-    expect(texts(renderer)).toContain('Editar perfil');
+    expect(editButtons(renderer)).toHaveLength(1);
+  });
+});
+
+function editButtons(renderer: ReactTestRenderer.ReactTestRenderer) {
+  return renderer.root.findAll(
+    node =>
+      node.props.accessibilityLabel === 'Editar perfil' &&
+      typeof node.props.onPress === 'function',
+  );
+}
+
+describe('greeting', () => {
+  it.each([
+    ['FEMALE', 'Olá, Dra. Bruna'],
+    ['MALE', 'Olá, Dr. Bruna'],
+    ['OTHER', 'Olá, Dr. Bruna'],
+    ['NOT_INFORMED', 'Olá, Dr. Bruna'],
+    [null, 'Olá, Dr. Bruna'],
+  ])('with sex %s shows "%s"', async (sex, expected) => {
+    mockFetchProfile.mockResolvedValue({
+      id: 'user-1',
+      name: 'Bruna Senha',
+      email: 'bruna@example.com',
+      crmv: null,
+      birthDate: null,
+      sex,
+      city: null,
+      state: null,
+    });
+
+    const renderer = await renderHome();
+
+    expect(texts(renderer)).toContain(expected);
   });
 });
 

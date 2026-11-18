@@ -71,7 +71,11 @@ export function MonthCalendar({
       weekdays={weekdays}
       previousMonthLabel={t('appointments.calendar.prevMonth')}
       nextMonthLabel={t('appointments.calendar.nextMonth')}
+      previousYearLabel={t('appointments.calendar.prevYear')}
+      nextYearLabel={t('appointments.calendar.nextYear')}
       onSelectDate={onSelectDate}
+      onPreviousYear={controller.onPreviousYear}
+      onNextYear={controller.onNextYear}
       onPreviousMonth={controller.onPreviousMonth}
       onNextMonth={controller.onNextMonth}
       className={className}

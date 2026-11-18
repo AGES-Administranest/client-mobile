@@ -232,10 +232,12 @@ function pressable(
 ) {
   return renderer.root
     .findAll(node => typeof node.props.onPress === 'function')
-    .find(node =>
-      node
-        .findAllByType('Text' as never)
-        .some(text => text.props.children === label),
+    .find(
+      node =>
+        node.props.accessibilityLabel === label ||
+        node
+          .findAllByType('Text' as never)
+          .some(text => text.props.children === label),
     )!;
 }
 
