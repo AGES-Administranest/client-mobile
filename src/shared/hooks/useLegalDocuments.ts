@@ -1,21 +1,16 @@
 import { useCallback, useState } from 'react';
 
-import {
-  openLegalDocument,
-  type LegalDocument,
-} from 'shared/services/legalDocuments';
+import type { LegalDocument } from 'shared/legal/content';
 
 export type UseLegalDocumentsResult = {
-  open: (document: LegalDocument) => Promise<void>;
-  unavailable: boolean;
+  current: LegalDocument | null;
+  open: (document: LegalDocument) => void;
+  close: () => void;
 };
 
 export function useLegalDocuments(): UseLegalDocumentsResult {
-  const [unavailable, setUnavailable] = useState(false);
+  const [current, setCurrent] = useState<LegalDocument | null>(null);
+  const close = useCallback(() => setCurrent(null), []);
 
-  const open = useCallback(async (document: LegalDocument) => {
-    setUnavailable(!(await openLegalDocument(document)));
-  }, []);
-
-  return { open, unavailable };
+  return { current, open: setCurrent, close };
 }

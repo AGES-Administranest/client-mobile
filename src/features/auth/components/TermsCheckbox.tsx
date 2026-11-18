@@ -12,13 +12,24 @@ type TermsCheckboxProps = {
   error?: string;
   disabled?: boolean;
   links?: readonly TermsLink[];
-  linksError?: string;
 };
 
 type TermsLink = {
   label: string;
   onPress: () => void;
 };
+
+// Turns each link label found inside the sentence into a tappable piece.
+function splitByLinks(label: string, links: readonly TermsLink[]) {
+  if (links.length === 0) return [{ text: label, link: undefined }];
+  const escaped = links.map(l =>
+    l.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  );
+  return label
+    .split(new RegExp(`(${escaped.join('|')})`))
+    .filter(Boolean)
+    .map(text => ({ text, link: links.find(l => l.label === text) }));
+}
 
 export function TermsCheckbox({
   label,
@@ -27,7 +38,6 @@ export function TermsCheckbox({
   error,
   disabled = false,
   links = [],
-  linksError,
 }: TermsCheckboxProps) {
   return (
     <View className="mb-4 w-full">
@@ -54,32 +64,22 @@ export function TermsCheckbox({
           ) : null}
         </View>
         <Text className="flex-1 text-sm leading-5 text-label-primary">
-          {label}
+          {splitByLinks(label, links).map((part, index) =>
+            part.link ? (
+              <Text
+                key={index}
+                accessibilityRole="link"
+                onPress={part.link.onPress}
+                className="text-sm font-medium leading-5 text-label-quartenery underline"
+              >
+                {part.text}
+              </Text>
+            ) : (
+              part.text
+            ),
+          )}
         </Text>
       </Pressable>
-      {links.length > 0 ? (
-        <View className="ml-8 mt-2 flex-row flex-wrap gap-x-4 gap-y-1">
-          {links.map(link => (
-            <Pressable
-              key={link.label}
-              accessibilityRole="link"
-              accessibilityLabel={link.label}
-              onPress={link.onPress}
-              hitSlop={8}
-              className="active:opacity-70"
-            >
-              <Text className="text-sm font-medium text-label-quartenery underline">
-                {link.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-      {linksError ? (
-        <Text className="ml-8 mt-1 text-sm text-label-tertiary">
-          {linksError}
-        </Text>
-      ) : null}
       {error ? (
         <Text
           accessibilityRole="alert"
