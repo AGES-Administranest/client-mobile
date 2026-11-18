@@ -1,5 +1,6 @@
 import { LogIn, UserPlus } from 'lucide-react-native';
 
+import { LegalDocumentModal } from 'shared/components/LegalDocumentModal';
 import { useLegalDocuments } from 'shared/hooks/useLegalDocuments';
 import { useTranslation } from 'shared/i18n';
 import { CRMV_MAX_LENGTH } from 'shared/utils/crmv';
@@ -131,8 +132,9 @@ export function SignUpScreen({
             onPress: () => legal.open('termsOfUse'),
           },
         ]}
-        linksError={legal.unavailable ? t('legal.unavailable') : undefined}
       />
+
+      <LegalDocumentModal document={legal.current} onClose={legal.close} />
 
       <FormMessage message={errorKey ? t(errorKey) : null} />
 

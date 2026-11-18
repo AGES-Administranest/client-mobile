@@ -1,8 +1,8 @@
 import { FileText, Lock } from 'lucide-react-native';
 import { ScrollView, View } from 'react-native';
 
-import { NoticeBanner } from 'app/components/ui/notice-banner';
 import { useAuth } from 'features/auth';
+import { LegalDocumentModal } from 'shared/components/LegalDocumentModal';
 import { useLegalDocuments } from 'shared/hooks/useLegalDocuments';
 import { useTranslation } from 'shared/i18n';
 
@@ -41,9 +41,6 @@ function PrivacyContent({ onClose }: { onClose: () => void }) {
         className="flex-1"
         contentContainerClassName="gap-4 px-4 pb-4 pt-6"
       >
-        {legal.unavailable ? (
-          <NoticeBanner tone="alert" message={t('legal.unavailable')} />
-        ) : null}
         <LegalDocumentCard
           icon={Lock}
           title={t('legal.privacyPolicy.title')}
@@ -59,6 +56,7 @@ function PrivacyContent({ onClose }: { onClose: () => void }) {
           onAction={() => legal.open('termsOfUse')}
         />
       </ScrollView>
+      <LegalDocumentModal document={legal.current} onClose={legal.close} />
       <View className="px-4 pb-4">
         <AcceptanceSummary
           versionLabel={t('profile.privacy.acceptedVersion')}
