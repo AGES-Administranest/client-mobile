@@ -1053,10 +1053,6 @@
       "or": "or",
       "login": "Log in"
     },
-    "social": {
-      "divider": "or continue with",
-      "google": "Continue with Google"
-    },
     "fields": {
       "name": "Name",
       "email": "E-mail",
