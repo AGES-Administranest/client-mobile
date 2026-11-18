@@ -35,7 +35,6 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
     submitting,
     submitFailed,
     client,
-    showLocationHint,
     step,
     nextStep,
     previousStep,
@@ -101,7 +100,6 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         submitErrorText={t('procedures.form.submitError')}
         texts={texts}
         client={client}
-        showLocationHint={showLocationHint}
         step={step}
         onNext={nextStep}
         onBack={previousStep}
@@ -129,6 +127,7 @@ export function DiaDiaScreen({ visible, onClose }: DiaDiaScreenProps) {
         confirmLabel={clinicSheet.confirmLabel}
         savingLabel={clinicSheet.savingLabel}
         closeLabel={clinicSheet.closeLabel}
+        stepTexts={clinicSheet.stepTexts}
         onChangeField={registration.form.setField}
         onSubmit={registration.submit}
         onClose={registration.cancel}

@@ -4,13 +4,16 @@ import {
   validateConfirmationCode,
   validateLoginForm,
   validateSignUpForm,
+  type SignUpForm,
 } from './validateAuthForm';
 
-const VALID_SIGN_UP = {
+const VALID_SIGN_UP: SignUpForm = {
   name: 'Ana',
   email: 'ana@example.com',
   password: 'Passw0rd@',
   passwordConfirmation: 'Passw0rd@',
+  crmv: '',
+  sex: null,
   acceptedTerms: true,
 };
 
@@ -77,6 +80,17 @@ describe('validateSignUpForm', () => {
     expect(
       validateSignUpForm({ ...VALID_SIGN_UP, acceptedTerms: false }),
     ).toEqual({ acceptedTerms: 'termsRequired' });
+  });
+
+  it.each([
+    ['RS-12345', {}],
+    ['rs-12345', {}],
+    ['', {}],
+    ['XX-12345', { crmv: 'invalidCrmv' }],
+    ['RS12345', { crmv: 'invalidCrmv' }],
+    ['RS-1234567', { crmv: 'invalidCrmv' }],
+  ])('checks the optional CRMV %p', (crmv, expected) => {
+    expect(validateSignUpForm({ ...VALID_SIGN_UP, crmv })).toEqual(expected);
   });
 
   it('keeps the login rules for e-mail and password', () => {

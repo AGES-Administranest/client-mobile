@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { removeAppointmentFromCalendar } from 'features/appointments';
 import { useAuth } from 'features/auth';
 import { ApiError } from 'shared/services/apiClient';
 
@@ -202,6 +203,7 @@ export function useAppointmentActions(
     const ran = await run(async idToken => {
       try {
         await cancelAppointment(idToken, appointment.id, resolved.trim());
+        removeAppointmentFromCalendar(appointment.id);
         if (isMounted.current) {
           closeSheet();
           setJustCanceled(true);

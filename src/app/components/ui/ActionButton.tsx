@@ -12,6 +12,7 @@ const actionButtonVariants = cva(
       variant: {
         primary: 'bg-primary active:opacity-90',
         secondary: 'bg-button-secondary active:opacity-90',
+        destructive: 'bg-alert-primary active:opacity-90',
       },
     },
     defaultVariants: {

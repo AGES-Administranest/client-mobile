@@ -2,6 +2,7 @@
   "common": {
     "appName": "Administranest",
     "loading": "Carregando...",
+    "back": "Voltar",
     "retry": "Tentar novamente"
   },
   "finance": {
@@ -118,7 +119,8 @@
   },
   "equipment": {
     "loading": "Carregando equipamentos...",
-    "empty": "Nenhum equipamento cadastrado. Cadastre o primeiro para acompanhar a depreciação.",
+    "emptyTitle": "Nenhum equipamento cadastrado",
+    "empty": "Cadastre o primeiro para acompanhar a depreciação.",
     "addButton": "Adicionar equipamento",
     "errorLoad": "Não foi possível carregar os equipamentos.",
     "errorSession": "Sua sessão expirou. Saia da conta e entre novamente.",
@@ -236,7 +238,6 @@
       "meta": "PDF · {{size}}",
       "info": "Fornecedor, número e itens são lidos no envio. Você confere tudo antes de dar entrada.",
       "send": "Enviar este arquivo",
-      "replace": "Trocar arquivo",
       "cancel": "Cancelar"
     },
     "reading": {
@@ -358,7 +359,8 @@
       "pending": "PENDÊNCIAS",
       "countOne": "1 entrada",
       "count": "{{count}} entradas",
-      "empty": "Nenhuma entrada pendente. Toda nota enviada aparece aqui até ser conferida.",
+      "empty": "Nenhuma entrada pendente",
+      "emptyHint": "Toda nota enviada aparece aqui até ser conferida. Comece registrando uma nova entrada.",
       "loadFailed": "Não foi possível carregar as entradas.",
       "retry": "Tentar de novo",
       "newEntry": "Nova entrada",
@@ -543,6 +545,10 @@
       "close": "Fechar",
       "confirm": "Confirmar",
       "saving": "Salvando...",
+      "next": "Próximo",
+      "back": "Voltar",
+      "step1": "Passo 1 de 2",
+      "step2": "Passo 2 de 2",
       "fields": {
         "name": {
           "label": "Nome da clínica",
@@ -623,7 +629,8 @@
     },
     "countOne": "{{count}} clínica",
     "countOther": "{{count}} clínicas",
-    "empty": "Nenhuma clínica cadastrada.",
+    "empty": "Nenhuma clínica cadastrada",
+    "emptyHint": "Cadastre sua primeira clínica para vinculá-la aos atendimentos.",
     "detail": {
       "call": "Entrar em contato",
       "edit": "Editar clínica",
@@ -856,6 +863,7 @@
   },
   "reports": {
     "generate": {
+      "button": "Gerar Relatório",
       "title": "Gerar novo relatório",
       "categoriesTitle": "Selecione as categorias",
       "selectAll": "Selecionar tudo",
@@ -881,6 +889,13 @@
       "workedHour": "Hora Trabalhada"
     },
     "period": {
+      "label": "Período",
+      "descriptions": {
+        "currentMonth": "Do primeiro dia do mês até hoje.",
+        "previousMonth": "O mês anterior completo.",
+        "currentYear": "De 1º de janeiro até hoje.",
+        "custom": "Escolha as datas de início e fim no calendário."
+      },
       "startDate": "Data de início",
       "endDate": "Data de fim",
       "selectDate": "Selecione",
@@ -902,17 +917,15 @@
       "general": {
         "title": "Relatório Geral",
         "description": "Receitas, despesas e atendimentos do período"
-      },
-      "invoicePackage": {
-        "title": "Pacote de Notas Fiscais para IR",
-        "description": "Notas fiscais do período reunidas para o Imposto de Renda"
       }
     },
     "availability": {
       "empty": "Não há registros neste período. Escolha outro período para gerar o relatório."
     },
     "history": {
-      "title": "Histórico de relatórios",
+      "title": "Relatórios",
+      "filterAll": "Todos",
+      "noResults": "Nenhum relatório deste tipo.",
       "viewAll": "Ver todos",
       "empty": "Nenhum relatório gerado ainda.",
       "loading": "Carregando relatórios...",
@@ -960,18 +973,7 @@
       "failed": "Não foi possível excluir o relatório. Tente novamente."
     },
     "seeAll": "Ver todos",
-    "addInvoice": "Adicionar nota",
-    "openInvoices": "Abrir notas fiscais",
-    "taxPackage": {
-      "loading": "Buscando as notas do período...",
-      "period": "Período",
-      "documents": "Documentos",
-      "total": "Valor total",
-      "empty": "Não há notas fiscais nem recibos com arquivo neste período. Escolha outro período.",
-      "missingFiles": "Documentos ainda não sincronizados: {{count}}. Eles precisam de conexão com a internet para entrar no pacote.",
-      "download": "Baixar pacote (ZIP)",
-      "close": "Fechar"
-    }
+    "addInvoice": "Adicionar nota"
   },
   "optionsModal": {
     "scanNote": "Escanear nota",
@@ -1060,6 +1062,9 @@
       "email": "E-mail",
       "password": "Senha",
       "passwordConfirmation": "Confirmar senha",
+      "crmv": "CRMV (opcional)",
+      "crmvPlaceholder": "Ex.: RS-12345",
+      "sex": "Sexo (opcional)",
       "code": "Código de confirmação"
     },
     "login": {
@@ -1086,6 +1091,7 @@
       "invalidEmail": "Informe um e-mail válido.",
       "passwordMismatch": "As senhas não coincidem.",
       "termsRequired": "Aceite os termos para continuar.",
+      "invalidCrmv": "Use a UF e o número, como RS-12345.",
       "invalidCode": "O código deve ter 6 dígitos."
     },
     "errors": {
@@ -1171,7 +1177,8 @@
     }
   },
   "suppliers": {
-    "empty": "Nenhum fornecedor cadastrado.",
+    "empty": "Nenhum fornecedor cadastrado",
+    "emptyHint": "Cadastre um fornecedor para associá-lo aos seus materiais.",
     "loadFailure": "Não foi possível carregar os fornecedores.",
     "countOne": "{{count}} fornecedor",
     "countOther": "{{count}} fornecedores",
@@ -1240,14 +1247,14 @@
   "procedures": {
     "newProcedure": "Novo atendimento",
     "form": {
+      "amount": "Valor do atendimento (R$)",
       "title": "Novo atendimento",
       "confirm": "Confirmar",
       "close": "Fechar",
-      "client": "Tomador",
+      "client": "Clínica",
       "location": "Local do atendimento",
-      "locationHint": "Sugerido pelo endereço do tomador. Você pode alterar.",
       "submitError": "Não foi possível salvar. Tente novamente.",
-      "registerClient": "Cadastrar novo tomador",
+      "registerClient": "Adicionar clínica",
       "next": "Próximo",
       "back": "Voltar",
       "step1": "Passo 1 de 2",
@@ -1272,9 +1279,10 @@
       "notes": "Observações"
     },
     "placeholders": {
+      "amount": "0,00",
       "patientName": "Nome do animal",
       "procedureName": "Ex: Orquiectomia",
-      "client": "Nome do tomador",
+      "client": "Nome da clínica",
       "location": "Endereço do atendimento",
       "notes": "Observações sobre o procedimento",
       "number": "0",
@@ -1305,7 +1313,7 @@
       "INVALID_TIME": "Hora inválida",
       "IN_THE_PAST": "Escolha uma data e horário futuros",
       "REQUIRED_FOR_SCHEDULE": "Informe o fim para agendar",
-      "SELECT_CLIENT": "Escolha um tomador da lista",
+      "SELECT_CLIENT": "Escolha uma clínica da lista",
       "NAME_TOO_LONG": "Máximo de 160 caracteres",
       "TOO_LONG": "Máximo de 2000 caracteres"
     },
@@ -1457,9 +1465,12 @@
       "dismiss": "Cancelar"
     },
     "title": "Agendamentos",
+    "loadError": "Erro ao buscar agendamentos",
     "calendar": {
       "prevMonth": "Mês anterior",
-      "nextMonth": "Próximo mês"
+      "nextMonth": "Próximo mês",
+      "prevYear": "Ano anterior",
+      "nextYear": "Próximo ano"
     },
     "attendances": "ATENDIMENTOS",
     "revenue": "RECEITA",
@@ -1468,8 +1479,9 @@
     "addAttendance": "Adicionar atendimento",
     "sectionTitle": "PROCEDIMENTOS DO MÊS OU DIA",
     "emptyDay": "Nenhum agendamento para este dia.",
-    "emptyDaySub": "Toque no botão abaixo para agendar um procedimento.",
+    "emptyDaySub": "Agende um procedimento para acompanhar sua agenda por aqui.",
     "newAppointment": "+ Novo agendamento",
+    "addAppointment": "Novo agendamento",
     "status": {
       "scheduled": "Agendado",
       "completed": "Concluído",
@@ -1565,7 +1577,11 @@
     }
   },
   "home": {
-    "greeting": "Olá, Dr. {{name}}"
+    "greeting": "Olá, {{title}} {{name}}",
+    "doctorTitle": {
+      "default": "Dr.",
+      "female": "Dra."
+    }
   },
   "pricing": {
     "onboarding": {
@@ -2021,10 +2037,11 @@
         "loadFailed": "Não foi possível carregar as notas fiscais.",
         "offline": "Sem conexão: mostrando as notas salvas neste aparelho.",
         "emptyTitle": "Nenhuma nota fiscal",
-        "emptyMessage": "Registre uma nota pelo botão Adicionar nota, na aba Relatórios.",
+        "emptyMessage": "Anexe o PDF de uma nota para o app ler os dados.",
         "noResultsTitle": "Nada encontrado",
         "noResultsMessage": "Não há notas para essa busca. Tente outro tomador ou outra data.",
-        "add": "Adicionar nota"
+        "add": "Adicionar nota",
+        "addHint": "Aceitamos só PDF, não imagens."
       },
       "detail": {
         "title": "Detalhes da nota",

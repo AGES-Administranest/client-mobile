@@ -7,6 +7,7 @@ import {
 } from 'react-native-safe-area-context';
 
 import { TabBar, type TabValue } from 'app/components/ui/tabbar';
+import { MIN_SCREEN_TOP } from 'app/lib/layout';
 import { AppointmentSyncObserver } from 'features/appointments';
 import {
   AuthFlow,
@@ -122,7 +123,10 @@ function AppContent() {
   const tabBarWrapperStyle = { paddingBottom: insets.bottom };
 
   return (
-    <View className="flex-1" style={{ paddingTop: insets.top }}>
+    <View
+      className="flex-1"
+      style={{ paddingTop: Math.max(insets.top, MIN_SCREEN_TOP) }}
+    >
       <LinearGradient
         colors={Colors.background.primary.colors}
         locations={Colors.background.primary.locations}

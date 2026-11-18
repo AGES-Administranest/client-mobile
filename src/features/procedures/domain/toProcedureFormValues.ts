@@ -1,3 +1,5 @@
+import { toAmountInput } from 'shared/utils/inputMasks';
+
 import {
   EMPTY_PROCEDURE_FORM,
   type ProcedureFormValues,
@@ -39,7 +41,7 @@ export function toProcedureFormValues(
       (a.asa as ProcedureFormValues['asaClassification']) ?? null,
     weightKg: decimal(a.weightKg),
     patientAgeYears: decimal(a.patientAgeYears),
-    amount: decimal(a.amount),
+    amount: toAmountInput(a.amount),
     date: toDate(start),
     startTime: toTime(start),
     endTime: a.endsAt ? toTime(new Date(a.endsAt)) : '',

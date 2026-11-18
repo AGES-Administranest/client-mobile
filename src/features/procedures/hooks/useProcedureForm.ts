@@ -6,6 +6,8 @@ import {
   newClientGeneratedId,
   queueAppointmentCreate,
   queueAppointmentUpdate,
+  syncAppointmentToCalendar,
+  toCalendarEventInput,
 } from 'features/appointments';
 import { useAuth } from 'features/auth';
 import {
@@ -221,6 +223,16 @@ export function useProcedureForm(
           toCreateAppointmentPayload(values);
         delete changes.status;
         await saveEdit(session.idToken, editing.id, changes);
+        if (!isLocalAppointmentId(editing.id)) {
+          syncAppointmentToCalendar(
+            editing.id,
+            toCalendarEventInput({
+              id: editing.id,
+              ...changes,
+              startsAt: changes.startsAt ?? editing.startsAt,
+            }),
+          );
+        }
         onSuccess();
         return;
       }
@@ -248,6 +260,12 @@ export function useProcedureForm(
         reset();
         onSuccess({ startsAt: payload.startsAt });
         return;
+      }
+      if (payload.status === 'SCHEDULED') {
+        syncAppointmentToCalendar(
+          appointment.id,
+          toCalendarEventInput(appointment),
+        );
       }
       // Insumos são lançados quando o procedimento acontece, não ao agendar.
       if (payload.status === 'SCHEDULED') {
@@ -298,7 +316,5 @@ export function useProcedureForm(
     reset,
     acceptSupplyPrompt,
     finishSupplyPrompt,
-    showLocationHint:
-      suggestedLocation !== '' && values.location === suggestedLocation,
   };
 }

@@ -1,21 +1,17 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Car, Plus, Trash2 } from 'lucide-react-native';
+import { Car, Plus, Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BackButton } from 'app/components/ui/back-button';
 import { Button } from 'app/components/ui/button';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { EmptyState } from 'app/components/ui/empty-state';
 import { Icon } from 'app/components/ui/icon';
 import { SlideInModal } from 'app/components/ui/slide-in-modal';
 import { Text } from 'app/components/ui/text';
+import { MIN_SCREEN_BOTTOM, MIN_SCREEN_TOP } from 'app/lib/layout';
 import { useAuth } from 'features/auth';
 import { useTranslation } from 'shared/i18n';
 import { BackgroundPrimary } from 'theme/colors';
@@ -106,6 +102,8 @@ export function VehiclesScreen({
 
   const vehicleList = internalVehicles;
   const count = vehicleList.length;
+  const showsEmptyAction =
+    count === 0 && !vehiclesHook.isLoading && !vehiclesHook.error;
 
   const counterText =
     count === 1
@@ -198,7 +196,10 @@ export function VehiclesScreen({
     <SlideInModal visible={visible} onRequestClose={onClose}>
       <View
         className="flex-1"
-        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+        style={{
+          paddingTop: Math.max(insets.top, MIN_SCREEN_TOP),
+          paddingBottom: Math.max(insets.bottom, MIN_SCREEN_BOTTOM),
+        }}
       >
         <LinearGradient
           colors={BackgroundPrimary.colors}
@@ -208,15 +209,7 @@ export function VehiclesScreen({
 
         {/* Cabeçalho */}
         <View className="flex-row items-center justify-between px-4 pb-3 pt-2">
-          <Pressable
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('vehicles.back')}
-            hitSlop={8}
-            className="size-9 items-center justify-center rounded-full bg-button-primary active:opacity-80"
-          >
-            <Icon as={ArrowLeft} size={18} className="text-white" />
-          </Pressable>
+          <BackButton label={t('vehicles.back')} onPress={onClose} />
 
           <Text
             accessibilityRole="header"
@@ -249,7 +242,19 @@ export function VehiclesScreen({
           </View>
         ) : vehicleList.length === 0 ? (
           <View className="flex-1 items-center justify-center px-4">
-            <EmptyState icon={Car} message={t('vehicles.empty')} />
+            <EmptyState
+              icon={Car}
+              title={t('vehicles.empty')}
+              message={t('vehicles.emptySubtitle')}
+              titleClassName="text-base leading-6 text-label-quartenery"
+              messageClassName="text-[13px] leading-[19.5px]"
+              action={{
+                label: t('vehicles.addVehicle'),
+                icon: Plus,
+                onPress: handleOpenAdd,
+              }}
+              className="shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]"
+            />
           </View>
         ) : (
           <ScrollView
@@ -268,25 +273,27 @@ export function VehiclesScreen({
           </ScrollView>
         )}
 
-        {/* Botão Fixo Inferior */}
-        <View
-          className="absolute bottom-0 left-0 right-0 px-4 pt-2"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-        >
-          <Button
-            shape="pill"
-            size="lg"
-            className="h-[49px] w-full flex-row items-center justify-center gap-2 bg-button-primary active:opacity-90"
-            onPress={handleOpenAdd}
-            accessibilityRole="button"
-            accessibilityLabel={t('vehicles.addVehicle')}
+        {/* Botão Fixo Inferior (vazio: o botão fica dentro do estado vazio) */}
+        {showsEmptyAction ? null : (
+          <View
+            className="absolute bottom-0 left-0 right-0 px-4 pt-2"
+            style={{ paddingBottom: Math.max(insets.bottom, 16) }}
           >
-            <Icon as={Plus} size={18} className="text-white" />
-            <Text className="text-base font-semibold text-white">
-              {t('vehicles.addVehicle')}
-            </Text>
-          </Button>
-        </View>
+            <Button
+              shape="pill"
+              size="lg"
+              className="h-[49px] w-full flex-row items-center justify-center gap-2 bg-button-primary active:opacity-90"
+              onPress={handleOpenAdd}
+              accessibilityRole="button"
+              accessibilityLabel={t('vehicles.addVehicle')}
+            >
+              <Icon as={Plus} size={18} className="text-white" />
+              <Text className="text-base font-semibold text-white">
+                {t('vehicles.addVehicle')}
+              </Text>
+            </Button>
+          </View>
+        )}
 
         {/* Bottom Sheet de Formulário (Cadastro / Visualizar / Edição) */}
         <VehicleFormSheet

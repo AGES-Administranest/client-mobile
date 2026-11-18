@@ -2,6 +2,7 @@
   "common": {
     "appName": "Administranest",
     "loading": "Loading...",
+    "back": "Back",
     "retry": "Retry"
   },
   "finance": {
@@ -118,7 +119,8 @@
   },
   "equipment": {
     "loading": "Loading equipment...",
-    "empty": "No equipment registered. Register the first one to track depreciation.",
+    "emptyTitle": "No equipment registered",
+    "empty": "Register the first one to track depreciation.",
     "addButton": "Add equipment",
     "errorLoad": "Could not load the equipment.",
     "errorSession": "Your session has expired. Sign out and sign in again.",
@@ -236,7 +238,6 @@
       "meta": "PDF · {{size}}",
       "info": "Supplier, number and items are read when it is sent. You check everything before stocking it.",
       "send": "Send this file",
-      "replace": "Change file",
       "cancel": "Cancel"
     },
     "reading": {
@@ -358,7 +359,8 @@
       "pending": "PENDING",
       "countOne": "1 entry",
       "count": "{{count}} entries",
-      "empty": "No pending entries. Every invoice you send shows up here until it is reviewed.",
+      "empty": "No pending entries",
+      "emptyHint": "Every invoice you send shows up here until it is reviewed. Start by registering a new entry.",
       "loadFailed": "Could not load the entries.",
       "retry": "Try again",
       "newEntry": "New entry",
@@ -543,6 +545,10 @@
       "close": "Close",
       "confirm": "Confirm",
       "saving": "Saving...",
+      "next": "Next",
+      "back": "Back",
+      "step1": "Step 1 of 2",
+      "step2": "Step 2 of 2",
       "fields": {
         "name": {
           "label": "Clinic name",
@@ -623,7 +629,8 @@
     },
     "countOne": "{{count}} clinic",
     "countOther": "{{count}} clinics",
-    "empty": "No clinics yet.",
+    "empty": "No clinics yet",
+    "emptyHint": "Register your first clinic to link it to your appointments.",
     "detail": {
       "call": "Contact",
       "edit": "Edit clinic",
@@ -856,6 +863,7 @@
   },
   "reports": {
     "generate": {
+      "button": "Generate Report",
       "title": "Generate new report",
       "categoriesTitle": "Select categories",
       "selectAll": "Select all",
@@ -881,6 +889,13 @@
       "workedHour": "Worked Hour"
     },
     "period": {
+      "label": "Period",
+      "descriptions": {
+        "currentMonth": "From the first day of the month until today.",
+        "previousMonth": "The whole previous month.",
+        "currentYear": "From January 1st until today.",
+        "custom": "Pick the start and end dates on the calendar."
+      },
       "startDate": "Start date",
       "endDate": "End date",
       "selectDate": "Select",
@@ -902,17 +917,15 @@
       "general": {
         "title": "General Report",
         "description": "Revenue, expenses and appointments for the period"
-      },
-      "invoicePackage": {
-        "title": "Invoice Package for Income Tax",
-        "description": "The period's invoices gathered for income tax"
       }
     },
     "availability": {
       "empty": "There are no records in this period. Choose another period to generate the report."
     },
     "history": {
-      "title": "Report history",
+      "title": "Reports",
+      "filterAll": "All",
+      "noResults": "No reports of this type.",
       "viewAll": "View all",
       "empty": "No report generated yet.",
       "loading": "Loading reports...",
@@ -960,18 +973,7 @@
       "failed": "Could not delete the report. Try again."
     },
     "seeAll": "See all",
-    "addInvoice": "Add invoice",
-    "openInvoices": "Open invoices",
-    "taxPackage": {
-      "loading": "Looking for the invoices of the period...",
-      "period": "Period",
-      "documents": "Documents",
-      "total": "Total amount",
-      "empty": "There are no invoices or receipts with a file in this period. Choose another period.",
-      "missingFiles": "Documents not synced yet: {{count}}. They need an internet connection to go in the package.",
-      "download": "Download package (ZIP)",
-      "close": "Close"
-    }
+    "addInvoice": "Add invoice"
   },
   "optionsModal": {
     "scanNote": "Scan note",
@@ -1060,6 +1062,9 @@
       "email": "E-mail",
       "password": "Password",
       "passwordConfirmation": "Confirm password",
+      "crmv": "CRMV (optional)",
+      "crmvPlaceholder": "E.g. RS-12345",
+      "sex": "Sex (optional)",
       "code": "Confirmation code"
     },
     "login": {
@@ -1086,6 +1091,7 @@
       "invalidEmail": "Enter a valid e-mail.",
       "passwordMismatch": "Passwords do not match.",
       "termsRequired": "Accept the terms to continue.",
+      "invalidCrmv": "Use the state and the number, like RS-12345.",
       "invalidCode": "The code must have 6 digits."
     },
     "errors": {
@@ -1171,7 +1177,8 @@
     }
   },
   "suppliers": {
-    "empty": "No suppliers registered.",
+    "empty": "No suppliers registered",
+    "emptyHint": "Register a supplier to link it to your materials.",
     "loadFailure": "Could not load the suppliers.",
     "countOne": "{{count}} supplier",
     "countOther": "{{count}} suppliers",
@@ -1240,14 +1247,14 @@
   "procedures": {
     "newProcedure": "New appointment",
     "form": {
+      "amount": "Appointment amount (R$)",
       "title": "New appointment",
       "confirm": "Confirm",
       "close": "Close",
-      "client": "Client",
+      "client": "Clinic",
       "location": "Appointment location",
-      "locationHint": "Suggested from the client's address. You can change it.",
       "submitError": "Couldn't save. Please try again.",
-      "registerClient": "Register new client",
+      "registerClient": "Add clinic",
       "next": "Next",
       "back": "Back",
       "step1": "Step 1 of 2",
@@ -1272,9 +1279,10 @@
       "notes": "Notes"
     },
     "placeholders": {
+      "amount": "0.00",
       "patientName": "Animal's name",
       "procedureName": "e.g. Neutering",
-      "client": "Client name",
+      "client": "Clinic name",
       "location": "Appointment address",
       "notes": "Notes about the procedure",
       "number": "0",
@@ -1305,7 +1313,7 @@
       "INVALID_TIME": "Invalid time",
       "IN_THE_PAST": "Pick a future date and time",
       "REQUIRED_FOR_SCHEDULE": "Add an end time to schedule",
-      "SELECT_CLIENT": "Pick a client from the list",
+      "SELECT_CLIENT": "Pick a clinic from the list",
       "NAME_TOO_LONG": "At most 160 characters",
       "TOO_LONG": "At most 2000 characters"
     },
@@ -1457,9 +1465,12 @@
       "dismiss": "Cancel"
     },
     "title": "Appointments",
+    "loadError": "Could not load appointments",
     "calendar": {
       "prevMonth": "Previous month",
-      "nextMonth": "Next month"
+      "nextMonth": "Next month",
+      "prevYear": "Previous year",
+      "nextYear": "Next year"
     },
     "attendances": "APPOINTMENTS",
     "revenue": "REVENUE",
@@ -1468,8 +1479,9 @@
     "addAttendance": "Add appointment",
     "sectionTitle": "PROCEDURES FOR MONTH OR DAY",
     "emptyDay": "No appointments for this day.",
-    "emptyDaySub": "Tap the button below to schedule an appointment.",
+    "emptyDaySub": "Schedule an appointment to follow your agenda here.",
     "newAppointment": "+ New appointment",
+    "addAppointment": "New appointment",
     "status": {
       "scheduled": "Scheduled",
       "completed": "Completed",
@@ -1565,7 +1577,11 @@
     }
   },
   "home": {
-    "greeting": "Hello, Dr. {{name}}"
+    "greeting": "Hello, {{title}} {{name}}",
+    "doctorTitle": {
+      "default": "Dr.",
+      "female": "Dr."
+    }
   },
   "pricing": {
     "onboarding": {
@@ -2021,10 +2037,11 @@
         "loadFailed": "Could not load the invoices.",
         "offline": "No connection: showing the invoices saved on this device.",
         "emptyTitle": "No invoices",
-        "emptyMessage": "Register an invoice with the Add invoice button on the Reports tab.",
+        "emptyMessage": "Attach an invoice PDF so the app reads its data.",
         "noResultsTitle": "Nothing found",
         "noResultsMessage": "No invoices match this search. Try another client or date.",
-        "add": "Add invoice"
+        "add": "Add invoice",
+        "addHint": "PDF only, no images."
       },
       "detail": {
         "title": "Invoice details",

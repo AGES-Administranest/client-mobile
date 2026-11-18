@@ -1,4 +1,9 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from 'app/components/ui/icon';
@@ -19,9 +24,13 @@ export type AppointmentCalendarProps = {
   weekdays: string[];
   previousMonthLabel?: string;
   nextMonthLabel?: string;
+  previousYearLabel?: string;
+  nextYearLabel?: string;
   onSelectDate: (date: string) => void;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
+  onPreviousYear?: () => void;
+  onNextYear?: () => void;
   className?: string;
 };
 
@@ -34,9 +43,13 @@ export function AppointmentCalendar({
   weekdays,
   previousMonthLabel = 'Mês anterior',
   nextMonthLabel = 'Próximo mês',
+  previousYearLabel = 'Ano anterior',
+  nextYearLabel = 'Próximo ano',
   onSelectDate,
   onPreviousMonth,
   onNextMonth,
+  onPreviousYear,
+  onNextYear,
   className,
 }: AppointmentCalendarProps) {
   const days = buildMonthGrid(year, monthIndex);
@@ -52,29 +65,55 @@ export function AppointmentCalendar({
     <View className={cn('w-full', className)}>
       {/* Header: Navegação do mês (< Agosto 2026 >) */}
       <View className="flex-row items-center justify-between px-2 mb-3">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={previousMonthLabel}
-          onPress={onPreviousMonth}
-          hitSlop={12}
-          className="size-10 items-center justify-center rounded-full active:bg-details-primary/60"
-        >
-          <Icon as={ChevronLeft} className="size-6 text-label-primary" />
-        </Pressable>
+        <View className="flex-row items-center">
+          {onPreviousYear ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={previousYearLabel}
+              onPress={onPreviousYear}
+              hitSlop={12}
+              className="size-10 items-center justify-center rounded-full active:bg-details-primary/60"
+            >
+              <Icon as={ChevronsLeft} className="size-6 text-label-primary" />
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={previousMonthLabel}
+            onPress={onPreviousMonth}
+            hitSlop={12}
+            className="size-10 items-center justify-center rounded-full active:bg-details-primary/60"
+          >
+            <Icon as={ChevronLeft} className="size-6 text-label-primary" />
+          </Pressable>
+        </View>
 
         <Text className="text-xl font-bold capitalize text-label-primary">
           {monthLabel}
         </Text>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={nextMonthLabel}
-          onPress={onNextMonth}
-          hitSlop={12}
-          className="size-10 items-center justify-center rounded-full active:bg-details-primary/60"
-        >
-          <Icon as={ChevronRight} className="size-6 text-label-primary" />
-        </Pressable>
+        <View className="flex-row items-center">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={nextMonthLabel}
+            onPress={onNextMonth}
+            hitSlop={12}
+            className="size-10 items-center justify-center rounded-full active:bg-details-primary/60"
+          >
+            <Icon as={ChevronRight} className="size-6 text-label-primary" />
+          </Pressable>
+          {onNextYear ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={nextYearLabel}
+              onPress={onNextYear}
+              hitSlop={12}
+              className="size-10 items-center justify-center rounded-full active:bg-details-primary/60"
+            >
+              <Icon as={ChevronsRight} className="size-6 text-label-primary" />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       {/* Dias da Semana (Dom Seg Ter Qua Qui Sex Sab) */}

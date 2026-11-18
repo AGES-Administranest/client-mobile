@@ -1,4 +1,5 @@
 import { FileText, Plus, Search } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -43,6 +44,7 @@ export type ServiceInvoiceListTexts = {
   noResultsTitle: string;
   noResultsMessage: string;
   add: string;
+  addHint: string;
 };
 
 const FILTER_ORDER: InvoiceStatusFilter[] = [
@@ -67,6 +69,7 @@ type ServiceInvoiceListPresentationProps = {
   onLoadMore: () => void;
   onRetry: () => void;
   onAddInvoice?: () => void;
+  extraAction?: ReactNode;
   onBack: () => void;
 };
 
@@ -85,6 +88,7 @@ export function ServiceInvoiceListPresentation({
   onLoadMore,
   onRetry,
   onAddInvoice,
+  extraAction,
   onBack,
 }: ServiceInvoiceListPresentationProps) {
   const isEmpty = status === 'ready' && rows.length === 0;
@@ -98,7 +102,7 @@ export function ServiceInvoiceListPresentation({
       />
 
       <View className="gap-3 px-4 pb-3">
-        <View className="flex-row items-center gap-2 rounded-xl border border-border-primary bg-white px-3">
+        <View className="flex-row items-center gap-2 rounded-xl bg-white px-3 shadow-md shadow-black/10">
           <Icon as={Search} size={18} className="text-label-tertiary" />
           <TextInput
             accessibilityLabel={texts.searchPlaceholder}
@@ -125,10 +129,8 @@ export function ServiceInvoiceListPresentation({
                 accessibilityState={{ selected: isSelected }}
                 onPress={() => onChangeFilter(option)}
                 className={cn(
-                  'rounded-full border px-3.5 py-1.5',
-                  isSelected
-                    ? 'border-button-primary bg-button-primary'
-                    : 'border-border-primary bg-white',
+                  'rounded-full px-3.5 py-1.5 shadow-md shadow-black/10',
+                  isSelected ? 'bg-button-primary' : 'bg-white',
                 )}
               >
                 <Text
@@ -190,6 +192,14 @@ export function ServiceInvoiceListPresentation({
             icon={FileText}
             title={texts.emptyTitle}
             message={texts.emptyMessage}
+            titleClassName="text-base leading-6 text-label-quartenery"
+            messageClassName="text-[13px] leading-[19.5px]"
+            action={
+              onAddInvoice
+                ? { label: texts.add, icon: Plus, onPress: onAddInvoice }
+                : undefined
+            }
+            className="shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]"
           />
         ) : null}
 
@@ -210,13 +220,17 @@ export function ServiceInvoiceListPresentation({
         ) : null}
       </ScrollView>
 
-      {onAddInvoice ? (
-        <View className="px-4 pb-4 pt-2">
+      {onAddInvoice && !(isEmpty && !isFiltering) ? (
+        <View className="gap-3 px-4 pb-4 pt-2">
+          {extraAction}
           <ActionButton
             label={texts.add}
             icon={<Icon as={Plus} size={18} />}
             onPress={onAddInvoice}
           />
+          <Text className="text-center text-xs text-label-tertiary">
+            {texts.addHint}
+          </Text>
         </View>
       ) : null}
     </View>

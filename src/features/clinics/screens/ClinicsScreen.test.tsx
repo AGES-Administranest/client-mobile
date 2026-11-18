@@ -205,7 +205,7 @@ async function typeName(
 test('starts with no clinics listed', async () => {
   const renderer = await render();
 
-  expect(textsOf(renderer)).toContain('Nenhuma clínica cadastrada.');
+  expect(textsOf(renderer)).toContain('Nenhuma clínica cadastrada');
 });
 
 test('lists the clinics the backend returns', async () => {
@@ -215,7 +215,7 @@ test('lists the clinics the backend returns', async () => {
 
   expect(fetchClinicsMock).toHaveBeenCalledWith('id-token');
   expect(textsOf(renderer)).toContain('Clínica VetNova');
-  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada.');
+  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada');
 });
 
 test('says when the clinics could not be loaded', async () => {
@@ -235,6 +235,7 @@ async function fillClinic(
   await typeInto(renderer, 'Endereço', 'Rua das Hortênsias, 340');
   await typeInto(renderer, 'Cidade', 'Campinas');
   await typeInto(renderer, 'UF', 'SP');
+  await press(renderer, 'Próximo');
   await typeInto(renderer, 'Contato', '1134567890');
   await typeInto(renderer, 'E-mail', 'contato@vetnova.com.br');
   await typeInto(renderer, 'Responsável', 'Dr. André Matos');
@@ -254,20 +255,32 @@ test('opens the new clinic sheet from the "Adicionar clínica" button', async ()
 test('keeps the sheet open and explains what is missing', async () => {
   const renderer = await render();
   await press(renderer, 'Adicionar clínica');
+  await press(renderer, 'Próximo');
 
   await press(renderer, 'Confirmar');
 
   expect(createClientMock).not.toHaveBeenCalled();
   expect(isSheetOpen(renderer)).toBe(true);
+  // Só o nome é obrigatório, e o erro leva de volta ao passo dele.
   const shown = textsOf(renderer);
   expect(shown).toContain('Informe o nome da clínica.');
-  expect(shown).toContain('Informe o CNPJ.');
-  expect(shown).toContain('Informe o endereço.');
-  expect(shown).toContain('Informe a cidade.');
-  expect(shown).toContain('Informe a UF.');
-  expect(shown).toContain('Informe o telefone.');
-  expect(shown).toContain('Informe o e-mail.');
-  expect(shown).toContain('Informe o nome do responsável.');
+  expect(shown).not.toContain('Informe o CNPJ.');
+  expect(shown).not.toContain('Informe o telefone.');
+});
+
+test('saves a clinic with only the name', async () => {
+  const renderer = await render();
+  await press(renderer, 'Adicionar clínica');
+  await typeInto(renderer, 'Nome da clínica', 'Clínica VetNova');
+  await press(renderer, 'Próximo');
+
+  await press(renderer, 'Confirmar');
+
+  expect(createClientMock).toHaveBeenCalledWith('id-token', {
+    type: 'CLINIC',
+    name: 'Clínica VetNova',
+  });
+  expect(isSheetOpen(renderer)).toBe(false);
 });
 
 test('saves the clinic and closes the sheet', async () => {
@@ -292,7 +305,7 @@ test('saves the clinic and closes the sheet', async () => {
   expect(isSheetOpen(renderer)).toBe(false);
   expect(textsOf(renderer)).toContain('1 clínica');
   expect(textsOf(renderer)).toContain('Clínica VetNova');
-  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada.');
+  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada');
 });
 
 test('shows the API failure and keeps what was typed', async () => {
@@ -305,8 +318,11 @@ test('shows the API failure and keeps what was typed', async () => {
 
   await press(renderer, 'Confirmar');
 
-  expect(isSheetOpen(renderer)).toBe(true);
+  // Segue no passo do contato, onde o usuário confirmou.
+  expect(textsOf(renderer)).toContain('Confirmar');
   expect(textsOf(renderer)).toContain('Já existe uma clínica com esse nome.');
+  await press(renderer, 'Voltar');
+  expect(isSheetOpen(renderer)).toBe(true);
 });
 
 test('opens a clean form every time', async () => {
@@ -593,11 +609,11 @@ test('validates the details when editing and keeps the clinic unchanged', async 
   await press(renderer, 'Editar clínica');
 
   await typeInto(renderer, 'CNPJ', '123');
-  await typeInto(renderer, 'E-mail', '');
+  await typeInto(renderer, 'E-mail', 'contato');
   await press(renderer, 'Confirmar');
 
   expect(textsOf(renderer)).toContain('O CNPJ informado não é válido.');
-  expect(textsOf(renderer)).toContain('Informe o e-mail.');
+  expect(textsOf(renderer)).toContain('Informe um e-mail válido.');
   expect(textsOf(renderer)).toContain('Editar');
 });
 
@@ -628,7 +644,7 @@ test('deletes the clinic from the details', async () => {
   await press(renderer, 'Excluir');
 
   expect(deleteClientMock).toHaveBeenCalledWith('id-token', 'client-1');
-  expect(textsOf(renderer)).toContain('Nenhuma clínica cadastrada.');
+  expect(textsOf(renderer)).toContain('Nenhuma clínica cadastrada');
 });
 
 test('keeps the clinic and explains when the backend refuses the edit', async () => {
@@ -653,7 +669,7 @@ test('keeps the clinic listed when the delete fails', async () => {
 
   await press(renderer, 'Excluir');
 
-  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada.');
+  expect(textsOf(renderer)).not.toContain('Nenhuma clínica cadastrada');
   expect(textsOf(renderer)).toContain(
     'Não foi possível salvar a clínica. Tente novamente.',
   );

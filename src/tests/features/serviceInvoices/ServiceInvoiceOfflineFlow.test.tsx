@@ -468,6 +468,7 @@ describe('the manual entry', () => {
     await type(renderer, 'Endereço', 'Rua das Hortênsias, 340');
     await type(renderer, 'Cidade', 'Campinas');
     await type(renderer, 'UF', 'SP');
+    await press(renderer, 'Próximo');
     await type(renderer, 'Contato', '1134567890');
     await type(renderer, 'E-mail', 'contato@novaexemplo.com.br');
     await type(renderer, 'Responsável', 'Dr André Matos');

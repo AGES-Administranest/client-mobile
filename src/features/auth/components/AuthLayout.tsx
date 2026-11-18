@@ -1,17 +1,15 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft } from 'lucide-react-native';
 import { ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from 'app/components/ui/icon';
+import { BackButton } from 'app/components/ui/back-button';
 import { Text } from 'app/components/ui/text';
 
 import { Colors } from '../../../theme/colors';
@@ -56,15 +54,11 @@ export function AuthLayout({
           ]}
         >
           {onBack ? (
-            <Pressable
+            <BackButton
+              label={backLabel ?? ''}
               onPress={onBack}
-              accessibilityRole="button"
-              accessibilityLabel={backLabel}
-              hitSlop={8}
-              className="ml-3 h-11 w-11 items-center justify-center"
-            >
-              <Icon as={ChevronLeft} className="size-7 text-label-quartenery" />
-            </Pressable>
+              className="ml-3"
+            />
           ) : (
             <View className="ml-3 h-11 w-11" />
           )}

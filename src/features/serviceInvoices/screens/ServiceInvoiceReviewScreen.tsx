@@ -255,6 +255,7 @@ export function ServiceInvoiceReviewScreen({
         confirmLabel={clinicSheet.confirmLabel}
         savingLabel={clinicSheet.savingLabel}
         closeLabel={clinicSheet.closeLabel}
+        stepTexts={clinicSheet.stepTexts}
         onChangeField={newClinic.setField}
         onSubmit={registration.submit}
         onClose={registration.cancel}

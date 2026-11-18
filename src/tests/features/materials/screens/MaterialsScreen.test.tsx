@@ -482,8 +482,9 @@ test('deactivating the last equipment shows the empty state with the add button'
 
   expect(isSheetOpen(renderer)).toBe(false);
   expect(confirmSheet(renderer).visible).toBe(false);
+  expect(getTexts(renderer)).toContain('Nenhum equipamento cadastrado');
   expect(getTexts(renderer)).toContain(
-    'Nenhum equipamento cadastrado. Cadastre o primeiro para acompanhar a depreciação.',
+    'Cadastre o primeiro para acompanhar a depreciação.',
   );
   expect(getTexts(renderer)).toContain('Adicionar equipamento');
 });

@@ -4,10 +4,10 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SlideInModal } from 'app/components/ui/slide-in-modal';
+import { MIN_SCREEN_TOP } from 'app/lib/layout';
 import { BackgroundPrimary } from 'theme/colors';
 
 // Browsers report no top inset, which left the back button on the edge.
-const MIN_TOP_PADDING = 16;
 
 const styles = StyleSheet.create({ fill: { flex: 1 } });
 
@@ -30,7 +30,7 @@ export function PricingScreenFrame({
         style={[
           styles.fill,
           {
-            paddingTop: Math.max(insets.top, MIN_TOP_PADDING),
+            paddingTop: Math.max(insets.top, MIN_SCREEN_TOP),
             paddingBottom: insets.bottom,
           },
         ]}

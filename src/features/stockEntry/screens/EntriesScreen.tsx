@@ -139,7 +139,19 @@ export function EntriesScreen({
 
         {/* Nothing pending */}
         {entries.status === 'ready' && entries.drafts.length === 0 ? (
-          <EmptyState icon={Inbox} message={t('stockEntry.entries.empty')} />
+          <EmptyState
+            icon={Inbox}
+            title={t('stockEntry.entries.empty')}
+            message={t('stockEntry.entries.emptyHint')}
+            titleClassName="text-base leading-6 text-label-quartenery"
+            messageClassName="text-[13px] leading-[19.5px]"
+            action={{
+              label: t('stockEntry.entries.newEntry'),
+              icon: Plus,
+              onPress: onNewEntry,
+            }}
+            className="shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]"
+          />
         ) : null}
 
         {/* Pending section title and count */}
@@ -163,13 +175,15 @@ export function EntriesScreen({
       </ScrollView>
 
       {/* New entry button */}
-      <View className="px-4 pb-4 pt-2">
-        <ActionButton
-          label={t('stockEntry.entries.newEntry')}
-          icon={<Icon as={Plus} size={16} />}
-          onPress={onNewEntry}
-        />
-      </View>
+      {entries.status === 'ready' && entries.drafts.length === 0 ? null : (
+        <View className="px-4 pb-4 pt-2">
+          <ActionButton
+            label={t('stockEntry.entries.newEntry')}
+            icon={<Icon as={Plus} size={16} />}
+            onPress={onNewEntry}
+          />
+        </View>
+      )}
 
       {/* Confirms discarding an entry */}
       <ConfirmSheet

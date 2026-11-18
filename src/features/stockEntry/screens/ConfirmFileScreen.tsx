@@ -1,4 +1,4 @@
-import { FileText, Upload } from 'lucide-react-native';
+import { FileText, Upload, X } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
 import { ActionButton } from 'app/components/ui';
@@ -14,7 +14,6 @@ type ConfirmFileScreenProps = {
   fileName: string;
   sizeBytes: number;
   onSend: () => void;
-  onReplace: () => void;
   onCancel: () => void;
 };
 
@@ -23,7 +22,6 @@ export function ConfirmFileScreen({
   fileName,
   sizeBytes,
   onSend,
-  onReplace,
   onCancel,
 }: ConfirmFileScreenProps) {
   const { t, locale } = useTranslation();
@@ -66,20 +64,20 @@ export function ConfirmFileScreen({
         <NoticeBanner tone="info" message={t('stockEntry.confirmFile.info')} />
       </View>
 
-      {/* Send, replace or cancel */}
+      {/* Send or cancel */}
       <View className="gap-4 px-4 pb-4">
         <ActionButton
           label={t('stockEntry.confirmFile.send')}
           icon={<Icon as={Upload} size={16} />}
           onPress={onSend}
         />
-        <Pressable onPress={onReplace} accessibilityRole="button">
-          <Text className="text-center text-sm font-semibold text-label-quartenery">
-            {t('stockEntry.confirmFile.replace')}
-          </Text>
-        </Pressable>
-        <Pressable onPress={onCancel} accessibilityRole="button">
-          <Text className="text-center text-sm text-label-tertiary">
+        <Pressable
+          onPress={onCancel}
+          accessibilityRole="button"
+          className="flex-row items-center justify-center gap-1.5 py-1"
+        >
+          <Icon as={X} size={16} className="text-alert-primary" />
+          <Text className="text-sm font-semibold text-alert-primary">
             {t('stockEntry.confirmFile.cancel')}
           </Text>
         </Pressable>

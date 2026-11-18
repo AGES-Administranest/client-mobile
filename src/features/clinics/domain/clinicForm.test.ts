@@ -129,16 +129,8 @@ describe('maskClinicField', () => {
 });
 
 describe('validateClinicDraft', () => {
-  it('requires every field except the name when only the name was filled', () => {
-    expect(validateClinicDraft(nameOnly())).toEqual({
-      cnpj: 'required',
-      addressLine: 'required',
-      city: 'required',
-      state: 'required',
-      phone: 'required',
-      email: 'required',
-      contactName: 'required',
-    });
+  it('accepts a clinic with only the name filled', () => {
+    expect(validateClinicDraft(nameOnly())).toEqual({});
   });
 
   it('accepts a clinic with every field filled', () => {
@@ -156,7 +148,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', 'required'],
+    ['', undefined],
     ['11.222.333/0001-8', 'invalid'],
     ['11.222.333/0001-81', undefined],
   ])('checks the CNPJ %p', (cnpj, error) => {
@@ -164,7 +156,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', 'required'],
+    ['', undefined],
     ['(11) 3456-789', 'invalid'],
     ['(11) 3456-7890', undefined],
     ['(11) 93456-7890', undefined],
@@ -173,7 +165,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', 'required'],
+    ['', undefined],
     ['S', 'invalid'],
     ['XX', 'invalid'],
     ['SP', undefined],
@@ -183,7 +175,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', 'required'],
+    ['', undefined],
     ['contato@vetnova.com.br', undefined],
     ['  contato@vetnova.com  ', undefined],
     ['contato@vetnova', 'invalid'],
@@ -216,7 +208,7 @@ describe('validateClinicDraft', () => {
   });
 
   it.each([
-    ['', 'required'],
+    ['', undefined],
     ['Rua A', undefined],
     ['Rua', 'tooShort'],
     ['  R1  ', 'tooShort'],
@@ -229,18 +221,18 @@ describe('validateClinicDraft', () => {
     ["D'Ávila-Sul", 'SP', undefined],
     ['S', 'SP', 'tooShort'],
     ['Sao Paulo 2', 'SP', 'invalid'],
-    ['', 'SP', 'required'],
-    ['   ', 'SP', 'required'],
+    ['', 'SP', undefined],
+    ['   ', 'SP', undefined],
   ])('checks the city %p with state %p', (city, state, error) => {
     expect(validateClinicDraft(draft({ city, state })).city).toBe(error);
   });
 
-  it('asks for the state even when the city was filled', () => {
-    expect(validateClinicDraft(draft({ state: '' })).state).toBe('required');
+  it('does not ask for the state when the city was filled', () => {
+    expect(validateClinicDraft(draft({ state: '' })).state).toBeUndefined();
   });
 
   it.each([
-    ['', 'required'],
+    ['', undefined],
     ['Dr. André Matos', undefined],
     ['A', 'tooShort'],
     ['Dr. 123', 'invalid'],

@@ -2,14 +2,19 @@ import { LogIn, UserPlus } from 'lucide-react-native';
 
 import { useLegalDocuments } from 'shared/hooks/useLegalDocuments';
 import { useTranslation } from 'shared/i18n';
+import { CRMV_MAX_LENGTH } from 'shared/utils/crmv';
 
 import { AuthButton } from '../components/AuthButton';
 import { AuthLayout } from '../components/AuthLayout';
 import { FormMessage } from '../components/FormMessage';
+import { SexField } from '../components/SexField';
 import { TermsCheckbox } from '../components/TermsCheckbox';
 import { TextField } from '../components/TextField';
+import type { SignUpSex } from '../domain/validateAuthForm';
 import { fieldErrorKey } from '../hooks/authMessageKeys';
 import { useSignUpForm } from '../hooks/useSignUpForm';
+
+const SEXES: SignUpSex[] = ['FEMALE', 'MALE', 'OTHER', 'NOT_INFORMED'];
 
 type SignUpScreenProps = {
   onBack: () => void;
@@ -62,6 +67,28 @@ export function SignUpScreen({
         textContentType="emailAddress"
         returnKeyType="next"
         editable={!isSubmitting}
+      />
+      <TextField
+        label={t('auth.fields.crmv')}
+        placeholder={t('auth.fields.crmvPlaceholder')}
+        value={form.crmv}
+        onChangeText={value => setField('crmv', value)}
+        error={fieldError('crmv')}
+        autoCapitalize="characters"
+        autoCorrect={false}
+        maxLength={CRMV_MAX_LENGTH}
+        returnKeyType="next"
+        editable={!isSubmitting}
+      />
+      <SexField
+        label={t('auth.fields.sex')}
+        value={form.sex}
+        options={SEXES.map(sex => ({
+          value: sex,
+          label: t(`profile.sex.${sex}`),
+        }))}
+        disabled={isSubmitting}
+        onChange={value => setField('sex', value)}
       />
       <TextField
         label={t('auth.fields.password')}

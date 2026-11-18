@@ -29,6 +29,8 @@ type ReportCategoriesSheetProps = {
   onClearAll: () => void;
   onGenerate: () => void;
   onClose: () => void;
+  /** iOS: o fim da saída; só então outro Modal ou o compartilhar do sistema pode abrir. */
+  onClosed?: () => void;
 };
 
 export function ReportCategoriesSheet({
@@ -49,6 +51,7 @@ export function ReportCategoriesSheet({
   onClearAll,
   onGenerate,
   onClose,
+  onClosed,
 }: ReportCategoriesSheetProps) {
   return (
     <BottomSheet
@@ -56,6 +59,7 @@ export function ReportCategoriesSheet({
       title={title}
       closeLabel={closeLabel}
       onClose={onClose}
+      onClosed={onClosed}
       footer={
         <View className="gap-2">
           {error ? (

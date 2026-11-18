@@ -4,6 +4,7 @@ import { Animated, Modal, Pressable, View } from 'react-native';
 
 import { Button } from 'app/components/ui/button';
 import { Text } from 'app/components/ui/text';
+import { layout } from 'app/lib/layout';
 import { useSheetAnimation } from 'shared/hooks/useSheetAnimation';
 
 type ConfirmSheetProps = {
@@ -69,7 +70,7 @@ function ConfirmSheet({
       animationType="none"
       onRequestClose={onCancel}
     >
-      <Animated.View style={{ flex: 1, opacity: sheet.progress }}>
+      <Animated.View style={[layout.fill, { opacity: sheet.progress }]}>
         <Pressable
           className="flex-1 justify-end bg-background-shade"
           onPress={onCancel}
@@ -90,28 +91,30 @@ function ConfirmSheet({
                 </Text>
               ) : null}
 
-              <Button
-                shape="pill"
-                icon={confirmIcon}
-                className="h-[49px] w-full"
-                onPress={onConfirm}
-              >
-                <Text className="font-semibold">{confirmLabel}</Text>
-              </Button>
-              {cancelLabel ? (
+              <View className="gap-2">
                 <Button
                   shape="pill"
-                  variant={
-                    cancelAppearance === 'danger' ? 'secondary' : 'default'
-                  }
-                  icon={X}
+                  icon={confirmIcon}
                   className="h-[49px] w-full"
-                  accessibilityLabel={cancelLabel}
-                  onPress={onCancel}
+                  onPress={onConfirm}
                 >
-                  <Text className="font-semibold">{cancelLabel}</Text>
+                  <Text className="font-semibold">{confirmLabel}</Text>
                 </Button>
-              ) : null}
+                {cancelLabel ? (
+                  <Button
+                    shape="pill"
+                    variant={
+                      cancelAppearance === 'danger' ? 'secondary' : 'default'
+                    }
+                    icon={X}
+                    className="h-[49px] w-full"
+                    accessibilityLabel={cancelLabel}
+                    onPress={onCancel}
+                  >
+                    <Text className="font-semibold">{cancelLabel}</Text>
+                  </Button>
+                ) : null}
+              </View>
             </Pressable>
           </Animated.View>
         </Pressable>

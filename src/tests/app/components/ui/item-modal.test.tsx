@@ -254,9 +254,6 @@ test('a brand new item still asks for the expiration', async () => {
       .props.onChangeText('1000');
   });
   await act(async () => {
-    pressWithText(renderer, 'UNIDADE').props.onPress();
-  });
-  await act(async () => {
     pressWithText(renderer, 'ampola').props.onPress();
   });
   await goToNextStep(renderer);

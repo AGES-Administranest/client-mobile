@@ -137,6 +137,8 @@ export function SuppliersScreen() {
     if (removed) closeDetail();
   };
 
+  const showsEmptyAction = suppliers.length === 0 && !isLoading && !failure;
+
   return (
     <View className="flex-1 gap-4">
       {suppliers.length === 0 ? (
@@ -144,7 +146,20 @@ export function SuppliersScreen() {
           {isLoading ? null : (
             <EmptyState
               icon={Truck}
-              message={t(failure ?? 'suppliers.empty')}
+              title={failure ? undefined : t('suppliers.empty')}
+              message={t(failure ?? 'suppliers.emptyHint')}
+              titleClassName="text-base leading-6 text-label-quartenery"
+              messageClassName="text-[13px] leading-[19.5px]"
+              action={
+                failure
+                  ? undefined
+                  : {
+                      label: t('suppliers.add'),
+                      icon: Plus,
+                      onPress: openNew,
+                    }
+              }
+              className="shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]"
             />
           )}
         </View>
@@ -181,14 +196,16 @@ export function SuppliersScreen() {
         </ScrollView>
       )}
 
-      <Button
-        shape="pill"
-        className="mb-[16px] h-[49px] w-full"
-        onPress={openNew}
-      >
-        <Icon as={Plus} className="size-5" />
-        <Text className="font-semibold">{t('suppliers.add')}</Text>
-      </Button>
+      {showsEmptyAction ? null : (
+        <Button
+          shape="pill"
+          className="mb-[16px] h-[49px] w-full"
+          onPress={openNew}
+        >
+          <Icon as={Plus} className="size-5" />
+          <Text className="font-semibold">{t('suppliers.add')}</Text>
+        </Button>
+      )}
 
       <NewSupplierSheet
         visible={isNewOpen}

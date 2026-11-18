@@ -1,5 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Calendar from 'expo-calendar/legacy';
 import { Platform } from 'react-native';
+
+import { LOCAL_DATA_KEY_PREFIX } from 'shared/services/localData';
 
 import type { CalendarEventInput } from '../domain/calendarEvent';
 import { selectWritableCalendarId } from '../domain/selectWritableCalendarId';
@@ -45,17 +48,113 @@ async function resolveCalendarId(): Promise<string> {
   });
 }
 
-/** Retorna o id do evento criado no calendário nativo do aparelho. */
+// Agendamento -> evento do aparelho, para remarcar/cancelar atualizar o mesmo
+// evento. O prefixo faz o logout limpar este mapa junto com os outros dados.
+const EVENT_IDS_KEY = `${LOCAL_DATA_KEY_PREFIX}calendarEventIds`;
+
+async function readEventIds(): Promise<Record<string, string>> {
+  try {
+    return JSON.parse((await AsyncStorage.getItem(EVENT_IDS_KEY)) ?? '{}');
+  } catch {
+    return {};
+  }
+}
+
+async function saveEventId(appointmentId: string, eventId: string | null) {
+  const ids = await readEventIds();
+  if (eventId) {
+    ids[appointmentId] = eventId;
+  } else {
+    delete ids[appointmentId];
+  }
+  await AsyncStorage.setItem(EVENT_IDS_KEY, JSON.stringify(ids));
+}
+
+/**
+ * Cria o evento no calendário nativo e devolve o id. Com `appointmentId`, um
+ * evento já criado para ele é atualizado em vez de duplicado.
+ */
 export async function addAppointmentToCalendar(
   event: CalendarEventInput,
+  appointmentId?: string,
 ): Promise<string> {
-  const calendarId = await resolveCalendarId();
-
-  return Calendar.createEventAsync(calendarId, {
+  const details = {
     title: event.title,
     startDate: event.startDate,
     endDate: event.endDate,
     location: event.location,
     notes: event.notes,
+  };
+  const existingId = appointmentId
+    ? (await readEventIds())[appointmentId]
+    : undefined;
+  if (existingId) {
+    try {
+      await Calendar.updateEventAsync(existingId, details);
+      return existingId;
+    } catch {
+      // O usuário apagou o evento no aparelho: cria de novo abaixo.
+    }
+  }
+
+  const eventId = await Calendar.createEventAsync(
+    await resolveCalendarId(),
+    details,
+  );
+  if (appointmentId) {
+    await saveEventId(appointmentId, eventId);
+  }
+  return eventId;
+}
+
+// Os três abaixo rodam sem o usuário pedir: nunca lançam, e sem permissão ou
+// na web simplesmente não fazem nada.
+async function quietly(action: () => Promise<unknown>): Promise<void> {
+  if (Platform.OS === 'web') {
+    return;
+  }
+  try {
+    await action();
+  } catch {
+    // O agendamento já está salvo; o calendário é só uma cópia.
+  }
+}
+
+export function syncAppointmentToCalendar(
+  appointmentId: string,
+  event: CalendarEventInput,
+): Promise<void> {
+  return quietly(async () => {
+    if ((await requestCalendarPermission()) === 'granted') {
+      await addAppointmentToCalendar(event, appointmentId);
+    }
+  });
+}
+
+export function rescheduleCalendarEvent(
+  appointmentId: string,
+  startsAt: string,
+  endsAt: string,
+): Promise<void> {
+  return quietly(async () => {
+    const eventId = (await readEventIds())[appointmentId];
+    if (eventId) {
+      await Calendar.updateEventAsync(eventId, {
+        startDate: new Date(startsAt),
+        endDate: new Date(endsAt),
+      });
+    }
+  });
+}
+
+export function removeAppointmentFromCalendar(
+  appointmentId: string,
+): Promise<void> {
+  return quietly(async () => {
+    const eventId = (await readEventIds())[appointmentId];
+    if (eventId) {
+      await Calendar.deleteEventAsync(eventId);
+      await saveEventId(appointmentId, null);
+    }
   });
 }

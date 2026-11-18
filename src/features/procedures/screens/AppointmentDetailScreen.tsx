@@ -1,7 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   CalendarPlus,
-  ChevronLeft,
   MapPin,
   Pencil,
   Plus,
@@ -24,12 +23,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+import { BackButton } from 'app/components/ui/back-button';
 import { Button } from 'app/components/ui/button';
 import { ConfirmSheet } from 'app/components/ui/confirm-sheet';
 import { DeleteOriginDialog } from 'app/components/ui/delete-origin-dialog';
 import { Icon } from 'app/components/ui/icon';
 import { StatCard } from 'app/components/ui/stat-card';
 import { Text } from 'app/components/ui/text';
+import { layout } from 'app/lib/layout';
 import { cn } from 'app/lib/utils';
 import {
   AsaBadge,
@@ -43,6 +44,7 @@ import { useAppointmentTrips, useTripRowTexts } from 'features/trips';
 import { useTranslation } from 'shared/i18n';
 import { toCalendarDate } from 'shared/utils/calendar';
 import { formatCurrency } from 'shared/utils/currency';
+import { formatAmountInput, toAmountInput } from 'shared/utils/inputMasks';
 import { originDeletionEffects } from 'shared/utils/originDeletion';
 import { Colors } from 'theme/colors';
 
@@ -230,7 +232,7 @@ export function AppointmentDetailScreen({
 
   function openAmountSheet(): void {
     const current = appointment?.amount ?? '';
-    setAmountText(locale === 'pt-BR' ? current.replace('.', ',') : current);
+    setAmountText(toAmountInput(current));
     setAmountError(null);
     setAmountSheetVisible(true);
   }
@@ -269,7 +271,7 @@ export function AppointmentDetailScreen({
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View style={{ flex: 1, transform: [{ translateX }] }}>
+      <Animated.View style={[layout.fill, { transform: [{ translateX }] }]}>
         <View className="flex-1" style={{ paddingTop: insets.top + 12 }}>
           <LinearGradient
             colors={Colors.background.primary.colors}
@@ -278,14 +280,7 @@ export function AppointmentDetailScreen({
           />
 
           <View className="flex-row items-center justify-between px-5 pb-2 pt-1">
-            <Button
-              shape="pill"
-              size="icon"
-              icon={ChevronLeft}
-              accessibilityRole="button"
-              accessibilityLabel={t('procedures.detail.back')}
-              onPress={onClose}
-            />
+            <BackButton label={t('procedures.detail.back')} onPress={onClose} />
             {appointment !== null ? (
               <View className="flex-row gap-2">
                 {editable ? (
@@ -621,7 +616,9 @@ export function AppointmentDetailScreen({
                   onDestinationChange={appointmentTrips.setDestination}
                   onSelectVehicle={appointmentTrips.setSelectedVehicleId}
                   onDistanceKmChange={appointmentTrips.setDistanceKm}
-                  onCostChange={appointmentTrips.setCost}
+                  onCostChange={value =>
+                    appointmentTrips.setCost(formatAmountInput(value))
+                  }
                   onConfirm={() => {
                     appointmentTrips.confirm().catch(() => undefined);
                   }}
@@ -695,7 +692,6 @@ export function AppointmentDetailScreen({
         submitErrorText={t('procedures.form.submitError')}
         texts={formTexts}
         client={form.client}
-        showLocationHint={form.showLocationHint}
         step={form.step}
         onNext={form.nextStep}
         onBack={form.previousStep}
@@ -751,7 +747,7 @@ export function AppointmentDetailScreen({
           confirm: t('procedures.detail.amountSheet.confirm'),
         }}
         onChangeValue={value => {
-          setAmountText(value);
+          setAmountText(formatAmountInput(value));
           setAmountError(null);
         }}
         onConfirm={saveAmount}

@@ -42,7 +42,12 @@ export function InventoryAlertObserver({ snapshot, referenceDate }: Props) {
     const previous = previousUserId.current;
     if (previous && previous !== currentUserId) {
       deactivateInventoryAlerts(previous).catch(error => {
-        console.warn('[InventoryAlertObserver] account cleanup failed', error);
+        if (__DEV__) {
+          console.warn(
+            '[InventoryAlertObserver] account cleanup failed',
+            error,
+          );
+        }
       });
     }
     previousUserId.current = currentUserId;

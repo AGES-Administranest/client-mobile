@@ -25,6 +25,7 @@ const TEXTS = {
   noResultsTitle: 'Nada encontrado',
   noResultsMessage: 'Tente outro tomador.',
   add: 'Adicionar nota',
+  addHint: 'Aceitamos só PDF, não imagens.',
 };
 
 const ROW: ServiceInvoiceListRow = {

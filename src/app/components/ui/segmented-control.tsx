@@ -1,11 +1,11 @@
 import { cva } from 'class-variance-authority';
-import { Pressable, View } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 
 import { Text } from 'app/components/ui/text';
 import { cn } from 'app/lib/utils';
 
 const segmentVariants = cva(
-  'flex-1 basis-0 items-center justify-center rounded-lg px-2 py-2',
+  'shrink-0 grow items-center justify-center rounded-lg px-4 py-2',
   {
     variants: {
       active: {
@@ -47,11 +47,13 @@ function SegmentedControl<T extends string>({
   className,
 }: SegmentedControlProps<T>) {
   return (
-    <View
-      className={cn(
-        'flex-row items-stretch rounded-lg bg-white p-2',
-        className,
-      )}
+    // Segments keep their text on one line at its natural width: they share
+    // the row when it fits and scroll sideways when it does not.
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      className={cn('grow-0 rounded-lg bg-white', className)}
+      contentContainerClassName="min-w-full flex-row items-stretch gap-1 p-2"
     >
       {options.map(segment => {
         const active = segment.value === value;
@@ -69,7 +71,7 @@ function SegmentedControl<T extends string>({
           </Pressable>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 

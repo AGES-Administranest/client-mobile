@@ -1,4 +1,9 @@
-import { digitsOnly, parseDateInput } from 'shared/utils/inputMasks';
+import {
+  BRAZILIAN_STATES,
+  formatCrmvInput,
+  isValidCrmv,
+} from 'shared/utils/crmv';
+import { parseDateInput } from 'shared/utils/inputMasks';
 
 import type { Profile, Sex } from './profile';
 
@@ -7,41 +12,8 @@ export const NAME_MAX_LENGTH = 120;
 export const CITY_MAX_LENGTH = 120;
 export const MIN_AGE = 18;
 const OLDEST_BIRTH_DATE = '1900-01-01';
-const CRMV_MAX_DIGITS = 6;
 
-export const BRAZILIAN_STATES = [
-  'AC',
-  'AL',
-  'AM',
-  'AP',
-  'BA',
-  'CE',
-  'DF',
-  'ES',
-  'GO',
-  'MA',
-  'MG',
-  'MS',
-  'MT',
-  'PA',
-  'PB',
-  'PE',
-  'PI',
-  'PR',
-  'RJ',
-  'RN',
-  'RO',
-  'RR',
-  'RS',
-  'SC',
-  'SE',
-  'SP',
-  'TO',
-] as const;
-
-const CRMV_PATTERN = new RegExp(
-  `^(${BRAZILIAN_STATES.join('|')})-\\d{1,${CRMV_MAX_DIGITS}}$`,
-);
+export { BRAZILIAN_STATES, formatCrmvInput };
 
 export type ProfileFormValues = {
   name: string;
@@ -89,14 +61,6 @@ export function profileToFormValues(profile: Profile): ProfileFormValues {
   };
 }
 
-export function formatCrmvInput(text: string): string {
-  const clean = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const uf = /^[A-Z]{0,2}/.exec(clean)?.[0] ?? '';
-  const digits = digitsOnly(clean.slice(uf.length)).slice(0, CRMV_MAX_DIGITS);
-
-  return uf && digits ? `${uf}-${digits}` : uf || digits;
-}
-
 function toIsoDate(birthDate: string): string | null {
   const parsed = parseDateInput(birthDate);
   if (!parsed) return null;
@@ -119,8 +83,8 @@ export function validateProfileForm(
     errors.name = 'nameTooLong';
   }
 
-  const crmv = values.crmv.trim().toUpperCase();
-  if (crmv && !CRMV_PATTERN.test(crmv)) {
+  const crmv = values.crmv.trim();
+  if (crmv && !isValidCrmv(crmv)) {
     errors.crmv = 'crmvInvalid';
   }
 
