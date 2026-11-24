@@ -14,6 +14,8 @@ import type {
 } from '../domain/offlineTrips';
 import type { Trip } from '../domain/trip.types';
 
+type PendingTripCreate = Extract<PendingTripOperation, { kind: 'create' }>;
+
 export type TripSyncResult = {
   synced: number;
   rejected: number;
@@ -29,76 +31,126 @@ function isPermanentRejection(error: unknown): error is ApiError {
   );
 }
 
-async function sendIndividualOperation(
+async function sendCreate(
+  idToken: string,
+  userId: string,
+  operation: PendingTripCreate,
+): Promise<string> {
+  const saved = await apiClient.post<Trip>(
+    '/trips',
+    {
+      ...operation.payload,
+      id: operation.clientGeneratedId,
+    },
+    { token: idToken },
+  );
+  const tripId = saved?.id ?? operation.clientGeneratedId;
+  await saveResolvedTripId(userId, operation.clientGeneratedId, tripId);
+  return tripId;
+}
+
+async function removeIfUnchanged(
+  userId: string,
+  sent: PendingTripOperation,
+): Promise<boolean> {
+  const queue = await loadTripOutbox(userId);
+  const sentJson = JSON.stringify(sent);
+  const index = queue.findIndex(
+    operation => JSON.stringify(operation) === sentJson,
+  );
+  if (index === -1) return false;
+  await saveTripOutbox(userId, [
+    ...queue.slice(0, index),
+    ...queue.slice(index + 1),
+  ]);
+  return true;
+}
+
+// Edited while it was being created: the backend refuses the same id with
+// other data, so what is left to send is an update of the trip just created.
+async function turnEditedCreateIntoUpdate(
+  userId: string,
+  sent: PendingTripCreate,
+  tripId: string,
+): Promise<void> {
+  const queue = await loadTripOutbox(userId);
+  await saveTripOutbox(
+    userId,
+    queue.map(operation =>
+      operation.kind === 'create' &&
+      operation.clientGeneratedId === sent.clientGeneratedId
+        ? {
+            kind: 'update',
+            tripId,
+            changes: operation.payload,
+            calculatedCost: operation.calculatedCost,
+          }
+        : operation,
+    ),
+  );
+}
+
+async function sendOperation(
   idToken: string,
   userId: string,
   operation: PendingTripOperation,
-): Promise<Trip | null> {
+): Promise<void> {
   if (operation.kind === 'create') {
-    const saved = await apiClient.post<Trip>(
-      '/trips',
-      {
-        ...operation.payload,
-        id: operation.clientGeneratedId,
-      },
-      { token: idToken },
-    );
-    if (saved?.id) {
-      await saveResolvedTripId(userId, operation.clientGeneratedId, saved.id);
+    const tripId = await sendCreate(idToken, userId, operation);
+    if (!(await removeIfUnchanged(userId, operation))) {
+      await turnEditedCreateIntoUpdate(userId, operation, tripId);
     }
-    return saved;
+    return;
   }
 
   if (operation.kind === 'update') {
-    return apiClient.patch<Trip>(
+    await apiClient.patch<Trip>(
       `/trips/${operation.tripId}`,
       operation.changes,
       { token: idToken },
     );
-  }
-
-  if (operation.kind === 'delete') {
-    return apiClient.delete<Trip>(`/trips/${operation.tripId}`, {
+  } else {
+    await apiClient.delete<Trip>(`/trips/${operation.tripId}`, {
       token: idToken,
     });
   }
-
-  return null;
+  await removeIfUnchanged(userId, operation);
 }
 
-export async function syncPendingTrips(
-  idToken: string,
-  userId: string,
-): Promise<TripSyncResult> {
-  const queue = await loadTripOutbox(userId);
-  if (queue.length === 0) {
-    return { synced: 0, rejected: 0, pending: 0 };
-  }
-
+async function run(idToken: string, userId: string): Promise<TripSyncResult> {
   let synced = 0;
-  const remaining: PendingTripOperation[] = [];
-  const rejections = await loadTripRejections(userId);
   const newRejections: TripSyncRejection[] = [];
+  const attempted = new Set<string>();
 
-  for (const operation of queue) {
+  // The queue is read again for each operation: trips registered or edited
+  // while another one is being sent must not be overwritten.
+  for (;;) {
+    const queue = await loadTripOutbox(userId);
+    const next = queue.find(
+      operation => !attempted.has(JSON.stringify(operation)),
+    );
+    if (!next) break;
+    attempted.add(JSON.stringify(next));
+
     try {
-      await sendIndividualOperation(idToken, userId, operation);
+      await sendOperation(idToken, userId, next);
       synced++;
     } catch (err) {
-      if (isPermanentRejection(err)) {
-        newRejections.push({
-          operation,
-          code: err instanceof ApiError ? err.code : null,
-        });
-      } else {
-        remaining.push(operation);
+      // A refused operation edited meanwhile stays queued with its edit.
+      if (
+        isPermanentRejection(err) &&
+        (await removeIfUnchanged(userId, next))
+      ) {
+        newRejections.push({ operation: next, code: err.code });
       }
     }
   }
 
-  await saveTripOutbox(userId, remaining);
   if (newRejections.length > 0) {
-    await saveTripRejections(userId, [...rejections, ...newRejections]);
+    await saveTripRejections(userId, [
+      ...(await loadTripRejections(userId)),
+      ...newRejections,
+    ]);
   }
   if (synced > 0 || newRejections.length > 0) {
     notifyOfflineTripsChanged();
@@ -107,6 +159,21 @@ export async function syncPendingTrips(
   return {
     synced,
     rejected: newRejections.length,
-    pending: remaining.length,
+    pending: (await loadTripOutbox(userId)).length,
   };
+}
+
+let running: Promise<TripSyncResult> | null = null;
+
+/** Sends the queue in order. Simultaneous calls wait for the same run. */
+export function syncPendingTrips(
+  idToken: string,
+  userId: string,
+): Promise<TripSyncResult> {
+  if (!running) {
+    running = run(idToken, userId).finally(() => {
+      running = null;
+    });
+  }
+  return running;
 }
