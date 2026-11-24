@@ -279,7 +279,7 @@ export function AppointmentDetailScreen({
             style={StyleSheet.absoluteFill}
           />
 
-          <View className="flex-row items-center justify-between px-5 pb-2 pt-1">
+          <View className="flex-row items-center justify-between px-4 pb-2 pt-1">
             <BackButton label={t('procedures.detail.back')} onPress={onClose} />
             {appointment !== null ? (
               <View className="flex-row gap-2">
@@ -321,7 +321,7 @@ export function AppointmentDetailScreen({
             </View>
           ) : appointment === null ? null : (
             <ScrollView
-              contentContainerClassName="gap-4 px-5 pb-10 pt-1"
+              contentContainerClassName="gap-4 px-4 pb-10 pt-1"
               keyboardShouldPersistTaps="handled"
             >
               <View className="gap-1">

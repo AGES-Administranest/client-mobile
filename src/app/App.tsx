@@ -6,6 +6,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
+import { ScreenFade } from 'app/components/ui/screen-fade';
 import { TabBar, type TabValue } from 'app/components/ui/tabbar';
 import { MIN_SCREEN_TOP } from 'app/lib/layout';
 import { AppointmentSyncObserver } from 'features/appointments';
@@ -132,7 +133,9 @@ function AppContent() {
         locations={Colors.background.primary.locations}
         style={StyleSheet.absoluteFill}
       />
-      <Screen />
+      <ScreenFade key={tab}>
+        <Screen />
+      </ScreenFade>
       {/* Fora das abas: a fila offline sobe mesmo com outra aba aberta. */}
       <AppointmentSyncObserver />
       <TripSyncObserver />

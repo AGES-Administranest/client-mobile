@@ -1053,16 +1053,12 @@
       "or": "or",
       "login": "Log in"
     },
-    "social": {
-      "divider": "or continue with",
-      "google": "Continue with Google"
-    },
     "fields": {
       "name": "Name",
       "email": "E-mail",
       "password": "Password",
       "passwordConfirmation": "Confirm password",
-      "crmv": "CRMV (optional)",
+      "crmv": "CRMV",
       "crmvPlaceholder": "E.g. RS-12345",
       "sex": "Sex (optional)",
       "code": "Confirmation code"

@@ -53,7 +53,7 @@ function HourlyRateContent({ onClose }: { onClose: () => void }) {
       <ScrollView
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
-        contentContainerClassName="gap-[18px] px-[22px] pb-10 pt-2.5"
+        contentContainerClassName="gap-[18px] px-4 pb-10 pt-2.5"
       >
         {isConfiguring ? (
           <PricingSetupView
