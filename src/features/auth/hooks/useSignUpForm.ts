@@ -60,7 +60,7 @@ export function useSignUpForm({ onNeedsConfirmation }: UseSignUpFormOptions) {
     return run(async () => {
       const result = await signUp(email, form.password, form.name.trim());
       await saveSignUpProfile(email, {
-        crmv: form.crmv.trim().toUpperCase() || null,
+        crmv: form.crmv.trim().toUpperCase(),
         sex: form.sex,
       });
 

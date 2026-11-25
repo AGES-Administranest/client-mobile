@@ -11,14 +11,13 @@ import { AuthError } from '../domain/authErrors';
 import { AuthProvider, useAuth } from '../hooks/AuthContext';
 import * as accountApi from '../services/accountApi';
 import * as authService from '../services/authService';
-import * as socialAuthService from '../services/socialAuthService';
 
 jest.mock('../services/authService');
 jest.mock('../services/socialAuthService');
 jest.mock('../services/accountApi');
+jest.mock('../services/signUpProfileStore');
 
 const service = jest.mocked(authService);
-const socialService = jest.mocked(socialAuthService);
 const api = jest.mocked(accountApi);
 
 const TERMS_LABEL = 'Li e aceito os Termos de Uso e a Política de Privacidade.';
@@ -162,63 +161,6 @@ describe('social sign in outside production', () => {
   });
 });
 
-describe('social sign in in production', () => {
-  beforeEach(() => {
-    process.env.EXPO_PUBLIC_APP_ENV = 'production';
-  });
-
-  afterEach(() => {
-    delete process.env.EXPO_PUBLIC_APP_ENV;
-  });
-
-  it('offers Google, and only Google, on the welcome and login screens', async () => {
-    const renderer = await renderFlow();
-
-    expect(byLabel(renderer, 'Continuar com Google')).toBeDefined();
-    expect(byLabel(renderer, 'Continuar com Apple')).toBeUndefined();
-
-    await press(renderer, 'Login');
-
-    expect(byLabel(renderer, 'Continuar com Google')).toBeDefined();
-  });
-
-  it('stores the session of the Google sign in', async () => {
-    socialService.signInWithProvider.mockResolvedValue(SESSION);
-    const renderer = await renderFlow();
-
-    await press(renderer, 'Continuar com Google');
-
-    expect(socialService.signInWithProvider).toHaveBeenCalledWith('Google');
-    expect(sessionSeen).toEqual(SESSION);
-  });
-
-  it('stays quiet when the user backs out of the provider screen', async () => {
-    socialService.signInWithProvider.mockResolvedValue(null);
-    const renderer = await renderFlow();
-    const before = texts(renderer);
-
-    await press(renderer, 'Continuar com Google');
-
-    expect(sessionSeen).toBeNull();
-    expect(texts(renderer)).toBe(before);
-  });
-
-  it('shows the generic message when the provider flow fails', async () => {
-    socialService.signInWithProvider.mockRejectedValue(
-      new AuthError('NETWORK_UNAVAILABLE'),
-    );
-    const renderer = await renderFlow();
-
-    await press(renderer, 'Login');
-    await press(renderer, 'Continuar com Google');
-
-    expect(texts(renderer)).toContain(
-      'Sem conexão. Verifique sua internet e tente novamente.',
-    );
-    expect(sessionSeen).toBeNull();
-  });
-});
-
 describe('login', () => {
   it('validates locally before calling Cognito', async () => {
     const renderer = await renderFlow();
@@ -300,10 +242,21 @@ describe('sign up', () => {
     await press(renderer, 'Criar conta');
     await type(renderer, 'Nome', 'Ana');
     await type(renderer, 'E-mail', 'ana@example.com');
+    await type(renderer, 'CRMV', 'RS-12345');
     await type(renderer, 'Senha', 'Passw0rd@');
     await type(renderer, 'Confirmar senha', 'Passw0rd@');
     await press(renderer, TERMS_LABEL);
   }
+
+  it('does not create the account without the CRMV', async () => {
+    const renderer = await renderFlow();
+    await fillSignUp(renderer);
+    await type(renderer, 'CRMV', '');
+    await press(renderer, 'Criar conta');
+
+    expect(texts(renderer)).toContain('Campo obrigatório.');
+    expect(service.signUp).not.toHaveBeenCalled();
+  });
 
   it('does not create the account without accepting the terms', async () => {
     const renderer = await renderFlow();

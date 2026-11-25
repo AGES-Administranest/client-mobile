@@ -1,8 +1,23 @@
 import { ApiError, NetworkError, postJson } from 'shared/api';
-import { apiClient } from 'shared/services/apiClient';
+import {
+  ApiError as ApiClientError,
+  apiClient,
+} from 'shared/services/apiClient';
 
 import { Account } from '../domain/account';
 import { AuthError, fromApiError } from '../domain/authErrors';
+
+// postJson and apiClient each throw an ApiError of their own.
+function toAuthError(error: unknown): unknown {
+  if (error instanceof ApiError || error instanceof ApiClientError) {
+    const code = error.code ?? undefined;
+    return new AuthError(fromApiError(error.status, code), code);
+  }
+  if (error instanceof NetworkError) {
+    return new AuthError('NETWORK_UNAVAILABLE');
+  }
+  return error;
+}
 
 // The backend validates the id token: it is the one that carries the e-mail
 // (backend ADR-02 and the US34.2 guard).
@@ -14,13 +29,7 @@ async function post(
   try {
     return toAccount(await postJson<unknown>(path, idToken, body));
   } catch (error) {
-    if (error instanceof ApiError) {
-      throw new AuthError(fromApiError(error.status, error.code), error.code);
-    }
-    if (error instanceof NetworkError) {
-      throw new AuthError('NETWORK_UNAVAILABLE');
-    }
-    throw error;
+    throw toAuthError(error);
   }
 }
 
@@ -55,12 +64,6 @@ export async function deleteAccount(idToken: string): Promise<void> {
   try {
     await apiClient.delete<void>('/users/me', { token: idToken });
   } catch (error) {
-    if (error instanceof ApiError) {
-      throw new AuthError(fromApiError(error.status, error.code), error.code);
-    }
-    if (error instanceof NetworkError) {
-      throw new AuthError('NETWORK_UNAVAILABLE');
-    }
-    throw error;
+    throw toAuthError(error);
   }
 }

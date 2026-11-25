@@ -201,7 +201,7 @@ export function FinanceScreen() {
                     overview.incomplete ? t('finance.balanceIncomplete') : null
                   }
                 />
-                <View className="gap-3 px-5">
+                <View className="gap-3 px-4">
                   <NewEntryButton
                     label={t('financialEntries.newEntry')}
                     onPress={openOptions}
@@ -214,7 +214,7 @@ export function FinanceScreen() {
                     }}
                   />
                 </View>
-                <View className="gap-3 px-5">
+                <View className="gap-3 px-4">
                   <ScopeFilter
                     options={scopeOptions}
                     value={scope}
